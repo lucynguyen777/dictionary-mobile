@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { DictionaryEntry } from '@/data/dictionary';
 import { Folder } from '@/data/libraryStore';
@@ -27,7 +27,15 @@ export default function WordHeader({
 }: Props) {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
+  const [folderQuery, setFolderQuery] = useState('');
   const [noteDraft, setNoteDraft] = useState(note);
+
+  const filteredFolders = useMemo(() => {
+    const normalizedQuery = folderQuery.trim().toLowerCase();
+    if (!normalizedQuery) return folders;
+
+    return folders.filter((folder) => folder.name.toLowerCase().includes(normalizedQuery));
+  }, [folderQuery, folders]);
 
   const playAudio = async () => {
     try {
@@ -50,6 +58,7 @@ export default function WordHeader({
 
   useEffect(() => {
     setFolderPickerOpen(false);
+    setFolderQuery('');
     setNoteDraft(note);
 
     if (!sound) return;
@@ -93,9 +102,27 @@ export default function WordHeader({
 
       {folderPickerOpen ? (
         <View style={styles.folderPicker}>
-          <View style={styles.folderSearch}>
-            <Text style={styles.folderPlaceholder}>Lưu vào bộ từ</Text>
+          <View style={styles.folderPickerHeader}>
+            <Text style={styles.folderPickerTitle}>Lưu vào bộ từ</Text>
             <Ionicons name="albums-outline" size={22} color="#2563EB" />
+          </View>
+          <View style={styles.folderSearchBox}>
+            <Ionicons name="search" size={18} color="#64748B" />
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={setFolderQuery}
+              placeholder="Tìm nhanh album..."
+              placeholderTextColor="#94A3B8"
+              returnKeyType="search"
+              style={styles.folderSearchInput}
+              value={folderQuery}
+            />
+            {folderQuery ? (
+              <TouchableOpacity activeOpacity={0.75} onPress={() => setFolderQuery('')}>
+                <Ionicons name="close-circle" size={18} color="#94A3B8" />
+              </TouchableOpacity>
+            ) : null}
           </View>
           <TextInput
             multiline
@@ -105,19 +132,36 @@ export default function WordHeader({
             onChangeText={setNoteDraft}
             style={styles.noteInput}
           />
-          {folders.map((folder) => {
-            const isSavedInFolder = savedFolderIds.includes(folder.id);
+          {filteredFolders.length ? (
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+              style={styles.folderList}>
+              {filteredFolders.map((folder) => {
+                const isSavedInFolder = savedFolderIds.includes(folder.id);
 
-            return (
-            <TouchableOpacity key={folder.id} style={styles.folderRow} onPress={() => onSaveToFolder(folder.id, noteDraft)}>
-              <View>
-                <Text style={styles.folderText}>{folder.name}</Text>
-                <Text style={styles.folderMeta}>{isSavedInFolder ? 'Saved in this folder' : 'Tap to save here'}</Text>
-              </View>
-              <Ionicons name={isSavedInFolder ? 'checkmark-circle' : 'add-circle-outline'} size={23} color="#2563EB" />
-            </TouchableOpacity>
-            );
-          })}
+                return (
+                  <TouchableOpacity
+                    key={folder.id}
+                    activeOpacity={0.82}
+                    style={styles.folderRow}
+                    onPress={() => onSaveToFolder(folder.id, noteDraft)}>
+                    <View style={styles.folderCopy}>
+                      <Text numberOfLines={1} style={styles.folderText}>{folder.name}</Text>
+                      <Text style={styles.folderMeta}>{isSavedInFolder ? 'Saved in this folder' : 'Tap to save here'}</Text>
+                    </View>
+                    <Ionicons name={isSavedInFolder ? 'checkmark-circle' : 'add-circle-outline'} size={23} color="#2563EB" />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          ) : (
+            <View style={styles.emptyFolderState}>
+              <Ionicons name="search-outline" size={20} color="#94A3B8" />
+              <Text style={styles.emptyFolderText}>Không tìm thấy album phù hợp.</Text>
+            </View>
+          )}
         </View>
       ) : null}
     </View>
@@ -201,6 +245,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     borderRadius: 8,
     borderWidth: 1,
+    maxHeight: 382,
     overflow: 'hidden',
     position: 'absolute',
     right: 34,
@@ -208,19 +253,36 @@ const styles = StyleSheet.create({
     width: 270,
     zIndex: 50,
   },
-  folderSearch: {
+  folderPickerHeader: {
     alignItems: 'center',
     borderBottomColor: '#E2E8F0',
     borderBottomWidth: 1,
     flexDirection: 'row',
     height: 51,
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
   },
-  folderPlaceholder: {
+  folderPickerTitle: {
     color: '#0F172A',
     fontSize: 16,
     fontWeight: '900',
+  },
+  folderSearchBox: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderBottomColor: '#E2E8F0',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 12,
+  },
+  folderSearchInput: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '800',
+    paddingVertical: 9,
   },
   noteInput: {
     borderBottomColor: '#E2E8F0',
@@ -233,6 +295,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     textAlignVertical: 'top',
   },
+  folderList: {
+    maxHeight: 220,
+  },
   folderRow: {
     alignItems: 'center',
     borderBottomColor: '#F1F5F9',
@@ -241,6 +306,10 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'space-between',
     paddingHorizontal: 12,
+  },
+  folderCopy: {
+    flex: 1,
+    paddingRight: 10,
   },
   folderText: {
     color: '#0F172A',
@@ -251,5 +320,18 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 12,
     marginTop: 2,
+  },
+  emptyFolderState: {
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'center',
+    minHeight: 96,
+    padding: 14,
+  },
+  emptyFolderText: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
   },
 });
