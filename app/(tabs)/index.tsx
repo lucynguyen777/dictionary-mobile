@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Link, useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import { dictionaryEntries, studyStats } from '@/data/dictionary';
@@ -13,8 +13,26 @@ const reviewPlan = [
   { label: 'Chuỗi ngày', value: studyStats.streak, icon: 'flame-outline' as const },
 ];
 
+const languageOptions = [
+  { code: 'en', label: 'English', hint: 'Ngôn ngữ gốc' },
+  { code: 'vi', label: 'Tiếng Việt', hint: 'Dịch sang' },
+  { code: 'fr', label: 'Français', hint: 'Sắp hỗ trợ' },
+  { code: 'ja', label: '日本語', hint: 'Sắp hỗ trợ' },
+  { code: 'ko', label: '한국어', hint: 'Sắp hỗ trợ' },
+];
+
+type LanguageOption = (typeof languageOptions)[number];
+type LanguageField = 'source' | 'target';
+
 export default function HomeScreen() {
+  const router = useRouter();
+  const lookupInputRef = useRef<TextInput | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+  const [lookupQuery, setLookupQuery] = useState('');
+  const [sourceLanguage, setSourceLanguage] = useState<LanguageOption>(languageOptions[0]);
+  const [targetLanguage, setTargetLanguage] = useState<LanguageOption>(languageOptions[1]);
+  const [activeLanguageField, setActiveLanguageField] = useState<LanguageField | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +61,51 @@ export default function HomeScreen() {
     });
   }, [libraryState.searchHistory]);
 
+  const normalizedLookupQuery = lookupQuery.trim().toLowerCase();
+  const canSubmitLookup = Boolean(normalizedLookupQuery);
+
+  const handleOpenLookup = () => {
+    setShowLanguagePicker(true);
+    setActiveLanguageField(null);
+    setTimeout(() => lookupInputRef.current?.focus(), 80);
+  };
+
+  const handleSubmitLookup = () => {
+    if (!normalizedLookupQuery) {
+      lookupInputRef.current?.focus();
+      return;
+    }
+
+    router.push({
+      pathname: '/word',
+      params: {
+        word: normalizedLookupQuery,
+        sourceLang: sourceLanguage.code,
+        targetLang: targetLanguage.code,
+      },
+    });
+  };
+
+  const handleLanguagePress = (field: LanguageField) => {
+    setActiveLanguageField((currentField) => (currentField === field ? null : field));
+  };
+
+  const handleSelectLanguage = (field: LanguageField, language: LanguageOption) => {
+    if (field === 'source') {
+      setSourceLanguage(language);
+      if (language.code === targetLanguage.code) {
+        setTargetLanguage(getFallbackLanguage(language.code));
+      }
+    } else {
+      setTargetLanguage(language);
+      if (language.code === sourceLanguage.code) {
+        setSourceLanguage(getFallbackLanguage(language.code));
+      }
+    }
+
+    setActiveLanguageField(null);
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -68,16 +131,71 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <Link href="/word" asChild>
-          <TouchableOpacity activeOpacity={0.85} style={styles.searchBox}>
-            <Ionicons name="search" size={23} color="#2563EB" />
-            <View style={styles.searchCopy}>
-              <Text style={styles.searchLabel}>Tra cứu từ vựng</Text>
-              <Text style={styles.searchHint}>Nhập word, meaning, chủ đề hoặc IPA</Text>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleOpenLookup}
+          style={styles.searchBox}>
+          <Ionicons name="search" size={23} color="#2563EB" />
+          <View style={styles.searchCopy}>
+            <Text style={styles.searchLabel}>Tra cứu từ vựng</Text>
+            <Text style={styles.searchHint}>Nhập từ, chọn ngôn ngữ rồi nhấn Enter</Text>
+          </View>
+          <Ionicons name="create-outline" size={20} color="#64748B" />
+        </TouchableOpacity>
+
+        {showLanguagePicker ? (
+          <View style={styles.languagePanel}>
+            <View style={styles.homeLookupInputBox}>
+              <Ionicons name="text" size={20} color="#2563EB" />
+              <TextInput
+                ref={lookupInputRef}
+                autoCapitalize="none"
+                autoCorrect={false}
+                onChangeText={setLookupQuery}
+                onSubmitEditing={handleSubmitLookup}
+                placeholder="Nhập từ cần tra cứu..."
+                placeholderTextColor="#94A3B8"
+                returnKeyType="search"
+                style={styles.homeLookupInput}
+                value={lookupQuery}
+              />
+              {lookupQuery ? (
+                <TouchableOpacity activeOpacity={0.75} onPress={() => setLookupQuery('')}>
+                  <Ionicons name="close-circle" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              ) : null}
             </View>
-            <Ionicons name="arrow-forward" size={20} color="#64748B" />
-          </TouchableOpacity>
-        </Link>
+            <View style={styles.languageRow}>
+              <LanguageSelect
+                active={activeLanguageField === 'source'}
+                field="source"
+                label="Ngôn ngữ gốc"
+                selectedLanguage={sourceLanguage}
+                onPress={handleLanguagePress}
+                onSelect={handleSelectLanguage}
+              />
+              <View style={styles.languageSwap}>
+                <Ionicons name="swap-horizontal" size={18} color="#64748B" />
+              </View>
+              <LanguageSelect
+                active={activeLanguageField === 'target'}
+                field="target"
+                label="Dịch sang"
+                selectedLanguage={targetLanguage}
+                onPress={handleLanguagePress}
+                onSelect={handleSelectLanguage}
+              />
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              disabled={!canSubmitLookup}
+              onPress={handleSubmitLookup}
+              style={[styles.startLookupButton, !canSubmitLookup && styles.disabledLookupButton]}>
+              <Text style={styles.startLookupText}>Tra từ</Text>
+              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        ) : null}
 
         <View style={styles.statsRow}>
           {reviewPlan.map((item) => (
@@ -127,6 +245,64 @@ export default function HomeScreen() {
       </ScrollView>
     </Screen>
   );
+}
+
+function LanguageSelect({
+  active,
+  field,
+  label,
+  selectedLanguage,
+  onPress,
+  onSelect,
+}: {
+  active: boolean;
+  field: LanguageField;
+  label: string;
+  selectedLanguage: LanguageOption;
+  onPress: (field: LanguageField) => void;
+  onSelect: (field: LanguageField, language: LanguageOption) => void;
+}) {
+  return (
+    <View style={styles.languageSelectWrap}>
+      <TouchableOpacity
+        activeOpacity={0.82}
+        onPress={() => onPress(field)}
+        style={[styles.languageSelect, active && styles.activeLanguageSelect]}>
+        <Text style={styles.languageSelectLabel}>{label}</Text>
+        <View style={styles.languageSelectValueRow}>
+          <Text style={styles.languageSelectValue}>{selectedLanguage.label}</Text>
+          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={16} color="#64748B" />
+        </View>
+      </TouchableOpacity>
+      {active ? (
+        <View style={styles.languageMenu}>
+          {languageOptions.map((language) => {
+            const isSelected = language.code === selectedLanguage.code;
+
+            return (
+              <TouchableOpacity
+                key={`${field}-${language.code}`}
+                activeOpacity={0.82}
+                onPress={() => onSelect(field, language)}
+                style={[styles.languageOption, isSelected && styles.activeLanguageOption]}>
+                <View style={styles.languageOptionCopy}>
+                  <Text style={[styles.languageOptionText, isSelected && styles.activeLanguageOptionText]}>
+                    {language.label}
+                  </Text>
+                  <Text style={styles.languageOptionHint}>{language.hint}</Text>
+                </View>
+                {isSelected ? <Ionicons name="checkmark" size={16} color="#2563EB" /> : null}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function getFallbackLanguage(excludedCode: string) {
+  return languageOptions.find((language) => language.code !== excludedCode) ?? languageOptions[0];
 }
 
 const styles = StyleSheet.create({
@@ -234,6 +410,135 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 12,
     marginTop: 4,
+  },
+  languagePanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 10,
+    padding: 12,
+  },
+  homeLookupInputBox: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#DBEAFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+    minHeight: 50,
+    paddingHorizontal: 12,
+  },
+  homeLookupInput: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '800',
+    paddingVertical: 10,
+  },
+  languageRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  languageSelectWrap: {
+    flex: 1,
+  },
+  languageSelect: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 72,
+    padding: 12,
+  },
+  activeLanguageSelect: {
+    borderColor: '#2563EB',
+  },
+  languageSelectLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  languageSelectValueRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  languageSelectValue: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  languageSwap: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+    height: 36,
+    justifyContent: 'center',
+    marginTop: 18,
+    width: 36,
+  },
+  languageMenu: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  languageOption: {
+    alignItems: 'center',
+    borderBottomColor: '#E2E8F0',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  activeLanguageOption: {
+    backgroundColor: '#EFF6FF',
+  },
+  languageOptionCopy: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  languageOptionText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  activeLanguageOptionText: {
+    color: '#2563EB',
+  },
+  languageOptionHint: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  startLookupButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingVertical: 13,
+  },
+  disabledLookupButton: {
+    backgroundColor: '#93C5FD',
+  },
+  startLookupText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '900',
   },
   statsRow: {
     flexDirection: 'row',
