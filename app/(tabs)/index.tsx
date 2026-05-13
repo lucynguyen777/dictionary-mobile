@@ -1,9 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link } from 'expo-router';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import { dictionaryEntries, studyStats } from '@/data/dictionary';
+import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 
 const reviewPlan = [
   { label: 'Từ cần ôn', value: studyStats.dueToday, icon: 'time-outline' as const },
@@ -12,7 +14,34 @@ const reviewPlan = [
 ];
 
 export default function HomeScreen() {
-  const featured = dictionaryEntries.slice(0, 4);
+  const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      loadLibraryState().then((state) => {
+        if (isMounted) setLibraryState(state);
+      });
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const recentSearches = useMemo(() => {
+    return libraryState.searchHistory.slice(0, 4).map((item) => {
+      const localEntry = dictionaryEntries.find((entry) => entry.word === item.word);
+
+      return {
+        ...item,
+        definition: localEntry?.shortDefinition ?? 'Tap to continue this lookup.',
+        ipa: localEntry?.ipa ?? 'Live lookup',
+        topic: localEntry?.topic ?? 'Recent',
+      };
+    });
+  }, [libraryState.searchHistory]);
 
   return (
     <Screen>
@@ -61,31 +90,40 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Từ nổi bật</Text>
+          <Text style={styles.sectionTitle}>Lịch sử tra cứu</Text>
           <Link href="/word" asChild>
             <TouchableOpacity>
-              <Text style={styles.sectionAction}>Xem tất cả</Text>
+              <Text style={styles.sectionAction}>Tra cứu</Text>
             </TouchableOpacity>
           </Link>
         </View>
 
-        {featured.map((item) => (
+        {recentSearches.map((item) => (
           <Link key={item.word} href={{ pathname: '/word', params: { word: item.word } }} asChild>
             <TouchableOpacity activeOpacity={0.82} style={styles.wordCard}>
               <View style={styles.wordTop}>
                 <View>
                   <Text style={styles.word}>{item.word}</Text>
-                  <Text style={styles.ipa}>{item.ipa} · {item.level}</Text>
+                  <Text style={styles.ipa}>{item.ipa}</Text>
                 </View>
                 <View style={styles.topicPill}>
                   <Text style={styles.topicText}>{item.topic}</Text>
                 </View>
               </View>
-              <Text style={styles.definition}>{item.shortDefinition}</Text>
-              <Text style={styles.translation}>{item.vietnamese}</Text>
+              <Text style={styles.definition}>{item.definition}</Text>
+              <Text style={styles.translation}>{formatLookedUpAt(item.lookedUpAt)}</Text>
             </TouchableOpacity>
           </Link>
         ))}
+        {!recentSearches.length ? (
+          <Link href="/word" asChild>
+            <TouchableOpacity activeOpacity={0.82} style={styles.emptyHistoryCard}>
+              <Ionicons name="time-outline" size={24} color="#94A3B8" />
+              <Text style={styles.emptyHistoryTitle}>Chưa có lịch sử tra cứu</Text>
+              <Text style={styles.emptyHistoryText}>Tra một từ tiếng Anh để lịch sử xuất hiện ở đây.</Text>
+            </TouchableOpacity>
+          </Link>
+        ) : null}
       </ScrollView>
     </Screen>
   );
@@ -284,4 +322,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 8,
   },
+  emptyHistoryCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 18,
+  },
+  emptyHistoryTitle: {
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '900',
+    marginTop: 10,
+  },
+  emptyHistoryText: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: 6,
+    textAlign: 'center',
+  },
 });
+
+function formatLookedUpAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Recently searched';
+
+  return `Tra lúc ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+}

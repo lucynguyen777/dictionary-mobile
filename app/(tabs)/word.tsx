@@ -46,7 +46,7 @@ export default function WordScreen() {
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return dictionaryEntries;
+    if (!normalized) return [];
 
     return dictionaryEntries.filter((entry) => {
       const searchable = [
@@ -193,29 +193,31 @@ export default function WordScreen() {
             </TouchableOpacity>
           ) : null}
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.resultRow}>
-          {results.map((entry) => {
-            const isSelected = entry.word === selectedEntry.word;
+        {query ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.resultRow}>
+            {results.map((entry) => {
+              const isSelected = entry.word === selectedEntry.word;
 
-            return (
-              <TouchableOpacity
-                key={entry.word}
-                activeOpacity={0.82}
-                onPress={() => selectWord(entry.word)}
-                style={[styles.resultChip, isSelected && styles.activeResultChip]}>
-                <Text style={[styles.resultWord, isSelected && styles.activeResultText]}>{entry.word}</Text>
-                <Text style={[styles.resultMeta, isSelected && styles.activeResultMeta]}>{entry.level} · {entry.topic}</Text>
+              return (
+                <TouchableOpacity
+                  key={entry.word}
+                  activeOpacity={0.82}
+                  onPress={() => selectWord(entry.word)}
+                  style={[styles.resultChip, isSelected && styles.activeResultChip]}>
+                  <Text style={[styles.resultWord, isSelected && styles.activeResultText]}>{entry.word}</Text>
+                  <Text style={[styles.resultMeta, isSelected && styles.activeResultMeta]}>{entry.level} · {entry.topic}</Text>
+                </TouchableOpacity>
+              );
+            })}
+            {shouldShowApiLookup ? (
+              <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
+                <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
+                <Text style={styles.apiLookupMeta}>English API</Text>
               </TouchableOpacity>
-            );
-          })}
-          {shouldShowApiLookup ? (
-            <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
-              <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
-              <Text style={styles.apiLookupMeta}>English API</Text>
-            </TouchableOpacity>
-          ) : null}
-        </ScrollView>
-        {results.length === 0 && !shouldShowApiLookup ? <Text style={styles.emptyText}>Nhập từ tiếng Anh rồi nhấn Search.</Text> : null}
+            ) : null}
+          </ScrollView>
+        ) : null}
+        {query && results.length === 0 && !shouldShowApiLookup ? <Text style={styles.emptyText}>Nhập từ tiếng Anh rồi nhấn Search.</Text> : null}
         {!query && libraryState.searchHistory.length ? (
           <View style={styles.historyBlock}>
             <Text style={styles.historyTitle}>Recent searches</Text>
