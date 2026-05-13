@@ -1,10 +1,59 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
-import { dictionaryEntries, savedFolders } from '@/data/dictionary';
+import {
+  LibraryState,
+  createFolder,
+  exportFolderToCsv,
+  getDefaultLibraryState,
+  getFolderWords,
+  loadLibraryState,
+} from '@/data/libraryStore';
 
 export default function LibraryScreen() {
+  const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [query, setQuery] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      loadLibraryState().then((state) => {
+        if (isMounted) setLibraryState(state);
+      });
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const filteredFolders = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return libraryState.folders;
+
+    return libraryState.folders.filter((folder) => folder.name.toLowerCase().includes(normalizedQuery));
+  }, [libraryState.folders, query]);
+
+  const recentWords = libraryState.savedWords.slice(0, 6);
+
+  const handleCreateFolder = () => {
+    createFolder(libraryState).then(setLibraryState);
+  };
+
+  const handleExportFolder = async (folderId: string) => {
+    try {
+      const result = await exportFolderToCsv(libraryState, folderId);
+
+      Alert.alert(result.ok ? 'Export complete' : 'Export unavailable', result.message);
+    } catch (error) {
+      Alert.alert('Export failed', error instanceof Error ? error.message : 'Could not export this folder.');
+    }
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -13,7 +62,7 @@ export default function LibraryScreen() {
             <Text style={styles.kicker}>Library</Text>
             <Text style={styles.title}>Tủ từ của bạn</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.85} style={styles.addButton}>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleCreateFolder} style={styles.addButton}>
             <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -26,7 +75,15 @@ export default function LibraryScreen() {
 
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color="#2563EB" />
-          <Text style={styles.placeholder}>Tìm folder hoặc từ đã lưu</Text>
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder="Tìm folder đã lưu"
+            placeholderTextColor="#94A3B8"
+            value={query}
+            onChangeText={setQuery}
+            style={styles.searchInput}
+          />
         </View>
 
         <View style={styles.toolbar}>
@@ -41,7 +98,10 @@ export default function LibraryScreen() {
         </View>
 
         <View style={styles.grid}>
-          {savedFolders.map((folder) => (
+          {filteredFolders.map((folder) => {
+            const wordCount = getFolderWords(libraryState, folder.id).length;
+
+            return (
             <TouchableOpacity key={folder.name} style={styles.folderCard} activeOpacity={0.85}>
               <View style={[styles.cover, { backgroundColor: folder.color }]}>
                 <Ionicons name="folder-open-outline" size={28} color="#0F172A" />
@@ -49,26 +109,40 @@ export default function LibraryScreen() {
               <View style={styles.folderInfo}>
                 <View style={styles.folderCopy}>
                   <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
-                  <Text style={styles.wordNumber}>{folder.words} words</Text>
+                  <Text style={styles.wordNumber}>{wordCount} words</Text>
                 </View>
-                <Ionicons name="ellipsis-horizontal" size={18} color="#64748B" />
+                <TouchableOpacity onPress={() => handleExportFolder(folder.id)} style={styles.exportButton}>
+                  <Ionicons name="download-outline" size={18} color="#2563EB" />
+                </TouchableOpacity>
               </View>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
+        {!filteredFolders.length ? <Text style={styles.emptyText}>Không tìm thấy folder phù hợp.</Text> : null}
 
         <Text style={styles.sectionTitle}>Vừa lưu</Text>
-        {dictionaryEntries.slice(0, 3).map((entry) => (
-          <TouchableOpacity key={entry.word} activeOpacity={0.82} style={styles.savedWord}>
-            <View>
-              <Text style={styles.savedWordTitle}>{entry.word}</Text>
-              <Text style={styles.savedWordMeta}>{entry.vietnamese} · {entry.level}</Text>
-            </View>
-            <View style={styles.savedTag}>
-              <Text style={styles.savedTagText}>{entry.topic}</Text>
-            </View>
-          </TouchableOpacity>
+        {recentWords.map((entry) => (
+          <Link key={entry.id} href={{ pathname: '/word', params: { word: entry.word } }} asChild>
+            <TouchableOpacity activeOpacity={0.82} style={styles.savedWord}>
+              <View style={styles.savedWordCopy}>
+                <Text style={styles.savedWordTitle}>{entry.word}</Text>
+                <Text style={styles.savedWordMeta}>{entry.definition || 'Saved word'} · {entry.ipa || 'IPA pending'}</Text>
+                {entry.note ? <Text numberOfLines={2} style={styles.savedWordNote}>{entry.note}</Text> : null}
+              </View>
+              <View style={styles.savedTag}>
+                <Text style={styles.savedTagText}>{entry.folderIds.length} folder</Text>
+              </View>
+            </TouchableOpacity>
+          </Link>
         ))}
+        {!recentWords.length ? (
+          <View style={styles.emptyCard}>
+            <Ionicons name="bookmark-outline" size={24} color="#94A3B8" />
+            <Text style={styles.emptyCardTitle}>Chưa có từ đã lưu</Text>
+            <Text style={styles.emptyCardText}>Vào tab Tra cứu, bấm trái tim hoặc lưu vào folder để bắt đầu thư viện của bạn.</Text>
+          </View>
+        ) : null}
       </ScrollView>
     </Screen>
   );
@@ -142,8 +216,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 16,
   },
-  placeholder: {
+  searchInput: {
     color: '#94A3B8',
+    flex: 1,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -197,6 +272,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 10,
   },
+  exportButton: {
+    backgroundColor: '#EAF1FF',
+    borderRadius: 999,
+    padding: 7,
+  },
   folderCopy: {
     flex: 1,
   },
@@ -227,6 +307,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 14,
   },
+  savedWordCopy: {
+    flex: 1,
+    paddingRight: 12,
+  },
   savedWordTitle: {
     color: '#0F172A',
     fontSize: 17,
@@ -238,6 +322,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 4,
   },
+  savedWordNote: {
+    color: '#475569',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 6,
+  },
   savedTag: {
     backgroundColor: '#EEF4FF',
     borderRadius: 999,
@@ -248,5 +338,31 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontSize: 11,
     fontWeight: '900',
+  },
+  emptyText: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 10,
+  },
+  emptyCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 18,
+  },
+  emptyCardTitle: {
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '900',
+    marginTop: 10,
+  },
+  emptyCardText: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: 6,
+    textAlign: 'center',
   },
 });

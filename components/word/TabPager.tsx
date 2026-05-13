@@ -1,5 +1,6 @@
 import { RefObject } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router } from 'expo-router';
 
 import { DictionaryEntry } from '@/data/dictionary';
 import { ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
@@ -157,13 +158,24 @@ function SynonymsTab({
       />
       <Text style={styles.sectionTitle}>Synonyms</Text>
       <View style={styles.chipWrap}>
-        {synonyms.length ? synonyms.map((item) => <Text key={item} style={styles.chip}>{item}</Text>) : <EmptyState text="No synonyms found yet." />}
+        {synonyms.length ? synonyms.map((item) => <WordChip key={item} word={item} variant="primary" />) : <EmptyState text="No synonyms found yet." />}
       </View>
       <Text style={[styles.sectionTitle, styles.mediumSpace]}>Antonyms</Text>
       <View style={styles.chipWrap}>
-        {antonyms.length ? antonyms.map((item) => <Text key={item} style={styles.ghostChip}>{item}</Text>) : <EmptyState text="No antonyms found yet." />}
+        {antonyms.length ? antonyms.map((item) => <WordChip key={item} word={item} variant="ghost" />) : <EmptyState text="No antonyms found yet." />}
       </View>
     </View>
+  );
+}
+
+function WordChip({ word, variant }: { word: string; variant: 'primary' | 'ghost' }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.82}
+      onPress={() => router.push({ pathname: '/word', params: { word } })}
+      style={variant === 'primary' ? styles.chipButton : styles.ghostChipButton}>
+      <Text style={variant === 'primary' ? styles.chipText : styles.ghostChipText}>{word}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -219,6 +231,10 @@ function uniqueWords(words: string[]) {
 function CollocationTab({ entry }: { entry: DictionaryEntry }) {
   return (
     <View>
+      <PreviewNotice
+        title="Local preview"
+        text="Collocations and idioms are currently shown from the local seed data. A production source will be selected later."
+      />
       <Text style={styles.sectionTitle}>Collocation</Text>
       {entry.collocations.map((item) => (
         <View key={item} style={styles.smallBlock}>
@@ -241,6 +257,10 @@ function CollocationTab({ entry }: { entry: DictionaryEntry }) {
 function ConjugationTab({ entry }: { entry: DictionaryEntry }) {
   return (
     <View>
+      <PreviewNotice
+        title="Coming soon"
+        text="Conjugation will move to a production resource once a reliable free or licensed source is chosen."
+      />
       {entry.conjugation.map((item) => (
         <View key={item.tense} style={styles.tenseBlock}>
           <Text style={styles.sectionTitle}>{item.tense}</Text>
@@ -254,6 +274,10 @@ function ConjugationTab({ entry }: { entry: DictionaryEntry }) {
 function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
   return (
     <View>
+      <PreviewNotice
+        title="Coming soon"
+        text="Etymology needs a legally usable structured resource. The text below is local preview data."
+      />
       <Text style={styles.heading}>Origin</Text>
       <Text style={styles.body}>{entry.etymology}</Text>
       <View style={styles.noteCard}>
@@ -265,31 +289,34 @@ function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
 }
 
 function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
-  const average = Math.round(
-    entry.pronunciationTips.reduce((total, item) => total + item.learner, 0) / entry.pronunciationTips.length
-  );
-
   return (
     <View>
-      <Text style={styles.sectionTitle}>IPA alignment score</Text>
-      <Text style={styles.body}>Record your voice and compare each sound with the model IPA.</Text>
-      <View style={styles.scoreCard}>
-        <Text style={styles.score}>{average}</Text>
-        <Text style={styles.scoreLabel}>Overall pronunciation score</Text>
-      </View>
+      <PreviewNotice
+        title="Audio only for now"
+        text="The app can play sample pronunciation audio. Real phoneme alignment and scoring will be added in a later phase."
+      />
+      <Text style={styles.sectionTitle}>IPA guide</Text>
+      <Text style={styles.body}>Use the speaker button above to hear a model pronunciation for {entry.word}.</Text>
       <View style={styles.tableHeader}>
         <Text style={styles.tableCell}>Phoneme</Text>
-        <Text style={styles.tableCell}>Model</Text>
-        <Text style={styles.tableCell}>You</Text>
+        <Text style={styles.tableCell}>Focus</Text>
       </View>
       {entry.pronunciationTips.map((row) => (
         <View key={row.phoneme} style={styles.tableRow}>
           <Text style={styles.tableCell}>{row.phoneme}</Text>
-          <Text style={styles.tableCell}>{row.model}%</Text>
-          <Text style={styles.tableCell}>{row.learner}%</Text>
+          <Text style={styles.tableCell}>Practice</Text>
           <Text style={styles.note}>{row.note}</Text>
         </View>
       ))}
+    </View>
+  );
+}
+
+function PreviewNotice({ title, text }: { title: string; text: string }) {
+  return (
+    <View style={styles.previewCard}>
+      <Text style={styles.previewTitle}>{title}</Text>
+      <Text style={styles.previewText}>{text}</Text>
     </View>
   );
 }
@@ -400,25 +427,29 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
-  chip: {
+  chipButton: {
     backgroundColor: '#EAF1FF',
     borderRadius: 999,
-    color: '#2563EB',
-    fontSize: 14,
-    fontWeight: '800',
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  ghostChip: {
+  chipText: {
+    color: '#2563EB',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  ghostChipButton: {
     backgroundColor: '#FFFFFF',
     borderColor: '#E2E8F0',
     borderRadius: 999,
     borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  ghostChipText: {
     color: '#64748B',
     fontSize: 14,
     fontWeight: '800',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
   },
   mediumSpace: {
     marginTop: 28,
@@ -427,6 +458,26 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontSize: 13,
     fontWeight: '700',
+  },
+  previewCard: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 14,
+    padding: 14,
+  },
+  previewTitle: {
+    color: '#C2410C',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  previewText: {
+    color: '#9A3412',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 4,
   },
   smallBlock: {
     backgroundColor: '#FFFFFF',
@@ -458,22 +509,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
     marginBottom: 8,
-  },
-  scoreCard: {
-    alignItems: 'center',
-    backgroundColor: '#102A43',
-    borderRadius: 8,
-    marginVertical: 18,
-    padding: 18,
-  },
-  score: {
-    color: '#FFFFFF',
-    fontSize: 42,
-    fontWeight: '900',
-  },
-  scoreLabel: {
-    color: '#BFDBFE',
-    marginTop: 4,
   },
   tableHeader: {
     backgroundColor: '#EAF1FF',

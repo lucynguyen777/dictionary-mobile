@@ -8,6 +8,16 @@ import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
 import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
 import { ApiMeaningResult, ApiRelatedWords, fetchEnglishMeaning, fetchEnglishRelatedWords } from '@/data/dictionaryApi';
+import {
+  LibraryState,
+  addSearchHistory,
+  getDefaultLibraryState,
+  getFavoriteFolderId,
+  getSavedWord,
+  loadLibraryState,
+  saveWordToFolder,
+  toggleFavoriteWord,
+} from '@/data/libraryStore';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +34,8 @@ export default function WordScreen() {
   const [lookupError, setLookupError] = useState('');
   const [apiMeaning, setApiMeaning] = useState<ApiMeaningResult | null>(null);
   const [apiRelatedWords, setApiRelatedWords] = useState<ApiRelatedWords | null>(null);
+  const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [libraryLoaded, setLibraryLoaded] = useState(false);
   const scrollRef = useRef<ScrollView | null>(null);
 
   const localEntry = dictionaryEntries.find((entry) => entry.word === selectedWord);
@@ -54,6 +66,25 @@ export default function WordScreen() {
 
   const normalizedQuery = query.trim().toLowerCase();
   const shouldShowApiLookup = Boolean(normalizedQuery) && !results.some((entry) => entry.word.toLowerCase() === normalizedQuery);
+  const savedWord = getSavedWord(libraryState, selectedEntry.word);
+  const favoriteFolderId = getFavoriteFolderId();
+  const isFavorite = Boolean(savedWord?.folderIds.includes(favoriteFolderId));
+  const savedFolderIds = savedWord?.folderIds ?? [];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadLibraryState().then((state) => {
+      if (!isMounted) return;
+
+      setLibraryState(state);
+      setLibraryLoaded(true);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const routeWord = Array.isArray(params.word) ? params.word[0] : params.word;
@@ -107,6 +138,14 @@ export default function WordScreen() {
     };
   }, [selectedWord]);
 
+  useEffect(() => {
+    if (!libraryLoaded) return;
+
+    addSearchHistory(libraryState, selectedWord).then(setLibraryState);
+    // Only record a new history row when the selected lookup word changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [libraryLoaded, selectedWord]);
+
   const selectWord = (word: string) => {
     const trimmedWord = word.trim().toLowerCase();
     if (!trimmedWord) return;
@@ -114,6 +153,14 @@ export default function WordScreen() {
     setSelectedWord(trimmedWord);
     setActiveIndex(0);
     scrollRef.current?.scrollTo({ x: 0, animated: true });
+  };
+
+  const handleToggleFavorite = () => {
+    toggleFavoriteWord(libraryState, selectedEntry).then(setLibraryState);
+  };
+
+  const handleSaveToFolder = (folderId: string, note: string) => {
+    saveWordToFolder(libraryState, selectedEntry, folderId, note).then(setLibraryState);
   };
 
   const handleTabPress = (index: number) => {
@@ -169,8 +216,28 @@ export default function WordScreen() {
           ) : null}
         </ScrollView>
         {results.length === 0 && !shouldShowApiLookup ? <Text style={styles.emptyText}>Nhập từ tiếng Anh rồi nhấn Search.</Text> : null}
+        {!query && libraryState.searchHistory.length ? (
+          <View style={styles.historyBlock}>
+            <Text style={styles.historyTitle}>Recent searches</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.historyRow}>
+              {libraryState.searchHistory.map((item) => (
+                <TouchableOpacity key={`${item.word}-${item.lookedUpAt}`} activeOpacity={0.82} onPress={() => selectWord(item.word)} style={styles.historyChip}>
+                  <Text style={styles.historyText}>{item.word}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
       </View>
-      <WordHeader entry={selectedEntry} />
+      <WordHeader
+        entry={selectedEntry}
+        folders={libraryState.folders}
+        isFavorite={isFavorite}
+        note={savedWord?.note ?? ''}
+        savedFolderIds={savedFolderIds}
+        onSaveToFolder={handleSaveToFolder}
+        onToggleFavorite={handleToggleFavorite}
+      />
       <StickyTabBar tabs={TABS} activeIndex={activeIndex} onTabPress={handleTabPress} />
       <TabPager
         apiMeaning={apiMeaning}
@@ -291,5 +358,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     paddingBottom: 10,
+  },
+  historyBlock: {
+    paddingBottom: 12,
+  },
+  historyTitle: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  historyRow: {
+    gap: 8,
+  },
+  historyChip: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  historyText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

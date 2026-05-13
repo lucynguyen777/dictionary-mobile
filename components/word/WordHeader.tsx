@@ -1,17 +1,33 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import { DictionaryEntry, savedFolders } from '@/data/dictionary';
+import { DictionaryEntry } from '@/data/dictionary';
+import { Folder } from '@/data/libraryStore';
 
 type Props = {
   entry: DictionaryEntry;
+  folders: Folder[];
+  isFavorite: boolean;
+  note: string;
+  savedFolderIds: string[];
+  onSaveToFolder: (folderId: string, note: string) => void;
+  onToggleFavorite: () => void;
 };
 
-export default function WordHeader({ entry }: Props) {
+export default function WordHeader({
+  entry,
+  folders,
+  isFavorite,
+  note,
+  savedFolderIds,
+  onSaveToFolder,
+  onToggleFavorite,
+}: Props) {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState(note);
 
   const playAudio = async () => {
     try {
@@ -34,6 +50,7 @@ export default function WordHeader({ entry }: Props) {
 
   useEffect(() => {
     setFolderPickerOpen(false);
+    setNoteDraft(note);
 
     if (!sound) return;
 
@@ -41,7 +58,7 @@ export default function WordHeader({ entry }: Props) {
     setSound(null);
     // Only reset cached audio when the selected word/audio changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entry.audio, entry.word]);
+  }, [entry.audio, entry.word, note]);
 
   return (
     <View style={styles.container}>
@@ -57,7 +74,9 @@ export default function WordHeader({ entry }: Props) {
       <View style={styles.wordRow}>
         <Text adjustsFontSizeToFit numberOfLines={1} style={styles.word}>{entry.word}</Text>
         <View style={styles.actions}>
-          <Ionicons name="heart-outline" size={30} color="#EF476F" />
+          <TouchableOpacity onPress={onToggleFavorite}>
+            <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={30} color="#EF476F" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => setFolderPickerOpen((value) => !value)}>
             <Ionicons name="add-circle-outline" size={30} color="#2563EB" />
           </TouchableOpacity>
@@ -78,15 +97,27 @@ export default function WordHeader({ entry }: Props) {
             <Text style={styles.folderPlaceholder}>Lưu vào bộ từ</Text>
             <Ionicons name="albums-outline" size={22} color="#2563EB" />
           </View>
-          {savedFolders.slice(0, 4).map((folder) => (
-            <TouchableOpacity key={folder.name} style={styles.folderRow}>
+          <TextInput
+            multiline
+            placeholder="Ghi chú nhanh cho từ này"
+            placeholderTextColor="#94A3B8"
+            value={noteDraft}
+            onChangeText={setNoteDraft}
+            style={styles.noteInput}
+          />
+          {folders.map((folder) => {
+            const isSavedInFolder = savedFolderIds.includes(folder.id);
+
+            return (
+            <TouchableOpacity key={folder.id} style={styles.folderRow} onPress={() => onSaveToFolder(folder.id, noteDraft)}>
               <View>
                 <Text style={styles.folderText}>{folder.name}</Text>
-                <Text style={styles.folderMeta}>{folder.words} words</Text>
+                <Text style={styles.folderMeta}>{isSavedInFolder ? 'Saved in this folder' : 'Tap to save here'}</Text>
               </View>
-              <Ionicons name="add-circle-outline" size={23} color="#2563EB" />
+              <Ionicons name={isSavedInFolder ? 'checkmark-circle' : 'add-circle-outline'} size={23} color="#2563EB" />
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
       ) : null}
     </View>
@@ -190,6 +221,17 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontSize: 16,
     fontWeight: '900',
+  },
+  noteInput: {
+    borderBottomColor: '#E2E8F0',
+    borderBottomWidth: 1,
+    color: '#0F172A',
+    fontSize: 14,
+    lineHeight: 20,
+    minHeight: 62,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    textAlignVertical: 'top',
   },
   folderRow: {
     alignItems: 'center',
