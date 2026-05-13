@@ -1,14 +1,7 @@
-import { useEffect, useRef } from "react";
-import {
-    Dimensions,
-    LayoutChangeEvent,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { useEffect, useRef } from 'react';
+import { Dimensions, LayoutChangeEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type Props = {
   tabs: string[];
@@ -21,11 +14,7 @@ type TabLayout = {
   width: number;
 };
 
-export default function StickyTabBar({
-  tabs,
-  activeIndex,
-  onTabPress,
-}: Props) {
+export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
   const scrollRef = useRef<ScrollView>(null);
   const tabLayouts = useRef<TabLayout[]>([]);
 
@@ -33,33 +22,19 @@ export default function StickyTabBar({
     const layout = tabLayouts.current[activeIndex];
     if (!layout || !scrollRef.current) return;
 
-    const scrollX =
-      layout.x + layout.width / 2 - SCREEN_WIDTH / 2;
-
     scrollRef.current.scrollTo({
-      x: Math.max(0, scrollX),
+      x: Math.max(0, layout.x + layout.width / 2 - SCREEN_WIDTH / 2),
       animated: true,
     });
   }, [activeIndex]);
 
   return (
-    <View
-      style={{
-        height: 48,
-        borderBottomWidth: 1,
-        borderBottomColor: "#eee",
-        backgroundColor: "#fff",
-      }}
-    >
+    <View style={styles.container}>
       <ScrollView
         ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          alignItems: "center",
-          paddingHorizontal: 16,
-        }}
-      >
+        contentContainerStyle={styles.content}>
         {tabs.map((tab, index) => {
           const isActive = index === activeIndex;
 
@@ -73,24 +48,11 @@ export default function StickyTabBar({
                   width: e.nativeEvent.layout.width,
                 };
               }}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 10,
-                marginRight: 8,
-                borderBottomWidth: 2,
-                borderBottomColor: isActive ? "#000" : "transparent",
-              }}
-            >
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontSize: 14,
-                  fontWeight: isActive ? "600" : "400",
-                  color: isActive ? "#000" : "#666",
-                }}
-              >
+              style={styles.tab}>
+              <Text numberOfLines={1} style={[styles.tabText, isActive && styles.activeText]}>
                 {tab}
               </Text>
+              <View style={[styles.indicator, isActive && styles.activeIndicator]} />
             </TouchableOpacity>
           );
         })}
@@ -98,3 +60,36 @@ export default function StickyTabBar({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#FFFFFF',
+    height: 42,
+  },
+  content: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  tab: {
+    marginRight: 20,
+    paddingTop: 9,
+  },
+  tabText: {
+    color: '#969696',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  activeText: {
+    color: '#111111',
+  },
+  indicator: {
+    alignSelf: 'center',
+    backgroundColor: 'transparent',
+    height: 2,
+    marginTop: 4,
+    width: 25,
+  },
+  activeIndicator: {
+    backgroundColor: '#111111',
+  },
+});

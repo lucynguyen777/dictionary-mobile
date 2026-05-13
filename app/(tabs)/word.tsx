@@ -1,19 +1,13 @@
-import { useRef, useState } from "react";
-import { Dimensions, ScrollView, View } from "react-native";
+import { useRef, useState } from 'react';
+import { Dimensions, ScrollView, View } from 'react-native';
 
-import StickyTabBar from "@/components/word/StickyTabBar";
-import TabPager from "@/components/word/TabPager";
-import WordHeader from "@/components/word/WordHeader";
+import StickyTabBar from '@/components/word/StickyTabBar';
+import TabPager from '@/components/word/TabPager';
+import WordHeader from '@/components/word/WordHeader';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
-const TABS = [
-  "Meaning",
-  "Synonyms",
-  "Collocation & Idiom",
-  "Conjugation",
-  "Etymology",
-];
+const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
 export default function WordScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -28,20 +22,10 @@ export default function WordScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }}>
-      <WordHeader word="word" ipa="/wɜːd/" audio="https://example.com/audio.mp3" />
-
-      <StickyTabBar
-        tabs={TABS}
-        activeIndex={activeIndex}
-        onTabPress={handleTabPress}
-      />
-
-      <TabPager
-        tabs={TABS}
-        scrollRef={scrollRef}
-        onIndexChange={setActiveIndex}
-      />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <WordHeader word="Word" ipa="/wɜːd/" audio="https://ssl.gstatic.com/dictionary/static/sounds/oxford/word--_gb_1.mp3" />
+      <StickyTabBar tabs={TABS} activeIndex={activeIndex} onTabPress={handleTabPress} />
+      <TabPager tabs={TABS} scrollRef={scrollRef} onIndexChange={setActiveIndex} />
     </View>
   );
 }
