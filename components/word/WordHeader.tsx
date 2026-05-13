@@ -3,15 +3,13 @@ import { Audio } from 'expo-av';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { DictionaryEntry, savedFolders } from '@/data/dictionary';
+
 type Props = {
-  word: string;
-  ipa: string;
-  audio: string;
+  entry: DictionaryEntry;
 };
 
-const folderNames = ['IELTS Speaking', 'Business English', 'Academic verbs'];
-
-export default function WordHeader({ word, ipa, audio }: Props) {
+export default function WordHeader({ entry }: Props) {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
 
@@ -22,7 +20,7 @@ export default function WordHeader({ word, ipa, audio }: Props) {
         return;
       }
 
-      const { sound: newSound } = await Audio.Sound.createAsync({ uri: audio }, { shouldPlay: true });
+      const { sound: newSound } = await Audio.Sound.createAsync({ uri: entry.audio }, { shouldPlay: true });
       setSound(newSound);
     } catch (err) {
       console.warn('Audio error:', err);
@@ -37,45 +35,46 @@ export default function WordHeader({ word, ipa, audio }: Props) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity activeOpacity={0.8} style={styles.searchCard}>
-        <Ionicons name="search" size={27} color="#111111" />
+      <View style={styles.searchCard}>
+        <Ionicons name="book-outline" size={25} color="#2563EB" />
         <View style={styles.searchCopy}>
-          <Text style={styles.searchWord}>Word</Text>
-          <Text style={styles.language}>Language_1⟶Language_2</Text>
+          <Text style={styles.searchWord}>English to Vietnamese</Text>
+          <Text style={styles.language}>{entry.topic} · {entry.level}</Text>
         </View>
-        <Ionicons name="pencil-outline" size={22} color="#111111" />
-      </TouchableOpacity>
+        <Ionicons name="swap-horizontal-outline" size={22} color="#64748B" />
+      </View>
 
       <View style={styles.wordRow}>
-        <Text style={styles.word}>{word}</Text>
+        <Text adjustsFontSizeToFit numberOfLines={1} style={styles.word}>{entry.word}</Text>
         <View style={styles.actions}>
-          <Ionicons name="heart-outline" size={31} color="#111111" />
+          <Ionicons name="heart-outline" size={30} color="#EF476F" />
           <TouchableOpacity onPress={() => setFolderPickerOpen((value) => !value)}>
-            <Ionicons name="add-circle-outline" size={29} color="#111111" />
+            <Ionicons name="add-circle-outline" size={30} color="#2563EB" />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.ipaRow}>
-        <Text style={styles.ipa}>{ipa}</Text>
+        <Text style={styles.ipa}>{entry.ipa}</Text>
         <TouchableOpacity onPress={playAudio} style={styles.audioButton}>
-          <Ionicons name="volume-medium-outline" size={18} color="#111111" />
+          <Ionicons name="volume-medium-outline" size={18} color="#2563EB" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.audioButton}>
-          <Ionicons name="play" size={17} color="#111111" />
-        </TouchableOpacity>
+        <Text style={styles.translation}>{entry.vietnamese}</Text>
       </View>
 
       {folderPickerOpen ? (
         <View style={styles.folderPicker}>
           <View style={styles.folderSearch}>
-            <Text style={styles.folderPlaceholder}>Search_folder_name</Text>
-            <Ionicons name="caret-down" size={22} color="#111111" />
+            <Text style={styles.folderPlaceholder}>Lưu vào bộ từ</Text>
+            <Ionicons name="albums-outline" size={22} color="#2563EB" />
           </View>
-          {folderNames.map((folder) => (
-            <TouchableOpacity key={folder} style={styles.folderRow}>
-              <Text style={styles.folderText}>{folder}</Text>
-              <Ionicons name="add-circle-outline" size={23} color="#111111" />
+          {savedFolders.slice(0, 4).map((folder) => (
+            <TouchableOpacity key={folder.name} style={styles.folderRow}>
+              <View>
+                <Text style={styles.folderText}>{folder.name}</Text>
+                <Text style={styles.folderMeta}>{folder.words} words</Text>
+              </View>
+              <Ionicons name="add-circle-outline" size={23} color="#2563EB" />
             </TouchableOpacity>
           ))}
         </View>
@@ -86,7 +85,7 @@ export default function WordHeader({ word, ipa, audio }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F7F8FA',
     paddingBottom: 8,
     paddingHorizontal: 16,
     paddingTop: 10,
@@ -94,23 +93,24 @@ const styles = StyleSheet.create({
   },
   searchCard: {
     alignItems: 'center',
-    backgroundColor: '#F4F4F4',
-    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     flexDirection: 'row',
     gap: 12,
     height: 64,
-    marginBottom: 30,
+    marginBottom: 22,
     paddingHorizontal: 12,
   },
   searchCopy: {
     flex: 1,
   },
   searchWord: {
+    color: '#0F172A',
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   language: {
-    color: '#888888',
+    color: '#64748B',
     fontSize: 14,
     marginTop: 5,
   },
@@ -120,9 +120,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   word: {
+    color: '#0F172A',
+    flex: 1,
     fontSize: 40,
-    fontWeight: '800',
-    letterSpacing: -1.4,
+    fontWeight: '900',
   },
   actions: {
     alignItems: 'center',
@@ -136,24 +137,36 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   ipa: {
-    fontSize: 23,
+    color: '#334155',
+    fontSize: 21,
+    fontWeight: '700',
   },
   audioButton: {
-    padding: 4,
+    backgroundColor: '#EAF1FF',
+    borderRadius: 999,
+    padding: 7,
+  },
+  translation: {
+    color: '#64748B',
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
   },
   folderPicker: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#111111',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
     borderWidth: 1,
+    overflow: 'hidden',
     position: 'absolute',
     right: 34,
-    top: 156,
+    top: 150,
     width: 270,
     zIndex: 50,
   },
   folderSearch: {
     alignItems: 'center',
-    borderBottomColor: '#111111',
+    borderBottomColor: '#E2E8F0',
     borderBottomWidth: 1,
     flexDirection: 'row',
     height: 51,
@@ -161,13 +174,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   folderPlaceholder: {
-    color: '#BEBEBE',
-    fontSize: 19,
-    fontStyle: 'italic',
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '900',
   },
   folderRow: {
     alignItems: 'center',
-    borderBottomColor: '#999999',
+    borderBottomColor: '#F1F5F9',
     borderBottomWidth: 1,
     flexDirection: 'row',
     height: 48,
@@ -175,8 +188,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   folderText: {
-    fontSize: 21,
-    fontStyle: 'italic',
-    fontWeight: '600',
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  folderMeta: {
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 2,
   },
 });

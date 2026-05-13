@@ -63,8 +63,8 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    height: 42,
+    backgroundColor: '#F7F8FA',
+    height: 48,
   },
   content: {
     alignItems: 'center',
@@ -72,15 +72,15 @@ const styles = StyleSheet.create({
   },
   tab: {
     marginRight: 20,
-    paddingTop: 9,
+    paddingTop: 11,
   },
   tabText: {
-    color: '#969696',
+    color: '#94A3B8',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   activeText: {
-    color: '#111111',
+    color: '#2563EB',
   },
   indicator: {
     alignSelf: 'center',
@@ -90,6 +90,6 @@ const styles = StyleSheet.create({
     width: 25,
   },
   activeIndicator: {
-    backgroundColor: '#111111',
+    backgroundColor: '#2563EB',
   },
 });

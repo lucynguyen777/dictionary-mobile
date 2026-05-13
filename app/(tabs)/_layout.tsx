@@ -11,15 +11,25 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#111111',
+        tabBarActiveTintColor: '#2563EB',
         tabBarInactiveTintColor: inactiveColor,
         tabBarButton: HapticTab,
-        tabBarShowLabel: false,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '700',
+          marginTop: 2,
+        },
         tabBarStyle: {
-          height: 66,
-          paddingTop: 8,
-          borderTopColor: '#E5E5E5',
+          borderTopColor: '#E5E7EB',
+          elevation: 12,
           backgroundColor: '#FFFFFF',
+          height: 74,
+          paddingBottom: 10,
+          paddingTop: 8,
+          shadowColor: '#0F172A',
+          shadowOffset: { height: -4, width: 0 },
+          shadowOpacity: 0.06,
+          shadowRadius: 16,
         },
       }}>
       <Tabs.Screen
@@ -27,23 +37,23 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={23} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="word"
         options={{
-          title: 'Dictionary',
+          title: 'Tra cứu',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'book' : 'book-outline'} size={25} color={color} />
+            <Ionicons name={focused ? 'search-circle' : 'search-circle-outline'} size={26} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="library"
         options={{
-          title: 'Library',
+          title: 'Tủ từ',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'folder' : 'folder-outline'} size={25} color={color} />
           ),
@@ -52,16 +62,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name="advanced"
         options={{
-          title: 'Advanced',
+          title: 'Luyện tập',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'create' : 'create-outline'} size={25} color={color} />
+            <Ionicons name={focused ? 'flash' : 'flash-outline'} size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Hồ sơ',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'person' : 'person-outline'} size={25} color={color} />
           ),

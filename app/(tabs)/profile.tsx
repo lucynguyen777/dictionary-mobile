@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
+import { studyStats } from '@/data/dictionary';
 
 const days = Array.from({ length: 84 }, (_, index) => index);
 const chartValues = [1, 1.5, 2, 2.4, 4.6, 6.4, 5.5, 7.3, 9.1, 11.2, 10.5, 13.1, 15.5, 12.6, 17.5, 16.1, 23.6];
@@ -11,19 +12,35 @@ export default function ProfileScreen() {
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <Ionicons name="menu" size={27} color="#111111" />
-          <Text style={styles.signOut}>Sign-out</Text>
+          <Ionicons name="menu" size={27} color="#0F172A" />
+          <Text style={styles.signOut}>Cài đặt</Text>
         </View>
 
         <Image source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop' }} style={styles.avatar} />
-        <Text style={styles.userName}>User_name</Text>
+        <Text style={styles.userName}>Mai Anh</Text>
+        <Text style={styles.userMeta}>B2 English · 12 ngày liên tiếp</Text>
+
+        <View style={styles.metricRow}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{studyStats.mastered}</Text>
+            <Text style={styles.metricLabel}>Đã nhớ</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{studyStats.dueToday}</Text>
+            <Text style={styles.metricLabel}>Cần ôn</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricValue}>{studyStats.listeningScore}</Text>
+            <Text style={styles.metricLabel}>Phát âm</Text>
+          </View>
+        </View>
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Year_contribution</Text>
+            <Text style={styles.cardTitle}>Lịch học năm nay</Text>
             <View style={styles.yearPill}>
-              <Text>Year</Text>
-              <Ionicons name="caret-down" size={14} color="#111111" />
+              <Text style={styles.yearText}>2026</Text>
+              <Ionicons name="caret-down" size={14} color="#64748B" />
             </View>
           </View>
           <View style={styles.heatmapRow}>
@@ -48,7 +65,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Number_of_word_added_per_day</Text>
+          <Text style={styles.cardTitle}>Từ mới mỗi ngày</Text>
           <View style={styles.chart}>
             {[25, 20, 15, 10, 5].map((tick) => (
               <View key={tick} style={styles.gridLine}>
@@ -85,7 +102,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   signOut: {
+    color: '#2563EB',
     fontSize: 16,
+    fontWeight: '800',
   },
   avatar: {
     alignSelf: 'center',
@@ -96,18 +115,48 @@ const styles = StyleSheet.create({
   },
   userName: {
     alignSelf: 'center',
+    color: '#0F172A',
     fontSize: 22,
-    fontWeight: '800',
-    marginBottom: 48,
+    fontWeight: '900',
     marginTop: 16,
   },
+  userMeta: {
+    alignSelf: 'center',
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 5,
+  },
+  metricRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+    marginTop: 22,
+  },
+  metricCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 14,
+  },
+  metricValue: {
+    color: '#0F172A',
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  metricLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 4,
+  },
   card: {
-    borderColor: '#DDDDDD',
-    borderRadius: 6,
-    borderWidth: 1,
-    marginBottom: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: 12,
     overflow: 'hidden',
-    padding: 12,
+    padding: 14,
   },
   cardHeader: {
     alignItems: 'center',
@@ -115,18 +164,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardTitle: {
+    color: '#0F172A',
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '900',
   },
   yearPill: {
     alignItems: 'center',
-    borderColor: '#DDDDDD',
+    borderColor: '#E2E8F0',
     borderRadius: 13,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
     height: 28,
     paddingHorizontal: 13,
+  },
+  yearText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '800',
   },
   heatmapRow: {
     flexDirection: 'row',
@@ -147,16 +202,16 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   square: {
-    backgroundColor: '#E2E2E2',
+    backgroundColor: '#E2E8F0',
     borderRadius: 2,
     height: 8,
     width: 8,
   },
   squareStrong: {
-    backgroundColor: '#D0D0D0',
+    backgroundColor: '#93C5FD',
   },
   squareDark: {
-    backgroundColor: '#BEBEBE',
+    backgroundColor: '#2563EB',
   },
   legend: {
     alignItems: 'center',
@@ -169,7 +224,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   legendSquare: {
-    backgroundColor: '#E2E2E2',
+    backgroundColor: '#E2E8F0',
     borderRadius: 2,
     height: 8,
     marginHorizontal: 1,
@@ -190,7 +245,7 @@ const styles = StyleSheet.create({
     width: 32,
   },
   gridRule: {
-    backgroundColor: '#EFEFEF',
+    backgroundColor: '#E2E8F0',
     flex: 1,
     height: 1,
   },

@@ -2,62 +2,70 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
-
-const folders = [
-  'IELTS Speaking',
-  'Travel phrases',
-  'Phrasal verbs',
-  'Business English',
-  'Imported CSV',
-  'Anki export',
-  'Idioms',
-  'Academic verbs',
-  'Favorites',
-  'Book highlights',
-  'Medical translation',
-  'Daily review',
-];
+import { dictionaryEntries, savedFolders } from '@/data/dictionary';
 
 export default function LibraryScreen() {
   return (
     <Screen>
-      <View style={styles.tabs}>
-        <Text style={styles.inactiveTab}>Discovery</Text>
-        <View style={styles.activeTabWrapper}>
-          <Text style={styles.activeTab}>Your library</Text>
-          <View style={styles.underline} />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.kicker}>Library</Text>
+            <Text style={styles.title}>Tủ từ của bạn</Text>
+          </View>
+          <TouchableOpacity activeOpacity={0.85} style={styles.addButton}>
+            <Ionicons name="add" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
-        <Text style={styles.inactiveTab}>Favorites</Text>
-      </View>
 
-      <View style={styles.searchBox}>
-        <Text style={styles.placeholder}>Folder_name...</Text>
-        <Ionicons name="search" size={22} color="#111111" />
-      </View>
-
-      <View style={styles.toolbar}>
-        <View style={styles.toolbarLeft}>
-          <Ionicons name="swap-vertical" size={20} color="#111111" />
-          <Text style={styles.toolbarText}>Recent</Text>
+        <View style={styles.segment}>
+          <Text style={styles.segmentActive}>Bộ từ</Text>
+          <Text style={styles.segmentText}>Yêu thích</Text>
+          <Text style={styles.segmentText}>Đã nhập</Text>
         </View>
-        <View style={styles.viewToggle}>
-          <Ionicons name="list" size={19} color="#999999" />
-          <Ionicons name="grid-outline" size={18} color="#111111" />
-        </View>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
-        {folders.map((folder, index) => (
-          <TouchableOpacity key={folder} style={styles.folderCard} activeOpacity={0.8}>
-            <View style={styles.cover}>
-              <Text style={styles.coverText}>Page_cover</Text>
-            </View>
-            <View style={styles.folderInfo}>
-              <View>
-                <Text numberOfLines={1} style={styles.folderName}>{folder}</Text>
-                <Text style={styles.wordNumber}>{24 + index * 3} words</Text>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={20} color="#2563EB" />
+          <Text style={styles.placeholder}>Tìm folder hoặc từ đã lưu</Text>
+        </View>
+
+        <View style={styles.toolbar}>
+          <View style={styles.toolbarLeft}>
+            <Ionicons name="swap-vertical" size={18} color="#64748B" />
+            <Text style={styles.toolbarText}>Sắp xếp theo gần đây</Text>
+          </View>
+          <View style={styles.viewToggle}>
+            <Ionicons name="grid" size={18} color="#2563EB" />
+            <Ionicons name="list-outline" size={19} color="#94A3B8" />
+          </View>
+        </View>
+
+        <View style={styles.grid}>
+          {savedFolders.map((folder) => (
+            <TouchableOpacity key={folder.name} style={styles.folderCard} activeOpacity={0.85}>
+              <View style={[styles.cover, { backgroundColor: folder.color }]}>
+                <Ionicons name="folder-open-outline" size={28} color="#0F172A" />
               </View>
-              <Ionicons name="ellipsis-vertical" size={17} color="#111111" />
+              <View style={styles.folderInfo}>
+                <View style={styles.folderCopy}>
+                  <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
+                  <Text style={styles.wordNumber}>{folder.words} words</Text>
+                </View>
+                <Ionicons name="ellipsis-horizontal" size={18} color="#64748B" />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>Vừa lưu</Text>
+        {dictionaryEntries.slice(0, 3).map((entry) => (
+          <TouchableOpacity key={entry.word} activeOpacity={0.82} style={styles.savedWord}>
+            <View>
+              <Text style={styles.savedWordTitle}>{entry.word}</Text>
+              <Text style={styles.savedWordMeta}>{entry.vietnamese} · {entry.level}</Text>
+            </View>
+            <View style={styles.savedTag}>
+              <Text style={styles.savedTagText}>{entry.topic}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -67,53 +75,82 @@ export default function LibraryScreen() {
 }
 
 const styles = StyleSheet.create({
-  tabs: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 32,
+  content: {
+    paddingBottom: 28,
+    paddingHorizontal: 18,
     paddingTop: 16,
   },
-  inactiveTab: {
-    color: '#909090',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  activeTabWrapper: {
+  header: {
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  activeTab: {
-    color: '#111111',
-    fontSize: 15,
+  kicker: {
+    color: '#64748B',
+    fontSize: 13,
     fontWeight: '800',
+    textTransform: 'uppercase',
   },
-  underline: {
-    backgroundColor: '#111111',
-    height: 2,
-    marginTop: 8,
-    width: 24,
+  title: {
+    color: '#0F172A',
+    fontSize: 29,
+    fontWeight: '900',
+    marginTop: 4,
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 18,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  segment: {
+    backgroundColor: '#EAF1FF',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 18,
+    padding: 5,
+  },
+  segmentActive: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
+    color: '#2563EB',
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '900',
+    overflow: 'hidden',
+    paddingVertical: 9,
+    textAlign: 'center',
+  },
+  segmentText: {
+    color: '#64748B',
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '800',
+    paddingVertical: 9,
+    textAlign: 'center',
   },
   searchBox: {
     alignItems: 'center',
-    borderColor: '#DDDDDD',
-    borderRadius: 18,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     flexDirection: 'row',
-    height: 36,
-    justifyContent: 'space-between',
-    marginHorizontal: 21,
-    marginTop: 10,
+    gap: 10,
+    height: 48,
+    marginTop: 16,
     paddingHorizontal: 16,
   },
   placeholder: {
-    color: '#B7B7B7',
-    fontSize: 16,
+    color: '#94A3B8',
+    fontSize: 14,
+    fontWeight: '700',
   },
   toolbar: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: 36,
     marginTop: 18,
   },
   toolbarLeft: {
@@ -121,52 +158,95 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   toolbarText: {
+    color: '#64748B',
     fontSize: 13,
+    fontWeight: '700',
+    marginLeft: 4,
   },
   viewToggle: {
     alignItems: 'center',
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 3,
+    gap: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingBottom: 28,
-    paddingHorizontal: 38,
-    paddingTop: 35,
+    paddingTop: 18,
   },
   folderCard: {
-    marginBottom: 18,
-    width: 84,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: 12,
+    padding: 10,
+    width: '48%',
   },
   cover: {
     alignItems: 'center',
-    borderColor: '#111111',
-    borderWidth: 1,
-    height: 74,
+    borderRadius: 8,
+    height: 86,
     justifyContent: 'center',
-    width: 84,
-  },
-  coverText: {
-    fontSize: 8,
   },
   folderInfo: {
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  folderCopy: {
+    flex: 1,
   },
   folderName: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  wordNumber: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  sectionTitle: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: '900',
+    marginBottom: 12,
+    marginTop: 14,
+  },
+  savedWord: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    padding: 14,
+  },
+  savedWordTitle: {
+    color: '#0F172A',
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  savedWordMeta: {
+    color: '#64748B',
     fontSize: 13,
     fontWeight: '700',
     marginTop: 4,
-    width: 66,
   },
-  wordNumber: {
-    fontSize: 8,
-    marginTop: 2,
+  savedTag: {
+    backgroundColor: '#EEF4FF',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  savedTagText: {
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '900',
   },
 });
