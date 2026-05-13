@@ -112,6 +112,51 @@ export async function saveWordToFolder(state: LibraryState, entry: DictionaryEnt
   return nextState;
 }
 
+export async function updateSavedWordNote(state: LibraryState, wordId: string, note: string) {
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    savedWords: state.savedWords.map((word) =>
+      word.id === wordId
+        ? {
+            ...word,
+            note: note.trim(),
+            updatedAt: timestamp,
+          }
+        : word
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function removeWordFromFolder(state: LibraryState, wordId: string, folderId: string) {
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    savedWords: state.savedWords.flatMap((word) => {
+      if (word.id !== wordId) return [word];
+
+      const folderIds = word.folderIds.filter((id) => id !== folderId);
+      if (!folderIds.length) return [];
+
+      return [
+        {
+          ...word,
+          folderIds,
+          updatedAt: timestamp,
+        },
+      ];
+    }),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
 export async function addSearchHistory(state: LibraryState, word: string) {
   const normalizedWord = word.trim().toLowerCase();
   if (!normalizedWord) return state;
@@ -175,6 +220,10 @@ export function getSavedWord(state: LibraryState, word: string) {
 
 export function getFolderWords(state: LibraryState, folderId: string) {
   return state.savedWords.filter((word) => word.folderIds.includes(folderId));
+}
+
+export function getFolderById(state: LibraryState, folderId: string) {
+  return state.folders.find((folder) => folder.id === folderId);
 }
 
 export function getFavoriteFolderId() {

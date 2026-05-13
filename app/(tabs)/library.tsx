@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, useFocusEffect } from 'expo-router';
+import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -102,7 +102,11 @@ export default function LibraryScreen() {
             const wordCount = getFolderWords(libraryState, folder.id).length;
 
             return (
-            <TouchableOpacity key={folder.name} style={styles.folderCard} activeOpacity={0.85}>
+            <TouchableOpacity
+              key={folder.id}
+              style={styles.folderCard}
+              activeOpacity={0.85}
+              onPress={() => router.push(`/folder/${folder.id}` as never)}>
               <View style={[styles.cover, { backgroundColor: folder.color }]}>
                 <Ionicons name="folder-open-outline" size={28} color="#0F172A" />
               </View>
