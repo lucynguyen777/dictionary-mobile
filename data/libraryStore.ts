@@ -49,6 +49,7 @@ export type LibraryState = {
   savedWords: SavedWord[];
   searchHistory: SearchHistoryItem[];
   flashcards: Flashcard[];
+  deletedFolderIds: string[];
 };
 
 export type ExportResult = {
@@ -87,6 +88,49 @@ export async function createFolder(state: LibraryState, name?: string) {
   const nextState = {
     ...state,
     folders: [...state.folders, folder],
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function renameFolder(state: LibraryState, folderId: string, name: string) {
+  const trimmedName = name.trim();
+  if (!trimmedName) return state;
+
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    folders: state.folders.map((folder) =>
+      folder.id === folderId
+        ? {
+            ...folder,
+            name: trimmedName,
+            updatedAt: timestamp,
+          }
+        : folder
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function deleteFolder(state: LibraryState, folderId: string) {
+  if (folderId === FAVORITES_FOLDER_ID) return state;
+
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    deletedFolderIds: Array.from(new Set([...state.deletedFolderIds, folderId])),
+    folders: state.folders.filter((folder) => folder.id !== folderId),
+    savedWords: state.savedWords.flatMap((word) => {
+      const folderIds = word.folderIds.filter((id) => id !== folderId);
+
+      return folderIds.length ? [{ ...word, folderIds, updatedAt: timestamp }] : [];
+    }),
   };
 
   await saveLibraryState(nextState);
@@ -211,6 +255,7 @@ export function getDefaultLibraryState(): LibraryState {
     savedWords: [],
     searchHistory: [],
     flashcards: [],
+    deletedFolderIds: [],
   };
 }
 
@@ -232,13 +277,17 @@ export function getFavoriteFolderId() {
 
 function normalizeLibraryState(state: Partial<LibraryState>): LibraryState {
   const defaultState = getDefaultLibraryState();
-  const folders = mergeFolders(defaultState.folders, state.folders ?? []);
+  const deletedFolderIds = state.deletedFolderIds ?? [];
+  const folders = mergeFolders(defaultState.folders, state.folders ?? []).filter(
+    (folder) => !deletedFolderIds.includes(folder.id)
+  );
 
   return {
     folders,
     savedWords: state.savedWords ?? [],
     searchHistory: state.searchHistory ?? [],
     flashcards: state.flashcards ?? [],
+    deletedFolderIds,
   };
 }
 

@@ -7,12 +7,15 @@ import Screen from '@/components/app/Screen';
 import {
   LibraryState,
   SavedWord,
+  deleteFolder,
   exportFolderToCsv,
   getDefaultLibraryState,
+  getFavoriteFolderId,
   getFolderById,
   getFolderWords,
   loadLibraryState,
   removeWordFromFolder,
+  renameFolder,
   updateSavedWordNote,
 } from '@/data/libraryStore';
 
@@ -21,6 +24,7 @@ export default function FolderDetailScreen() {
   const folderId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
+  const [nameDraft, setNameDraft] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -35,6 +39,12 @@ export default function FolderDetailScreen() {
   }, []);
 
   const folder = folderId ? getFolderById(libraryState, folderId) : undefined;
+  const isFavoriteFolder = folderId === getFavoriteFolderId();
+
+  useEffect(() => {
+    setNameDraft(folder?.name ?? '');
+  }, [folder?.name]);
+
   const folderWords = useMemo(() => {
     if (!folderId) return [];
 
@@ -66,6 +76,27 @@ export default function FolderDetailScreen() {
 
   const handleSaveNote = (wordId: string, note: string) => {
     updateSavedWordNote(libraryState, wordId, note).then(setLibraryState);
+  };
+
+  const handleRenameFolder = () => {
+    if (!folderId || !folder) return;
+
+    renameFolder(libraryState, folderId, nameDraft).then(setLibraryState);
+  };
+
+  const handleDeleteFolder = () => {
+    if (!folderId || !folder || isFavoriteFolder) return;
+
+    Alert.alert('Delete folder', `Delete "${folder.name}"? Words only saved in this folder will be removed from Library.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deleteFolder(libraryState, folderId).then(() => router.back());
+        },
+      },
+    ]);
   };
 
   const handleRemoveWord = (word: SavedWord) => {
@@ -105,6 +136,34 @@ export default function FolderDetailScreen() {
           <Text style={styles.title}>{folder?.name ?? 'Folder not found'}</Text>
           <Text style={styles.subtitle}>{folderWords.length} saved words</Text>
         </View>
+
+        {folder ? (
+          <View style={styles.manageCard}>
+            <View style={styles.manageHeader}>
+              <Text style={styles.manageTitle}>Folder settings</Text>
+              {isFavoriteFolder ? <Text style={styles.lockedPill}>Protected</Text> : null}
+            </View>
+            <TextInput
+              placeholder="Folder name"
+              placeholderTextColor="#94A3B8"
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              style={styles.nameInput}
+            />
+            <View style={styles.manageActions}>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleRenameFolder} style={styles.saveButton}>
+                <Ionicons name="checkmark-circle-outline" size={18} color="#2563EB" />
+                <Text style={styles.saveButtonText}>Rename</Text>
+              </TouchableOpacity>
+              {!isFavoriteFolder ? (
+                <TouchableOpacity activeOpacity={0.82} onPress={handleDeleteFolder} style={styles.deleteButton}>
+                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color="#2563EB" />
@@ -248,6 +307,77 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     marginTop: 6,
+  },
+  manageCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginTop: 16,
+    padding: 14,
+  },
+  manageHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  manageTitle: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  lockedPill: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 999,
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    overflow: 'hidden',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  nameInput: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '800',
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  manageActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  saveButton: {
+    alignItems: 'center',
+    backgroundColor: '#EAF1FF',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  saveButtonText: {
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  deleteButtonText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '900',
   },
   searchBox: {
     alignItems: 'center',

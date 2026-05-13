@@ -9,13 +9,23 @@ import {
   createFolder,
   exportFolderToCsv,
   getDefaultLibraryState,
+  getFavoriteFolderId,
   getFolderWords,
   loadLibraryState,
 } from '@/data/libraryStore';
 
+type LibrarySegment = 'folders' | 'favorites' | 'imported';
+
+const segments: { key: LibrarySegment; label: string }[] = [
+  { key: 'folders', label: 'Bộ từ' },
+  { key: 'favorites', label: 'Yêu thích' },
+  { key: 'imported', label: 'Đã nhập' },
+];
+
 export default function LibraryScreen() {
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
+  const [activeSegment, setActiveSegment] = useState<LibrarySegment>('folders');
 
   useFocusEffect(
     useCallback(() => {
@@ -33,10 +43,20 @@ export default function LibraryScreen() {
 
   const filteredFolders = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return libraryState.folders;
+    const favoriteFolderId = getFavoriteFolderId();
+    const foldersBySegment = libraryState.folders.filter((folder) => {
+      if (activeSegment === 'favorites') return folder.id === favoriteFolderId;
+      if (activeSegment === 'imported') {
+        return libraryState.savedWords.some((word) => word.source === 'import' && word.folderIds.includes(folder.id));
+      }
 
-    return libraryState.folders.filter((folder) => folder.name.toLowerCase().includes(normalizedQuery));
-  }, [libraryState.folders, query]);
+      return true;
+    });
+
+    if (!normalizedQuery) return foldersBySegment;
+
+    return foldersBySegment.filter((folder) => folder.name.toLowerCase().includes(normalizedQuery));
+  }, [activeSegment, libraryState.folders, libraryState.savedWords, query]);
 
   const recentWords = libraryState.savedWords.slice(0, 6);
 
@@ -68,9 +88,19 @@ export default function LibraryScreen() {
         </View>
 
         <View style={styles.segment}>
-          <Text style={styles.segmentActive}>Bộ từ</Text>
-          <Text style={styles.segmentText}>Yêu thích</Text>
-          <Text style={styles.segmentText}>Đã nhập</Text>
+          {segments.map((segment) => {
+            const isActive = activeSegment === segment.key;
+
+            return (
+              <TouchableOpacity
+                key={segment.key}
+                activeOpacity={0.82}
+                onPress={() => setActiveSegment(segment.key)}
+                style={isActive ? styles.segmentActive : styles.segmentItem}>
+                <Text style={isActive ? styles.segmentActiveText : styles.segmentText}>{segment.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View style={styles.searchBox}>
@@ -115,7 +145,12 @@ export default function LibraryScreen() {
                   <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
                   <Text style={styles.wordNumber}>{wordCount} words</Text>
                 </View>
-                <TouchableOpacity onPress={() => handleExportFolder(folder.id)} style={styles.exportButton}>
+                <TouchableOpacity
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    handleExportFolder(folder.id);
+                  }}
+                  style={styles.exportButton}>
                   <Ionicons name="download-outline" size={18} color="#2563EB" />
                 </TouchableOpacity>
               </View>
@@ -123,7 +158,7 @@ export default function LibraryScreen() {
             );
           })}
         </View>
-        {!filteredFolders.length ? <Text style={styles.emptyText}>Không tìm thấy folder phù hợp.</Text> : null}
+        {!filteredFolders.length ? <Text style={styles.emptyText}>{getEmptyFolderText(activeSegment, query)}</Text> : null}
 
         <Text style={styles.sectionTitle}>Vừa lưu</Text>
         {recentWords.map((entry) => (
@@ -194,20 +229,25 @@ const styles = StyleSheet.create({
   segmentActive: {
     backgroundColor: '#FFFFFF',
     borderRadius: 6,
-    color: '#2563EB',
     flex: 1,
-    fontSize: 13,
-    fontWeight: '900',
     overflow: 'hidden',
     paddingVertical: 9,
+  },
+  segmentActiveText: {
+    color: '#2563EB',
+    fontSize: 13,
+    fontWeight: '900',
     textAlign: 'center',
+  },
+  segmentItem: {
+    borderRadius: 6,
+    flex: 1,
+    paddingVertical: 9,
   },
   segmentText: {
     color: '#64748B',
-    flex: 1,
     fontSize: 13,
     fontWeight: '800',
-    paddingVertical: 9,
     textAlign: 'center',
   },
   searchBox: {
@@ -370,3 +410,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+function getEmptyFolderText(segment: LibrarySegment, query: string) {
+  if (query.trim()) return 'Không tìm thấy folder phù hợp.';
+  if (segment === 'favorites') return 'Chưa có folder yêu thích.';
+  if (segment === 'imported') return 'Chưa có folder từ dữ liệu import.';
+
+  return 'Chưa có folder nào.';
+}
