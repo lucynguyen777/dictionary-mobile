@@ -15,10 +15,9 @@ export default function WordHeader({ entry }: Props) {
 
   const playAudio = async () => {
     try {
-      if (sound) {
-        await sound.replayAsync();
-        return;
-      }
+      if (!entry.audio) return;
+
+      await sound?.unloadAsync();
 
       const { sound: newSound } = await Audio.Sound.createAsync({ uri: entry.audio }, { shouldPlay: true });
       setSound(newSound);
@@ -32,6 +31,17 @@ export default function WordHeader({ entry }: Props) {
       sound?.unloadAsync();
     };
   }, [sound]);
+
+  useEffect(() => {
+    setFolderPickerOpen(false);
+
+    if (!sound) return;
+
+    sound.unloadAsync();
+    setSound(null);
+    // Only reset cached audio when the selected word/audio changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry.audio, entry.word]);
 
   return (
     <View style={styles.container}>
@@ -56,8 +66,8 @@ export default function WordHeader({ entry }: Props) {
 
       <View style={styles.ipaRow}>
         <Text style={styles.ipa}>{entry.ipa}</Text>
-        <TouchableOpacity onPress={playAudio} style={styles.audioButton}>
-          <Ionicons name="volume-medium-outline" size={18} color="#2563EB" />
+        <TouchableOpacity disabled={!entry.audio} onPress={playAudio} style={[styles.audioButton, !entry.audio && styles.audioButtonDisabled]}>
+          <Ionicons name="volume-medium-outline" size={18} color={entry.audio ? '#2563EB' : '#94A3B8'} />
         </TouchableOpacity>
         <Text style={styles.translation}>{entry.vietnamese}</Text>
       </View>
@@ -145,6 +155,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#EAF1FF',
     borderRadius: 999,
     padding: 7,
+  },
+  audioButtonDisabled: {
+    backgroundColor: '#F1F5F9',
   },
   translation: {
     color: '#64748B',

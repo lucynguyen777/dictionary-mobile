@@ -70,19 +70,21 @@ export default function HomeScreen() {
         </View>
 
         {featured.map((item) => (
-          <TouchableOpacity key={item.word} activeOpacity={0.82} style={styles.wordCard}>
-            <View style={styles.wordTop}>
-              <View>
-                <Text style={styles.word}>{item.word}</Text>
-                <Text style={styles.ipa}>{item.ipa} · {item.level}</Text>
+          <Link key={item.word} href={{ pathname: '/word', params: { word: item.word } }} asChild>
+            <TouchableOpacity activeOpacity={0.82} style={styles.wordCard}>
+              <View style={styles.wordTop}>
+                <View>
+                  <Text style={styles.word}>{item.word}</Text>
+                  <Text style={styles.ipa}>{item.ipa} · {item.level}</Text>
+                </View>
+                <View style={styles.topicPill}>
+                  <Text style={styles.topicText}>{item.topic}</Text>
+                </View>
               </View>
-              <View style={styles.topicPill}>
-                <Text style={styles.topicText}>{item.topic}</Text>
-              </View>
-            </View>
-            <Text style={styles.definition}>{item.shortDefinition}</Text>
-            <Text style={styles.translation}>{item.vietnamese}</Text>
-          </TouchableOpacity>
+              <Text style={styles.definition}>{item.shortDefinition}</Text>
+              <Text style={styles.translation}>{item.vietnamese}</Text>
+            </TouchableOpacity>
+          </Link>
         ))}
       </ScrollView>
     </Screen>

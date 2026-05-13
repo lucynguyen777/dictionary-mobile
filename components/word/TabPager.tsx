@@ -2,23 +2,45 @@ import { RefObject } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DictionaryEntry } from '@/data/dictionary';
+import { ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
 
 const { width } = Dimensions.get('window');
 
 type Props = {
+  apiMeaning: ApiMeaningResult | null;
+  apiRelatedWords: ApiRelatedWords | null;
   entry: DictionaryEntry;
+  lookupError: string;
+  lookupStatus: 'idle' | 'loading' | 'ready' | 'error';
   tabs: string[];
   scrollRef: RefObject<ScrollView | null>;
   onIndexChange: (index: number) => void;
 };
 
-export default function TabPager({ entry, tabs, scrollRef, onIndexChange }: Props) {
+export default function TabPager({
+  apiMeaning,
+  apiRelatedWords,
+  entry,
+  lookupError,
+  lookupStatus,
+  tabs,
+  scrollRef,
+  onIndexChange,
+}: Props) {
   const renderTab = (tab: string) => {
     switch (tab) {
       case 'Meaning':
-        return <MeaningTab entry={entry} />;
+        return <MeaningTab apiMeaning={apiMeaning} entry={entry} lookupError={lookupError} lookupStatus={lookupStatus} />;
       case 'Synonyms':
-        return <SynonymsTab entry={entry} />;
+        return (
+          <SynonymsTab
+            apiMeaning={apiMeaning}
+            apiRelatedWords={apiRelatedWords}
+            entry={entry}
+            lookupError={lookupError}
+            lookupStatus={lookupStatus}
+          />
+        );
       case 'Collocation & Idiom':
         return <CollocationTab entry={entry} />;
       case 'Conjugation':
@@ -35,16 +57,25 @@ export default function TabPager({ entry, tabs, scrollRef, onIndexChange }: Prop
   return (
     <ScrollView
       ref={scrollRef}
+      directionalLockEnabled
       horizontal
+      keyboardShouldPersistTaps="handled"
       pagingEnabled
+      scrollEventThrottle={16}
       showsHorizontalScrollIndicator={false}
+      style={styles.pager}
       onMomentumScrollEnd={(e) => {
         const index = Math.round(e.nativeEvent.contentOffset.x / width);
         onIndexChange(index);
       }}>
       {tabs.map((tab) => (
         <View key={tab} style={styles.page}>
-          <ScrollView contentContainerStyle={styles.pageContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
+            contentContainerStyle={styles.pageContent}
+            showsVerticalScrollIndicator={false}
+            style={styles.pageScroll}>
             {renderTab(tab)}
           </ScrollView>
         </View>
@@ -53,37 +84,136 @@ export default function TabPager({ entry, tabs, scrollRef, onIndexChange }: Prop
   );
 }
 
-function MeaningTab({ entry }: { entry: DictionaryEntry }) {
+function MeaningTab({
+  apiMeaning,
+  entry,
+  lookupError,
+  lookupStatus,
+}: {
+  apiMeaning: ApiMeaningResult | null;
+  entry: DictionaryEntry;
+  lookupError: string;
+  lookupStatus: Props['lookupStatus'];
+}) {
+  const definitions = apiMeaning?.definitions.length ? apiMeaning.definitions : entry.definitions.map((definition) => ({
+    partOfSpeech: definition.partOfSpeech,
+    meaning: definition.meaning,
+    examples: definition.examples,
+    synonyms: [],
+    antonyms: [],
+  }));
+
   return (
     <View>
-      {entry.definitions.map((item) => (
-        <View key={item.partOfSpeech} style={styles.block}>
+      <LookupBanner
+        error={lookupError}
+        source={apiMeaning?.source}
+        status={lookupStatus}
+        successText="Meaning loaded from live English dictionary data."
+      />
+      {definitions.map((item, index) => (
+        <View key={`${item.partOfSpeech}-${item.meaning}-${index}`} style={styles.block}>
           <Text style={styles.heading}>{item.partOfSpeech}</Text>
           <Text style={styles.body}>{item.meaning}</Text>
-          <Text style={styles.translation}>{item.vietnamese}</Text>
-          <Text style={styles.exampleLabel}>Examples</Text>
-          {item.examples.map((example) => (
-            <Text key={example} style={styles.example}>- {example}</Text>
-          ))}
+          {item.examples.length ? (
+            <>
+              <Text style={styles.exampleLabel}>Examples</Text>
+              {item.examples.map((example) => (
+                <Text key={example} style={styles.example}>- {example}</Text>
+              ))}
+            </>
+          ) : null}
         </View>
       ))}
     </View>
   );
 }
 
-function SynonymsTab({ entry }: { entry: DictionaryEntry }) {
+function SynonymsTab({
+  apiMeaning,
+  apiRelatedWords,
+  entry,
+  lookupError,
+  lookupStatus,
+}: {
+  apiMeaning: ApiMeaningResult | null;
+  apiRelatedWords: ApiRelatedWords | null;
+  entry: DictionaryEntry;
+  lookupError: string;
+  lookupStatus: Props['lookupStatus'];
+}) {
+  const apiSynonyms = apiMeaning?.definitions.flatMap((definition) => definition.synonyms) ?? [];
+  const apiAntonyms = apiMeaning?.definitions.flatMap((definition) => definition.antonyms) ?? [];
+  const synonyms = uniqueWords([...(apiRelatedWords?.synonyms ?? []), ...apiSynonyms, ...entry.synonyms]);
+  const antonyms = uniqueWords([...(apiRelatedWords?.antonyms ?? []), ...apiAntonyms, ...entry.antonyms]);
+
   return (
     <View>
+      <LookupBanner
+        error={lookupError}
+        source={apiRelatedWords ? 'Datamuse + dictionaryapi.dev' : undefined}
+        status={lookupStatus}
+        successText="Related words loaded from live English lexical APIs."
+      />
       <Text style={styles.sectionTitle}>Synonyms</Text>
       <View style={styles.chipWrap}>
-        {entry.synonyms.map((item) => <Text key={item} style={styles.chip}>{item}</Text>)}
+        {synonyms.length ? synonyms.map((item) => <Text key={item} style={styles.chip}>{item}</Text>) : <EmptyState text="No synonyms found yet." />}
       </View>
       <Text style={[styles.sectionTitle, styles.mediumSpace]}>Antonyms</Text>
       <View style={styles.chipWrap}>
-        {entry.antonyms.map((item) => <Text key={item} style={styles.ghostChip}>{item}</Text>)}
+        {antonyms.length ? antonyms.map((item) => <Text key={item} style={styles.ghostChip}>{item}</Text>) : <EmptyState text="No antonyms found yet." />}
       </View>
     </View>
   );
+}
+
+function LookupBanner({
+  error,
+  source,
+  status,
+  successText,
+}: {
+  error: string;
+  source?: string;
+  status: Props['lookupStatus'];
+  successText: string;
+}) {
+  if (status === 'loading') {
+    return (
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>Loading live data</Text>
+        <Text style={styles.infoText}>Fetching English dictionary results...</Text>
+      </View>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <View style={styles.warningCard}>
+        <Text style={styles.warningTitle}>Using fallback data</Text>
+        <Text style={styles.warningText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (status === 'ready') {
+    return (
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>{successText}</Text>
+        {source ? <Text style={styles.infoText}>Source: {source}</Text> : null}
+      </View>
+    );
+  }
+
+  return null;
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <Text style={styles.emptyState}>{text}</Text>;
+}
+
+function uniqueWords(words: string[]) {
+  return Array.from(new Set(words.map((word) => word.trim()).filter(Boolean))).slice(0, 24);
 }
 
 function CollocationTab({ entry }: { entry: DictionaryEntry }) {
@@ -165,11 +295,19 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
 }
 
 const styles = StyleSheet.create({
+  pager: {
+    flex: 1,
+  },
   page: {
+    flex: 1,
     width,
   },
+  pageScroll: {
+    flex: 1,
+  },
   pageContent: {
-    paddingBottom: 32,
+    flexGrow: 1,
+    paddingBottom: 118,
     paddingHorizontal: 18,
     paddingTop: 18,
   },
@@ -180,6 +318,44 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 14,
     padding: 16,
+  },
+  infoCard: {
+    backgroundColor: '#EAF1FF',
+    borderRadius: 8,
+    marginBottom: 14,
+    padding: 14,
+  },
+  infoTitle: {
+    color: '#1D4ED8',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  infoText: {
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  warningCard: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 14,
+    padding: 14,
+  },
+  warningTitle: {
+    color: '#C2410C',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  warningText: {
+    color: '#9A3412',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 4,
   },
   heading: {
     color: '#0F172A',
@@ -246,6 +422,11 @@ const styles = StyleSheet.create({
   },
   mediumSpace: {
     marginTop: 28,
+  },
+  emptyState: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
   },
   smallBlock: {
     backgroundColor: '#FFFFFF',

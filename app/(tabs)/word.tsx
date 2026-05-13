@@ -1,23 +1,36 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useMemo, useRef, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import StickyTabBar from '@/components/word/StickyTabBar';
 import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
-import { dictionaryEntries } from '@/data/dictionary';
+import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
+import { ApiMeaningResult, ApiRelatedWords, fetchEnglishMeaning, fetchEnglishRelatedWords } from '@/data/dictionaryApi';
 
 const { width } = Dimensions.get('window');
 
 const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
+type LookupStatus = 'idle' | 'loading' | 'ready' | 'error';
+
 export default function WordScreen() {
+  const params = useLocalSearchParams<{ word?: string }>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState('');
   const [selectedWord, setSelectedWord] = useState(dictionaryEntries[0].word);
+  const [lookupStatus, setLookupStatus] = useState<LookupStatus>('idle');
+  const [lookupError, setLookupError] = useState('');
+  const [apiMeaning, setApiMeaning] = useState<ApiMeaningResult | null>(null);
+  const [apiRelatedWords, setApiRelatedWords] = useState<ApiRelatedWords | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
 
-  const selectedEntry = dictionaryEntries.find((entry) => entry.word === selectedWord) ?? dictionaryEntries[0];
+  const localEntry = dictionaryEntries.find((entry) => entry.word === selectedWord);
+  const selectedEntry = useMemo(
+    () => mergeApiEntry(localEntry, selectedWord, apiMeaning),
+    [apiMeaning, localEntry, selectedWord]
+  );
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -39,6 +52,70 @@ export default function WordScreen() {
     });
   }, [query]);
 
+  const normalizedQuery = query.trim().toLowerCase();
+  const shouldShowApiLookup = Boolean(normalizedQuery) && !results.some((entry) => entry.word.toLowerCase() === normalizedQuery);
+
+  useEffect(() => {
+    const routeWord = Array.isArray(params.word) ? params.word[0] : params.word;
+    const normalizedRouteWord = routeWord?.trim().toLowerCase();
+    if (!normalizedRouteWord || normalizedRouteWord === selectedWord) return;
+
+    setSelectedWord(normalizedRouteWord);
+    setQuery('');
+    setActiveIndex(0);
+    scrollRef.current?.scrollTo({ x: 0, animated: false });
+  }, [params.word, selectedWord]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function lookupWord() {
+      setLookupStatus('loading');
+      setLookupError('');
+      setApiMeaning(null);
+      setApiRelatedWords(null);
+
+      const [meaningResult, relatedWordsResult] = await Promise.allSettled([
+        fetchEnglishMeaning(selectedWord),
+        fetchEnglishRelatedWords(selectedWord),
+      ]);
+
+      if (isCancelled) return;
+
+      if (meaningResult.status === 'fulfilled') {
+        setApiMeaning(meaningResult.value);
+      }
+
+      if (relatedWordsResult.status === 'fulfilled') {
+        setApiRelatedWords(relatedWordsResult.value);
+      }
+
+      if (meaningResult.status === 'fulfilled' || relatedWordsResult.status === 'fulfilled') {
+        setLookupStatus('ready');
+        return;
+      }
+
+      const error = meaningResult.reason ?? relatedWordsResult.reason;
+      setLookupStatus('error');
+      setLookupError(error instanceof Error ? error.message : 'Could not load dictionary data.');
+    }
+
+    lookupWord();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedWord]);
+
+  const selectWord = (word: string) => {
+    const trimmedWord = word.trim().toLowerCase();
+    if (!trimmedWord) return;
+
+    setSelectedWord(trimmedWord);
+    setActiveIndex(0);
+    scrollRef.current?.scrollTo({ x: 0, animated: true });
+  };
+
   const handleTabPress = (index: number) => {
     setActiveIndex(index);
     scrollRef.current?.scrollTo({
@@ -55,10 +132,12 @@ export default function WordScreen() {
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="search"
             placeholder="Tìm word, nghĩa, topic..."
             placeholderTextColor="#94A3B8"
             value={query}
             onChangeText={setQuery}
+            onSubmitEditing={() => selectWord(query)}
             style={styles.input}
           />
           {query ? (
@@ -75,25 +154,59 @@ export default function WordScreen() {
               <TouchableOpacity
                 key={entry.word}
                 activeOpacity={0.82}
-                onPress={() => {
-                  setSelectedWord(entry.word);
-                  setActiveIndex(0);
-                  scrollRef.current?.scrollTo({ x: 0, animated: true });
-                }}
+                onPress={() => selectWord(entry.word)}
                 style={[styles.resultChip, isSelected && styles.activeResultChip]}>
                 <Text style={[styles.resultWord, isSelected && styles.activeResultText]}>{entry.word}</Text>
                 <Text style={[styles.resultMeta, isSelected && styles.activeResultMeta]}>{entry.level} · {entry.topic}</Text>
               </TouchableOpacity>
             );
           })}
+          {shouldShowApiLookup ? (
+            <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
+              <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
+              <Text style={styles.apiLookupMeta}>English API</Text>
+            </TouchableOpacity>
+          ) : null}
         </ScrollView>
-        {results.length === 0 ? <Text style={styles.emptyText}>Chưa có từ phù hợp trong bộ dữ liệu mẫu.</Text> : null}
+        {results.length === 0 && !shouldShowApiLookup ? <Text style={styles.emptyText}>Nhập từ tiếng Anh rồi nhấn Search.</Text> : null}
       </View>
       <WordHeader entry={selectedEntry} />
       <StickyTabBar tabs={TABS} activeIndex={activeIndex} onTabPress={handleTabPress} />
-      <TabPager entry={selectedEntry} tabs={TABS} scrollRef={scrollRef} onIndexChange={setActiveIndex} />
+      <TabPager
+        apiMeaning={apiMeaning}
+        apiRelatedWords={apiRelatedWords}
+        entry={selectedEntry}
+        lookupError={lookupError}
+        lookupStatus={lookupStatus}
+        tabs={TABS}
+        scrollRef={scrollRef}
+        onIndexChange={setActiveIndex}
+      />
     </View>
   );
+}
+
+function mergeApiEntry(localEntry: DictionaryEntry | undefined, selectedWord: string, apiMeaning: ApiMeaningResult | null): DictionaryEntry {
+  const fallbackEntry = localEntry ?? dictionaryEntries[0];
+  const hasLocalEntry = Boolean(localEntry);
+  const apiDefinitions = apiMeaning?.definitions.map((definition) => ({
+    partOfSpeech: definition.partOfSpeech,
+    meaning: definition.meaning,
+    vietnamese: '',
+    examples: definition.examples,
+  }));
+
+  return {
+    ...fallbackEntry,
+    word: apiMeaning?.word ?? selectedWord,
+    ipa: apiMeaning?.ipa || (hasLocalEntry ? fallbackEntry.ipa : ''),
+    audio: apiMeaning?.audio || (hasLocalEntry ? fallbackEntry.audio : ''),
+    level: localEntry?.level ?? 'EN',
+    topic: localEntry?.topic ?? 'Live lookup',
+    vietnamese: localEntry?.vietnamese ?? 'English dictionary result',
+    shortDefinition: apiDefinitions?.[0]?.meaning ?? fallbackEntry.shortDefinition,
+    definitions: apiDefinitions?.length ? apiDefinitions : fallbackEntry.definitions,
+  };
 }
 
 const styles = StyleSheet.create({
@@ -154,6 +267,24 @@ const styles = StyleSheet.create({
   },
   activeResultMeta: {
     color: '#BFDBFE',
+  },
+  apiLookupChip: {
+    backgroundColor: '#102A43',
+    borderRadius: 8,
+    minWidth: 132,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  apiLookupTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  apiLookupMeta: {
+    color: '#BFDBFE',
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 4,
   },
   emptyText: {
     color: '#64748B',
