@@ -207,7 +207,18 @@ export default function LibraryScreen() {
     importVocabularyRowsToFolder(libraryState, importRows, importTarget).then((nextState) => {
       if (!shouldCreateImportFlashcards) return nextState;
 
-      return createFlashcardsFromWordIds(nextState, importedWordIds, ['bilingual', 'word-definition']);
+      // Auto-select flashcard types based on imported data fields
+      const hasDefinition = importRows.some((r) => (r.definition ?? '').trim());
+      const hasIpa = importRows.some((r) => (r.ipa ?? '').trim());
+      const types: FlashcardType[] = [];
+      if (hasDefinition) {
+        types.push('bilingual');
+        types.push('word-definition');
+      }
+      if (hasIpa) types.push('word-pronunciation');
+      if (!types.length) types.push('bilingual');
+
+      return createFlashcardsFromWordIds(nextState, importedWordIds, types as any);
     }).then((nextState) => {
       const folderLabel = importTarget.folderName || 'Từ đã nhập';
 
