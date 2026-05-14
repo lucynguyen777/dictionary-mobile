@@ -8,6 +8,7 @@ import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
 import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
 import { ApiMeaningResult, ApiRelatedWords, fetchEnglishMeaning, fetchEnglishRelatedWords } from '@/data/dictionaryApi';
+import { getLanguageByCode, isEnglishDictionaryPair } from '@/data/languages';
 import {
   LibraryState,
   addSearchHistory,
@@ -26,7 +27,7 @@ const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etym
 type LookupStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export default function WordScreen() {
-  const params = useLocalSearchParams<{ word?: string }>();
+  const params = useLocalSearchParams<{ word?: string; sourceLang?: string; targetLang?: string }>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState('');
   const [selectedWord, setSelectedWord] = useState(dictionaryEntries[0].word);
@@ -37,11 +38,15 @@ export default function WordScreen() {
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [libraryLoaded, setLibraryLoaded] = useState(false);
   const scrollRef = useRef<ScrollView | null>(null);
+  const sourceLanguage = getLanguageByCode(getRouteParam(params.sourceLang), 'en');
+  const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
+  const canUseEnglishLookup = sourceLanguage.code === 'en';
+  const isTranslationComingSoon = !isEnglishDictionaryPair(sourceLanguage.code, targetLanguage.code);
 
   const localEntry = dictionaryEntries.find((entry) => entry.word === selectedWord);
   const selectedEntry = useMemo(
-    () => mergeApiEntry(localEntry, selectedWord, apiMeaning),
-    [apiMeaning, localEntry, selectedWord]
+    () => mergeApiEntry(localEntry, selectedWord, apiMeaning, canUseEnglishLookup, sourceLanguage.label, targetLanguage.label),
+    [apiMeaning, canUseEnglishLookup, localEntry, selectedWord, sourceLanguage.label, targetLanguage.label]
   );
 
   const results = useMemo(() => {
@@ -101,6 +106,14 @@ export default function WordScreen() {
     let isCancelled = false;
 
     async function lookupWord() {
+      if (!canUseEnglishLookup) {
+        setLookupStatus('idle');
+        setLookupError('');
+        setApiMeaning(null);
+        setApiRelatedWords(null);
+        return;
+      }
+
       setLookupStatus('loading');
       setLookupError('');
       setApiMeaning(null);
@@ -136,7 +149,7 @@ export default function WordScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedWord]);
+  }, [canUseEnglishLookup, selectedWord]);
 
   useEffect(() => {
     if (!libraryLoaded) return;
@@ -235,6 +248,8 @@ export default function WordScreen() {
         entry={selectedEntry}
         folders={libraryState.folders}
         isFavorite={isFavorite}
+        isTranslationComingSoon={isTranslationComingSoon}
+        languagePairLabel={`${sourceLanguage.label} to ${targetLanguage.label}`}
         note={savedWord?.note ?? ''}
         savedFolderIds={savedFolderIds}
         onSaveToFolder={handleSaveToFolder}
@@ -247,7 +262,9 @@ export default function WordScreen() {
         entry={selectedEntry}
         lookupError={lookupError}
         lookupStatus={lookupStatus}
+        sourceLang={sourceLanguage.code}
         tabs={TABS}
+        targetLang={targetLanguage.code}
         scrollRef={scrollRef}
         onIndexChange={setActiveIndex}
       />
@@ -255,7 +272,18 @@ export default function WordScreen() {
   );
 }
 
-function mergeApiEntry(localEntry: DictionaryEntry | undefined, selectedWord: string, apiMeaning: ApiMeaningResult | null): DictionaryEntry {
+function mergeApiEntry(
+  localEntry: DictionaryEntry | undefined,
+  selectedWord: string,
+  apiMeaning: ApiMeaningResult | null,
+  canUseEnglishLookup: boolean,
+  sourceLanguageLabel: string,
+  targetLanguageLabel: string
+): DictionaryEntry {
+  if (!canUseEnglishLookup) {
+    return createTranslationComingSoonEntry(selectedWord, sourceLanguageLabel, targetLanguageLabel);
+  }
+
   const fallbackEntry = localEntry ?? dictionaryEntries[0];
   const hasLocalEntry = Boolean(localEntry);
   const apiDefinitions = apiMeaning?.definitions.map((definition) => ({
@@ -275,6 +303,37 @@ function mergeApiEntry(localEntry: DictionaryEntry | undefined, selectedWord: st
     vietnamese: localEntry?.vietnamese ?? 'English dictionary result',
     shortDefinition: apiDefinitions?.[0]?.meaning ?? fallbackEntry.shortDefinition,
     definitions: apiDefinitions?.length ? apiDefinitions : fallbackEntry.definitions,
+  };
+}
+
+function getRouteParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function createTranslationComingSoonEntry(word: string, sourceLanguageLabel: string, targetLanguageLabel: string): DictionaryEntry {
+  return {
+    word,
+    ipa: '',
+    audio: '',
+    level: 'Soon',
+    topic: 'Translation',
+    vietnamese: `${sourceLanguageLabel} to ${targetLanguageLabel}`,
+    shortDefinition: 'Multilingual translation is coming soon.',
+    definitions: [
+      {
+        partOfSpeech: 'translation',
+        meaning: `Translation from ${sourceLanguageLabel} to ${targetLanguageLabel} is not enabled yet.`,
+        vietnamese: 'Tính năng dịch đa ngôn ngữ sẽ được triển khai ở phase sau.',
+        examples: [],
+      },
+    ],
+    synonyms: [],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Etymology is available for English dictionary entries only in this MVP.',
+    pronunciationTips: [],
   };
 }
 

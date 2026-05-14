@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 
 import Screen from '@/components/app/Screen';
 import { dictionaryEntries, studyStats } from '@/data/dictionary';
+import { LanguageOption, getAlternativeLanguage, languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 
 const reviewPlan = [
@@ -13,15 +14,6 @@ const reviewPlan = [
   { label: 'Chuỗi ngày', value: studyStats.streak, icon: 'flame-outline' as const },
 ];
 
-const languageOptions = [
-  { code: 'en', label: 'English', hint: 'Ngôn ngữ gốc' },
-  { code: 'vi', label: 'Tiếng Việt', hint: 'Dịch sang' },
-  { code: 'fr', label: 'Français', hint: 'Sắp hỗ trợ' },
-  { code: 'ja', label: '日本語', hint: 'Sắp hỗ trợ' },
-  { code: 'ko', label: '한국어', hint: 'Sắp hỗ trợ' },
-];
-
-type LanguageOption = (typeof languageOptions)[number];
 type LanguageField = 'source' | 'target';
 
 export default function HomeScreen() {
@@ -94,12 +86,12 @@ export default function HomeScreen() {
     if (field === 'source') {
       setSourceLanguage(language);
       if (language.code === targetLanguage.code) {
-        setTargetLanguage(getFallbackLanguage(language.code));
+        setTargetLanguage(getAlternativeLanguage(language.code));
       }
     } else {
       setTargetLanguage(language);
       if (language.code === sourceLanguage.code) {
-        setSourceLanguage(getFallbackLanguage(language.code));
+        setSourceLanguage(getAlternativeLanguage(language.code));
       }
     }
 
@@ -299,10 +291,6 @@ function LanguageSelect({
       ) : null}
     </View>
   );
-}
-
-function getFallbackLanguage(excludedCode: string) {
-  return languageOptions.find((language) => language.code !== excludedCode) ?? languageOptions[0];
 }
 
 const styles = StyleSheet.create({

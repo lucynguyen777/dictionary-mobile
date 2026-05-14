@@ -1,9 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
 import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
+import { VocabularyImportRow, parseVocabularyCsv } from '@/data/csvImport';
 import {
   LibraryState,
   createFolder,
@@ -11,6 +14,7 @@ import {
   getDefaultLibraryState,
   getFavoriteFolderId,
   getFolderWords,
+  importVocabularyRowsToFolder,
   loadLibraryState,
 } from '@/data/libraryStore';
 
@@ -26,6 +30,14 @@ export default function LibraryScreen() {
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
   const [activeSegment, setActiveSegment] = useState<LibrarySegment>('folders');
+  const [createPanelOpen, setCreatePanelOpen] = useState(false);
+  const [folderNameDraft, setFolderNameDraft] = useState('');
+  const [createFolderError, setCreateFolderError] = useState('');
+  const [importRows, setImportRows] = useState<VocabularyImportRow[]>([]);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importFileName, setImportFileName] = useState('');
+  const [importFolderName, setImportFolderName] = useState('');
+  const [importMessage, setImportMessage] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -60,8 +72,32 @@ export default function LibraryScreen() {
 
   const recentWords = libraryState.savedWords.slice(0, 6);
 
+  const handleOpenCreateFolder = () => {
+    setCreatePanelOpen((isOpen) => !isOpen);
+    setCreateFolderError('');
+  };
+
   const handleCreateFolder = () => {
-    createFolder(libraryState).then(setLibraryState);
+    const trimmedName = folderNameDraft.trim();
+
+    if (!trimmedName) {
+      setCreateFolderError('Nhập tên bộ từ trước khi tạo.');
+      return;
+    }
+
+    if (libraryState.folders.some((folder) => folder.name.toLowerCase() === trimmedName.toLowerCase())) {
+      setCreateFolderError('Tên bộ từ này đã tồn tại.');
+      return;
+    }
+
+    createFolder(libraryState, trimmedName).then((nextState) => {
+      setLibraryState(nextState);
+      setFolderNameDraft('');
+      setCreateFolderError('');
+      setCreatePanelOpen(false);
+      setActiveSegment('folders');
+      setQuery('');
+    });
   };
 
   const handleExportFolder = async (folderId: string) => {
@@ -74,6 +110,49 @@ export default function LibraryScreen() {
     }
   };
 
+  const handlePickCsv = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        base64: false,
+        copyToCacheDirectory: true,
+        type: ['text/csv', 'text/comma-separated-values', 'text/plain'],
+      });
+
+      if (result.canceled) return;
+
+      const asset = result.assets[0];
+      const csv = asset.file ? await asset.file.text() : await new File(asset.uri).text();
+      const parsed = parseVocabularyCsv(csv);
+      const defaultFolderName = asset.name.replace(/\.[^/.]+$/, '').trim() || 'Imported words';
+
+      setImportRows(parsed.rows);
+      setImportErrors(parsed.errors);
+      setImportFileName(asset.name);
+      setImportFolderName(defaultFolderName);
+      setImportMessage('');
+    } catch (error) {
+      Alert.alert('Import failed', error instanceof Error ? error.message : 'Could not read this CSV file.');
+    }
+  };
+
+  const handleImportCsv = () => {
+    if (!importRows.length) {
+      Alert.alert('Import unavailable', 'Chọn một CSV hợp lệ trước khi import.');
+      return;
+    }
+
+    importVocabularyRowsToFolder(libraryState, importRows, importFolderName).then((nextState) => {
+      setLibraryState(nextState);
+      setImportMessage(`Đã import ${importRows.length} từ vào "${importFolderName || 'Imported words'}".`);
+      setImportRows([]);
+      setImportErrors([]);
+      setImportFileName('');
+      setImportFolderName('');
+      setActiveSegment('folders');
+      setQuery('');
+    });
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -82,10 +161,47 @@ export default function LibraryScreen() {
             <Text style={styles.kicker}>Library</Text>
             <Text style={styles.title}>Tủ từ của bạn</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.85} onPress={handleCreateFolder} style={styles.addButton}>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleOpenCreateFolder} style={styles.addButton}>
             <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
+
+        {createPanelOpen ? (
+          <View style={styles.createPanel}>
+            <Text style={styles.createTitle}>Tạo bộ từ mới</Text>
+            <View style={styles.createInputBox}>
+              <Ionicons name="folder-outline" size={19} color="#2563EB" />
+              <TextInput
+                autoCorrect={false}
+                onChangeText={(value) => {
+                  setFolderNameDraft(value);
+                  setCreateFolderError('');
+                }}
+                onSubmitEditing={handleCreateFolder}
+                placeholder="Ví dụ: Academic writing"
+                placeholderTextColor="#94A3B8"
+                returnKeyType="done"
+                style={styles.createInput}
+                value={folderNameDraft}
+              />
+            </View>
+            {createFolderError ? <Text style={styles.createError}>{createFolderError}</Text> : null}
+            <View style={styles.createActions}>
+              <TouchableOpacity
+                activeOpacity={0.82}
+                onPress={() => {
+                  setCreatePanelOpen(false);
+                  setCreateFolderError('');
+                }}
+                style={styles.cancelCreateButton}>
+                <Text style={styles.cancelCreateText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFolder} style={styles.submitCreateButton}>
+                <Text style={styles.submitCreateText}>Tạo bộ từ</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.segment}>
           {segments.map((segment) => {
@@ -103,12 +219,56 @@ export default function LibraryScreen() {
           })}
         </View>
 
+        <View style={styles.importPanel}>
+          <View style={styles.importHeader}>
+            <View>
+              <Text style={styles.importKicker}>CSV import</Text>
+              <Text style={styles.importTitle}>Thêm bộ từ từ file</Text>
+            </View>
+            <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
+              <Ionicons name="cloud-upload-outline" size={18} color="#2563EB" />
+              <Text style={styles.importPickText}>Chọn CSV</Text>
+            </TouchableOpacity>
+          </View>
+          {importFileName ? (
+            <>
+              <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
+              <View style={styles.createInputBox}>
+                <Ionicons name="folder-outline" size={19} color="#2563EB" />
+                <TextInput
+                  autoCorrect={false}
+                  onChangeText={setImportFolderName}
+                  placeholder="Tên bộ từ sau khi import"
+                  placeholderTextColor="#94A3B8"
+                  style={styles.createInput}
+                  value={importFolderName}
+                />
+              </View>
+              {importRows.slice(0, 3).map((row) => (
+                <View key={row.word} style={styles.importPreviewRow}>
+                  <Text style={styles.importPreviewWord}>{row.word}</Text>
+                  <Text numberOfLines={1} style={styles.importPreviewDefinition}>{row.definition || row.ipa || 'No definition yet'}</Text>
+                </View>
+              ))}
+              {importErrors.slice(0, 2).map((error) => (
+                <Text key={error} style={styles.importError}>{error}</Text>
+              ))}
+              <TouchableOpacity activeOpacity={0.82} onPress={handleImportCsv} style={styles.importSubmitButton}>
+                <Text style={styles.importSubmitText}>Import vào bộ từ</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={styles.importHint}>CSV cần có header `word`; các cột `definition`, `ipa`, `note`, `tags` là tùy chọn.</Text>
+          )}
+          {importMessage ? <Text style={styles.importMessage}>{importMessage}</Text> : null}
+        </View>
+
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color="#2563EB" />
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder="Tìm folder đã lưu"
+            placeholder="Tìm bộ từ đã lưu"
             placeholderTextColor="#94A3B8"
             value={query}
             onChangeText={setQuery}
@@ -143,7 +303,7 @@ export default function LibraryScreen() {
               <View style={styles.folderInfo}>
                 <View style={styles.folderCopy}>
                   <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
-                  <Text style={styles.wordNumber}>{wordCount} words</Text>
+                  <Text style={styles.wordNumber}>{wordCount} từ</Text>
                 </View>
                 <TouchableOpacity
                   onPress={(event) => {
@@ -166,11 +326,11 @@ export default function LibraryScreen() {
             <TouchableOpacity activeOpacity={0.82} style={styles.savedWord}>
               <View style={styles.savedWordCopy}>
                 <Text style={styles.savedWordTitle}>{entry.word}</Text>
-                <Text style={styles.savedWordMeta}>{entry.definition || 'Saved word'} · {entry.ipa || 'IPA pending'}</Text>
+                <Text style={styles.savedWordMeta}>{entry.definition || 'Từ đã lưu'} · {entry.ipa || 'IPA pending'}</Text>
                 {entry.note ? <Text numberOfLines={2} style={styles.savedWordNote}>{entry.note}</Text> : null}
               </View>
               <View style={styles.savedTag}>
-                <Text style={styles.savedTagText}>{entry.folderIds.length} folder</Text>
+                <Text style={styles.savedTagText}>{entry.folderIds.length} bộ</Text>
               </View>
             </TouchableOpacity>
           </Link>
@@ -225,6 +385,165 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 18,
     padding: 5,
+  },
+  createPanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DBEAFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 16,
+    padding: 14,
+  },
+  createTitle: {
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  createInputBox: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    marginTop: 12,
+    paddingHorizontal: 12,
+  },
+  createInput: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '800',
+    paddingVertical: 11,
+  },
+  createError: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 8,
+  },
+  createActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  cancelCreateButton: {
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 11,
+  },
+  cancelCreateText: {
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  submitCreateButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 11,
+  },
+  submitCreateText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  importPanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 16,
+    padding: 14,
+  },
+  importHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  importKicker: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  importTitle: {
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '900',
+    marginTop: 3,
+  },
+  importPickButton: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  importPickText: {
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  importHint: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 10,
+  },
+  importFileName: {
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 10,
+  },
+  importPreviewRow: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    marginTop: 8,
+    padding: 10,
+  },
+  importPreviewWord: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  importPreviewDefinition: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 3,
+  },
+  importError: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 8,
+  },
+  importSubmitButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    marginTop: 10,
+    paddingVertical: 11,
+  },
+  importSubmitText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  importMessage: {
+    color: '#166534',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 10,
   },
   segmentActive: {
     backgroundColor: '#FFFFFF',
@@ -412,9 +731,9 @@ const styles = StyleSheet.create({
 });
 
 function getEmptyFolderText(segment: LibrarySegment, query: string) {
-  if (query.trim()) return 'Không tìm thấy folder phù hợp.';
-  if (segment === 'favorites') return 'Chưa có folder yêu thích.';
-  if (segment === 'imported') return 'Chưa có folder từ dữ liệu import.';
+  if (query.trim()) return 'Không tìm thấy bộ từ phù hợp.';
+  if (segment === 'favorites') return 'Chưa có bộ từ yêu thích.';
+  if (segment === 'imported') return 'Chưa có bộ từ từ dữ liệu import.';
 
-  return 'Chưa có folder nào.';
+  return 'Chưa có bộ từ nào.';
 }

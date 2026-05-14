@@ -13,7 +13,9 @@ type Props = {
   entry: DictionaryEntry;
   lookupError: string;
   lookupStatus: 'idle' | 'loading' | 'ready' | 'error';
+  sourceLang: string;
   tabs: string[];
+  targetLang: string;
   scrollRef: RefObject<ScrollView | null>;
   onIndexChange: (index: number) => void;
 };
@@ -24,7 +26,9 @@ export default function TabPager({
   entry,
   lookupError,
   lookupStatus,
+  sourceLang,
   tabs,
+  targetLang,
   scrollRef,
   onIndexChange,
 }: Props) {
@@ -40,6 +44,8 @@ export default function TabPager({
             entry={entry}
             lookupError={lookupError}
             lookupStatus={lookupStatus}
+            sourceLang={sourceLang}
+            targetLang={targetLang}
           />
         );
       case 'Collocation & Idiom':
@@ -136,12 +142,16 @@ function SynonymsTab({
   entry,
   lookupError,
   lookupStatus,
+  sourceLang,
+  targetLang,
 }: {
   apiMeaning: ApiMeaningResult | null;
   apiRelatedWords: ApiRelatedWords | null;
   entry: DictionaryEntry;
   lookupError: string;
   lookupStatus: Props['lookupStatus'];
+  sourceLang: string;
+  targetLang: string;
 }) {
   const apiSynonyms = apiMeaning?.definitions.flatMap((definition) => definition.synonyms) ?? [];
   const apiAntonyms = apiMeaning?.definitions.flatMap((definition) => definition.antonyms) ?? [];
@@ -158,21 +168,35 @@ function SynonymsTab({
       />
       <Text style={styles.sectionTitle}>Synonyms</Text>
       <View style={styles.chipWrap}>
-        {synonyms.length ? synonyms.map((item) => <WordChip key={item} word={item} variant="primary" />) : <EmptyState text="No synonyms found yet." />}
+        {synonyms.length ? synonyms.map((item) => (
+          <WordChip key={item} sourceLang={sourceLang} targetLang={targetLang} word={item} variant="primary" />
+        )) : <EmptyState text="No synonyms found yet." />}
       </View>
       <Text style={[styles.sectionTitle, styles.mediumSpace]}>Antonyms</Text>
       <View style={styles.chipWrap}>
-        {antonyms.length ? antonyms.map((item) => <WordChip key={item} word={item} variant="ghost" />) : <EmptyState text="No antonyms found yet." />}
+        {antonyms.length ? antonyms.map((item) => (
+          <WordChip key={item} sourceLang={sourceLang} targetLang={targetLang} word={item} variant="ghost" />
+        )) : <EmptyState text="No antonyms found yet." />}
       </View>
     </View>
   );
 }
 
-function WordChip({ word, variant }: { word: string; variant: 'primary' | 'ghost' }) {
+function WordChip({
+  sourceLang,
+  targetLang,
+  word,
+  variant,
+}: {
+  sourceLang: string;
+  targetLang: string;
+  word: string;
+  variant: 'primary' | 'ghost';
+}) {
   return (
     <TouchableOpacity
       activeOpacity={0.82}
-      onPress={() => router.push({ pathname: '/word', params: { word } })}
+      onPress={() => router.push({ pathname: '/word', params: { sourceLang, targetLang, word } })}
       style={variant === 'primary' ? styles.chipButton : styles.ghostChipButton}>
       <Text style={variant === 'primary' ? styles.chipText : styles.ghostChipText}>{word}</Text>
     </TouchableOpacity>

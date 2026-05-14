@@ -2,6 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 import { DictionaryEntry, savedFolders } from '@/data/dictionary';
+import type { VocabularyImportRow } from '@/data/csvImport';
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
 
 const STORAGE_KEY = 'dictionary-mobile.library.v1';
@@ -43,6 +44,9 @@ export type Flashcard = {
   createdAt: string;
   reviewState: 'new' | 'learning' | 'reviewed';
 };
+
+export type FlashcardType = Flashcard['type'];
+export type FlashcardReviewState = Flashcard['reviewState'];
 
 export type LibraryState = {
   folders: Folder[];
@@ -218,6 +222,87 @@ export async function addSearchHistory(state: LibraryState, word: string) {
   return nextState;
 }
 
+export async function createFlashcardsFromSavedWords(state: LibraryState, types: FlashcardType[]) {
+  const selectedTypes = Array.from(new Set(types));
+  if (!selectedTypes.length || !state.savedWords.length) return state;
+
+  const existingIds = new Set(state.flashcards.map((card) => card.id));
+  const createdAt = now();
+  const newCards = state.savedWords.flatMap((word) =>
+    selectedTypes.flatMap((type) => {
+      const id = `flashcard-${word.id}-${type}`;
+      if (existingIds.has(id)) return [];
+
+      return [buildFlashcard(word, type, id, createdAt)];
+    })
+  );
+
+  const nextState = {
+    ...state,
+    flashcards: [...newCards, ...state.flashcards],
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function updateFlashcardReviewState(state: LibraryState, cardId: string, reviewState: FlashcardReviewState) {
+  const nextState = {
+    ...state,
+    flashcards: state.flashcards.map((card) => (card.id === cardId ? { ...card, reviewState } : card)),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function importVocabularyRowsToFolder(state: LibraryState, rows: VocabularyImportRow[], folderName: string) {
+  const importedRows = dedupeImportRows(rows);
+  if (!importedRows.length) return state;
+
+  const timestamp = now();
+  const folder: Folder = {
+    id: `folder-${Date.now()}`,
+    name: folderName.trim() || `Imported ${state.folders.length + 1}`,
+    color: pickFolderColor(state.folders.length),
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+  const savedWordsById = new Map(state.savedWords.map((word) => [word.id, word]));
+
+  importedRows.forEach((row) => {
+    const id = `word-${row.word.toLowerCase()}`;
+    const existingWord = savedWordsById.get(id);
+    const folderIds = Array.from(new Set([...(existingWord?.folderIds ?? []), folder.id]));
+
+    savedWordsById.set(id, {
+      id,
+      word: row.word.toLowerCase(),
+      ipa: row.ipa || existingWord?.ipa || '',
+      definition: row.definition || existingWord?.definition || '',
+      audio: existingWord?.audio ?? '',
+      folderIds,
+      note: row.note || existingWord?.note || '',
+      tags: row.tags.length ? row.tags : existingWord?.tags ?? ['import'],
+      source: 'import',
+      createdAt: existingWord?.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    });
+  });
+
+  const nextState = {
+    ...state,
+    folders: [folder, ...state.folders],
+    savedWords: Array.from(savedWordsById.values()),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
 export async function exportFolderToCsv(state: LibraryState, folderId: string): Promise<ExportResult> {
   const folder = state.folders.find((item) => item.id === folderId);
   if (!folder) return { ok: false, message: 'Folder not found.' };
@@ -334,6 +419,53 @@ function upsertSavedWord(
     ...state,
     savedWords,
   };
+}
+
+function buildFlashcard(word: SavedWord, type: FlashcardType, id: string, createdAt: string): Flashcard {
+  const definition = word.definition || 'Definition pending';
+  const pronunciation = word.ipa || 'IPA pending';
+
+  const cardContent: Record<FlashcardType, Pick<Flashcard, 'front' | 'back'>> = {
+    bilingual: {
+      front: word.word,
+      back: `${definition}${word.note ? `\nNote: ${word.note}` : ''}`,
+    },
+    'word-definition': {
+      front: word.word,
+      back: definition,
+    },
+    'definition-word': {
+      front: definition,
+      back: word.word,
+    },
+    'word-pronunciation': {
+      front: word.word,
+      back: pronunciation,
+    },
+  };
+
+  return {
+    id,
+    wordId: word.id,
+    type,
+    front: cardContent[type].front,
+    back: cardContent[type].back,
+    createdAt,
+    reviewState: 'new',
+  };
+}
+
+function dedupeImportRows(rows: VocabularyImportRow[]) {
+  const byWord = new Map<string, VocabularyImportRow>();
+
+  rows.forEach((row) => {
+    const normalizedWord = row.word.trim().toLowerCase();
+    if (!normalizedWord) return;
+
+    byWord.set(normalizedWord, { ...row, word: normalizedWord });
+  });
+
+  return Array.from(byWord.values());
 }
 
 function buildFolderCsv(folder: Folder, words: SavedWord[]) {

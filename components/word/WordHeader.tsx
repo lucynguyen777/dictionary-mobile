@@ -10,6 +10,8 @@ type Props = {
   entry: DictionaryEntry;
   folders: Folder[];
   isFavorite: boolean;
+  isTranslationComingSoon: boolean;
+  languagePairLabel: string;
   note: string;
   savedFolderIds: string[];
   onSaveToFolder: (folderId: string, note: string) => void;
@@ -20,6 +22,8 @@ export default function WordHeader({
   entry,
   folders,
   isFavorite,
+  isTranslationComingSoon,
+  languagePairLabel,
   note,
   savedFolderIds,
   onSaveToFolder,
@@ -29,6 +33,7 @@ export default function WordHeader({
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
   const [folderQuery, setFolderQuery] = useState('');
   const [noteDraft, setNoteDraft] = useState(note);
+  const [saveMessage, setSaveMessage] = useState('');
 
   const filteredFolders = useMemo(() => {
     const normalizedQuery = folderQuery.trim().toLowerCase();
@@ -60,6 +65,7 @@ export default function WordHeader({
     setFolderPickerOpen(false);
     setFolderQuery('');
     setNoteDraft(note);
+    setSaveMessage('');
 
     if (!sound) return;
 
@@ -74,11 +80,20 @@ export default function WordHeader({
       <View style={styles.searchCard}>
         <Ionicons name="book-outline" size={25} color="#2563EB" />
         <View style={styles.searchCopy}>
-          <Text style={styles.searchWord}>English to Vietnamese</Text>
+          <Text style={styles.searchWord}>{languagePairLabel}</Text>
           <Text style={styles.language}>{entry.topic} · {entry.level}</Text>
         </View>
         <Ionicons name="swap-horizontal-outline" size={22} color="#64748B" />
       </View>
+
+      {isTranslationComingSoon ? (
+        <View style={styles.translationNotice}>
+          <Ionicons name="time-outline" size={18} color="#2563EB" />
+          <Text style={styles.translationNoticeText}>
+            Translation for this language pair is coming soon. English dictionary data is available first.
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.wordRow}>
         <Text adjustsFontSizeToFit numberOfLines={1} style={styles.word}>{entry.word}</Text>
@@ -106,13 +121,19 @@ export default function WordHeader({
             <Text style={styles.folderPickerTitle}>Lưu vào bộ từ</Text>
             <Ionicons name="albums-outline" size={22} color="#2563EB" />
           </View>
+          {saveMessage ? (
+            <View style={styles.saveMessage}>
+              <Ionicons name="checkmark-circle" size={17} color="#16A34A" />
+              <Text style={styles.saveMessageText}>{saveMessage}</Text>
+            </View>
+          ) : null}
           <View style={styles.folderSearchBox}>
             <Ionicons name="search" size={18} color="#64748B" />
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
               onChangeText={setFolderQuery}
-              placeholder="Tìm nhanh album..."
+              placeholder="Tìm nhanh bộ từ..."
               placeholderTextColor="#94A3B8"
               returnKeyType="search"
               style={styles.folderSearchInput}
@@ -146,10 +167,12 @@ export default function WordHeader({
                     key={folder.id}
                     activeOpacity={0.82}
                     style={styles.folderRow}
-                    onPress={() => onSaveToFolder(folder.id, noteDraft)}>
+                    onPress={() =>
+                      handleFolderSave({ folder, isSavedInFolder, noteDraft, onSaveToFolder, setSaveMessage })
+                    }>
                     <View style={styles.folderCopy}>
                       <Text numberOfLines={1} style={styles.folderText}>{folder.name}</Text>
-                      <Text style={styles.folderMeta}>{isSavedInFolder ? 'Saved in this folder' : 'Tap to save here'}</Text>
+                      <Text style={styles.folderMeta}>{isSavedInFolder ? 'Đã có trong bộ từ này' : 'Bấm để lưu vào đây'}</Text>
                     </View>
                     <Ionicons name={isSavedInFolder ? 'checkmark-circle' : 'add-circle-outline'} size={23} color="#2563EB" />
                   </TouchableOpacity>
@@ -159,13 +182,30 @@ export default function WordHeader({
           ) : (
             <View style={styles.emptyFolderState}>
               <Ionicons name="search-outline" size={20} color="#94A3B8" />
-              <Text style={styles.emptyFolderText}>Không tìm thấy album phù hợp.</Text>
+              <Text style={styles.emptyFolderText}>Không tìm thấy bộ từ phù hợp.</Text>
             </View>
           )}
         </View>
       ) : null}
     </View>
   );
+}
+
+function handleFolderSave({
+  folder,
+  isSavedInFolder,
+  noteDraft,
+  onSaveToFolder,
+  setSaveMessage,
+}: {
+  folder: Folder;
+  isSavedInFolder: boolean;
+  noteDraft: string;
+  onSaveToFolder: (folderId: string, note: string) => void;
+  setSaveMessage: (message: string) => void;
+}) {
+  onSaveToFolder(folder.id, noteDraft);
+  setSaveMessage(isSavedInFolder ? `Đã cập nhật ghi chú trong "${folder.name}".` : `Đã lưu vào "${folder.name}".`);
 }
 
 const styles = StyleSheet.create({
@@ -185,6 +225,24 @@ const styles = StyleSheet.create({
     height: 64,
     marginBottom: 22,
     paddingHorizontal: 12,
+  },
+  translationNotice: {
+    alignItems: 'flex-start',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    marginBottom: 14,
+    padding: 12,
+  },
+  translationNoticeText: {
+    color: '#1E3A8A',
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
   },
   searchCopy: {
     flex: 1,
@@ -266,6 +324,22 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontSize: 16,
     fontWeight: '900',
+  },
+  saveMessage: {
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderBottomColor: '#BBF7D0',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  saveMessageText: {
+    color: '#166534',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
   },
   folderSearchBox: {
     alignItems: 'center',
