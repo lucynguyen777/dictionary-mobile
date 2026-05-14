@@ -20,6 +20,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `4ed73c1` feat(reader): improve highlight behavior to support adjacent multi-word selection
+  - `66c5dd0` feat(library): implement SuperMemo-2 (SM-2) algorithm for flashcard spaced repetition
+  - `fc1fa77` feat(lookup): add text-to-speech for example sentences using expo-speech
+  - `d1f96b5` feat(lookup): add support for rich bilingual example sentences
+  - `56dd113` feat(lookup): add spelling suggestions for empty results
+  - `72abef2` feat(library): add Anki TSV export button per folder with proper Anki header format
+  - `a9cf589` feat(profile): add delete/reset all local data with confirmation alert
+  - `9e2d7c3` feat(home): add Word of the Day card with date-based seed selection
   - `770124e` feat(import): auto-select flashcard types based on CSV fields
   - `f58cc37` feat(data): export all local user data + profile UI button
   - `a6f1c79` fix(ui): localize profile, reader, library copy; polish lookup error message
@@ -60,6 +68,16 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [~] IN PROGRESS [MEDIUM]: Expand domain/context extraction for common polysemous words beyond `cell`.
 - [x] DONE [EASY]: Standardize loading, empty, and error states across all lookup tabs.
 - [x] DONE [EASY]: Normalize mixed Vietnamese/English UI copy.
+- [x] DONE [EASY]: Search History / Recent searches (Lịch sử tìm kiếm).
+- [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
+- [ ] TODO [HARD]: Word variations/morphology search (Tìm kiếm theo dạng từ, VD: "went" -> "go").
+- [ ] TODO [HARD]: Offline dictionary database bundle (Bộ dữ liệu từ điển offline hoàn chỉnh).
+- [ ] TODO [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
+
+### Context & Examples
+- [x] DONE [MEDIUM]: Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ) (commit `d1f96b5`).
+- [x] DONE [MEDIUM]: Text-to-speech (TTS) for example sentences (Đọc câu ví dụ) (commit `fc1fa77`).
+- [x] DONE [EASY]: Word of the Day / Daily Vocabulary (Từ vựng mỗi ngày).
 
 ### Lexical Relations
 - [x] DONE: Synonyms/Antonyms from API with local fallback.
@@ -76,8 +94,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Remove word from folder.
 - [x] DONE: Search/filter folders and saved words.
 - [x] DONE: Export folder to CSV.
-- [x] DONE: Export folder to Excel-compatible `.xls`.
-- [ ] TODO: Anki `.apkg` text-only export.
+- [x] DONE [MEDIUM]: Export folder to Excel-compatible `.xls`.
+- [x] DONE [MEDIUM]: Anki text-only export from folder/saved words (commit `72abef2`).
 - [!] BLOCKED: Google Sheets export, requires OAuth and Google API flow.
 
 ### Pronunciation
@@ -136,7 +154,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### Data Privacy And Security
 - [x] DONE [EASY]: Local data overview showing saved words, folders, flashcards, reader files, and import datasets.
   - [x] DONE [MEDIUM]: Export all local user data.
-- [ ] TODO [MEDIUM]: Delete/reset local user data with confirmation.
+- [x] DONE [MEDIUM]: Delete/reset local user data with confirmation (commit `a9cf589`).
 - [x] DONE [EASY]: Privacy copy explaining local-first storage and what leaves the device.
 - [ ] TODO [MEDIUM]: App lock or biometric lock option if native support is added.
 - [!] BLOCKED [HARD]: Email login/auth requires choosing an auth provider.
@@ -160,9 +178,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
-2. `[ ] [MEDIUM]` Add Anki `.apkg` text-only export.
-3. `[ ] [MEDIUM]` Improve import validation messages.
+1. `[x] [MEDIUM]` Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ). ✓ commit `d1f96b5`.
+2. `[x] [MEDIUM]` Text-to-speech (TTS) for example sentences (Đọc câu ví dụ). ✓ commit `fc1fa77`.
+3. `[x] [MEDIUM]` Add richer review scheduling after local MVP is stable. ✓ commit `66c5dd0`.
+4. `[x] [MEDIUM]` Better text selection/highlight behavior beyond tap-token flow in Reader. ✓ commit `4ed73c1`.
+5. `[~] [MEDIUM]` App lock or biometric lock option if native support is added.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
