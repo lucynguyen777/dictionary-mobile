@@ -3,9 +3,17 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
+import { DictionaryEntry } from '@/data/dictionary';
+import {
+  LibraryState,
+  getDefaultLibraryState,
+  getFavoriteFolderId,
+  loadLibraryState,
+  saveWordToFolder,
+} from '@/data/libraryStore';
 import {
   ReaderSettings,
   ReaderState,
@@ -30,13 +38,20 @@ const backgroundOptions: { label: string; value: ReaderSettings['backgroundColor
 
 export default function ReaderScreen() {
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
+  const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [selectedReaderWord, setSelectedReaderWord] = useState('');
+  const [quickNote, setQuickNote] = useState('');
+  const [readerSaveMessage, setReaderSaveMessage] = useState('');
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
 
-      loadReaderState().then((state) => {
-        if (isMounted) setReaderState(state);
+      Promise.all([loadReaderState(), loadLibraryState()]).then(([nextReaderState, nextLibraryState]) => {
+        if (!isMounted) return;
+
+        setReaderState(nextReaderState);
+        setLibraryState(nextLibraryState);
       });
 
       return () => {
@@ -84,7 +99,33 @@ export default function ReaderScreen() {
     const word = token.toLowerCase().replace(/[^a-z'-]/g, '');
     if (!word || !/[a-z]/.test(word)) return;
 
-    router.push({ pathname: '/word', params: { sourceLang: 'en', targetLang: 'vi', word } });
+    setSelectedReaderWord(word);
+    setQuickNote('');
+    setReaderSaveMessage('');
+  };
+
+  const handleOpenLookup = () => {
+    if (!selectedReaderWord) return;
+
+    router.push({ pathname: '/word', params: { sourceLang: 'en', targetLang: 'vi', word: selectedReaderWord } });
+  };
+
+  const handleSaveReaderWord = () => {
+    if (!selectedReaderWord) return;
+
+    const folderId = getReaderSaveFolderId(libraryState);
+    const folder = libraryState.folders.find((item) => item.id === folderId);
+
+    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedReaderWord), folderId, quickNote).then((nextState) => {
+      setLibraryState(nextState);
+      setReaderSaveMessage(`Đã lưu "${selectedReaderWord}" vào "${folder?.name ?? 'Favorites'}".`);
+    });
+  };
+
+  const handleCloseReaderAction = () => {
+    setSelectedReaderWord('');
+    setQuickNote('');
+    setReaderSaveMessage('');
   };
 
   return (
@@ -188,7 +229,14 @@ export default function ReaderScreen() {
 
                 return isWord ? (
                   <TouchableOpacity key={`${token}-${index}`} activeOpacity={0.72} onPress={() => handleLookupToken(token)}>
-                    <Text style={[styles.readerWord, getReaderTextStyle(readerState.settings)]}>{token}</Text>
+                    <Text
+                      style={[
+                        styles.readerWord,
+                        getReaderTextStyle(readerState.settings),
+                        selectedReaderWord === token.toLowerCase().replace(/[^a-z'-]/g, '') && styles.selectedReaderWord,
+                      ]}>
+                      {token}
+                    </Text>
                   </TouchableOpacity>
                 ) : (
                   <Text key={`${token}-${index}`} style={[styles.readerWord, getReaderTextStyle(readerState.settings)]}>
@@ -202,9 +250,41 @@ export default function ReaderScreen() {
           <View style={styles.emptyCard}>
             <Ionicons name="reader-outline" size={28} color="#94A3B8" />
             <Text style={styles.emptyTitle}>Chưa có văn bản</Text>
-            <Text style={styles.emptyText}>Import file TXT để đọc. Bấm vào một từ tiếng Anh trong reader để mở trang Tra cứu.</Text>
+            <Text style={styles.emptyText}>Import file TXT để đọc. Bấm vào một từ tiếng Anh để tra nghĩa, lưu từ hoặc ghi chú nhanh.</Text>
           </View>
         )}
+        {selectedReaderWord ? (
+          <View style={styles.readerActionPanel}>
+            <View style={styles.readerActionHeader}>
+              <View>
+                <Text style={styles.readerActionKicker}>Từ đang đọc</Text>
+                <Text style={styles.readerActionWord}>{selectedReaderWord}</Text>
+              </View>
+              <TouchableOpacity activeOpacity={0.75} onPress={handleCloseReaderAction} style={styles.readerActionClose}>
+                <Ionicons name="close" size={18} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              multiline
+              onChangeText={setQuickNote}
+              placeholder="Ghi chú nhanh khi đọc..."
+              placeholderTextColor="#94A3B8"
+              style={styles.quickNoteInput}
+              value={quickNote}
+            />
+            {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
+            <View style={styles.readerActionButtons}>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleOpenLookup} style={styles.lookupActionButton}>
+                <Ionicons name="search" size={17} color="#2563EB" />
+                <Text style={styles.lookupActionText}>Tra nghĩa</Text>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleSaveReaderWord} style={styles.saveActionButton}>
+                <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
+                <Text style={styles.saveActionText}>Lưu từ</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
       </ScrollView>
     </Screen>
   );
@@ -227,6 +307,39 @@ function getFontFamily(fontFamily: ReaderSettings['fontFamily']) {
   if (fontFamily === 'mono') return 'Courier New';
 
   return undefined;
+}
+
+function getReaderSaveFolderId(libraryState: LibraryState) {
+  const dailyReviewFolder = libraryState.folders.find((folder) => folder.name.toLowerCase() === 'daily review');
+
+  return dailyReviewFolder?.id ?? getFavoriteFolderId();
+}
+
+function createReaderDictionaryEntry(word: string): DictionaryEntry {
+  return {
+    word,
+    ipa: '',
+    audio: '',
+    level: 'TXT',
+    topic: 'Reader',
+    vietnamese: 'Reader highlight',
+    shortDefinition: 'Saved from Reader.',
+    definitions: [
+      {
+        partOfSpeech: 'reader',
+        meaning: 'Saved from Reader.',
+        vietnamese: 'Từ được lưu khi đọc văn bản.',
+        examples: [],
+      },
+    ],
+    synonyms: [],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: '',
+    pronunciationTips: [],
+  };
 }
 
 const styles = StyleSheet.create({
@@ -397,6 +510,98 @@ const styles = StyleSheet.create({
   readerWord: {
     color: '#1E293B',
   },
+  selectedReaderWord: {
+    backgroundColor: '#DBEAFE',
+    borderRadius: 4,
+    color: '#1D4ED8',
+  },
+  readerActionPanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DBEAFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 14,
+    padding: 14,
+  },
+  readerActionHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  readerActionKicker: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  readerActionWord: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  readerActionClose: {
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 999,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  quickNoteInput: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 12,
+    minHeight: 76,
+    padding: 11,
+    textAlignVertical: 'top',
+  },
+  readerSaveMessage: {
+    color: '#166534',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 9,
+  },
+  readerActionButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  lookupActionButton: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
+    justifyContent: 'center',
+    paddingVertical: 11,
+  },
+  lookupActionText: {
+    color: '#2563EB',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  saveActionButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
+    justifyContent: 'center',
+    paddingVertical: 11,
+  },
+  saveActionText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
   emptyCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
@@ -419,4 +624,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
