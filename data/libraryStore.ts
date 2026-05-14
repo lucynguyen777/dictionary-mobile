@@ -383,6 +383,46 @@ export async function exportFolderToExcel(state: LibraryState, folderId: string)
   return { ok: true, message: `Đã xuất ${words.length} từ sang Excel.`, uri: file.uri };
 }
 
+export async function exportFolderToAnkiTsv(state: LibraryState, folderId: string): Promise<ExportResult> {
+  const folder = state.folders.find((item) => item.id === folderId);
+  if (!folder) return { ok: false, message: 'Không tìm thấy bộ từ.' };
+
+  const words = getFolderWords(state, folderId);
+  if (!words.length) return { ok: false, message: 'Bộ từ này chưa có từ đã lưu.' };
+
+  // Anki TSV format: front<TAB>back<TAB>tags
+  // front: word + IPA (if available)
+  // back: definition + note (if available)
+  const rows = words.map((word) => {
+    const front = word.ipa ? `${word.word}\n${word.ipa}` : word.word;
+    const backParts = [word.definition || ''];
+    if (word.note) backParts.push(`Note: ${word.note}`);
+    const back = backParts.filter(Boolean).join('\n');
+    const tags = [folder.name.replace(/\s+/g, '_'), ...word.tags].join(' ');
+
+    return [front, back, tags].map(escapeTsvCell).join('\t');
+  });
+
+  const header = '#separator:tab\n#html:false\n#notetype:Basic\n#deck:' + folder.name + '\n';
+  const tsv = header + rows.join('\n');
+
+  const filename = `${slugify(folder.name)}-anki-${Date.now()}.txt`;
+  const file = new File(Paths.document, filename);
+  file.create({ overwrite: true });
+  file.write(tsv, { encoding: 'utf8' });
+
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(file.uri, {
+      mimeType: 'text/plain',
+      UTI: 'public.plain-text',
+    });
+  }
+
+  return { ok: true, message: `Đã xuất ${words.length} từ sang định dạng Anki.`, uri: file.uri };
+}
+
+
+
 export async function exportFlashcardsToAnkiText(state: LibraryState, cardIds?: string[]): Promise<ExportResult> {
   const cards = cardIds && cardIds.length ? state.flashcards.filter((c) => cardIds.includes(c.id)) : state.flashcards;
   if (!cards.length) return { ok: false, message: 'Không có flashcard để xuất.' };

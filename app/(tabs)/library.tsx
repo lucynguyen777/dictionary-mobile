@@ -18,6 +18,7 @@ import {
     LibraryState,
     createFlashcardsFromWordIds,
     createFolder,
+    exportFolderToAnkiTsv,
     exportFolderToCsv,
     exportFolderToExcel,
     getDefaultLibraryState,
@@ -147,9 +148,14 @@ export default function LibraryScreen() {
     });
   };
 
-  const handleExportFolder = async (folderId: string, format: 'csv' | 'excel') => {
+  const handleExportFolder = async (folderId: string, format: 'csv' | 'excel' | 'anki') => {
     try {
-      const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
+      const result =
+        format === 'excel'
+          ? await exportFolderToExcel(libraryState, folderId)
+          : format === 'anki'
+          ? await exportFolderToAnkiTsv(libraryState, folderId)
+          : await exportFolderToCsv(libraryState, folderId);
 
       Alert.alert(result.ok ? 'Xuất dữ liệu xong' : 'Chưa thể xuất dữ liệu', result.message);
     } catch (error) {
@@ -572,6 +578,14 @@ export default function LibraryScreen() {
                     }}
                     style={styles.exportButton}>
                     <Text style={styles.exportButtonText}>XLS</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      handleExportFolder(folder.id, 'anki');
+                    }}
+                    style={[styles.exportButton, styles.exportButtonAnki]}>
+                    <Text style={[styles.exportButtonText, styles.exportButtonAnkiText]}>Anki</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1115,6 +1129,12 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontSize: 10,
     fontWeight: '900',
+  },
+  exportButtonAnki: {
+    backgroundColor: '#F3ECFF',
+  },
+  exportButtonAnkiText: {
+    color: '#7C3AED',
   },
   folderCopy: {
     flex: 1,
