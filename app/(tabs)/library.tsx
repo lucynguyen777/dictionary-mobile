@@ -18,6 +18,7 @@ import {
   createFlashcardsFromWordIds,
   createFolder,
   exportFolderToCsv,
+  exportFolderToExcel,
   getDefaultLibraryState,
   getFavoriteFolderId,
   getFolderWords,
@@ -143,9 +144,9 @@ export default function LibraryScreen() {
     });
   };
 
-  const handleExportFolder = async (folderId: string) => {
+  const handleExportFolder = async (folderId: string, format: 'csv' | 'excel') => {
     try {
-      const result = await exportFolderToCsv(libraryState, folderId);
+      const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
 
       Alert.alert(result.ok ? 'Export complete' : 'Export unavailable', result.message);
     } catch (error) {
@@ -506,14 +507,24 @@ export default function LibraryScreen() {
                   <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
                   <Text style={styles.wordNumber}>{wordCount} từ</Text>
                 </View>
-                <TouchableOpacity
-                  onPress={(event) => {
-                    event.stopPropagation();
-                    handleExportFolder(folder.id);
-                  }}
-                  style={styles.exportButton}>
-                  <Ionicons name="download-outline" size={18} color="#2563EB" />
-                </TouchableOpacity>
+                <View style={styles.exportActions}>
+                  <TouchableOpacity
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      handleExportFolder(folder.id, 'csv');
+                    }}
+                    style={styles.exportButton}>
+                    <Text style={styles.exportButtonText}>CSV</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      handleExportFolder(folder.id, 'excel');
+                    }}
+                    style={styles.exportButton}>
+                    <Text style={styles.exportButtonText}>XLS</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </TouchableOpacity>
             );
@@ -1004,10 +1015,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 10,
   },
+  exportActions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
   exportButton: {
     backgroundColor: '#EAF1FF',
     borderRadius: 999,
-    padding: 7,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  exportButtonText: {
+    color: '#2563EB',
+    fontSize: 10,
+    fontWeight: '900',
   },
   folderCopy: {
     flex: 1,

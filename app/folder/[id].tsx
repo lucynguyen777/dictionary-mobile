@@ -9,6 +9,7 @@ import {
   SavedWord,
   deleteFolder,
   exportFolderToCsv,
+  exportFolderToExcel,
   getDefaultLibraryState,
   getFavoriteFolderId,
   getFolderById,
@@ -62,11 +63,11 @@ export default function FolderDetailScreen() {
     });
   }, [folderId, libraryState, query]);
 
-  const handleExport = async () => {
+  const handleExport = async (format: 'csv' | 'excel') => {
     if (!folderId) return;
 
     try {
-      const result = await exportFolderToCsv(libraryState, folderId);
+      const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
 
       Alert.alert(result.ok ? 'Export complete' : 'Export unavailable', result.message);
     } catch (error) {
@@ -122,10 +123,16 @@ export default function FolderDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={22} color="#0F172A" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleExport} style={styles.exportButton}>
-            <Ionicons name="download-outline" size={19} color="#2563EB" />
-            <Text style={styles.exportText}>CSV</Text>
-          </TouchableOpacity>
+          <View style={styles.exportGroup}>
+            <TouchableOpacity onPress={() => handleExport('csv')} style={styles.exportButton}>
+              <Ionicons name="download-outline" size={18} color="#2563EB" />
+              <Text style={styles.exportText}>CSV</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleExport('excel')} style={styles.exportButton}>
+              <Ionicons name="grid-outline" size={18} color="#2563EB" />
+              <Text style={styles.exportText}>XLS</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.hero}>
@@ -264,6 +271,10 @@ const styles = StyleSheet.create({
     height: 42,
     justifyContent: 'center',
     width: 42,
+  },
+  exportGroup: {
+    flexDirection: 'row',
+    gap: 8,
   },
   exportButton: {
     alignItems: 'center',

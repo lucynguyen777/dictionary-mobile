@@ -355,6 +355,29 @@ export async function exportFolderToCsv(state: LibraryState, folderId: string): 
   return { ok: true, message: `Exported ${words.length} words.`, uri: file.uri };
 }
 
+export async function exportFolderToExcel(state: LibraryState, folderId: string): Promise<ExportResult> {
+  const folder = state.folders.find((item) => item.id === folderId);
+  if (!folder) return { ok: false, message: 'Folder not found.' };
+
+  const words = getFolderWords(state, folderId);
+  if (!words.length) return { ok: false, message: 'This folder has no saved words yet.' };
+
+  const workbook = buildFolderExcelWorkbook(folder, words);
+  const filename = `${slugify(folder.name)}-${Date.now()}.xls`;
+  const file = new File(Paths.document, filename);
+  file.create({ overwrite: true });
+  file.write(workbook, { encoding: 'utf8' });
+
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(file.uri, {
+      mimeType: 'application/vnd.ms-excel',
+      UTI: 'com.microsoft.excel.xls',
+    });
+  }
+
+  return { ok: true, message: `Exported ${words.length} words to Excel.`, uri: file.uri };
+}
+
 export function getDefaultLibraryState(): LibraryState {
   const timestamp = now();
 
@@ -512,7 +535,40 @@ function dedupeImportRows(rows: VocabularyImportRow[]) {
 }
 
 function buildFolderCsv(folder: Folder, words: SavedWord[]) {
-  const rows = [
+  const rows = buildFolderExportRows(folder, words);
+
+  return rows.map((row) => row.map(escapeCsvCell).join(',')).join('\n');
+}
+
+function buildFolderExcelWorkbook(folder: Folder, words: SavedWord[]) {
+  const rows = buildFolderExportRows(folder, words);
+  const tableRows = rows
+    .map((row, index) => {
+      const cellTag = index === 0 ? 'th' : 'td';
+      const cells = row.map((cell) => `<${cellTag}>${escapeHtmlCell(cell)}</${cellTag}>`).join('');
+
+      return `<tr>${cells}</tr>`;
+    })
+    .join('');
+
+  return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    table { border-collapse: collapse; font-family: Arial, sans-serif; }
+    th, td { border: 1px solid #d9e2ec; padding: 6px 8px; mso-number-format:"\\@"; }
+    th { background: #eaf1ff; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <table>${tableRows}</table>
+</body>
+</html>`;
+}
+
+function buildFolderExportRows(folder: Folder, words: SavedWord[]) {
+  return [
     ['word', 'ipa', 'definition', 'note', 'folder', 'tags', 'createdAt'],
     ...words.map((word) => [
       word.word,
@@ -524,14 +580,21 @@ function buildFolderCsv(folder: Folder, words: SavedWord[]) {
       word.createdAt,
     ]),
   ];
-
-  return rows.map((row) => row.map(escapeCsvCell).join(',')).join('\n');
 }
 
 function escapeCsvCell(value: string) {
   const escapedValue = value.replace(/"/g, '""');
 
   return `"${escapedValue}"`;
+}
+
+function escapeHtmlCell(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function pickFolderColor(index: number) {
