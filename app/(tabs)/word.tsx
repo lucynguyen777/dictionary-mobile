@@ -19,6 +19,7 @@ import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair, languag
 import {
   findLocalDictionaryEntry,
   getLocalDictionaryEntries,
+  getSpellingSuggestions,
   normalizeLookupTerm,
   supportsLocalDictionary,
 } from '@/data/localLexicon';
@@ -108,6 +109,11 @@ export default function WordScreen() {
       return searchable.includes(normalized);
     });
   }, [query, sourceEntries]);
+
+  const spellingSuggestions = useMemo(() => {
+    if (!query || results.length > 0) return [];
+    return getSpellingSuggestions(sourceLanguage.code, query, 3);
+  }, [query, results.length, sourceLanguage.code]);
 
   const normalizedQuery = normalizeLookupTerm(query);
   const hasExactLocalResult = results.some((entry) => normalizeLookupTerm(entry.word) === normalizedQuery);
@@ -346,8 +352,20 @@ export default function WordScreen() {
             ) : null}
           </ScrollView>
         ) : null}
-        {query && results.length === 0 && !shouldShowApiLookup && !shouldShowLocalLookup ? (
+        {query && results.length === 0 && !shouldShowApiLookup && !shouldShowLocalLookup && spellingSuggestions.length === 0 ? (
           <Text style={styles.emptyText}>Nhập từ thuộc ngôn ngữ gốc rồi nhấn tìm kiếm.</Text>
+        ) : null}
+        {query && results.length === 0 && spellingSuggestions.length > 0 ? (
+          <View style={styles.suggestionBlock}>
+            <Text style={styles.suggestionTitle}>Có phải ý bạn là:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionRow}>
+              {spellingSuggestions.map((suggestion) => (
+                <TouchableOpacity key={suggestion} activeOpacity={0.82} onPress={() => selectWord(suggestion)} style={styles.suggestionChip}>
+                  <Text style={styles.suggestionText}>{suggestion}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         ) : null}
         {!query && libraryState.searchHistory.length ? (
           <View style={styles.historyBlock}>
@@ -800,6 +818,32 @@ const styles = StyleSheet.create({
   },
   historyText: {
     color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  suggestionBlock: {
+    paddingBottom: 12,
+  },
+  suggestionTitle: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  suggestionRow: {
+    gap: 8,
+  },
+  suggestionChip: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  suggestionText: {
+    color: '#DC2626',
     fontSize: 13,
     fontWeight: '800',
   },

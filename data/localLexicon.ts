@@ -171,3 +171,57 @@ export function supportsLocalDictionary(languageCode: string) {
 export function normalizeLookupTerm(value: string) {
   return value.trim().toLocaleLowerCase();
 }
+
+/**
+ * Calculates the Levenshtein distance between two strings.
+ */
+function levenshteinDistance(a: string, b: string): number {
+  const matrix = [];
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          Math.min(
+            matrix[i][j - 1] + 1, // insertion
+            matrix[i - 1][j] + 1 // deletion
+          )
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+
+/**
+ * Returns up to `limit` spelling suggestions for a given word.
+ * It uses Levenshtein distance and filters out words that are too different.
+ */
+export function getSpellingSuggestions(languageCode: string, word: string, limit = 3): string[] {
+  const normalizedWord = normalizeLookupTerm(word);
+  if (!normalizedWord) return [];
+
+  const entries = getLocalDictionaryEntries(languageCode);
+  const scoredEntries = entries
+    .map((entry) => {
+      const entryWord = normalizeLookupTerm(entry.word);
+      const distance = levenshteinDistance(normalizedWord, entryWord);
+      return { word: entry.word, distance };
+    })
+    .filter((item) => item.distance > 0 && item.distance <= 3) // Only reasonable suggestions
+    .sort((a, b) => a.distance - b.distance);
+
+  return scoredEntries.slice(0, limit).map((item) => item.word);
+}
