@@ -6,7 +6,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
-import { VocabularyImportRow, parseVocabularyCsv } from '@/data/csvImport';
+import {
+  VocabularyImportField,
+  VocabularyImportOptions,
+  VocabularyImportOrientation,
+  VocabularyImportRow,
+  parseVocabularyCsv,
+} from '@/data/csvImport';
 import {
   LibraryState,
   createFlashcardsFromWordIds,
@@ -22,6 +28,24 @@ import {
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
 type ImportTargetMode = 'new' | 'existing';
 
+const defaultImportOptions: VocabularyImportOptions = {
+  orientation: 'rows',
+  hasHeader: true,
+  primaryField: 'word',
+};
+
+const importOrientationOptions: { value: VocabularyImportOrientation; label: string; description: string }[] = [
+  { value: 'rows', label: 'Theo hàng', description: 'Mỗi dòng là một từ.' },
+  { value: 'columns', label: 'Theo cột', description: 'Mỗi cột là một từ.' },
+];
+
+const primaryFieldOptions: { value: VocabularyImportField; label: string }[] = [
+  { value: 'word', label: 'Word' },
+  { value: 'definition', label: 'Definition' },
+  { value: 'ipa', label: 'IPA' },
+  { value: 'note', label: 'Note' },
+];
+
 const segments: { key: LibrarySegment; label: string }[] = [
   { key: 'folders', label: 'Bộ từ' },
   { key: 'favorites', label: 'Yêu thích' },
@@ -35,9 +59,11 @@ export default function LibraryScreen() {
   const [createPanelOpen, setCreatePanelOpen] = useState(false);
   const [folderNameDraft, setFolderNameDraft] = useState('');
   const [createFolderError, setCreateFolderError] = useState('');
+  const [importCsvContent, setImportCsvContent] = useState('');
   const [importRows, setImportRows] = useState<VocabularyImportRow[]>([]);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importFileName, setImportFileName] = useState('');
+  const [importOptions, setImportOptions] = useState<VocabularyImportOptions>(defaultImportOptions);
   const [importFolderName, setImportFolderName] = useState('');
   const [importTargetMode, setImportTargetMode] = useState<ImportTargetMode>('new');
   const [selectedImportFolderId, setSelectedImportFolderId] = useState('');
@@ -77,6 +103,17 @@ export default function LibraryScreen() {
 
   const recentWords = libraryState.savedWords.slice(0, 6);
   const importTargetFolders = libraryState.folders.filter((folder) => folder.id !== getFavoriteFolderId());
+
+  const updateImportOptions = (nextOptions: VocabularyImportOptions) => {
+    setImportOptions(nextOptions);
+
+    if (!importCsvContent) return;
+
+    const parsed = parseVocabularyCsv(importCsvContent, nextOptions);
+    setImportRows(parsed.rows);
+    setImportErrors(parsed.errors);
+    setImportMessage('');
+  };
 
   const handleOpenCreateFolder = () => {
     setCreatePanelOpen((isOpen) => !isOpen);
@@ -128,12 +165,14 @@ export default function LibraryScreen() {
 
       const asset = result.assets[0];
       const csv = asset.file ? await asset.file.text() : await new File(asset.uri).text();
-      const parsed = parseVocabularyCsv(csv);
+      const parsed = parseVocabularyCsv(csv, defaultImportOptions);
       const defaultFolderName = asset.name.replace(/\.[^/.]+$/, '').trim() || 'Imported words';
 
+      setImportCsvContent(csv);
       setImportRows(parsed.rows);
       setImportErrors(parsed.errors);
       setImportFileName(asset.name);
+      setImportOptions(defaultImportOptions);
       setImportFolderName(defaultFolderName);
       setImportTargetMode('new');
       setSelectedImportFolderId(importTargetFolders[0]?.id ?? '');
@@ -172,7 +211,9 @@ export default function LibraryScreen() {
       );
       setImportRows([]);
       setImportErrors([]);
+      setImportCsvContent('');
       setImportFileName('');
+      setImportOptions(defaultImportOptions);
       setImportFolderName('');
       setImportTargetMode('new');
       setSelectedImportFolderId('');
@@ -262,6 +303,68 @@ export default function LibraryScreen() {
           {importFileName ? (
             <>
               <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
+              <View style={styles.importConfigPanel}>
+                <Text style={styles.importConfigLabel}>Cách đọc dữ liệu</Text>
+                <View style={styles.importOptionGrid}>
+                  {importOrientationOptions.map((option) => {
+                    const isSelected = importOptions.orientation === option.value;
+
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        activeOpacity={0.82}
+                        onPress={() => updateImportOptions({ ...importOptions, orientation: option.value })}
+                        style={[styles.importOptionCard, isSelected && styles.activeImportOptionCard]}>
+                        <Ionicons
+                          name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                          size={17}
+                          color={isSelected ? '#2563EB' : '#94A3B8'}
+                        />
+                        <View style={styles.importOptionCopy}>
+                          <Text style={[styles.importOptionTitle, isSelected && styles.activeImportOptionTitle]}>
+                            {option.label}
+                          </Text>
+                          <Text style={styles.importOptionText}>{option.description}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.82}
+                  onPress={() => updateImportOptions({ ...importOptions, hasHeader: !importOptions.hasHeader })}
+                  style={styles.importHeaderToggle}>
+                  <Ionicons
+                    name={importOptions.hasHeader ? 'checkbox' : 'square-outline'}
+                    size={20}
+                    color={importOptions.hasHeader ? '#2563EB' : '#94A3B8'}
+                  />
+                  <View style={styles.importFlashcardCopy}>
+                    <Text style={styles.importFlashcardTitle}>Dùng hàng/cột đầu làm tên trường</Text>
+                    <Text style={styles.importFlashcardText}>
+                      Bật khi file có nhãn như word, definition, ipa, note, tags.
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.importConfigLabel}>Khóa chính</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importPrimaryRow}>
+                  {primaryFieldOptions.map((option) => {
+                    const isSelected = importOptions.primaryField === option.value;
+
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        activeOpacity={0.82}
+                        onPress={() => updateImportOptions({ ...importOptions, primaryField: option.value })}
+                        style={[styles.importPrimaryChip, isSelected && styles.activeImportPrimaryChip]}>
+                        <Text style={[styles.importPrimaryText, isSelected && styles.activeImportPrimaryText]}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
               <View style={styles.importModeRow}>
                 <TouchableOpacity
                   activeOpacity={0.82}
@@ -354,7 +457,9 @@ export default function LibraryScreen() {
               </TouchableOpacity>
             </>
           ) : (
-            <Text style={styles.importHint}>CSV cần có header `word`; các cột `definition`, `ipa`, `note`, `tags` là tùy chọn.</Text>
+            <Text style={styles.importHint}>
+              CSV có thể đọc theo hàng hoặc theo cột. Các trường hỗ trợ: word, definition, ipa, note, tags.
+            </Text>
           )}
           {importMessage ? <Text style={styles.importMessage}>{importMessage}</Text> : null}
         </View>
@@ -599,6 +704,93 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     marginTop: 10,
+  },
+  importConfigPanel: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 11,
+  },
+  importConfigLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  importOptionGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  importOptionCard: {
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
+    padding: 10,
+  },
+  activeImportOptionCard: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  importOptionCopy: {
+    flex: 1,
+  },
+  importOptionTitle: {
+    color: '#0F172A',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  activeImportOptionTitle: {
+    color: '#2563EB',
+  },
+  importOptionText: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 15,
+    marginTop: 3,
+  },
+  importHeaderToggle: {
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    marginBottom: 10,
+    padding: 10,
+  },
+  importPrimaryRow: {
+    gap: 8,
+  },
+  importPrimaryChip: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  activeImportPrimaryChip: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#2563EB',
+  },
+  importPrimaryText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  activeImportPrimaryText: {
+    color: '#2563EB',
   },
   importModeRow: {
     flexDirection: 'row',
