@@ -16,6 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `a280c33` Add flashcard review filters
   - `3209bbf` Support advanced vocabulary import options
   - `aa75832` Add Excel folder export
+  - `75a0cc3` Add product progress checklist
 - Verification habit before code commits:
   - `npx tsc --noEmit`
   - `npx eslint . --no-cache`
@@ -90,6 +91,30 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO: Better text selection/highlight behavior beyond tap-token flow.
 - [ ] TODO: Create flashcards directly from Reader highlights.
 
+## User Profile And Privacy
+
+### Basic Profile
+- [~] IN PROGRESS: Profile tab UI exists, but current data is static/demo.
+- [ ] TODO: Editable display name.
+- [ ] TODO: Email and login method display.
+- [ ] TODO: Native language setting.
+- [ ] TODO: Learning language setting, including multiple target languages later.
+- [ ] TODO: Current proficiency level setting from A1 to C2.
+- [ ] TODO: Learning goal setting, for example exam, travel, academic, work, daily communication.
+- [ ] TODO: Timezone setting.
+- [ ] TODO: Daily goal setting, for example words/day, minutes/day, reviews/day.
+- [ ] TODO: Persist profile settings locally before cloud/auth is chosen.
+
+### Data Privacy And Security
+- [ ] TODO: Local data overview showing saved words, folders, flashcards, reader files, and import datasets.
+- [ ] TODO: Export all local user data.
+- [ ] TODO: Delete/reset local user data with confirmation.
+- [ ] TODO: Privacy copy explaining local-first storage and what leaves the device.
+- [ ] TODO: App lock or biometric lock option if native support is added.
+- [!] BLOCKED: Email login/auth requires choosing an auth provider.
+- [!] BLOCKED: Cloud sync and encrypted backup require backend/auth decisions.
+- [!] BLOCKED: Account deletion workflow requires real accounts and backend support.
+
 ## Advanced Features
 
 ### Translation
@@ -107,12 +132,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~]` Improve validation messages for advanced CSV import.
-2. `[ ]` Add custom field mapping UI for import.
-3. `[ ]` Prepare Anki text-only export from local flashcards.
-4. `[ ]` Expand idioms/phrasal verbs dataset.
-5. `[ ]` Improve Reader highlight flow and create flashcards from highlights.
-6. `[!]` Decide backend/API options for pronunciation scoring and multilingual translation.
+1. `[ ]` Build editable local User Profile settings.
+2. `[ ]` Add local data privacy controls: export all data, reset local data, privacy copy.
+3. `[~]` Improve validation messages for advanced CSV import.
+4. `[ ]` Add custom field mapping UI for import.
+5. `[ ]` Prepare Anki text-only export from local flashcards.
+6. `[ ]` Expand idioms/phrasal verbs dataset.
+7. `[ ]` Improve Reader highlight flow and create flashcards from highlights.
+8. `[!]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
 ## Update Rule
 After finishing a task:
