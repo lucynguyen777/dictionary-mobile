@@ -9,6 +9,7 @@ import Screen from '@/components/app/Screen';
 import { VocabularyImportRow, parseVocabularyCsv } from '@/data/csvImport';
 import {
   LibraryState,
+  createFlashcardsFromWordIds,
   createFolder,
   exportFolderToCsv,
   getDefaultLibraryState,
@@ -19,6 +20,7 @@ import {
 } from '@/data/libraryStore';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
+type ImportTargetMode = 'new' | 'existing';
 
 const segments: { key: LibrarySegment; label: string }[] = [
   { key: 'folders', label: 'Bộ từ' },
@@ -37,6 +39,9 @@ export default function LibraryScreen() {
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importFileName, setImportFileName] = useState('');
   const [importFolderName, setImportFolderName] = useState('');
+  const [importTargetMode, setImportTargetMode] = useState<ImportTargetMode>('new');
+  const [selectedImportFolderId, setSelectedImportFolderId] = useState('');
+  const [shouldCreateImportFlashcards, setShouldCreateImportFlashcards] = useState(false);
   const [importMessage, setImportMessage] = useState('');
 
   useFocusEffect(
@@ -71,6 +76,7 @@ export default function LibraryScreen() {
   }, [activeSegment, libraryState.folders, libraryState.savedWords, query]);
 
   const recentWords = libraryState.savedWords.slice(0, 6);
+  const importTargetFolders = libraryState.folders.filter((folder) => folder.id !== getFavoriteFolderId());
 
   const handleOpenCreateFolder = () => {
     setCreatePanelOpen((isOpen) => !isOpen);
@@ -129,6 +135,9 @@ export default function LibraryScreen() {
       setImportErrors(parsed.errors);
       setImportFileName(asset.name);
       setImportFolderName(defaultFolderName);
+      setImportTargetMode('new');
+      setSelectedImportFolderId(importTargetFolders[0]?.id ?? '');
+      setShouldCreateImportFlashcards(false);
       setImportMessage('');
     } catch (error) {
       Alert.alert('Import failed', error instanceof Error ? error.message : 'Could not read this CSV file.');
@@ -141,13 +150,33 @@ export default function LibraryScreen() {
       return;
     }
 
-    importVocabularyRowsToFolder(libraryState, importRows, importFolderName).then((nextState) => {
+    const targetFolder = libraryState.folders.find((folder) => folder.id === selectedImportFolderId);
+    const importTarget =
+      importTargetMode === 'existing' && targetFolder
+        ? { folderId: targetFolder.id, folderName: targetFolder.name }
+        : { folderName: importFolderName };
+    const importedWordIds = importRows.map((row) => `word-${row.word.toLowerCase()}`);
+
+    importVocabularyRowsToFolder(libraryState, importRows, importTarget).then((nextState) => {
+      if (!shouldCreateImportFlashcards) return nextState;
+
+      return createFlashcardsFromWordIds(nextState, importedWordIds, ['bilingual', 'word-definition']);
+    }).then((nextState) => {
+      const folderLabel = importTarget.folderName || 'Imported words';
+
       setLibraryState(nextState);
-      setImportMessage(`Đã import ${importRows.length} từ vào "${importFolderName || 'Imported words'}".`);
+      setImportMessage(
+        `Đã import ${importRows.length} từ vào "${folderLabel}"${
+          shouldCreateImportFlashcards ? ' và tạo flashcard.' : '.'
+        }`
+      );
       setImportRows([]);
       setImportErrors([]);
       setImportFileName('');
       setImportFolderName('');
+      setImportTargetMode('new');
+      setSelectedImportFolderId('');
+      setShouldCreateImportFlashcards(false);
       setActiveSegment('folders');
       setQuery('');
     });
@@ -233,17 +262,84 @@ export default function LibraryScreen() {
           {importFileName ? (
             <>
               <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
-              <View style={styles.createInputBox}>
-                <Ionicons name="folder-outline" size={19} color="#2563EB" />
-                <TextInput
-                  autoCorrect={false}
-                  onChangeText={setImportFolderName}
-                  placeholder="Tên bộ từ sau khi import"
-                  placeholderTextColor="#94A3B8"
-                  style={styles.createInput}
-                  value={importFolderName}
-                />
+              <View style={styles.importModeRow}>
+                <TouchableOpacity
+                  activeOpacity={0.82}
+                  onPress={() => setImportTargetMode('new')}
+                  style={[styles.importModeButton, importTargetMode === 'new' && styles.activeImportModeButton]}>
+                  <Ionicons
+                    name={importTargetMode === 'new' ? 'radio-button-on' : 'radio-button-off'}
+                    size={17}
+                    color={importTargetMode === 'new' ? '#2563EB' : '#94A3B8'}
+                  />
+                  <Text style={[styles.importModeText, importTargetMode === 'new' && styles.activeImportModeText]}>
+                    Bộ từ mới
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.82}
+                  onPress={() => {
+                    setImportTargetMode('existing');
+                    setSelectedImportFolderId((current) => current || importTargetFolders[0]?.id || '');
+                  }}
+                  style={[styles.importModeButton, importTargetMode === 'existing' && styles.activeImportModeButton]}>
+                  <Ionicons
+                    name={importTargetMode === 'existing' ? 'radio-button-on' : 'radio-button-off'}
+                    size={17}
+                    color={importTargetMode === 'existing' ? '#2563EB' : '#94A3B8'}
+                  />
+                  <Text style={[styles.importModeText, importTargetMode === 'existing' && styles.activeImportModeText]}>
+                    Bộ từ có sẵn
+                  </Text>
+                </TouchableOpacity>
               </View>
+              {importTargetMode === 'new' ? (
+                <View style={styles.createInputBox}>
+                  <Ionicons name="folder-outline" size={19} color="#2563EB" />
+                  <TextInput
+                    autoCorrect={false}
+                    onChangeText={setImportFolderName}
+                    placeholder="Tên bộ từ sau khi import"
+                    placeholderTextColor="#94A3B8"
+                    style={styles.createInput}
+                    value={importFolderName}
+                  />
+                </View>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importFolderRow}>
+                  {importTargetFolders.map((folder) => {
+                    const isSelected = selectedImportFolderId === folder.id;
+
+                    return (
+                      <TouchableOpacity
+                        key={folder.id}
+                        activeOpacity={0.82}
+                        onPress={() => setSelectedImportFolderId(folder.id)}
+                        style={[styles.importFolderChip, isSelected && styles.activeImportFolderChip]}>
+                        <Text
+                          numberOfLines={1}
+                          style={[styles.importFolderChipText, isSelected && styles.activeImportFolderChipText]}>
+                          {folder.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
+              <TouchableOpacity
+                activeOpacity={0.82}
+                onPress={() => setShouldCreateImportFlashcards((value) => !value)}
+                style={styles.importFlashcardToggle}>
+                <Ionicons
+                  name={shouldCreateImportFlashcards ? 'checkbox' : 'square-outline'}
+                  size={20}
+                  color={shouldCreateImportFlashcards ? '#2563EB' : '#94A3B8'}
+                />
+                <View style={styles.importFlashcardCopy}>
+                  <Text style={styles.importFlashcardTitle}>Tạo flashcard sau import</Text>
+                  <Text style={styles.importFlashcardText}>Tạo thẻ bilingual và từ-nghĩa cho các từ vừa nhập.</Text>
+                </View>
+              </TouchableOpacity>
               {importRows.slice(0, 3).map((row) => (
                 <View key={row.word} style={styles.importPreviewRow}>
                   <Text style={styles.importPreviewWord}>{row.word}</Text>
@@ -503,6 +599,87 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     marginTop: 10,
+  },
+  importModeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  importModeButton: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  activeImportModeButton: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  importModeText: {
+    color: '#64748B',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  activeImportModeText: {
+    color: '#2563EB',
+  },
+  importFolderRow: {
+    gap: 8,
+    paddingTop: 12,
+  },
+  importFolderChip: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    maxWidth: 160,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  activeImportFolderChip: {
+    backgroundColor: '#EAF1FF',
+    borderColor: '#BFDBFE',
+  },
+  importFolderChipText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  activeImportFolderChipText: {
+    color: '#2563EB',
+  },
+  importFlashcardToggle: {
+    alignItems: 'flex-start',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    marginTop: 12,
+    padding: 11,
+  },
+  importFlashcardCopy: {
+    flex: 1,
+  },
+  importFlashcardTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  importFlashcardText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 3,
   },
   importPreviewRow: {
     backgroundColor: '#F8FAFC',

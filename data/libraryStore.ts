@@ -62,6 +62,11 @@ export type ExportResult = {
   uri?: string;
 };
 
+export type ImportVocabularyTarget = {
+  folderId?: string;
+  folderName: string;
+};
+
 const now = () => new Date().toISOString();
 
 export async function loadLibraryState(): Promise<LibraryState> {
@@ -226,16 +231,26 @@ export async function createFlashcardsFromSavedWords(state: LibraryState, types:
   const selectedTypes = Array.from(new Set(types));
   if (!selectedTypes.length || !state.savedWords.length) return state;
 
-  const existingIds = new Set(state.flashcards.map((card) => card.id));
-  const createdAt = now();
-  const newCards = state.savedWords.flatMap((word) =>
-    selectedTypes.flatMap((type) => {
-      const id = `flashcard-${word.id}-${type}`;
-      if (existingIds.has(id)) return [];
+  const newCards = buildFlashcardsForWords(state, state.savedWords, selectedTypes);
 
-      return [buildFlashcard(word, type, id, createdAt)];
-    })
-  );
+  const nextState = {
+    ...state,
+    flashcards: [...newCards, ...state.flashcards],
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function createFlashcardsFromWordIds(state: LibraryState, wordIds: string[], types: FlashcardType[]) {
+  const selectedTypes = Array.from(new Set(types));
+  const selectedWordIds = new Set(wordIds);
+  const selectedWords = state.savedWords.filter((word) => selectedWordIds.has(word.id));
+  if (!selectedTypes.length || !selectedWords.length) return state;
+
+  const newCards = buildFlashcardsForWords(state, selectedWords, selectedTypes);
+  if (!newCards.length) return state;
 
   const nextState = {
     ...state,
@@ -258,18 +273,28 @@ export async function updateFlashcardReviewState(state: LibraryState, cardId: st
   return nextState;
 }
 
-export async function importVocabularyRowsToFolder(state: LibraryState, rows: VocabularyImportRow[], folderName: string) {
+export async function importVocabularyRowsToFolder(
+  state: LibraryState,
+  rows: VocabularyImportRow[],
+  target: string | ImportVocabularyTarget
+) {
   const importedRows = dedupeImportRows(rows);
   if (!importedRows.length) return state;
 
   const timestamp = now();
-  const folder: Folder = {
-    id: `folder-${Date.now()}`,
-    name: folderName.trim() || `Imported ${state.folders.length + 1}`,
-    color: pickFolderColor(state.folders.length),
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
+  const targetConfig = typeof target === 'string' ? { folderName: target } : target;
+  const existingFolder = targetConfig.folderId
+    ? state.folders.find((folder) => folder.id === targetConfig.folderId)
+    : undefined;
+  const folder: Folder = existingFolder
+    ? { ...existingFolder, updatedAt: timestamp }
+    : {
+        id: `folder-${Date.now()}`,
+        name: targetConfig.folderName.trim() || `Imported ${state.folders.length + 1}`,
+        color: pickFolderColor(state.folders.length),
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
   const savedWordsById = new Map(state.savedWords.map((word) => [word.id, word]));
 
   importedRows.forEach((row) => {
@@ -292,9 +317,13 @@ export async function importVocabularyRowsToFolder(state: LibraryState, rows: Vo
     });
   });
 
+  const folders = existingFolder
+    ? state.folders.map((item) => (item.id === folder.id ? folder : item))
+    : [folder, ...state.folders];
+
   const nextState = {
     ...state,
-    folders: [folder, ...state.folders],
+    folders,
     savedWords: Array.from(savedWordsById.values()),
   };
 
@@ -453,6 +482,20 @@ function buildFlashcard(word: SavedWord, type: FlashcardType, id: string, create
     createdAt,
     reviewState: 'new',
   };
+}
+
+function buildFlashcardsForWords(state: LibraryState, words: SavedWord[], selectedTypes: FlashcardType[]) {
+  const existingIds = new Set(state.flashcards.map((card) => card.id));
+  const createdAt = now();
+
+  return words.flatMap((word) =>
+    selectedTypes.flatMap((type) => {
+      const id = `flashcard-${word.id}-${type}`;
+      if (existingIds.has(id)) return [];
+
+      return [buildFlashcard(word, type, id, createdAt)];
+    })
+  );
 }
 
 function dedupeImportRows(rows: VocabularyImportRow[]) {
