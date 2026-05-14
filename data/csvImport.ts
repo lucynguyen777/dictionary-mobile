@@ -13,11 +13,13 @@ export type VocabularyImportOptions = {
   orientation: VocabularyImportOrientation;
   hasHeader: boolean;
   primaryField: VocabularyImportField;
+  fieldMapping?: Record<number, VocabularyImportField | 'ignore'>;
 };
 
 export type CsvParseResult = {
   rows: VocabularyImportRow[];
   errors: string[];
+  headers?: string[];
 };
 
 const headerAliases = {
@@ -53,8 +55,8 @@ function parseRowOrientedCsvRows(rows: string[][], options: VocabularyImportOpti
     return { rows: [], errors: ['CSV cần có header và ít nhất một dòng dữ liệu.'] };
   }
 
-  const headers = options.hasHeader ? rows[0].map(normalizeHeader) : [];
-  const fieldIndexes = getRowFieldIndexes(headers, options.hasHeader);
+  const headers = options.hasHeader ? rows[0].map((v) => v.trim()) : [];
+  const fieldIndexes = getRowFieldIndexes(headers.map(normalizeHeader), options.hasHeader, options.fieldMapping);
   const wordIndex = fieldIndexes.word;
   const primaryIndex = fieldIndexes[options.primaryField];
   if (options.hasHeader && wordIndex < 0 && primaryIndex < 0) {
@@ -84,14 +86,15 @@ function parseRowOrientedCsvRows(rows: string[][], options: VocabularyImportOpti
     ];
   });
 
-  return finalizeParseResult(vocabularyRows, errors);
+  return { ...finalizeParseResult(vocabularyRows, errors), headers };
 }
 
 function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportOptions): CsvParseResult {
   const dataRows = options.hasHeader ? rows.slice(1) : rows;
   if (!dataRows.length) return { rows: [], errors: ['CSV đọc theo cột cần ít nhất một dòng dữ liệu.'] };
 
-  const fieldRowIndexes = getColumnFieldRowIndexes(dataRows, options.hasHeader);
+  const headers = options.hasHeader ? rows.map((row) => (row[0] ?? '').trim()) : [];
+  const fieldRowIndexes = getColumnFieldRowIndexes(dataRows, options.hasHeader, options.fieldMapping);
   const wordRowIndex = fieldRowIndexes.word;
   const primaryRowIndex = fieldRowIndexes[options.primaryField];
   if (wordRowIndex < 0 && primaryRowIndex < 0) {
@@ -123,7 +126,7 @@ function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportO
     });
   }
 
-  return finalizeParseResult(vocabularyRows, errors);
+  return { ...finalizeParseResult(vocabularyRows, errors), headers };
 }
 
 function parseCsvRows(csv: string) {
@@ -185,7 +188,11 @@ function getCell(row: string[], index: number) {
   return row[index] ?? '';
 }
 
-function getRowFieldIndexes(headers: string[], hasHeader: boolean): Record<VocabularyImportField, number> {
+function getRowFieldIndexes(
+  headers: string[],
+  hasHeader: boolean,
+  fieldMapping?: Record<number, VocabularyImportField | 'ignore'>
+): Record<VocabularyImportField, number> {
   if (!hasHeader) {
     return defaultFieldOrder.reduce(
       (indexes, field, index) => ({
@@ -196,16 +203,36 @@ function getRowFieldIndexes(headers: string[], hasHeader: boolean): Record<Vocab
     );
   }
 
-  return {
-    word: findHeaderIndex(headers, headerAliases.word),
-    definition: findHeaderIndex(headers, headerAliases.definition),
-    ipa: findHeaderIndex(headers, headerAliases.ipa),
-    note: findHeaderIndex(headers, headerAliases.note),
-    tags: findHeaderIndex(headers, headerAliases.tags),
+  const indexes: Record<VocabularyImportField, number> = {
+    word: -1,
+    definition: -1,
+    ipa: -1,
+    note: -1,
+    tags: -1,
   };
+
+  if (fieldMapping) {
+    Object.entries(fieldMapping).forEach(([key, value]) => {
+      const idx = Number(key);
+      if (value !== 'ignore') indexes[value as VocabularyImportField] = idx;
+    });
+  }
+
+  // fallback to auto-detection for unmapped fields
+  defaultFieldOrder.forEach((field) => {
+    if (indexes[field] >= 0) return;
+
+    indexes[field] = findHeaderIndex(headers, headerAliases[field]);
+  });
+
+  return indexes;
 }
 
-function getColumnFieldRowIndexes(rows: string[][], hasHeader: boolean): Record<VocabularyImportField, number> {
+function getColumnFieldRowIndexes(
+  rows: string[][],
+  hasHeader: boolean,
+  fieldMapping?: Record<number, VocabularyImportField | 'ignore'>
+): Record<VocabularyImportField, number> {
   if (!hasHeader) {
     return defaultFieldOrder.reduce(
       (indexes, field, index) => ({
@@ -218,13 +245,48 @@ function getColumnFieldRowIndexes(rows: string[][], hasHeader: boolean): Record<
 
   const headers = rows.map((row) => normalizeHeader(row[0] ?? ''));
 
-  return {
-    word: findHeaderIndex(headers, headerAliases.word),
-    definition: findHeaderIndex(headers, headerAliases.definition),
-    ipa: findHeaderIndex(headers, headerAliases.ipa),
-    note: findHeaderIndex(headers, headerAliases.note),
-    tags: findHeaderIndex(headers, headerAliases.tags),
+  const indexes: Record<VocabularyImportField, number> = {
+    word: -1,
+    definition: -1,
+    ipa: -1,
+    note: -1,
+    tags: -1,
   };
+
+  if (fieldMapping) {
+    Object.entries(fieldMapping).forEach(([key, value]) => {
+      const idx = Number(key);
+      if (value !== 'ignore') indexes[value as VocabularyImportField] = idx;
+    });
+  }
+
+  defaultFieldOrder.forEach((field) => {
+    if (indexes[field] >= 0) return;
+
+    indexes[field] = findHeaderIndex(headers, headerAliases[field]);
+  });
+
+  return indexes;
+}
+
+export function detectHeaderFieldMapping(headers: string[]): Record<number, VocabularyImportField | 'ignore'> {
+  const mapping: Record<number, VocabularyImportField | 'ignore'> = {};
+
+  headers.forEach((header, index) => {
+    const norm = normalizeHeader(header);
+    let found: VocabularyImportField | 'ignore' = 'ignore';
+
+    for (const field of defaultFieldOrder) {
+      if (headerAliases[field].includes(norm)) {
+        found = field;
+        break;
+      }
+    }
+
+    mapping[index] = found;
+  });
+
+  return mapping;
 }
 
 function normalizeWord(value: string) {

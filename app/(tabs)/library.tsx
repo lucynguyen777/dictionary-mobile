@@ -7,23 +7,24 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 
 import Screen from '@/components/app/Screen';
 import {
-  VocabularyImportField,
-  VocabularyImportOptions,
-  VocabularyImportOrientation,
-  VocabularyImportRow,
-  parseVocabularyCsv,
+    VocabularyImportField,
+    VocabularyImportOptions,
+    VocabularyImportOrientation,
+    VocabularyImportRow,
+    detectHeaderFieldMapping,
+    parseVocabularyCsv,
 } from '@/data/csvImport';
 import {
-  LibraryState,
-  createFlashcardsFromWordIds,
-  createFolder,
-  exportFolderToCsv,
-  exportFolderToExcel,
-  getDefaultLibraryState,
-  getFavoriteFolderId,
-  getFolderWords,
-  importVocabularyRowsToFolder,
-  loadLibraryState,
+    LibraryState,
+    createFlashcardsFromWordIds,
+    createFolder,
+    exportFolderToCsv,
+    exportFolderToExcel,
+    getDefaultLibraryState,
+    getFavoriteFolderId,
+    getFolderWords,
+    importVocabularyRowsToFolder,
+    loadLibraryState,
 } from '@/data/libraryStore';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
@@ -65,6 +66,8 @@ export default function LibraryScreen() {
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importFileName, setImportFileName] = useState('');
   const [importOptions, setImportOptions] = useState<VocabularyImportOptions>(defaultImportOptions);
+  const [importHeaders, setImportHeaders] = useState<string[]>([]);
+  const [importFieldMapping, setImportFieldMapping] = useState<Record<number, VocabularyImportField | 'ignore'>>({});
   const [importFolderName, setImportFolderName] = useState('');
   const [importTargetMode, setImportTargetMode] = useState<ImportTargetMode>('new');
   const [selectedImportFolderId, setSelectedImportFolderId] = useState('');
@@ -174,6 +177,10 @@ export default function LibraryScreen() {
       setImportErrors(parsed.errors);
       setImportFileName(asset.name);
       setImportOptions(defaultImportOptions);
+      setImportHeaders(parsed.headers ?? []);
+      const autoMapping = parsed.headers ? detectHeaderFieldMapping(parsed.headers) : {};
+      setImportFieldMapping(autoMapping);
+      // apply auto mapping to parsing options
       setImportFolderName(defaultFolderName);
       setImportTargetMode('new');
       setSelectedImportFolderId(importTargetFolders[0]?.id ?? '');
@@ -230,6 +237,37 @@ export default function LibraryScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.kicker}>Library</Text>
+                {importHeaders.length ? (
+                  <>
+                    <Text style={styles.importConfigLabel}>Mapping trường</Text>
+                    <View style={styles.mappingRow}>
+                      {importHeaders.map((hdr, idx) => {
+                        const mapped = importFieldMapping[idx] ?? 'ignore';
+
+                        return (
+                          <View key={String(idx)} style={styles.mappingCard}>
+                            <Text style={styles.mappingHeader} numberOfLines={1}>{hdr || `Cột ${idx + 1}`}</Text>
+                            <TouchableOpacity
+                              activeOpacity={0.82}
+                              onPress={() => {
+                                const order: (VocabularyImportField | 'ignore')[] = ['ignore', 'word', 'definition', 'ipa', 'note', 'tags'];
+                                const current = importFieldMapping[idx] ?? 'ignore';
+                                const next = order[(order.indexOf(current) + 1) % order.length];
+                                const nextMap = { ...importFieldMapping, [idx]: next };
+                                setImportFieldMapping(nextMap);
+                                updateImportOptions({ ...importOptions, fieldMapping: nextMap });
+                              }}
+                              style={[styles.mappingButton, mapped !== 'ignore' && styles.mappingButtonActive]}>
+                              <Text style={[styles.mappingButtonText, mapped !== 'ignore' && styles.mappingButtonTextActive]}>
+                                {mapped === 'ignore' ? 'Bỏ qua' : mapped}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </>
+                ) : null}
             <Text style={styles.title}>Tủ từ của bạn</Text>
           </View>
           <TouchableOpacity activeOpacity={0.85} onPress={handleOpenCreateFolder} style={styles.addButton}>
@@ -889,6 +927,43 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 8,
     padding: 10,
+  },
+  mappingRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  mappingCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 8,
+    width: 110,
+  },
+  mappingHeader: {
+    color: '#0F172A',
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 8,
+  },
+  mappingButton: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  mappingButtonActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  mappingButtonText: {
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  mappingButtonTextActive: {
+    color: '#2563EB',
   },
   importPreviewWord: {
     color: '#0F172A',

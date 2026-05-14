@@ -57,7 +57,7 @@ function run() {
   const rows = buildFlashcardsAnkiRows(state, state.flashcards);
   const tsv = rows.map((row) => row.map(escapeTsvCell).join('\t')).join('\n');
 
-  const outDir = path.join(__dirname, '..', 'tmp');
+  const outDir = path.join(process.cwd(), 'tmp');
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   const filename = `flashcards-test-${Date.now()}.tsv`;
