@@ -40,11 +40,9 @@ const backgroundOptions: { label: string; value: ReaderSettings['backgroundColor
 export default function ReaderScreen() {
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
-  const [selectedReaderWord, setSelectedReaderWord] = useState('');
   const [quickNote, setQuickNote] = useState('');
   const [readerSaveMessage, setReaderSaveMessage] = useState('');
-  const [selectionStartIndex, setSelectionStartIndex] = useState<number | null>(null);
-  const [selectionEndIndex, setSelectionEndIndex] = useState<number | null>(null);
+  const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -65,15 +63,6 @@ export default function ReaderScreen() {
 
   const selectedDocument = readerState.documents.find((document) => document.id === readerState.selectedDocumentId);
   const readerTokens = useMemo(() => tokenizeReaderText(selectedDocument?.content ?? ''), [selectedDocument?.content]);
-
-  const selectionRange = useMemo(() => {
-    if (selectionStartIndex == null || selectionEndIndex == null) return null;
-
-    const start = Math.min(selectionStartIndex, selectionEndIndex);
-    const end = Math.max(selectionStartIndex, selectionEndIndex);
-
-    return { start, end } as { start: number; end: number };
-  }, [selectionStartIndex, selectionEndIndex]);
 
   const selectedHighlightText = useMemo(() => {
     if (!selectionRange) return '';
@@ -113,64 +102,55 @@ export default function ReaderScreen() {
     updateReaderSettings(readerState, settings).then(setReaderState);
   };
 
-  const handleLookupToken = (token: string) => {
-    const word = token.toLowerCase().replace(/[^a-z'-]/g, '');
-    if (!word || !/[a-z]/.test(word)) return;
+  const handleTokenPress = (index: number) => {
+    if (!selectionRange) {
+      setSelectionRange({ start: index, end: index });
+      setQuickNote('');
+      setReaderSaveMessage('');
+      return;
+    }
 
-    setSelectedReaderWord(word);
-    setQuickNote('');
-    setReaderSaveMessage('');
+    // Check if the tapped token is adjacent (allowing 1 token gap for space/punctuation)
+    const isAdjacentAfter = index === selectionRange.end + 1 || index === selectionRange.end + 2;
+    const isAdjacentBefore = index === selectionRange.start - 1 || index === selectionRange.start - 2;
+
+    if (isAdjacentAfter) {
+      setSelectionRange({ start: selectionRange.start, end: index });
+    } else if (isAdjacentBefore) {
+      setSelectionRange({ start: index, end: selectionRange.end });
+    } else {
+      // Start a new selection if tapped far away
+      setSelectionRange({ start: index, end: index });
+      setQuickNote('');
+      setReaderSaveMessage('');
+    }
   };
 
   const handleOpenLookup = () => {
-    if (!selectedReaderWord) return;
+    if (!selectedHighlightText) return;
 
-    router.push({ pathname: '/word', params: { sourceLang: 'en', targetLang: 'vi', word: selectedReaderWord } });
-  };
-
-  const handleSaveReaderWord = () => {
-    if (!selectedReaderWord) return;
-
-    const folderId = getReaderSaveFolderId(libraryState);
-    const folder = libraryState.folders.find((item) => item.id === folderId);
-
-    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedReaderWord), folderId, quickNote).then((nextState) => {
-      setLibraryState(nextState);
-      setReaderSaveMessage(`Đã lưu "${selectedReaderWord}" vào "${folder?.name ?? 'Favorites'}".`);
-    });
-  };
-
-  const handleCloseReaderAction = () => {
-    setSelectedReaderWord('');
-    setQuickNote('');
-    setReaderSaveMessage('');
+    router.push({ pathname: '/word', params: { sourceLang: 'en', targetLang: 'vi', word: selectedHighlightText } });
   };
 
   const handleCloseSelection = () => {
-    setSelectionStartIndex(null);
-    setSelectionEndIndex(null);
+    setSelectionRange(null);
     setQuickNote('');
     setReaderSaveMessage('');
   };
 
   const handleCreateFlashcardFromSelection = () => {
-    if (!selectionRange) return;
-
-    const selectedText = readerTokens.slice(selectionRange.start, selectionRange.end + 1).join('').trim();
-    if (!selectedText) return;
+    if (!selectedHighlightText) return;
 
     const folderId = getReaderSaveFolderId(libraryState);
 
-    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedText), folderId, quickNote)
+    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedHighlightText), folderId, quickNote)
       .then((nextState) => {
-        const savedWordId = `word-${selectedText.toLowerCase()}`;
+        const savedWordId = `word-${selectedHighlightText.toLowerCase()}`;
         return createFlashcardsFromWordIds(nextState, [savedWordId], ['bilingual']);
       })
       .then((finalState) => {
         setLibraryState(finalState);
-        setReaderSaveMessage(`Đã tạo flashcard cho "${selectedText}".`);
-        setSelectionStartIndex(null);
-        setSelectionEndIndex(null);
+        setReaderSaveMessage(`Đã tạo flashcard cho "${selectedHighlightText}".`);
         setQuickNote('');
       })
       .catch((err) => {
@@ -179,19 +159,14 @@ export default function ReaderScreen() {
   };
 
   const handleSaveSelection = () => {
-    if (!selectionRange) return;
-
-    const selectedText = readerTokens.slice(selectionRange.start, selectionRange.end + 1).join('').trim();
-    if (!selectedText) return;
+    if (!selectedHighlightText) return;
 
     const folderId = getReaderSaveFolderId(libraryState);
 
-    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedText), folderId, quickNote)
+    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedHighlightText), folderId, quickNote)
       .then((nextState) => {
         setLibraryState(nextState);
-        setReaderSaveMessage(`Đã lưu cụm từ "${selectedText}".`);
-        setSelectionStartIndex(null);
-        setSelectionEndIndex(null);
+        setReaderSaveMessage(`Đã lưu cụm từ "${selectedHighlightText}".`);
         setQuickNote('');
       })
       .catch((err) => {
@@ -303,25 +278,12 @@ export default function ReaderScreen() {
                   <TouchableOpacity
                     key={`${token}-${index}`}
                     activeOpacity={0.72}
-                    onPress={() => {
-                      if (selectionStartIndex != null && selectionEndIndex == null) {
-                        setSelectionEndIndex(index);
-                      } else {
-                        handleLookupToken(token);
-                      }
-                    }}
-                    onLongPress={() => {
-                      setSelectionStartIndex(index);
-                      setSelectionEndIndex(null);
-                      setQuickNote('');
-                      setReaderSaveMessage('');
-                    }}>
+                    onPress={() => handleTokenPress(index)}>
                     <Text
                       style={[
                         styles.readerWord,
                         getReaderTextStyle(readerState.settings),
                         inSelection && styles.selectedRangeWord,
-                        selectedReaderWord === token.toLowerCase().replace(/[^a-z'-]/g, '') && styles.selectedReaderWord,
                       ]}>
                       {token}
                     </Text>
@@ -341,39 +303,7 @@ export default function ReaderScreen() {
             <Text style={styles.emptyText}>Import file TXT để đọc. Bấm vào một từ tiếng Anh để tra nghĩa, lưu từ hoặc ghi chú nhanh.</Text>
           </View>
         )}
-        {selectedReaderWord ? (
-          <View style={styles.readerActionPanel}>
-            <View style={styles.readerActionHeader}>
-              <View>
-                <Text style={styles.readerActionKicker}>Từ đang đọc</Text>
-                <Text style={styles.readerActionWord}>{selectedReaderWord}</Text>
-              </View>
-              <TouchableOpacity activeOpacity={0.75} onPress={handleCloseReaderAction} style={styles.readerActionClose}>
-                <Ionicons name="close" size={18} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              multiline
-              onChangeText={setQuickNote}
-              placeholder="Ghi chú nhanh khi đọc..."
-              placeholderTextColor="#94A3B8"
-              style={styles.quickNoteInput}
-              value={quickNote}
-            />
-            {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
-            <View style={styles.readerActionButtons}>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleOpenLookup} style={styles.lookupActionButton}>
-                <Ionicons name="search" size={17} color="#2563EB" />
-                <Text style={styles.lookupActionText}>Tra nghĩa</Text>
-              </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleSaveReaderWord} style={styles.saveActionButton}>
-                <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
-                <Text style={styles.saveActionText}>Lưu từ</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : null}
-        {selectionRange ? (
+        {selectionRange && selectedHighlightText ? (
           <View style={styles.readerActionPanel}>
             <View style={styles.readerActionHeader}>
               <View>
@@ -387,20 +317,24 @@ export default function ReaderScreen() {
             <TextInput
               multiline
               onChangeText={setQuickNote}
-              placeholder="Ghi chú cho highlight..."
+              placeholder="Ghi chú cho cụm từ..."
               placeholderTextColor="#94A3B8"
               style={styles.quickNoteInput}
               value={quickNote}
             />
             {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
             <View style={styles.readerActionButtons}>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFlashcardFromSelection} style={styles.lookupActionButton}>
-                <Ionicons name="star" size={17} color="#2563EB" />
-                <Text style={styles.lookupActionText}>Tạo flashcard</Text>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleOpenLookup} style={styles.lookupActionButton}>
+                <Ionicons name="search" size={17} color="#2563EB" />
+                <Text style={styles.lookupActionText}>Tra nghĩa</Text>
               </TouchableOpacity>
               <TouchableOpacity activeOpacity={0.82} onPress={handleSaveSelection} style={styles.saveActionButton}>
                 <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
                 <Text style={styles.saveActionText}>Lưu cụm từ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFlashcardFromSelection} style={styles.saveActionButton}>
+                <Ionicons name="albums-outline" size={17} color="#FFFFFF" />
+                <Text style={styles.saveActionText}>Tạo thẻ</Text>
               </TouchableOpacity>
             </View>
           </View>
