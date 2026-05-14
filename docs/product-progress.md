@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `770124e` feat(import): auto-select flashcard types based on CSV fields
   - `f58cc37` feat(data): export all local user data + profile UI button
   - `a6f1c79` fix(ui): localize profile, reader, library copy; polish lookup error message
   - `a1958c5` docs: update Next Work Queue and mark Reader highlights done
@@ -94,7 +95,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Local review state: `new`, `learning`, `reviewed`.
 - [x] DONE: Flashcard filters by folder, card type, and review state.
 - [x] DONE: Create flashcards after CSV import.
-- [~] IN PROGRESS: Polish flashcard creation from imported datasets.
+- [x] DONE: Polish flashcard creation from imported datasets.
 - [x] DONE: Prepare Anki text-only export from flashcards.
 - [ ] TODO: Add richer review scheduling after local MVP is stable.
 
@@ -161,7 +162,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Next Work Queue
 1. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 2. `[ ] [MEDIUM]` Add Anki `.apkg` text-only export.
-3. `[~] [MEDIUM]` Polish flashcard creation from imported datasets.
+3. `[ ] [MEDIUM]` Improve import validation messages.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
