@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `1f44f37` Add Anki TSV export and UI
   - `de2bdc8` Stabilize deep dictionary lookup
   - `1b77af3` Improve vocabulary import workflow
   - `8455679` Add reader quick save flow
