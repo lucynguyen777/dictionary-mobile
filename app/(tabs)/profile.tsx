@@ -1,24 +1,77 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import { studyStats } from '@/data/dictionary';
+import { languageOptions } from '@/data/languages';
+import {
+  LoginMethod,
+  ProficiencyLevel,
+  UserProfile,
+  getDefaultProfile,
+  loadUserProfile,
+  loginMethodOptions,
+  proficiencyLevels,
+  saveUserProfile,
+} from '@/data/profileStore';
 
 const days = Array.from({ length: 84 }, (_, index) => index);
 const chartValues = [1, 1.5, 2, 2.4, 4.6, 6.4, 5.5, 7.3, 9.1, 11.2, 10.5, 13.1, 15.5, 12.6, 17.5, 16.1, 23.6];
 
 export default function ProfileScreen() {
+  const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
+  const [saveMessage, setSaveMessage] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      loadUserProfile().then((nextProfile) => {
+        if (isMounted) setProfile(nextProfile);
+      });
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const updateProfile = <Key extends keyof UserProfile>(key: Key, value: UserProfile[Key]) => {
+    setProfile((current) => ({ ...current, [key]: value }));
+    setSaveMessage('');
+  };
+
+  const handleSaveProfile = () => {
+    saveUserProfile(profile).then((nextProfile) => {
+      setProfile(nextProfile);
+      setSaveMessage('Đã lưu hồ sơ học tập trên thiết bị này.');
+      Alert.alert('Profile saved', 'Your local learning profile has been saved.');
+    });
+  };
+
+  const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
+  const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
           <Ionicons name="menu" size={27} color="#0F172A" />
-          <Text style={styles.signOut}>Cài đặt</Text>
+          <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={styles.saveProfileButton}>
+            <Ionicons name="save-outline" size={18} color="#2563EB" />
+            <Text style={styles.saveProfileText}>Lưu</Text>
+          </TouchableOpacity>
         </View>
 
         <Image source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop' }} style={styles.avatar} />
-        <Text style={styles.userName}>Mai Anh</Text>
-        <Text style={styles.userMeta}>B2 English · 12 ngày liên tiếp</Text>
+        <Text style={styles.userName}>{profile.displayName}</Text>
+        <Text style={styles.userMeta}>
+          {nativeLanguage?.label ?? profile.nativeLanguage} {'->'} {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel} ·{' '}
+          {profile.dailyGoal}
+        </Text>
+        {saveMessage ? <Text style={styles.saveMessage}>{saveMessage}</Text> : null}
 
         <View style={styles.metricRow}>
           <View style={styles.metricCard}>
@@ -32,6 +85,101 @@ export default function ProfileScreen() {
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>{studyStats.listeningScore}</Text>
             <Text style={styles.metricLabel}>Phát âm</Text>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Thông tin cơ bản</Text>
+          <ProfileInput
+            label="Tên hiển thị"
+            onChangeText={(value) => updateProfile('displayName', value)}
+            placeholder="Tên của bạn"
+            value={profile.displayName}
+          />
+          <ProfileInput
+            autoCapitalize="none"
+            keyboardType="email-address"
+            label="Email"
+            onChangeText={(value) => updateProfile('email', value)}
+            placeholder="you@example.com"
+            value={profile.email}
+          />
+          <Text style={styles.fieldLabel}>Login method</Text>
+          <View style={styles.chipRow}>
+            {loginMethodOptions.map((option) => (
+              <OptionChip
+                key={option.value}
+                isSelected={profile.loginMethod === option.value}
+                label={option.label}
+                onPress={() => updateProfile('loginMethod', option.value as LoginMethod)}
+              />
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Ngôn ngữ và trình độ</Text>
+          <Text style={styles.fieldLabel}>Ngôn ngữ mẹ đẻ</Text>
+          <View style={styles.chipRow}>
+            {languageOptions.map((language) => (
+              <OptionChip
+                key={language.code}
+                isSelected={profile.nativeLanguage === language.code}
+                label={language.label}
+                onPress={() => updateProfile('nativeLanguage', language.code)}
+              />
+            ))}
+          </View>
+          <Text style={styles.fieldLabel}>Ngôn ngữ đang học</Text>
+          <View style={styles.chipRow}>
+            {languageOptions.map((language) => (
+              <OptionChip
+                key={language.code}
+                isSelected={profile.learningLanguage === language.code}
+                label={language.label}
+                onPress={() => updateProfile('learningLanguage', language.code)}
+              />
+            ))}
+          </View>
+          <Text style={styles.fieldLabel}>Trình độ hiện tại</Text>
+          <View style={styles.chipRow}>
+            {proficiencyLevels.map((level) => (
+              <OptionChip
+                key={level}
+                isSelected={profile.proficiencyLevel === level}
+                label={level}
+                onPress={() => updateProfile('proficiencyLevel', level as ProficiencyLevel)}
+              />
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Mục tiêu học</Text>
+          <ProfileInput
+            label="Mục tiêu"
+            onChangeText={(value) => updateProfile('learningGoal', value)}
+            placeholder="Ví dụ: IELTS, công việc, giao tiếp"
+            value={profile.learningGoal}
+          />
+          <ProfileInput
+            autoCapitalize="none"
+            label="Timezone"
+            onChangeText={(value) => updateProfile('timezone', value)}
+            placeholder="Asia/Ho_Chi_Minh"
+            value={profile.timezone}
+          />
+          <ProfileInput
+            label="Daily goal"
+            onChangeText={(value) => updateProfile('dailyGoal', value)}
+            placeholder="15 words/day"
+            value={profile.dailyGoal}
+          />
+          <View style={styles.privacyNote}>
+            <Ionicons name="lock-closed-outline" size={18} color="#2563EB" />
+            <Text style={styles.privacyText}>
+              Hồ sơ này đang lưu local trên thiết bị. Email chỉ dùng để chuẩn bị UI, chưa đăng nhập hoặc đồng bộ cloud.
+            </Text>
           </View>
         </View>
 
@@ -90,6 +238,45 @@ export default function ProfileScreen() {
   );
 }
 
+function ProfileInput({
+  autoCapitalize,
+  keyboardType,
+  label,
+  onChangeText,
+  placeholder,
+  value,
+}: {
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  keyboardType?: 'default' | 'email-address';
+  label: string;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.fieldBlock}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        autoCapitalize={autoCapitalize}
+        keyboardType={keyboardType}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="#94A3B8"
+        style={styles.profileInput}
+        value={value}
+      />
+    </View>
+  );
+}
+
+function OptionChip({ isSelected, label, onPress }: { isSelected: boolean; label: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity activeOpacity={0.78} onPress={onPress} style={[styles.optionChip, isSelected && styles.optionChipActive]}>
+      <Text style={[styles.optionChipText, isSelected && styles.optionChipTextActive]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     paddingBottom: 28,
@@ -101,10 +288,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  signOut: {
+  saveProfileButton: {
+    alignItems: 'center',
+    backgroundColor: '#EAF1FF',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+  saveProfileText: {
     color: '#2563EB',
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '900',
   },
   avatar: {
     alignSelf: 'center',
@@ -126,6 +322,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     marginTop: 5,
+  },
+  saveMessage: {
+    alignSelf: 'center',
+    color: '#166534',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 8,
   },
   metricRow: {
     flexDirection: 'row',
@@ -167,6 +370,70 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontSize: 15,
     fontWeight: '900',
+  },
+  fieldBlock: {
+    marginTop: 12,
+  },
+  fieldLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 12,
+    textTransform: 'uppercase',
+  },
+  profileInput: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '800',
+    marginTop: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  optionChip: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+  },
+  optionChipActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#2563EB',
+  },
+  optionChipText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  optionChipTextActive: {
+    color: '#2563EB',
+  },
+  privacyNote: {
+    alignItems: 'flex-start',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 9,
+    marginTop: 12,
+    padding: 11,
+  },
+  privacyText: {
+    color: '#475569',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
   },
   yearPill: {
     alignItems: 'center',
