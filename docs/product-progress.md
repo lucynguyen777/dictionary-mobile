@@ -24,6 +24,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
    - `c2feab9` Add custom field mapping UI for CSV import
     - `1f44f37` Add Anki TSV export and UI
    - `66a8ae4` Expand idioms/phrasal verbs dataset
+  - `ff470d7` Improve Reader highlight flow and create flashcards from highlights
   - `de2bdc8` Stabilize deep dictionary lookup
   - `1b77af3` Improve vocabulary import workflow
   - `8455679` Add reader quick save flow
@@ -154,7 +155,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 1. `[x] [MEDIUM]` Add custom field mapping UI for import.
 2. `[x] [MEDIUM]` Prepare Anki text-only export from local flashcards.
 3. `[x] [MEDIUM]` Expand idioms/phrasal verbs dataset.
-4. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
+4. `[x] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
 5. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
 ## Update Rule
