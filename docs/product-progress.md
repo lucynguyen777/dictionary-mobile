@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `a1958c5` docs: update Next Work Queue and mark Reader highlights done
   - `1f44f37` Add Anki TSV export and UI
    - `c2feab9` Add custom field mapping UI for CSV import
     - `1f44f37` Add Anki TSV export and UI
