@@ -13,7 +13,7 @@ import {
   exportFlashcardsToAnkiText,
   getDefaultLibraryState,
   loadLibraryState,
-  updateFlashcardReviewState,
+  reviewFlashcard,
 } from '@/data/libraryStore';
 
 const flashcardOptions: { type: FlashcardType; label: string; description: string }[] = [
@@ -112,18 +112,28 @@ export default function AdvancedScreen() {
   }, [libraryState.savedWords]);
 
   const filteredFlashcards = useMemo(() => {
+    const now = new Date();
     return libraryState.flashcards.filter((card) => {
       const savedWord = savedWordsById.get(card.wordId);
       const matchesFolder = folderFilterId === 'all' || savedWord?.folderIds.includes(folderFilterId);
       const matchesType = typeFilter === 'all' || card.type === typeFilter;
-      const matchesReview = reviewFilter === 'all' || card.reviewState === reviewFilter;
+      
+      let matchesReview = false;
+      if (reviewFilter === 'all') matchesReview = true;
+      else if (reviewFilter === 'new') matchesReview = card.reviewState === 'new';
+      else if (reviewFilter === 'learning') matchesReview = card.reviewState === 'learning';
+      else if (reviewFilter === 'reviewed') {
+        // Here we use 'reviewed' filter to show cards that are actually Due for review today
+        matchesReview = new Date(card.dueDate) <= now || card.reviewState === 'reviewed';
+      }
 
       return matchesFolder && matchesType && matchesReview;
     });
   }, [folderFilterId, libraryState.flashcards, reviewFilter, savedWordsById, typeFilter]);
 
   const dueFlashcards = useMemo(() => {
-    return libraryState.flashcards.filter((card) => card.reviewState !== 'reviewed').length;
+    const now = new Date();
+    return libraryState.flashcards.filter((card) => new Date(card.dueDate) <= now || card.reviewState !== 'reviewed').length;
   }, [libraryState.flashcards]);
 
   const activeCard = filteredFlashcards[activeCardIndex];
@@ -167,8 +177,8 @@ export default function AdvancedScreen() {
     }
   };
 
-  const handleReviewCard = (card: Flashcard, reviewState: FlashcardReviewState) => {
-    updateFlashcardReviewState(libraryState, card.id, reviewState).then((nextState) => {
+  const handleReviewCard = (card: Flashcard, quality: number) => {
+    reviewFlashcard(libraryState, card.id, quality).then((nextState) => {
       setLibraryState(nextState);
       setShowBack(false);
       setActiveCardIndex((index) => {
@@ -298,11 +308,17 @@ export default function AdvancedScreen() {
                 <Text style={styles.faceText}>{showBack ? activeCard.back : activeCard.front}</Text>
               </TouchableOpacity>
               <View style={styles.reviewActions}>
-                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 'learning')} style={styles.learningButton}>
-                  <Text style={styles.learningButtonText}>Đang học</Text>
+                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 1)} style={styles.againButton}>
+                  <Text style={styles.againButtonText}>Lại</Text>
                 </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 'reviewed')} style={styles.reviewedButton}>
-                  <Text style={styles.reviewedButtonText}>Đã nhớ</Text>
+                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 3)} style={styles.hardButton}>
+                  <Text style={styles.hardButtonText}>Khó</Text>
+                </TouchableOpacity>
+                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 4)} style={styles.goodButton}>
+                  <Text style={styles.goodButtonText}>Tốt</Text>
+                </TouchableOpacity>
+                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 5)} style={styles.easyButton}>
+                  <Text style={styles.easyButtonText}>Dễ</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -586,27 +602,51 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 10,
   },
-  learningButton: {
+  againButton: {
+    alignItems: 'center',
+    backgroundColor: '#FFE4E6',
+    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 11,
+  },
+  againButtonText: {
+    color: '#E11D48',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  hardButton: {
+    alignItems: 'center',
+    backgroundColor: '#FFEDD5',
+    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 11,
+  },
+  hardButtonText: {
+    color: '#EA580C',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  goodButton: {
     alignItems: 'center',
     backgroundColor: '#EAF1FF',
     borderRadius: 8,
     flex: 1,
     paddingVertical: 11,
   },
-  learningButtonText: {
+  goodButtonText: {
     color: '#2563EB',
     fontSize: 13,
     fontWeight: '900',
   },
-  reviewedButton: {
+  easyButton: {
     alignItems: 'center',
-    backgroundColor: '#16A34A',
+    backgroundColor: '#DCFCE7',
     borderRadius: 8,
     flex: 1,
     paddingVertical: 11,
   },
-  reviewedButtonText: {
-    color: '#FFFFFF',
+  easyButtonText: {
+    color: '#16A34A',
     fontSize: 13,
     fontWeight: '900',
   },

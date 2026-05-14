@@ -43,6 +43,11 @@ export type Flashcard = {
   back: string;
   createdAt: string;
   reviewState: 'new' | 'learning' | 'reviewed';
+  // SM-2 Spaced Repetition System fields
+  interval: number;
+  repetition: number;
+  efactor: number;
+  dueDate: string;
 };
 
 export type FlashcardType = Flashcard['type'];
@@ -271,6 +276,59 @@ export async function updateFlashcardReviewState(state: LibraryState, cardId: st
   const nextState = {
     ...state,
     flashcards: state.flashcards.map((card) => (card.id === cardId ? { ...card, reviewState } : card)),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+/**
+ * SuperMemo-2 (SM-2) algorithm for flashcard spaced repetition.
+ * Quality: 0-5 (0 = complete blackout, 5 = perfect response)
+ */
+export async function reviewFlashcard(state: LibraryState, cardId: string, quality: number) {
+  const nextState = {
+    ...state,
+    flashcards: state.flashcards.map((card) => {
+      if (card.id !== cardId) return card;
+
+      let { interval, repetition, efactor } = card;
+
+      // Ensure quality is within bounds
+      const q = Math.max(0, Math.min(5, quality));
+
+      if (q >= 3) {
+        if (repetition === 0) {
+          interval = 1;
+        } else if (repetition === 1) {
+          interval = 6;
+        } else {
+          interval = Math.round(interval * efactor);
+        }
+        repetition += 1;
+      } else {
+        repetition = 0;
+        interval = 1;
+      }
+
+      efactor = efactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+      if (efactor < 1.3) efactor = 1.3;
+
+      const nextDue = new Date();
+      nextDue.setDate(nextDue.getDate() + interval);
+      
+      const reviewState: Flashcard['reviewState'] = q < 3 ? 'learning' : (interval > 14 ? 'reviewed' : 'learning');
+
+      return {
+        ...card,
+        interval,
+        repetition,
+        efactor,
+        dueDate: nextDue.toISOString(),
+        reviewState,
+      };
+    }),
   };
 
   await saveLibraryState(nextState);
@@ -586,6 +644,10 @@ function buildFlashcard(word: SavedWord, type: FlashcardType, id: string, create
     back: cardContent[type].back,
     createdAt,
     reviewState: 'new',
+    interval: 0,
+    repetition: 0,
+    efactor: 2.5,
+    dueDate: createdAt,
   };
 }
 
