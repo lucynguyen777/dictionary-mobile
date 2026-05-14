@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, type Href } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
@@ -20,6 +20,18 @@ const flashcardOptions: { type: FlashcardType; label: string; description: strin
   { type: 'word-definition', label: 'Từ -> nghĩa', description: 'Nhìn từ, nhớ definition' },
   { type: 'definition-word', label: 'Nghĩa -> từ', description: 'Nhìn definition, nhớ word' },
   { type: 'word-pronunciation', label: 'Từ -> phát âm', description: 'Nhìn từ, nhớ IPA' },
+];
+
+const reviewFilterOptions: { value: FlashcardReviewState | 'all'; label: string }[] = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'new', label: 'Mới' },
+  { value: 'learning', label: 'Đang học' },
+  { value: 'reviewed', label: 'Đã nhớ' },
+];
+
+const typeFilterOptions: { value: FlashcardType | 'all'; label: string }[] = [
+  { value: 'all', label: 'Tất cả loại thẻ' },
+  ...flashcardOptions.map((option) => ({ value: option.type, label: option.label })),
 ];
 
 const features = [
@@ -71,6 +83,9 @@ export default function AdvancedScreen() {
   });
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [showBack, setShowBack] = useState(false);
+  const [folderFilterId, setFolderFilterId] = useState('all');
+  const [typeFilter, setTypeFilter] = useState<FlashcardType | 'all'>('all');
+  const [reviewFilter, setReviewFilter] = useState<FlashcardReviewState | 'all'>('all');
 
   useFocusEffect(
     useCallback(() => {
@@ -90,7 +105,35 @@ export default function AdvancedScreen() {
     return flashcardOptions.filter((option) => selectedTypes[option.type]).map((option) => option.type);
   }, [selectedTypes]);
 
-  const activeCard = libraryState.flashcards[activeCardIndex];
+  const savedWordsById = useMemo(() => {
+    return new Map(libraryState.savedWords.map((word) => [word.id, word]));
+  }, [libraryState.savedWords]);
+
+  const filteredFlashcards = useMemo(() => {
+    return libraryState.flashcards.filter((card) => {
+      const savedWord = savedWordsById.get(card.wordId);
+      const matchesFolder = folderFilterId === 'all' || savedWord?.folderIds.includes(folderFilterId);
+      const matchesType = typeFilter === 'all' || card.type === typeFilter;
+      const matchesReview = reviewFilter === 'all' || card.reviewState === reviewFilter;
+
+      return matchesFolder && matchesType && matchesReview;
+    });
+  }, [folderFilterId, libraryState.flashcards, reviewFilter, savedWordsById, typeFilter]);
+
+  const dueFlashcards = useMemo(() => {
+    return libraryState.flashcards.filter((card) => card.reviewState !== 'reviewed').length;
+  }, [libraryState.flashcards]);
+
+  const activeCard = filteredFlashcards[activeCardIndex];
+
+  useEffect(() => {
+    setActiveCardIndex((index) => {
+      if (!filteredFlashcards.length) return 0;
+
+      return Math.min(index, filteredFlashcards.length - 1);
+    });
+    setShowBack(false);
+  }, [filteredFlashcards.length]);
 
   const handleToggleFlashcardType = (type: FlashcardType) => {
     setSelectedTypes((current) => ({ ...current, [type]: !current[type] }));
@@ -109,9 +152,9 @@ export default function AdvancedScreen() {
       setLibraryState(nextState);
       setShowBack(false);
       setActiveCardIndex((index) => {
-        if (nextState.flashcards.length <= 1) return 0;
+        if (filteredFlashcards.length <= 1) return 0;
 
-        return Math.min(index + 1, nextState.flashcards.length - 1);
+        return Math.min(index + 1, filteredFlashcards.length - 1);
       });
     });
   };
@@ -126,8 +169,8 @@ export default function AdvancedScreen() {
             <Ionicons name="flash" size={26} color="#FFFFFF" />
           </View>
           <View style={styles.challengeCopy}>
-            <Text style={styles.challengeTitle}>18 từ cần ôn hôm nay</Text>
-            <Text style={styles.challengeText}>Hoàn thành 3 vòng flashcard để giữ chuỗi 12 ngày.</Text>
+            <Text style={styles.challengeTitle}>{dueFlashcards} thẻ cần ôn</Text>
+            <Text style={styles.challengeText}>Lọc theo bộ từ, loại thẻ hoặc trạng thái để ôn đúng nhóm cần học.</Text>
           </View>
         </View>
 
@@ -135,7 +178,7 @@ export default function AdvancedScreen() {
           <View style={styles.panelHeader}>
             <View>
               <Text style={styles.panelKicker}>Flashcard MVP</Text>
-              <Text style={styles.panelTitle}>{libraryState.flashcards.length} thẻ local</Text>
+              <Text style={styles.panelTitle}>{filteredFlashcards.length} / {libraryState.flashcards.length} thẻ</Text>
             </View>
             <View style={styles.savedWordPill}>
               <Text style={styles.savedWordPillText}>{libraryState.savedWords.length} từ</Text>
@@ -178,6 +221,43 @@ export default function AdvancedScreen() {
             <Text style={styles.generateButtonText}>Tạo flashcard từ từ đã lưu</Text>
           </TouchableOpacity>
 
+          <View style={styles.filterBlock}>
+            <Text style={styles.filterLabel}>Bộ từ</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+              <FilterChip label="Tất cả" isSelected={folderFilterId === 'all'} onPress={() => setFolderFilterId('all')} />
+              {libraryState.folders.map((folder) => (
+                <FilterChip
+                  key={folder.id}
+                  label={folder.name}
+                  isSelected={folderFilterId === folder.id}
+                  onPress={() => setFolderFilterId(folder.id)}
+                />
+              ))}
+            </ScrollView>
+            <Text style={styles.filterLabel}>Loại thẻ</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+              {typeFilterOptions.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  label={option.label}
+                  isSelected={typeFilter === option.value}
+                  onPress={() => setTypeFilter(option.value)}
+                />
+              ))}
+            </ScrollView>
+            <Text style={styles.filterLabel}>Trạng thái</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+              {reviewFilterOptions.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  label={option.label}
+                  isSelected={reviewFilter === option.value}
+                  onPress={() => setReviewFilter(option.value)}
+                />
+              ))}
+            </ScrollView>
+          </View>
+
           {activeCard ? (
             <View style={styles.reviewCard}>
               <Text style={styles.reviewType}>{formatFlashcardType(activeCard.type)} · {formatReviewState(activeCard.reviewState)}</Text>
@@ -197,8 +277,12 @@ export default function AdvancedScreen() {
           ) : (
             <View style={styles.emptyFlashcard}>
               <Ionicons name="albums-outline" size={23} color="#94A3B8" />
-              <Text style={styles.emptyFlashcardTitle}>Chưa có flashcard</Text>
-              <Text style={styles.emptyFlashcardText}>Lưu vài từ trong tab Tra cứu, chọn loại thẻ, rồi tạo flashcard tại đây.</Text>
+              <Text style={styles.emptyFlashcardTitle}>{libraryState.flashcards.length ? 'Không có thẻ phù hợp' : 'Chưa có flashcard'}</Text>
+              <Text style={styles.emptyFlashcardText}>
+                {libraryState.flashcards.length
+                  ? 'Đổi bộ lọc để xem nhóm thẻ khác.'
+                  : 'Lưu vài từ trong tab Tra cứu, chọn loại thẻ, rồi tạo flashcard tại đây.'}
+              </Text>
             </View>
           )}
         </View>
@@ -249,6 +333,16 @@ function formatReviewState(state: FlashcardReviewState) {
   if (state === 'learning') return 'Đang học';
 
   return 'Mới';
+}
+
+function FilterChip({ label, isSelected, onPress }: { label: string; isSelected: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity activeOpacity={0.78} onPress={onPress} style={[styles.filterChip, isSelected && styles.filterChipActive]}>
+      <Text style={[styles.filterChipText, isSelected && styles.filterChipTextActive]} numberOfLines={1}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -363,6 +457,44 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '900',
+  },
+  filterBlock: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 12,
+    padding: 10,
+  },
+  filterLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  filterRow: {
+    gap: 8,
+    paddingBottom: 2,
+  },
+  filterChip: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    maxWidth: 164,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  filterChipActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#2563EB',
+  },
+  filterChipText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  filterChipTextActive: {
+    color: '#2563EB',
   },
   reviewCard: {
     backgroundColor: '#F8FAFC',
