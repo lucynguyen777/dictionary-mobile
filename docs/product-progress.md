@@ -21,6 +21,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Current Baseline
 - Latest completed commits:
   - `1f44f37` Add Anki TSV export and UI
+   - `c2feab9` Add custom field mapping UI for CSV import
+    - `1f44f37` Add Anki TSV export and UI
   - `de2bdc8` Stabilize deep dictionary lookup
   - `1b77af3` Improve vocabulary import workflow
   - `8455679` Add reader quick save flow
@@ -95,7 +97,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Preview before import.
 - [x] DONE: Advanced import options: row/column orientation, header on/off, primary key.
 - [x] DONE: Validate duplicates and empty data more clearly in the UI.
-- [ ] TODO: User-controlled custom field mapping beyond recognized headers/order.
+- [x] DONE: User-controlled custom field mapping beyond recognized headers/order.
 - [ ] TODO: Import non-CSV datasets if needed.
 
 ### Reader
@@ -148,13 +150,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Add custom field mapping UI for import.
+1. `[x] [MEDIUM]` Add custom field mapping UI for import.
 2. `[x] [MEDIUM]` Prepare Anki text-only export from local flashcards.
 3. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
 4. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
 5. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
-## Update Rule
 ## Update Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
 1. Kiểm tra commit/push trên GitHub để đảm bảo các thay đổi code đã được đẩy thành công.
