@@ -223,7 +223,7 @@ export default function HomeScreen() {
             {wordOfDay.definitions[0]?.examples[0] ? (
               <View style={styles.wotdExample}>
                 <Ionicons name="chatbubble-ellipses-outline" size={14} color="#2563EB" />
-                <Text style={styles.wotdExampleText}>“{wordOfDay.definitions[0].examples[0]}”</Text>
+                <Text style={styles.wotdExampleText}>“{wordOfDay.definitions[0].examples[0].source}”</Text>
               </View>
             ) : null}
           </TouchableOpacity>

@@ -1,3 +1,8 @@
+export type BilingualExample = {
+  source: string;
+  translation?: string;
+};
+
 export type DictionaryEntry = {
   word: string;
   ipa: string;
@@ -10,7 +15,7 @@ export type DictionaryEntry = {
     partOfSpeech: string;
     meaning: string;
     vietnamese: string;
-    examples: string[];
+    examples: BilingualExample[];
     domain?: string;
     gender?: string;
     level?: string;
@@ -51,8 +56,8 @@ export const dictionaryEntries: DictionaryEntry[] = [
         meaning: 'Able to explain thoughts or feelings in a clear, confident way.',
         vietnamese: 'Có khả năng diễn đạt suy nghĩ hoặc cảm xúc một cách rõ ràng.',
         examples: [
-          'She is an articulate speaker during client meetings.',
-          'The essay was concise, articulate, and persuasive.',
+          { source: 'She is an articulate speaker during client meetings.', translation: 'Cô ấy là một diễn giả hoạt ngôn trong các cuộc họp với khách hàng.' },
+          { source: 'The essay was concise, articulate, and persuasive.', translation: 'Bài luận ngắn gọn, rõ ràng và đầy sức thuyết phục.' },
         ],
       },
       {
@@ -60,8 +65,8 @@ export const dictionaryEntries: DictionaryEntry[] = [
         meaning: 'To say or describe an idea clearly.',
         vietnamese: 'Diễn đạt hoặc trình bày một ý tưởng rõ ràng.',
         examples: [
-          'Try to articulate the problem before proposing a solution.',
-          'He articulated each sound slowly for the class.',
+          { source: 'Try to articulate the problem before proposing a solution.', translation: 'Hãy thử diễn đạt rõ ràng vấn đề trước khi đề xuất giải pháp.' },
+          { source: 'He articulated each sound slowly for the class.', translation: 'Anh ấy phát âm từng âm một cách chậm rãi cho cả lớp nghe.' },
         ],
       },
     ],
@@ -95,8 +100,8 @@ export const dictionaryEntries: DictionaryEntry[] = [
         meaning: 'Strong enough to recover after stress, pressure, or failure.',
         vietnamese: 'Đủ mạnh mẽ để phục hồi sau áp lực, khó khăn hoặc thất bại.',
         examples: [
-          'A resilient team learns quickly after a setback.',
-          'The material is light, flexible, and resilient.',
+          { source: 'A resilient team learns quickly after a setback.', translation: 'Một nhóm kiên cường học hỏi rất nhanh sau một thất bại.' },
+          { source: 'The material is light, flexible, and resilient.', translation: 'Vật liệu này nhẹ, linh hoạt và đàn hồi tốt.' },
         ],
       },
     ],
@@ -126,8 +131,8 @@ export const dictionaryEntries: DictionaryEntry[] = [
         meaning: 'A subtle distinction that changes how something is understood.',
         vietnamese: 'Một khác biệt tinh tế làm thay đổi cách hiểu sự việc.',
         examples: [
-          'The translation missed the nuance of the original sentence.',
-          'Good readers notice nuance in tone and context.',
+          { source: 'The translation missed the nuance of the original sentence.', translation: 'Bản dịch đã bỏ lỡ sắc thái của câu gốc.' },
+          { source: 'Good readers notice nuance in tone and context.', translation: 'Những người đọc giỏi nhận ra sắc thái trong giọng điệu và ngữ cảnh.' },
         ],
       },
     ],
@@ -156,8 +161,8 @@ export const dictionaryEntries: DictionaryEntry[] = [
         meaning: 'To involve yourself completely in something.',
         vietnamese: 'Tham gia hoặc tập trung hoàn toàn vào một điều gì đó.',
         examples: [
-          'Immerse yourself in English podcasts for better listening.',
-          'The app helps learners immerse in vocabulary every day.',
+          { source: 'Immerse yourself in English podcasts for better listening.', translation: 'Hãy đắm mình vào các podcast tiếng Anh để nghe tốt hơn.' },
+          { source: 'The app helps learners immerse in vocabulary every day.', translation: 'Ứng dụng giúp người học đắm chìm trong từ vựng mỗi ngày.' },
         ],
       },
     ],
@@ -190,8 +195,8 @@ export const dictionaryEntries: DictionaryEntry[] = [
         meaning: 'Solving problems in a sensible way based on real conditions.',
         vietnamese: 'Giải quyết vấn đề dựa trên điều kiện thực tế.',
         examples: [
-          'The manager suggested a pragmatic compromise.',
-          'A pragmatic learner studies the words they actually need.',
+          { source: 'The manager suggested a pragmatic compromise.', translation: 'Người quản lý đề xuất một sự thỏa hiệp mang tính thực tế.' },
+          { source: 'A pragmatic learner studies the words they actually need.', translation: 'Một người học thực dụng học những từ mà họ thực sự cần.' },
         ],
       },
     ],

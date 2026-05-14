@@ -1,7 +1,9 @@
+import { BilingualExample } from './dictionary';
+
 export type ApiDefinition = {
   partOfSpeech: string;
   meaning: string;
-  examples: string[];
+  examples: BilingualExample[];
   synonyms: string[];
   antonyms: string[];
   domain?: string;
@@ -128,7 +130,7 @@ export async function fetchEnglishMeaning(word: string): Promise<ApiMeaningResul
       (meaning.definitions ?? []).slice(0, 4).map((definition) => ({
         partOfSpeech: meaning.partOfSpeech ?? 'word',
         meaning: definition.definition ?? '',
-        examples: definition.example ? [definition.example] : [],
+        examples: definition.example ? [{ source: definition.example }] : [],
         synonyms: uniqueWords([...(meaning.synonyms ?? []), ...(definition.synonyms ?? [])]),
         antonyms: uniqueWords([...(meaning.antonyms ?? []), ...(definition.antonyms ?? [])]),
       }))
@@ -249,11 +251,17 @@ function parseContextualDefinition(definition: string) {
   };
 }
 
-function splitMeaningExamples(example: string) {
+function splitMeaningExamples(example: string): BilingualExample[] {
   return example
     .split(/\s*~\s*/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+    .map((item) => {
+      // Often, bilingual examples are separated by "=" or "-"
+      const parts = item.split(/\s*(?:=|-)\s*/);
+      const source = parts[0]?.trim();
+      const translation = parts[1]?.trim();
+      return { source, translation };
+    })
+    .filter((item) => item.source);
 }
 
 function inferDefinitionDomain(word: string, definition: string, targetLang: string) {

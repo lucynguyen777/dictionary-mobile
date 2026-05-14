@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { RefObject, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
-import { DictionaryEntry } from '@/data/dictionary';
+import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
 import { PhrasebookItem, getPhrasebookItems } from '@/data/phrasebook';
 
@@ -26,7 +26,7 @@ type MeaningDefinitionItem = {
   partOfSpeech: string;
   meaning: string;
   vietnamese?: string;
-  examples: string[];
+  examples: BilingualExample[];
   synonyms: string[];
   antonyms: string[];
   domain?: string;
@@ -225,8 +225,13 @@ function MeaningTab({
               {item.examples.length ? (
                 <>
                   <Text style={styles.exampleLabel}>Ví dụ</Text>
-                  {item.examples.map((example) => (
-                    <Text key={example} style={styles.example}>- {example}</Text>
+                  {item.examples.map((example, i) => (
+                    <View key={i} style={styles.exampleBlock}>
+                      <Text style={styles.example}>- {example.source}</Text>
+                      {example.translation ? (
+                        <Text style={styles.exampleTranslation}>{example.translation}</Text>
+                      ) : null}
+                    </View>
                   ))}
                 </>
               ) : null}
@@ -912,11 +917,23 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textTransform: 'uppercase',
   },
+  exampleBlock: {
+    marginBottom: 6,
+  },
   example: {
-    color: '#475569',
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 4,
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '700',
+    fontStyle: 'italic',
+    lineHeight: 20,
+  },
+  exampleTranslation: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 20,
+    marginLeft: 8,
+    marginTop: 2,
   },
   sectionTitle: {
     color: '#0F172A',
