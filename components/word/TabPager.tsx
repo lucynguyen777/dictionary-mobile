@@ -109,6 +109,9 @@ function MeaningTab({
     examples: definition.examples,
     synonyms: [],
     antonyms: [],
+    domain: definition.domain,
+    gender: definition.gender,
+    level: definition.level,
   }));
 
   return (
@@ -122,6 +125,11 @@ function MeaningTab({
       {definitions.map((item, index) => (
         <View key={`${item.partOfSpeech}-${item.meaning}-${index}`} style={styles.block}>
           <Text style={styles.heading}>{item.partOfSpeech}</Text>
+          <DefinitionMetaRow
+            domain={item.domain ?? entry.topic}
+            gender={item.gender ?? entry.gender}
+            level={item.level ?? entry.level}
+          />
           <Text style={styles.body}>{item.meaning}</Text>
           {item.examples.length ? (
             <>
@@ -135,6 +143,48 @@ function MeaningTab({
       ))}
     </View>
   );
+}
+
+function DefinitionMetaRow({
+  domain,
+  gender,
+  level,
+}: {
+  domain?: string;
+  gender?: string;
+  level?: string;
+}) {
+  const metaItems = [
+    domain ? { label: domain, tone: 'blue' as const } : null,
+    level ? { label: level, tone: 'green' as const } : null,
+    gender ? { label: gender, tone: 'neutral' as const } : null,
+  ].filter(Boolean) as { label: string; tone: 'blue' | 'green' | 'neutral' }[];
+
+  if (!metaItems.length) return null;
+
+  return (
+    <View style={styles.definitionMetaRow}>
+      {metaItems.map((item) => (
+        <View key={`${item.tone}-${item.label}`} style={[styles.definitionMetaPill, getMetaPillStyle(item.tone)]}>
+          <Text style={[styles.definitionMetaText, getMetaTextStyle(item.tone)]}>{item.label}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function getMetaPillStyle(tone: 'blue' | 'green' | 'neutral') {
+  if (tone === 'green') return styles.greenMetaPill;
+  if (tone === 'neutral') return styles.neutralMetaPill;
+
+  return styles.blueMetaPill;
+}
+
+function getMetaTextStyle(tone: 'blue' | 'green' | 'neutral') {
+  if (tone === 'green') return styles.greenMetaText;
+  if (tone === 'neutral') return styles.neutralMetaText;
+
+  return styles.blueMetaText;
 }
 
 function SynonymsTab({
@@ -496,6 +546,39 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     marginBottom: 12,
+  },
+  definitionMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  definitionMetaPill: {
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  definitionMetaText: {
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  blueMetaPill: {
+    backgroundColor: '#EAF1FF',
+  },
+  blueMetaText: {
+    color: '#2563EB',
+  },
+  greenMetaPill: {
+    backgroundColor: '#EAF8F0',
+  },
+  greenMetaText: {
+    color: '#166534',
+  },
+  neutralMetaPill: {
+    backgroundColor: '#F1F5F9',
+  },
+  neutralMetaText: {
+    color: '#475569',
   },
   body: {
     color: '#334155',

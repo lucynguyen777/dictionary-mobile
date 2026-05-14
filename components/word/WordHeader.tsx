@@ -34,6 +34,7 @@ export default function WordHeader({
   const [folderQuery, setFolderQuery] = useState('');
   const [noteDraft, setNoteDraft] = useState(note);
   const [saveMessage, setSaveMessage] = useState('');
+  const entryMeta = [entry.topic, entry.level, entry.gender].filter(Boolean).join(' · ');
 
   const filteredFolders = useMemo(() => {
     const normalizedQuery = folderQuery.trim().toLowerCase();
@@ -81,7 +82,7 @@ export default function WordHeader({
         <Ionicons name="book-outline" size={25} color="#2563EB" />
         <View style={styles.searchCopy}>
           <Text style={styles.searchWord}>{languagePairLabel}</Text>
-          <Text style={styles.language}>{entry.topic} · {entry.level}</Text>
+          <Text style={styles.language}>{entryMeta}</Text>
         </View>
         <Ionicons name="swap-horizontal-outline" size={22} color="#64748B" />
       </View>
@@ -90,7 +91,7 @@ export default function WordHeader({
         <View style={styles.translationNotice}>
           <Ionicons name="time-outline" size={18} color="#2563EB" />
           <Text style={styles.translationNoticeText}>
-            Translation for this language pair is coming soon. English dictionary data is available first.
+            Translation for this language pair is coming soon. The Meaning tab can still show dictionary definitions for the source language when local/API data exists.
           </Text>
         </View>
       ) : null}

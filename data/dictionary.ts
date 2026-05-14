@@ -11,7 +11,11 @@ export type DictionaryEntry = {
     meaning: string;
     vietnamese: string;
     examples: string[];
+    domain?: string;
+    gender?: string;
+    level?: string;
   }[];
+  gender?: string;
   synonyms: string[];
   antonyms: string[];
   collocations: string[];

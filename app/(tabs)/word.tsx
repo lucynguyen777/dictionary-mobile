@@ -8,7 +8,13 @@ import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
 import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
 import { ApiMeaningResult, ApiRelatedWords, fetchEnglishMeaning, fetchEnglishRelatedWords } from '@/data/dictionaryApi';
-import { getLanguageByCode, isEnglishDictionaryPair } from '@/data/languages';
+import { getLanguageByCode, isTranslationComingSoonPair } from '@/data/languages';
+import {
+  findLocalDictionaryEntry,
+  getLocalDictionaryEntries,
+  normalizeLookupTerm,
+  supportsLocalDictionary,
+} from '@/data/localLexicon';
 import {
   LibraryState,
   addSearchHistory,
@@ -40,20 +46,39 @@ export default function WordScreen() {
   const scrollRef = useRef<ScrollView | null>(null);
   const sourceLanguage = getLanguageByCode(getRouteParam(params.sourceLang), 'en');
   const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
-  const canUseEnglishLookup = sourceLanguage.code === 'en';
-  const isTranslationComingSoon = !isEnglishDictionaryPair(sourceLanguage.code, targetLanguage.code);
+  const canUseEnglishApi = sourceLanguage.code === 'en';
+  const hasLocalDictionarySource = supportsLocalDictionary(sourceLanguage.code);
+  const isTranslationComingSoon = isTranslationComingSoonPair(sourceLanguage.code, targetLanguage.code);
+  const sourceEntries = useMemo(() => getLocalDictionaryEntries(sourceLanguage.code), [sourceLanguage.code]);
 
-  const localEntry = dictionaryEntries.find((entry) => entry.word === selectedWord);
+  const localEntry = findLocalDictionaryEntry(sourceLanguage.code, selectedWord);
   const selectedEntry = useMemo(
-    () => mergeApiEntry(localEntry, selectedWord, apiMeaning, canUseEnglishLookup, sourceLanguage.label, targetLanguage.label),
-    [apiMeaning, canUseEnglishLookup, localEntry, selectedWord, sourceLanguage.label, targetLanguage.label]
+    () =>
+      mergeLookupEntry(
+        localEntry,
+        selectedWord,
+        apiMeaning,
+        canUseEnglishApi,
+        hasLocalDictionarySource,
+        sourceLanguage.label,
+        targetLanguage.label
+      ),
+    [
+      apiMeaning,
+      canUseEnglishApi,
+      hasLocalDictionarySource,
+      localEntry,
+      selectedWord,
+      sourceLanguage.label,
+      targetLanguage.label,
+    ]
   );
 
   const results = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const normalized = normalizeLookupTerm(query);
     if (!normalized) return [];
 
-    return dictionaryEntries.filter((entry) => {
+    return sourceEntries.filter((entry) => {
       const searchable = [
         entry.word,
         entry.ipa,
@@ -63,14 +88,16 @@ export default function WordScreen() {
         entry.shortDefinition,
         ...entry.synonyms,
         ...entry.collocations,
-      ].join(' ').toLowerCase();
+      ].join(' ').toLocaleLowerCase();
 
       return searchable.includes(normalized);
     });
-  }, [query]);
+  }, [query, sourceEntries]);
 
-  const normalizedQuery = query.trim().toLowerCase();
-  const shouldShowApiLookup = Boolean(normalizedQuery) && !results.some((entry) => entry.word.toLowerCase() === normalizedQuery);
+  const normalizedQuery = normalizeLookupTerm(query);
+  const hasExactLocalResult = results.some((entry) => normalizeLookupTerm(entry.word) === normalizedQuery);
+  const shouldShowApiLookup = Boolean(normalizedQuery) && canUseEnglishApi && !hasExactLocalResult;
+  const shouldShowLocalLookup = Boolean(normalizedQuery) && !canUseEnglishApi && !hasExactLocalResult;
   const savedWord = getSavedWord(libraryState, selectedEntry.word);
   const favoriteFolderId = getFavoriteFolderId();
   const isFavorite = Boolean(savedWord?.folderIds.includes(favoriteFolderId));
@@ -93,7 +120,7 @@ export default function WordScreen() {
 
   useEffect(() => {
     const routeWord = Array.isArray(params.word) ? params.word[0] : params.word;
-    const normalizedRouteWord = routeWord?.trim().toLowerCase();
+    const normalizedRouteWord = routeWord ? normalizeLookupTerm(routeWord) : '';
     if (!normalizedRouteWord || normalizedRouteWord === selectedWord) return;
 
     setSelectedWord(normalizedRouteWord);
@@ -106,7 +133,7 @@ export default function WordScreen() {
     let isCancelled = false;
 
     async function lookupWord() {
-      if (!canUseEnglishLookup) {
+      if (!canUseEnglishApi) {
         setLookupStatus('idle');
         setLookupError('');
         setApiMeaning(null);
@@ -149,7 +176,7 @@ export default function WordScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [canUseEnglishLookup, selectedWord]);
+  }, [canUseEnglishApi, selectedWord]);
 
   useEffect(() => {
     if (!libraryLoaded) return;
@@ -160,7 +187,7 @@ export default function WordScreen() {
   }, [libraryLoaded, selectedWord]);
 
   const selectWord = (word: string) => {
-    const trimmedWord = word.trim().toLowerCase();
+    const trimmedWord = normalizeLookupTerm(word);
     if (!trimmedWord) return;
 
     setSelectedWord(trimmedWord);
@@ -228,9 +255,17 @@ export default function WordScreen() {
                 <Text style={styles.apiLookupMeta}>English API</Text>
               </TouchableOpacity>
             ) : null}
+            {shouldShowLocalLookup ? (
+              <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
+                <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
+                <Text style={styles.apiLookupMeta}>{sourceLanguage.label} dictionary</Text>
+              </TouchableOpacity>
+            ) : null}
           </ScrollView>
         ) : null}
-        {query && results.length === 0 && !shouldShowApiLookup ? <Text style={styles.emptyText}>Nhập từ tiếng Anh rồi nhấn Search.</Text> : null}
+        {query && results.length === 0 && !shouldShowApiLookup && !shouldShowLocalLookup ? (
+          <Text style={styles.emptyText}>Nhập từ thuộc ngôn ngữ gốc rồi nhấn Search.</Text>
+        ) : null}
         {!query && libraryState.searchHistory.length ? (
           <View style={styles.historyBlock}>
             <Text style={styles.historyTitle}>Recent searches</Text>
@@ -272,16 +307,17 @@ export default function WordScreen() {
   );
 }
 
-function mergeApiEntry(
+function mergeLookupEntry(
   localEntry: DictionaryEntry | undefined,
   selectedWord: string,
   apiMeaning: ApiMeaningResult | null,
-  canUseEnglishLookup: boolean,
+  canUseEnglishApi: boolean,
+  hasLocalDictionarySource: boolean,
   sourceLanguageLabel: string,
   targetLanguageLabel: string
 ): DictionaryEntry {
-  if (!canUseEnglishLookup) {
-    return createTranslationComingSoonEntry(selectedWord, sourceLanguageLabel, targetLanguageLabel);
+  if (!canUseEnglishApi && !localEntry) {
+    return createDictionaryUnavailableEntry(selectedWord, hasLocalDictionarySource, sourceLanguageLabel, targetLanguageLabel);
   }
 
   const fallbackEntry = localEntry ?? dictionaryEntries[0];
@@ -291,6 +327,9 @@ function mergeApiEntry(
     meaning: definition.meaning,
     vietnamese: '',
     examples: definition.examples,
+    domain: definition.domain,
+    gender: definition.gender,
+    level: definition.level,
   }));
 
   if (!hasLocalEntry) {
@@ -339,21 +378,32 @@ function getRouteParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function createTranslationComingSoonEntry(word: string, sourceLanguageLabel: string, targetLanguageLabel: string): DictionaryEntry {
+function createDictionaryUnavailableEntry(
+  word: string,
+  hasLocalDictionarySource: boolean,
+  sourceLanguageLabel: string,
+  targetLanguageLabel: string
+): DictionaryEntry {
+  const sourceMessage = hasLocalDictionarySource
+    ? `No local dictionary entry found for "${word}" yet.`
+    : `${sourceLanguageLabel} dictionary data is not enabled yet.`;
+
   return {
     word,
     ipa: '',
     audio: '',
-    level: 'Soon',
-    topic: 'Translation',
+    level: hasLocalDictionarySource ? 'Local' : 'Soon',
+    topic: hasLocalDictionarySource ? 'Dictionary' : 'Resource needed',
     vietnamese: `${sourceLanguageLabel} to ${targetLanguageLabel}`,
-    shortDefinition: 'Multilingual translation is coming soon.',
+    shortDefinition: sourceMessage,
     definitions: [
       {
-        partOfSpeech: 'translation',
-        meaning: `Translation from ${sourceLanguageLabel} to ${targetLanguageLabel} is not enabled yet.`,
-        vietnamese: 'Tính năng dịch đa ngôn ngữ sẽ được triển khai ở phase sau.',
+        partOfSpeech: 'dictionary status',
+        meaning: sourceMessage,
+        vietnamese: 'Cần bổ sung dataset hoặc API hợp pháp để tra cứu đầy đủ ngôn ngữ này.',
         examples: [],
+        domain: 'System',
+        level: hasLocalDictionarySource ? 'Preview' : 'Soon',
       },
     ],
     synonyms: [],

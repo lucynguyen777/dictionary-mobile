@@ -5,8 +5,9 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 
 import Screen from '@/components/app/Screen';
 import { dictionaryEntries, studyStats } from '@/data/dictionary';
-import { LanguageOption, getAlternativeLanguage, languageOptions } from '@/data/languages';
+import { LanguageOption, languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
+import { normalizeLookupTerm } from '@/data/localLexicon';
 
 const reviewPlan = [
   { label: 'Từ cần ôn', value: studyStats.dueToday, icon: 'time-outline' as const },
@@ -53,7 +54,7 @@ export default function HomeScreen() {
     });
   }, [libraryState.searchHistory]);
 
-  const normalizedLookupQuery = lookupQuery.trim().toLowerCase();
+  const normalizedLookupQuery = normalizeLookupTerm(lookupQuery);
   const canSubmitLookup = Boolean(normalizedLookupQuery);
 
   const handleOpenLookup = () => {
@@ -85,14 +86,8 @@ export default function HomeScreen() {
   const handleSelectLanguage = (field: LanguageField, language: LanguageOption) => {
     if (field === 'source') {
       setSourceLanguage(language);
-      if (language.code === targetLanguage.code) {
-        setTargetLanguage(getAlternativeLanguage(language.code));
-      }
     } else {
       setTargetLanguage(language);
-      if (language.code === sourceLanguage.code) {
-        setSourceLanguage(getAlternativeLanguage(language.code));
-      }
     }
 
     setActiveLanguageField(null);
@@ -113,7 +108,7 @@ export default function HomeScreen() {
 
         <View style={styles.hero}>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroKicker}>English to Vietnamese</Text>
+            <Text style={styles.heroKicker}>Monolingual & bilingual lookup</Text>
             <Text style={styles.heroTitle}>Tra từ nhanh, nhớ từ lâu hơn.</Text>
             <Text style={styles.heroText}>Từ điển, phát âm, collocation và flashcard nằm trong cùng một luồng học.</Text>
           </View>
@@ -172,7 +167,7 @@ export default function HomeScreen() {
               <LanguageSelect
                 active={activeLanguageField === 'target'}
                 field="target"
-                label="Dịch sang"
+                label="Tra / dịch sang"
                 selectedLanguage={targetLanguage}
                 onPress={handleLanguagePress}
                 onSelect={handleSelectLanguage}

@@ -4,6 +4,9 @@ export type ApiDefinition = {
   examples: string[];
   synonyms: string[];
   antonyms: string[];
+  domain?: string;
+  gender?: string;
+  level?: string;
 };
 
 export type ApiMeaningResult = {
