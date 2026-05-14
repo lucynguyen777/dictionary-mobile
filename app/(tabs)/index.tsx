@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
-import { dictionaryEntries, studyStats } from '@/data/dictionary';
+import { dictionaryEntries, getWordOfDay, studyStats } from '@/data/dictionary';
 import { LanguageOption, languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import { normalizeLookupTerm } from '@/data/localLexicon';
@@ -14,6 +14,8 @@ const reviewPlan = [
   { label: 'Đã nhớ', value: studyStats.mastered, icon: 'checkmark-done-outline' as const },
   { label: 'Chuỗi ngày', value: studyStats.streak, icon: 'flame-outline' as const },
 ];
+
+const wordOfDay = getWordOfDay();
 
 type LanguageField = 'source' | 'target';
 
@@ -193,6 +195,39 @@ export default function HomeScreen() {
             </View>
           ))}
         </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Từ vựng hôm nay</Text>
+          <Link href={{ pathname: '/word', params: { word: wordOfDay.word } }} asChild>
+            <TouchableOpacity>
+              <Text style={styles.sectionAction}>Tra cứu</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+
+        <Link href={{ pathname: '/word', params: { word: wordOfDay.word } }} asChild>
+          <TouchableOpacity activeOpacity={0.85} style={styles.wotdCard}>
+            <View style={styles.wotdTopRow}>
+              <View style={styles.wotdBadge}>
+                <Ionicons name="star" size={12} color="#FFFFFF" />
+                <Text style={styles.wotdBadgeText}>Word of the Day</Text>
+              </View>
+              <View style={styles.topicPill}>
+                <Text style={styles.topicText}>{wordOfDay.level} · {wordOfDay.topic}</Text>
+              </View>
+            </View>
+            <Text style={styles.wotdWord}>{wordOfDay.word}</Text>
+            {wordOfDay.ipa ? <Text style={styles.wotdIpa}>{wordOfDay.ipa}</Text> : null}
+            <Text style={styles.wotdVietnamese}>{wordOfDay.vietnamese}</Text>
+            <Text style={styles.wotdDefinition}>{wordOfDay.shortDefinition}</Text>
+            {wordOfDay.definitions[0]?.examples[0] ? (
+              <View style={styles.wotdExample}>
+                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#2563EB" />
+                <Text style={styles.wotdExampleText}>“{wordOfDay.definitions[0].examples[0]}”</Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
+        </Link>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Lịch sử tra cứu</Text>
@@ -632,7 +667,72 @@ const styles = StyleSheet.create({
     marginTop: 6,
     textAlign: 'center',
   },
+  wotdCard: {
+    backgroundColor: '#102A43',
+    borderRadius: 12,
+    marginBottom: 4,
+    padding: 18,
+  },
+  wotdTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  wotdBadge: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  wotdBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  wotdWord: {
+    color: '#FFFFFF',
+    fontSize: 30,
+    fontWeight: '900',
+  },
+  wotdIpa: {
+    color: '#93C5FD',
+    fontSize: 15,
+    marginTop: 4,
+  },
+  wotdVietnamese: {
+    color: '#7DD3FC',
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 6,
+  },
+  wotdDefinition: {
+    color: '#CBD5E1',
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 8,
+  },
+  wotdExample: {
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+    padding: 10,
+  },
+  wotdExampleText: {
+    color: '#E2E8F0',
+    flex: 1,
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 19,
+  },
 });
+
 
 function formatLookedUpAt(value: string) {
   const date = new Date(value);

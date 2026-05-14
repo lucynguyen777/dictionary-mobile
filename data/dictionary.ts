@@ -223,3 +223,16 @@ export const studyStats = {
   dueToday: 18,
   listeningScore: 86,
 };
+
+/**
+ * Returns a word-of-the-day entry that stays constant for the entire day,
+ * cycling through all dictionaryEntries using a date-based seed.
+ */
+export function getWordOfDay(): DictionaryEntry {
+  const now = new Date();
+  const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  const index = seed % dictionaryEntries.length;
+
+  return dictionaryEntries[index];
+}
+
