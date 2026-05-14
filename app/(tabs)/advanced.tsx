@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from 'expo-router';
+import { Link, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -203,18 +203,36 @@ export default function AdvancedScreen() {
           )}
         </View>
 
-        {features.map((feature) => (
-          <TouchableOpacity key={feature.title} style={styles.card} activeOpacity={0.8}>
-            <View style={[styles.iconWrap, { backgroundColor: feature.accent }]}>
-              <Ionicons name={feature.icon} size={28} color="#0F172A" />
-            </View>
-            <View style={styles.copy}>
-              <Text style={styles.featureTitle}>{feature.title}</Text>
-              <Text style={styles.description}>{feature.description}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-          </TouchableOpacity>
-        ))}
+        {features.map((feature) => {
+          const featureContent = (
+            <>
+              <View style={[styles.iconWrap, { backgroundColor: feature.accent }]}>
+                <Ionicons name={feature.icon} size={28} color="#0F172A" />
+              </View>
+              <View style={styles.copy}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.description}>{feature.description}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+            </>
+          );
+
+          if (feature.title === 'Đọc sách kèm tra từ') {
+            return (
+              <Link key={feature.title} href={'/reader' as Href} asChild>
+                <TouchableOpacity style={styles.card} activeOpacity={0.8}>
+                  {featureContent}
+                </TouchableOpacity>
+              </Link>
+            );
+          }
+
+          return (
+            <TouchableOpacity key={feature.title} style={styles.card} activeOpacity={0.8}>
+              {featureContent}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </Screen>
   );
