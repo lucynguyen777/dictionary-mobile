@@ -426,10 +426,12 @@ function LookupBanner({
   }
 
   if (status === 'error') {
+    if (error) console.warn('Lookup error:', error);
+
     return (
       <StateCard
         icon="alert-circle-outline"
-        text={error || 'Không tải được dữ liệu trực tuyến. App đang dùng dữ liệu local/dự phòng nếu có.'}
+        text={'Không tải được dữ liệu trực tuyến. Ứng dụng sẽ dùng dữ liệu local/dự phòng nếu có.'}
         title="Đang dùng dữ liệu dự phòng"
         tone="warning"
       />

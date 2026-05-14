@@ -8,14 +8,14 @@ import { studyStats } from '@/data/dictionary';
 import { languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import {
-  LoginMethod,
-  ProficiencyLevel,
-  UserProfile,
-  getDefaultProfile,
-  loadUserProfile,
-  loginMethodOptions,
-  proficiencyLevels,
-  saveUserProfile,
+    LoginMethod,
+    ProficiencyLevel,
+    UserProfile,
+    getDefaultProfile,
+    loadUserProfile,
+    loginMethodOptions,
+    proficiencyLevels,
+    saveUserProfile,
 } from '@/data/profileStore';
 import { ReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
     saveUserProfile(profile).then((nextProfile) => {
       setProfile(nextProfile);
       setSaveMessage('Đã lưu hồ sơ học tập trên thiết bị này.');
-      Alert.alert('Profile saved', 'Your local learning profile has been saved.');
+      Alert.alert('Đã lưu hồ sơ', 'Hồ sơ học tập đã được lưu trên thiết bị này.');
     });
   };
 
@@ -114,7 +114,7 @@ export default function ProfileScreen() {
             placeholder="you@example.com"
             value={profile.email}
           />
-          <Text style={styles.fieldLabel}>Login method</Text>
+          <Text style={styles.fieldLabel}>Phương thức đăng nhập</Text>
           <View style={styles.chipRow}>
             {loginMethodOptions.map((option) => (
               <OptionChip

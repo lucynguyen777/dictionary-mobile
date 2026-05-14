@@ -236,7 +236,7 @@ export default function LibraryScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.kicker}>Library</Text>
+            <Text style={styles.kicker}>Thư viện</Text>
                 {importHeaders.length ? (
                   <>
                     <Text style={styles.importConfigLabel}>Mapping trường</Text>

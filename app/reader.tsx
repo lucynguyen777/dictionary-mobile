@@ -209,7 +209,7 @@ export default function ReaderScreen() {
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.82} onPress={handlePickText} style={styles.importButton}>
             <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.importButtonText}>Import TXT</Text>
+            <Text style={styles.importButtonText}>Nhập TXT</Text>
           </TouchableOpacity>
         </View>
 
