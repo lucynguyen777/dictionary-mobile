@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 
 import { DictionaryEntry } from '@/data/dictionary';
 import { ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
+import { PhrasebookItem, getPhrasebookItems } from '@/data/phrasebook';
 
 const { width } = Dimensions.get('window');
 
@@ -49,7 +50,7 @@ export default function TabPager({
           />
         );
       case 'Collocation & Idiom':
-        return <CollocationTab entry={entry} />;
+        return <CollocationTab entry={entry} sourceLang={sourceLang} targetLang={targetLang} />;
       case 'Conjugation':
         return <ConjugationTab entry={entry} />;
       case 'Etymology':
@@ -252,30 +253,112 @@ function uniqueWords(words: string[]) {
   return Array.from(new Set(words.map((word) => word.trim()).filter(Boolean))).slice(0, 24);
 }
 
-function CollocationTab({ entry }: { entry: DictionaryEntry }) {
+function CollocationTab({
+  entry,
+  sourceLang,
+  targetLang,
+}: {
+  entry: DictionaryEntry;
+  sourceLang: string;
+  targetLang: string;
+}) {
+  const phraseItems = getCollocationItems(entry);
+
   return (
     <View>
       <PreviewNotice
-        title="Local preview"
-        text="Collocations and idioms are currently shown from the local seed data. A production source will be selected later."
+        title="Local curated preview"
+        text="Idioms and phrasal verbs are text-only local data for this MVP. Tap a backlink to open that lookup."
       />
-      <Text style={styles.sectionTitle}>Collocation</Text>
-      {entry.collocations.map((item) => (
-        <View key={item} style={styles.smallBlock}>
-          <Text style={styles.collocation}>{item}</Text>
-          <Text style={styles.exampleLabel}>Example:</Text>
-          <Text style={styles.body}>Use this phrase in a sentence and save it to your daily review.</Text>
-        </View>
-      ))}
-      <Text style={styles.sectionTitle}>Idiom</Text>
-      {entry.idioms.map((item) => (
-        <View key={item.phrase} style={styles.smallBlock}>
-          <Text style={styles.collocation}>{item.phrase}</Text>
-          <Text style={styles.body}>{item.meaning}</Text>
-        </View>
-      ))}
+      {phraseItems.length ? (
+        phraseItems.map((item) => (
+          <View key={`${item.type}-${item.phrase}`} style={styles.smallBlock}>
+            <View style={styles.phraseHeader}>
+              <Text style={styles.phraseType}>{formatPhraseType(item.type)}</Text>
+              <Text style={styles.collocation}>{item.phrase}</Text>
+            </View>
+            <Text style={styles.body}>{item.meaning}</Text>
+            {item.example ? (
+              <>
+                <Text style={styles.exampleLabel}>Example</Text>
+                <Text style={styles.example}>{item.example}</Text>
+              </>
+            ) : null}
+            {item.backlinks.length ? (
+              <>
+                <Text style={styles.exampleLabel}>Backlinks</Text>
+                <View style={styles.chipWrap}>
+                  {item.backlinks.map((backlink) => (
+                    <WordChip
+                      key={`${item.phrase}-${backlink}`}
+                      sourceLang={sourceLang}
+                      targetLang={targetLang}
+                      word={backlink}
+                      variant="ghost"
+                    />
+                  ))}
+                </View>
+              </>
+            ) : null}
+          </View>
+        ))
+      ) : (
+        <EmptyState text="No local idioms or phrasal verbs found for this lookup yet." />
+      )}
     </View>
   );
+}
+
+function getCollocationItems(entry: DictionaryEntry): PhrasebookItem[] {
+  const localItems: PhrasebookItem[] = [
+    ...entry.collocations.map((phrase) => ({
+      phrase,
+      type: 'collocation' as const,
+      meaning: `A common phrase pattern with "${entry.word}".`,
+      example: `Use "${phrase}" in a sentence and save it to your daily review.`,
+      triggers: [entry.word],
+      backlinks: getPhraseBacklinks(phrase, entry.word),
+    })),
+    ...entry.idioms.map((item) => ({
+      phrase: item.phrase,
+      type: 'idiom' as const,
+      meaning: item.meaning,
+      example: '',
+      triggers: [entry.word],
+      backlinks: getPhraseBacklinks(item.phrase, entry.word),
+    })),
+  ];
+
+  return uniquePhraseItems([...localItems, ...getPhrasebookItems(entry.word)]).slice(0, 12);
+}
+
+function uniquePhraseItems(items: PhrasebookItem[]) {
+  const seen = new Set<string>();
+
+  return items.filter((item) => {
+    const key = item.phrase.toLowerCase();
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+}
+
+function getPhraseBacklinks(phrase: string, fallbackWord: string) {
+  const words = phrase
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.replace(/[^a-z'-]/g, ''))
+    .filter((word) => word.length > 2);
+
+  return uniqueWords(words.length ? words : [fallbackWord]).slice(0, 4);
+}
+
+function formatPhraseType(type: PhrasebookItem['type']) {
+  if (type === 'phrasal verb') return 'Phrasal verb';
+  if (type === 'idiom') return 'Idiom';
+
+  return 'Collocation';
 }
 
 function ConjugationTab({ entry }: { entry: DictionaryEntry }) {
@@ -505,9 +588,21 @@ const styles = StyleSheet.create({
   },
   smallBlock: {
     backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderWidth: 1,
     borderRadius: 8,
     marginBottom: 12,
     padding: 16,
+  },
+  phraseHeader: {
+    gap: 6,
+    marginBottom: 10,
+  },
+  phraseType: {
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
   collocation: {
     color: '#0F172A',

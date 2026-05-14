@@ -293,14 +293,43 @@ function mergeApiEntry(
     examples: definition.examples,
   }));
 
+  if (!hasLocalEntry) {
+    return {
+      word: apiMeaning?.word ?? selectedWord,
+      ipa: apiMeaning?.ipa ?? '',
+      audio: apiMeaning?.audio ?? '',
+      level: 'EN',
+      topic: 'Live lookup',
+      vietnamese: 'English dictionary result',
+      shortDefinition: apiDefinitions?.[0]?.meaning ?? 'Live English dictionary lookup.',
+      definitions: apiDefinitions?.length
+        ? apiDefinitions
+        : [
+            {
+              partOfSpeech: 'lookup',
+              meaning: 'Live dictionary data will appear here when available.',
+              vietnamese: 'Dữ liệu tra cứu trực tuyến sẽ hiển thị khi có kết quả.',
+              examples: [],
+            },
+          ],
+      synonyms: [],
+      antonyms: [],
+      collocations: [],
+      idioms: [],
+      conjugation: [],
+      etymology: 'Etymology needs a selected production resource for non-seed words.',
+      pronunciationTips: [],
+    };
+  }
+
   return {
     ...fallbackEntry,
     word: apiMeaning?.word ?? selectedWord,
-    ipa: apiMeaning?.ipa || (hasLocalEntry ? fallbackEntry.ipa : ''),
-    audio: apiMeaning?.audio || (hasLocalEntry ? fallbackEntry.audio : ''),
-    level: localEntry?.level ?? 'EN',
-    topic: localEntry?.topic ?? 'Live lookup',
-    vietnamese: localEntry?.vietnamese ?? 'English dictionary result',
+    ipa: apiMeaning?.ipa || fallbackEntry.ipa,
+    audio: apiMeaning?.audio || fallbackEntry.audio,
+    level: fallbackEntry.level,
+    topic: fallbackEntry.topic,
+    vietnamese: fallbackEntry.vietnamese,
     shortDefinition: apiDefinitions?.[0]?.meaning ?? fallbackEntry.shortDefinition,
     definitions: apiDefinitions?.length ? apiDefinitions : fallbackEntry.definitions,
   };
