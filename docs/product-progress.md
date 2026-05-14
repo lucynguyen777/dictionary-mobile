@@ -155,8 +155,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 5. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
 ## Update Rule
-After finishing a task:
-1. Move the relevant item to `[x] DONE`, `[~] IN PROGRESS`, `[ ] TODO`, or `[!] BLOCKED`.
-2. Add or update a short note in `Current Baseline` if there is a new important commit.
-3. Run verification for code changes.
-4. Commit code and this file together when the progress changed because of that code.
+## Update Rule
+Sau khi hoàn thành và đẩy code lên GitHub:
+1. Kiểm tra commit/push trên GitHub để đảm bảo các thay đổi code đã được đẩy thành công.
+2. Mở `docs/product-progress.md` và cập nhật checklist để phản ánh trạng thái thực tế của code (đánh dấu `[x]`, `[~]`, `[ ]`, hoặc `[!]` tương ứng) — đồng thời thêm ghi chú ngắn kèm commit hash mới vào phần `Current Baseline` nếu cần.
+3. Chạy kiểm tra xác minh: `npx tsc --noEmit` và `npx eslint . --no-cache`.
+4. Commit (và push) bất kỳ chỉnh sửa nào của file checklist lên GitHub cùng hoặc ngay sau commit code.
+5. Sau khi checklist trên GitHub khớp với code thực tế, bắt đầu task tiếp theo trong `Next Work Queue` bằng cách chuyển trạng thái task đó sang `[~] IN PROGRESS` và tiến hành triển khai.
