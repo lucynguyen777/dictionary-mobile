@@ -3,7 +3,7 @@ import * as Sharing from 'expo-sharing';
 
 import type { VocabularyImportRow } from '@/data/csvImport';
 import { DictionaryEntry, savedFolders } from '@/data/dictionary';
-import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
+import { getStoredItem, removeStoredItem, setStoredItem } from '@/data/storageAdapter';
 
 const STORAGE_KEY = 'dictionary-mobile.library.v1';
 const FAVORITES_FOLDER_ID = 'favorites';
@@ -84,6 +84,11 @@ export async function loadLibraryState(): Promise<LibraryState> {
 export async function saveLibraryState(state: LibraryState) {
   await setStoredItem(STORAGE_KEY, JSON.stringify(state));
 }
+
+export async function clearLibraryState() {
+  await removeStoredItem(STORAGE_KEY);
+}
+
 
 export async function createFolder(state: LibraryState, name?: string) {
   const createdAt = now();

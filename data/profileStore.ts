@@ -1,5 +1,5 @@
 import { LanguageCode } from '@/data/languages';
-import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
+import { getStoredItem, removeStoredItem, setStoredItem } from '@/data/storageAdapter';
 
 const STORAGE_KEY = 'dictionary-mobile.profile.v1';
 
@@ -64,6 +64,11 @@ export async function saveUserProfile(profile: UserProfile) {
 
   return nextProfile;
 }
+
+export async function clearUserProfile() {
+  await removeStoredItem(STORAGE_KEY);
+}
+
 
 function normalizeProfile(profile: Partial<UserProfile>): UserProfile {
   const defaultProfile = getDefaultProfile();

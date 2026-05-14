@@ -9,3 +9,9 @@ export async function setStoredItem(key: string, value: string) {
 
   window.localStorage.setItem(key, value);
 }
+
+export async function removeStoredItem(key: string) {
+  if (typeof window === 'undefined') return;
+
+  window.localStorage.removeItem(key);
+}

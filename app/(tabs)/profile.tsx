@@ -7,11 +7,12 @@ import Screen from '@/components/app/Screen';
 import { studyStats } from '@/data/dictionary';
 import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
-import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
+import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import {
     LoginMethod,
     ProficiencyLevel,
     UserProfile,
+    clearUserProfile,
     getDefaultProfile,
     loadUserProfile,
     loginMethodOptions,
@@ -65,6 +66,27 @@ export default function ProfileScreen() {
   const handleExportAllData = async () => {
     const result = await exportAllLocalData();
     Alert.alert(result.ok ? 'Đã xuất dữ liệu' : 'Lỗi xuất dữ liệu', result.message);
+  };
+
+  const handleClearAllData = () => {
+    Alert.alert(
+      'Xóa tất cả dữ liệu',
+      'Hành động này sẽ xóa toàn bộ từ đã lưu, flashcard, lịch sử tra cứu và hồ sơ học tập trên thiết bị. Không thể hoàn tác. Bạn có chắc không?',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xóa tất cả',
+          style: 'destructive',
+          onPress: async () => {
+            await Promise.all([clearLibraryState(), clearUserProfile()]);
+            setLibraryState(getDefaultLibraryState());
+            setProfile(getDefaultProfile());
+            setSaveMessage('');
+            Alert.alert('Đã xóa', 'Tất cả dữ liệu local đã được xóa.');
+          },
+        },
+      ]
+    );
   };
 
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
@@ -216,6 +238,10 @@ export default function ProfileScreen() {
           <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, { marginTop: 12 }]}>
             <Ionicons name="cloud-upload-outline" size={16} color="#2563EB" />
             <Text style={styles.saveProfileText}>Xuất dữ liệu</Text>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, { marginTop: 10 }]}>
+            <Ionicons name="trash-outline" size={16} color="#DC2626" />
+            <Text style={styles.clearDataText}>Xóa tất cả dữ liệu</Text>
           </TouchableOpacity>
         </View>
 
@@ -512,6 +538,22 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginTop: 4,
     textTransform: 'uppercase',
+  },
+  clearDataButton: {
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+  clearDataText: {
+    color: '#DC2626',
+    fontSize: 13,
+    fontWeight: '900',
   },
   yearPill: {
     alignItems: 'center',
