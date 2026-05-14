@@ -5,6 +5,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 
 import Screen from '@/components/app/Screen';
 import { studyStats } from '@/data/dictionary';
+import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import {
@@ -59,6 +60,11 @@ export default function ProfileScreen() {
       setSaveMessage('Đã lưu hồ sơ học tập trên thiết bị này.');
       Alert.alert('Đã lưu hồ sơ', 'Hồ sơ học tập đã được lưu trên thiết bị này.');
     });
+  };
+
+  const handleExportAllData = async () => {
+    const result = await exportAllLocalData();
+    Alert.alert(result.ok ? 'Đã xuất dữ liệu' : 'Lỗi xuất dữ liệu', result.message);
   };
 
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
@@ -207,6 +213,10 @@ export default function ProfileScreen() {
               value={libraryState.savedWords.filter((word) => word.source === 'import').length}
             />
           </View>
+          <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, { marginTop: 12 }]}>
+            <Ionicons name="cloud-upload-outline" size={16} color="#2563EB" />
+            <Text style={styles.saveProfileText}>Xuất dữ liệu</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.card}>
