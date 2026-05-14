@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import {
@@ -10,6 +10,7 @@ import {
   FlashcardType,
   LibraryState,
   createFlashcardsFromSavedWords,
+  exportFlashcardsToAnkiText,
   getDefaultLibraryState,
   loadLibraryState,
   updateFlashcardReviewState,
@@ -83,6 +84,7 @@ export default function AdvancedScreen() {
   });
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [showBack, setShowBack] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [folderFilterId, setFolderFilterId] = useState('all');
   const [typeFilter, setTypeFilter] = useState<FlashcardType | 'all'>('all');
   const [reviewFilter, setReviewFilter] = useState<FlashcardReviewState | 'all'>('all');
@@ -145,6 +147,24 @@ export default function AdvancedScreen() {
       setActiveCardIndex(0);
       setShowBack(false);
     });
+  };
+
+  const handleExportAnki = async () => {
+    if (!filteredFlashcards.length) return;
+    try {
+      setIsExporting(true);
+      const cardIds = filteredFlashcards.map((c) => c.id);
+      const result = await exportFlashcardsToAnkiText(libraryState, cardIds);
+      if (result.ok) {
+        Alert.alert('Đã xuất', result.message);
+      } else {
+        Alert.alert('Lỗi xuất', result.message);
+      }
+    } catch {
+      Alert.alert('Lỗi', 'Không thể xuất flashcards.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleReviewCard = (card: Flashcard, reviewState: FlashcardReviewState) => {
@@ -219,6 +239,18 @@ export default function AdvancedScreen() {
             ]}>
             <Ionicons name="albums-outline" size={18} color="#FFFFFF" />
             <Text style={styles.generateButtonText}>Tạo flashcard từ từ đã lưu</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            disabled={!filteredFlashcards.length || isExporting}
+            onPress={handleExportAnki}
+            style={[
+              styles.exportButton,
+              (!filteredFlashcards.length || isExporting) && styles.exportButtonDisabled,
+            ]}>
+            <Ionicons name="download-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.exportButtonText}>{isExporting ? 'Đang xuất...' : 'Xuất Anki (text)'}</Text>
           </TouchableOpacity>
 
           <View style={styles.filterBlock}>
@@ -454,6 +486,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#93C5FD',
   },
   generateButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  exportButton: {
+    alignItems: 'center',
+    backgroundColor: '#10B981',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingVertical: 12,
+  },
+  exportButtonDisabled: {
+    backgroundColor: '#A7F3D0',
+  },
+  exportButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '900',

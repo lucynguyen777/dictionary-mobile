@@ -1,8 +1,8 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-import { DictionaryEntry, savedFolders } from '@/data/dictionary';
 import type { VocabularyImportRow } from '@/data/csvImport';
+import { DictionaryEntry, savedFolders } from '@/data/dictionary';
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
 
 const STORAGE_KEY = 'dictionary-mobile.library.v1';
@@ -376,6 +376,43 @@ export async function exportFolderToExcel(state: LibraryState, folderId: string)
   }
 
   return { ok: true, message: `Đã xuất ${words.length} từ sang Excel.`, uri: file.uri };
+}
+
+export async function exportFlashcardsToAnkiText(state: LibraryState, cardIds?: string[]): Promise<ExportResult> {
+  const cards = cardIds && cardIds.length ? state.flashcards.filter((c) => cardIds.includes(c.id)) : state.flashcards;
+  if (!cards.length) return { ok: false, message: 'Không có flashcard để xuất.' };
+
+  const rows = buildFlashcardsAnkiRows(state, cards);
+  const tsv = rows.map((row) => row.map(escapeTsvCell).join('\t')).join('\n');
+
+  const filename = `flashcards-${Date.now()}.tsv`;
+  const file = new File(Paths.document, filename);
+  file.create({ overwrite: true });
+  file.write(tsv, { encoding: 'utf8' });
+
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(file.uri, {
+      mimeType: 'text/tab-separated-values',
+      UTI: 'public.tab-separated-values-text',
+    });
+  }
+
+  return { ok: true, message: `Đã xuất ${cards.length} thẻ.`, uri: file.uri };
+}
+
+function buildFlashcardsAnkiRows(state: LibraryState, cards: Flashcard[]) {
+  return cards.map((card) => {
+    const savedWord = state.savedWords.find((w) => w.id === card.wordId);
+    const tags = savedWord ? savedWord.tags.join(' ') : '';
+    const front = card.front ?? '';
+    const back = card.back ?? '';
+
+    return [front, back, tags];
+  });
+}
+
+function escapeTsvCell(value: string) {
+  return (value ?? '').replace(/\t/g, ' ').trim();
 }
 
 export function getDefaultLibraryState(): LibraryState {

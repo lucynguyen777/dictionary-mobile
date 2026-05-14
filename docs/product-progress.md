@@ -83,7 +83,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Flashcard filters by folder, card type, and review state.
 - [x] DONE: Create flashcards after CSV import.
 - [~] IN PROGRESS: Polish flashcard creation from imported datasets.
-- [ ] TODO: Prepare Anki text-only export from flashcards.
+- [x] DONE: Prepare Anki text-only export from flashcards.
 - [ ] TODO: Add richer review scheduling after local MVP is stable.
 
 ### Import Dataset
@@ -148,7 +148,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Queue
 1. `[ ] [MEDIUM]` Add custom field mapping UI for import.
-2. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
+2. `[x] [MEDIUM]` Prepare Anki text-only export from local flashcards.
 3. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
 4. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
 5. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
