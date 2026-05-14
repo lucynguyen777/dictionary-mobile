@@ -8,20 +8,21 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import Screen from '@/components/app/Screen';
 import { DictionaryEntry } from '@/data/dictionary';
 import {
-  LibraryState,
-  getDefaultLibraryState,
-  getFavoriteFolderId,
-  loadLibraryState,
-  saveWordToFolder,
+    LibraryState,
+    createFlashcardsFromWordIds,
+    getDefaultLibraryState,
+    getFavoriteFolderId,
+    loadLibraryState,
+    saveWordToFolder,
 } from '@/data/libraryStore';
 import {
-  ReaderSettings,
-  ReaderState,
-  getDefaultReaderState,
-  importReaderText,
-  loadReaderState,
-  selectReaderDocument,
-  updateReaderSettings,
+    ReaderSettings,
+    ReaderState,
+    getDefaultReaderState,
+    importReaderText,
+    loadReaderState,
+    selectReaderDocument,
+    updateReaderSettings,
 } from '@/data/readerStore';
 
 const fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[] = [
@@ -42,6 +43,8 @@ export default function ReaderScreen() {
   const [selectedReaderWord, setSelectedReaderWord] = useState('');
   const [quickNote, setQuickNote] = useState('');
   const [readerSaveMessage, setReaderSaveMessage] = useState('');
+  const [selectionStartIndex, setSelectionStartIndex] = useState<number | null>(null);
+  const [selectionEndIndex, setSelectionEndIndex] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -62,6 +65,21 @@ export default function ReaderScreen() {
 
   const selectedDocument = readerState.documents.find((document) => document.id === readerState.selectedDocumentId);
   const readerTokens = useMemo(() => tokenizeReaderText(selectedDocument?.content ?? ''), [selectedDocument?.content]);
+
+  const selectionRange = useMemo(() => {
+    if (selectionStartIndex == null || selectionEndIndex == null) return null;
+
+    const start = Math.min(selectionStartIndex, selectionEndIndex);
+    const end = Math.max(selectionStartIndex, selectionEndIndex);
+
+    return { start, end } as { start: number; end: number };
+  }, [selectionStartIndex, selectionEndIndex]);
+
+  const selectedHighlightText = useMemo(() => {
+    if (!selectionRange) return '';
+
+    return readerTokens.slice(selectionRange.start, selectionRange.end + 1).join('').trim();
+  }, [selectionRange, readerTokens]);
 
   const handlePickText = async () => {
     try {
@@ -126,6 +144,59 @@ export default function ReaderScreen() {
     setSelectedReaderWord('');
     setQuickNote('');
     setReaderSaveMessage('');
+  };
+
+  const handleCloseSelection = () => {
+    setSelectionStartIndex(null);
+    setSelectionEndIndex(null);
+    setQuickNote('');
+    setReaderSaveMessage('');
+  };
+
+  const handleCreateFlashcardFromSelection = () => {
+    if (!selectionRange) return;
+
+    const selectedText = readerTokens.slice(selectionRange.start, selectionRange.end + 1).join('').trim();
+    if (!selectedText) return;
+
+    const folderId = getReaderSaveFolderId(libraryState);
+
+    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedText), folderId, quickNote)
+      .then((nextState) => {
+        const savedWordId = `word-${selectedText.toLowerCase()}`;
+        return createFlashcardsFromWordIds(nextState, [savedWordId], ['bilingual']);
+      })
+      .then((finalState) => {
+        setLibraryState(finalState);
+        setReaderSaveMessage(`Đã tạo flashcard cho "${selectedText}".`);
+        setSelectionStartIndex(null);
+        setSelectionEndIndex(null);
+        setQuickNote('');
+      })
+      .catch((err) => {
+        Alert.alert('Lỗi tạo flashcard', err instanceof Error ? err.message : 'Không thể tạo flashcard.');
+      });
+  };
+
+  const handleSaveSelection = () => {
+    if (!selectionRange) return;
+
+    const selectedText = readerTokens.slice(selectionRange.start, selectionRange.end + 1).join('').trim();
+    if (!selectedText) return;
+
+    const folderId = getReaderSaveFolderId(libraryState);
+
+    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedText), folderId, quickNote)
+      .then((nextState) => {
+        setLibraryState(nextState);
+        setReaderSaveMessage(`Đã lưu cụm từ "${selectedText}".`);
+        setSelectionStartIndex(null);
+        setSelectionEndIndex(null);
+        setQuickNote('');
+      })
+      .catch((err) => {
+        Alert.alert('Lỗi lưu', err instanceof Error ? err.message : 'Không thể lưu cụm từ.');
+      });
   };
 
   return (
@@ -226,13 +297,30 @@ export default function ReaderScreen() {
             <View style={styles.readerTextWrap}>
               {readerTokens.slice(0, 900).map((token, index) => {
                 const isWord = /[A-Za-z]/.test(token);
+                const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
 
                 return isWord ? (
-                  <TouchableOpacity key={`${token}-${index}`} activeOpacity={0.72} onPress={() => handleLookupToken(token)}>
+                  <TouchableOpacity
+                    key={`${token}-${index}`}
+                    activeOpacity={0.72}
+                    onPress={() => {
+                      if (selectionStartIndex != null && selectionEndIndex == null) {
+                        setSelectionEndIndex(index);
+                      } else {
+                        handleLookupToken(token);
+                      }
+                    }}
+                    onLongPress={() => {
+                      setSelectionStartIndex(index);
+                      setSelectionEndIndex(null);
+                      setQuickNote('');
+                      setReaderSaveMessage('');
+                    }}>
                     <Text
                       style={[
                         styles.readerWord,
                         getReaderTextStyle(readerState.settings),
+                        inSelection && styles.selectedRangeWord,
                         selectedReaderWord === token.toLowerCase().replace(/[^a-z'-]/g, '') && styles.selectedReaderWord,
                       ]}>
                       {token}
@@ -281,6 +369,38 @@ export default function ReaderScreen() {
               <TouchableOpacity activeOpacity={0.82} onPress={handleSaveReaderWord} style={styles.saveActionButton}>
                 <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
                 <Text style={styles.saveActionText}>Lưu từ</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
+        {selectionRange ? (
+          <View style={styles.readerActionPanel}>
+            <View style={styles.readerActionHeader}>
+              <View>
+                <Text style={styles.readerActionKicker}>Highlight</Text>
+                <Text style={styles.readerActionWord}>{selectedHighlightText}</Text>
+              </View>
+              <TouchableOpacity activeOpacity={0.75} onPress={handleCloseSelection} style={styles.readerActionClose}>
+                <Ionicons name="close" size={18} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              multiline
+              onChangeText={setQuickNote}
+              placeholder="Ghi chú cho highlight..."
+              placeholderTextColor="#94A3B8"
+              style={styles.quickNoteInput}
+              value={quickNote}
+            />
+            {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
+            <View style={styles.readerActionButtons}>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFlashcardFromSelection} style={styles.lookupActionButton}>
+                <Ionicons name="star" size={17} color="#2563EB" />
+                <Text style={styles.lookupActionText}>Tạo flashcard</Text>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleSaveSelection} style={styles.saveActionButton}>
+                <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
+                <Text style={styles.saveActionText}>Lưu cụm từ</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -514,6 +634,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#DBEAFE',
     borderRadius: 4,
     color: '#1D4ED8',
+  },
+  selectedRangeWord: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 4,
+    color: '#92400E',
   },
   readerActionPanel: {
     backgroundColor: '#FFFFFF',
