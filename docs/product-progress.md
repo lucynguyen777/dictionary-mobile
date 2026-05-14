@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `f58cc37` feat(data): export all local user data + profile UI button
   - `a6f1c79` fix(ui): localize profile, reader, library copy; polish lookup error message
   - `a1958c5` docs: update Next Work Queue and mark Reader highlights done
   - `1f44f37` Add Anki TSV export and UI
@@ -133,7 +134,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Data Privacy And Security
 - [x] DONE [EASY]: Local data overview showing saved words, folders, flashcards, reader files, and import datasets.
-- [ ] TODO [MEDIUM]: Export all local user data.
+  - [x] DONE [MEDIUM]: Export all local user data.
 - [ ] TODO [MEDIUM]: Delete/reset local user data with confirmation.
 - [x] DONE [EASY]: Privacy copy explaining local-first storage and what leaves the device.
 - [ ] TODO [MEDIUM]: App lock or biometric lock option if native support is added.
@@ -160,8 +161,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Next Work Queue
 1. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 2. `[ ] [MEDIUM]` Add Anki `.apkg` text-only export.
-3. `[ ] [MEDIUM]` Export all local user data.
-4. `[~] [MEDIUM]` Polish flashcard creation from imported datasets.
+3. `[~] [MEDIUM]` Polish flashcard creation from imported datasets.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
