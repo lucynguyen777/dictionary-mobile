@@ -48,7 +48,7 @@ export default function HomeScreen() {
       return {
         ...item,
         definition: localEntry?.shortDefinition ?? 'Tap to continue this lookup.',
-        ipa: localEntry?.ipa ?? 'Live lookup',
+        ipa: localEntry?.ipa ?? 'Online result',
         topic: localEntry?.topic ?? 'Recent',
       };
     });

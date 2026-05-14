@@ -1,16 +1,16 @@
-import { RefObject } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RefObject, useRef } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 
 import { DictionaryEntry } from '@/data/dictionary';
-import { ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
+import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
 import { PhrasebookItem, getPhrasebookItems } from '@/data/phrasebook';
 
-const { width } = Dimensions.get('window');
-
 type Props = {
+  apiBilingualMeaning: ApiBilingualMeaningResult | null;
   apiMeaning: ApiMeaningResult | null;
   apiRelatedWords: ApiRelatedWords | null;
+  bilingualLookupError: string;
   entry: DictionaryEntry;
   lookupError: string;
   lookupStatus: 'idle' | 'loading' | 'ready' | 'error';
@@ -21,9 +21,23 @@ type Props = {
   onIndexChange: (index: number) => void;
 };
 
+type MeaningDefinitionItem = {
+  partOfSpeech: string;
+  meaning: string;
+  vietnamese?: string;
+  examples: string[];
+  synonyms: string[];
+  antonyms: string[];
+  domain?: string;
+  gender?: string;
+  level?: string;
+};
+
 export default function TabPager({
+  apiBilingualMeaning,
   apiMeaning,
   apiRelatedWords,
+  bilingualLookupError,
   entry,
   lookupError,
   lookupStatus,
@@ -33,10 +47,32 @@ export default function TabPager({
   scrollRef,
   onIndexChange,
 }: Props) {
+  const { width } = useWindowDimensions();
+  const activeIndexRef = useRef(0);
+
+  const handleIndexChange = (index: number) => {
+    const nextIndex = Math.max(0, Math.min(index, tabs.length - 1));
+    if (activeIndexRef.current === nextIndex) return;
+
+    activeIndexRef.current = nextIndex;
+    onIndexChange(nextIndex);
+  };
+
   const renderTab = (tab: string) => {
     switch (tab) {
       case 'Meaning':
-        return <MeaningTab apiMeaning={apiMeaning} entry={entry} lookupError={lookupError} lookupStatus={lookupStatus} />;
+        return (
+          <MeaningTab
+            apiMeaning={apiMeaning}
+            apiBilingualMeaning={apiBilingualMeaning}
+            bilingualLookupError={bilingualLookupError}
+            entry={entry}
+            lookupError={lookupError}
+            lookupStatus={lookupStatus}
+            sourceLang={sourceLang}
+            targetLang={targetLang}
+          />
+        );
       case 'Synonyms':
         return (
           <SynonymsTab
@@ -72,12 +108,16 @@ export default function TabPager({
       scrollEventThrottle={16}
       showsHorizontalScrollIndicator={false}
       style={styles.pager}
+      onScroll={(e) => {
+        const index = Math.round(e.nativeEvent.contentOffset.x / width);
+        handleIndexChange(index);
+      }}
       onMomentumScrollEnd={(e) => {
         const index = Math.round(e.nativeEvent.contentOffset.x / width);
-        onIndexChange(index);
+        handleIndexChange(index);
       }}>
       {tabs.map((tab) => (
-        <View key={tab} style={styles.page}>
+        <View key={tab} style={[styles.page, { width }]}>
           <ScrollView
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
@@ -93,19 +133,30 @@ export default function TabPager({
 }
 
 function MeaningTab({
+  apiBilingualMeaning,
   apiMeaning,
+  bilingualLookupError,
   entry,
   lookupError,
   lookupStatus,
+  sourceLang,
+  targetLang,
 }: {
+  apiBilingualMeaning: ApiBilingualMeaningResult | null;
   apiMeaning: ApiMeaningResult | null;
+  bilingualLookupError: string;
   entry: DictionaryEntry;
   lookupError: string;
   lookupStatus: Props['lookupStatus'];
+  sourceLang: string;
+  targetLang: string;
 }) {
-  const definitions = apiMeaning?.definitions.length ? apiMeaning.definitions : entry.definitions.map((definition) => ({
+  const shouldPreferVietnamese = sourceLang === 'en' && targetLang === 'vi';
+  const isBilingualLookup = sourceLang !== targetLang;
+  const localDefinitions = entry.definitions.map((definition) => ({
     partOfSpeech: definition.partOfSpeech,
     meaning: definition.meaning,
+    vietnamese: definition.vietnamese,
     examples: definition.examples,
     synonyms: [],
     antonyms: [],
@@ -113,36 +164,124 @@ function MeaningTab({
     gender: definition.gender,
     level: definition.level,
   }));
+  const bilingualDefinitions = apiBilingualMeaning?.definitions.map((definition) => ({
+    partOfSpeech: definition.partOfSpeech,
+    meaning: definition.meaning,
+    vietnamese: definition.meaning,
+    examples: definition.examples,
+    synonyms: [],
+    antonyms: [],
+    domain: definition.domain,
+    gender: definition.gender,
+    level: definition.level,
+  }));
+  const definitions = getMeaningDefinitions({
+    apiDefinitions: apiMeaning?.definitions,
+    bilingualDefinitions,
+    localDefinitions,
+    shouldPreferVietnamese,
+  });
+  const meaningSource = apiBilingualMeaning?.source ?? apiMeaning?.source;
+  const groupedDefinitions = groupDefinitionsByPartOfSpeech(definitions);
 
   return (
     <View>
       <LookupBanner
-        error={lookupError}
-        source={apiMeaning?.source}
+        error={bilingualLookupError || lookupError}
+        source={meaningSource}
         status={lookupStatus}
-        successText="Meaning loaded from live English dictionary data."
+        successText={
+          apiBilingualMeaning
+            ? 'Meaning loaded from bilingual dictionary data.'
+            : 'Meaning loaded from live dictionary data.'
+        }
       />
-      {definitions.map((item, index) => (
-        <View key={`${item.partOfSpeech}-${item.meaning}-${index}`} style={styles.block}>
-          <Text style={styles.heading}>{item.partOfSpeech}</Text>
-          <DefinitionMetaRow
-            domain={item.domain ?? entry.topic}
-            gender={item.gender ?? entry.gender}
-            level={item.level ?? entry.level}
-          />
-          <Text style={styles.body}>{item.meaning}</Text>
-          {item.examples.length ? (
-            <>
-              <Text style={styles.exampleLabel}>Examples</Text>
-              {item.examples.map((example) => (
-                <Text key={example} style={styles.example}>- {example}</Text>
-              ))}
-            </>
-          ) : null}
+      {isBilingualLookup && bilingualLookupError && !apiBilingualMeaning ? (
+        <PreviewNotice
+          title="Bilingual API fallback"
+          text="The bilingual dictionary API did not return target-language meanings for this word, so the app is showing the best available fallback."
+        />
+      ) : null}
+      {groupedDefinitions.map((group) => (
+        <View key={group.partOfSpeech} style={styles.block}>
+          <Text style={styles.heading}>{group.partOfSpeech}</Text>
+          {group.definitions.map((item, index) => (
+            <View
+              key={`${item.meaning}-${index}`}
+              style={[styles.definitionItem, index > 0 && styles.definitionItemDivider]}>
+              {group.definitions.length > 1 ? <Text style={styles.definitionNumber}>Meaning {index + 1}</Text> : null}
+              <DefinitionMetaRow
+                domain={item.domain ?? entry.topic}
+                gender={item.gender ?? entry.gender}
+                level={item.level ?? entry.level}
+              />
+              <Text style={styles.body}>{getPrimaryDefinitionText(item, shouldPreferVietnamese)}</Text>
+              {shouldPreferVietnamese && !apiBilingualMeaning ? (
+                <Text style={styles.secondaryDefinition}>{item.meaning}</Text>
+              ) : null}
+              {item.examples.length ? (
+                <>
+                  <Text style={styles.exampleLabel}>Examples</Text>
+                  {item.examples.map((example) => (
+                    <Text key={example} style={styles.example}>- {example}</Text>
+                  ))}
+                </>
+              ) : null}
+            </View>
+          ))}
         </View>
       ))}
     </View>
   );
+}
+
+function getMeaningDefinitions({
+  apiDefinitions,
+  bilingualDefinitions,
+  localDefinitions,
+  shouldPreferVietnamese,
+}: {
+  apiDefinitions?: MeaningDefinitionItem[];
+  bilingualDefinitions?: MeaningDefinitionItem[];
+  localDefinitions: MeaningDefinitionItem[];
+  shouldPreferVietnamese: boolean;
+}): MeaningDefinitionItem[] {
+  if (bilingualDefinitions?.length) return bilingualDefinitions;
+  if (shouldPreferVietnamese && hasVietnameseDefinitions(localDefinitions)) return localDefinitions;
+  if (apiDefinitions?.length) return apiDefinitions;
+
+  return localDefinitions;
+}
+
+function hasVietnameseDefinitions(definitions: MeaningDefinitionItem[]) {
+  return definitions.some((definition) => Boolean(definition.vietnamese?.trim()));
+}
+
+function getPrimaryDefinitionText(definition: MeaningDefinitionItem, shouldPreferVietnamese: boolean) {
+  if (!shouldPreferVietnamese) return definition.meaning;
+
+  return definition.vietnamese?.trim() || 'Chưa có nghĩa tiếng Việt cho mục này.';
+}
+
+function groupDefinitionsByPartOfSpeech(definitions: MeaningDefinitionItem[]) {
+  const groups: { partOfSpeech: string; definitions: MeaningDefinitionItem[] }[] = [];
+
+  definitions.forEach((definition) => {
+    const partOfSpeech = definition.partOfSpeech.trim() || 'word';
+    const existingGroup = groups.find((group) => group.partOfSpeech.toLowerCase() === partOfSpeech.toLowerCase());
+
+    if (existingGroup) {
+      existingGroup.definitions.push(definition);
+      return;
+    }
+
+    groups.push({
+      partOfSpeech,
+      definitions: [definition],
+    });
+  });
+
+  return groups;
 }
 
 function DefinitionMetaRow({
@@ -484,15 +623,17 @@ const styles = StyleSheet.create({
   },
   page: {
     flex: 1,
-    width,
   },
   pageScroll: {
     flex: 1,
   },
   pageContent: {
+    alignSelf: 'center',
     flexGrow: 1,
+    maxWidth: 760,
+    width: '100%',
     paddingBottom: 118,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingTop: 18,
   },
   block: {
@@ -501,13 +642,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 14,
-    padding: 16,
+    padding: 18,
   },
   infoCard: {
     backgroundColor: '#EAF1FF',
     borderRadius: 8,
     marginBottom: 14,
-    padding: 14,
+    padding: 16,
   },
   infoTitle: {
     color: '#1D4ED8',
@@ -527,7 +668,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 14,
-    padding: 14,
+    padding: 16,
   },
   warningTitle: {
     color: '#C2410C',
@@ -546,6 +687,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     marginBottom: 12,
+  },
+  definitionItem: {
+    paddingTop: 0,
+  },
+  definitionItemDivider: {
+    borderTopColor: '#E2E8F0',
+    borderTopWidth: 1,
+    marginTop: 16,
+    paddingTop: 16,
+  },
+  definitionNumber: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 10,
+    textTransform: 'uppercase',
   },
   definitionMetaRow: {
     flexDirection: 'row',
@@ -584,6 +741,13 @@ const styles = StyleSheet.create({
     color: '#334155',
     fontSize: 14,
     lineHeight: 22,
+  },
+  secondaryDefinition: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 20,
+    marginTop: 8,
   },
   translation: {
     color: '#2563EB',
@@ -675,7 +839,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 12,
-    padding: 16,
+    padding: 18,
   },
   phraseHeader: {
     gap: 6,
@@ -698,13 +862,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 12,
-    padding: 16,
+    padding: 18,
   },
   noteCard: {
     backgroundColor: '#EAF8F0',
     borderRadius: 8,
     marginTop: 18,
-    padding: 16,
+    padding: 18,
   },
   noteTitle: {
     color: '#166534',

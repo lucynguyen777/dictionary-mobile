@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -7,8 +7,15 @@ import StickyTabBar from '@/components/word/StickyTabBar';
 import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
 import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
-import { ApiMeaningResult, ApiRelatedWords, fetchEnglishMeaning, fetchEnglishRelatedWords } from '@/data/dictionaryApi';
-import { getLanguageByCode, isTranslationComingSoonPair } from '@/data/languages';
+import {
+  ApiBilingualMeaningResult,
+  ApiMeaningResult,
+  ApiRelatedWords,
+  fetchBilingualMeaning,
+  fetchEnglishMeaning,
+  fetchEnglishRelatedWords,
+} from '@/data/dictionaryApi';
+import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair, languageOptions } from '@/data/languages';
 import {
   findLocalDictionaryEntry,
   getLocalDictionaryEntries,
@@ -31,6 +38,7 @@ const { width } = Dimensions.get('window');
 const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
 type LookupStatus = 'idle' | 'loading' | 'ready' | 'error';
+type LanguageField = 'source' | 'target';
 
 export default function WordScreen() {
   const params = useLocalSearchParams<{ word?: string; sourceLang?: string; targetLang?: string }>();
@@ -39,14 +47,19 @@ export default function WordScreen() {
   const [selectedWord, setSelectedWord] = useState(dictionaryEntries[0].word);
   const [lookupStatus, setLookupStatus] = useState<LookupStatus>('idle');
   const [lookupError, setLookupError] = useState('');
+  const [bilingualLookupError, setBilingualLookupError] = useState('');
   const [apiMeaning, setApiMeaning] = useState<ApiMeaningResult | null>(null);
+  const [apiBilingualMeaning, setApiBilingualMeaning] = useState<ApiBilingualMeaningResult | null>(null);
   const [apiRelatedWords, setApiRelatedWords] = useState<ApiRelatedWords | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [libraryLoaded, setLibraryLoaded] = useState(false);
+  const [showLanguageControls, setShowLanguageControls] = useState(false);
+  const [activeLanguageField, setActiveLanguageField] = useState<LanguageField | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
   const sourceLanguage = getLanguageByCode(getRouteParam(params.sourceLang), 'en');
   const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
   const canUseEnglishApi = sourceLanguage.code === 'en';
+  const shouldUseBilingualDictionary = sourceLanguage.code !== targetLanguage.code;
   const hasLocalDictionarySource = supportsLocalDictionary(sourceLanguage.code);
   const isTranslationComingSoon = isTranslationComingSoonPair(sourceLanguage.code, targetLanguage.code);
   const sourceEntries = useMemo(() => getLocalDictionaryEntries(sourceLanguage.code), [sourceLanguage.code]);
@@ -57,6 +70,7 @@ export default function WordScreen() {
       mergeLookupEntry(
         localEntry,
         selectedWord,
+        apiBilingualMeaning,
         apiMeaning,
         canUseEnglishApi,
         hasLocalDictionarySource,
@@ -65,6 +79,7 @@ export default function WordScreen() {
       ),
     [
       apiMeaning,
+      apiBilingualMeaning,
       canUseEnglishApi,
       hasLocalDictionarySource,
       localEntry,
@@ -121,52 +136,74 @@ export default function WordScreen() {
   useEffect(() => {
     const routeWord = Array.isArray(params.word) ? params.word[0] : params.word;
     const normalizedRouteWord = routeWord ? normalizeLookupTerm(routeWord) : '';
-    if (!normalizedRouteWord || normalizedRouteWord === selectedWord) return;
+    if (!normalizedRouteWord) return;
 
-    setSelectedWord(normalizedRouteWord);
+    setSelectedWord((currentWord) => (currentWord === normalizedRouteWord ? currentWord : normalizedRouteWord));
     setQuery('');
     setActiveIndex(0);
     scrollRef.current?.scrollTo({ x: 0, animated: false });
-  }, [params.word, selectedWord]);
+  }, [params.word]);
 
   useEffect(() => {
     let isCancelled = false;
 
     async function lookupWord() {
-      if (!canUseEnglishApi) {
+      if (!canUseEnglishApi && !shouldUseBilingualDictionary) {
         setLookupStatus('idle');
         setLookupError('');
+        setBilingualLookupError('');
         setApiMeaning(null);
+        setApiBilingualMeaning(null);
         setApiRelatedWords(null);
         return;
       }
 
       setLookupStatus('loading');
       setLookupError('');
+      setBilingualLookupError('');
       setApiMeaning(null);
+      setApiBilingualMeaning(null);
       setApiRelatedWords(null);
 
-      const [meaningResult, relatedWordsResult] = await Promise.allSettled([
-        fetchEnglishMeaning(selectedWord),
-        fetchEnglishRelatedWords(selectedWord),
-      ]);
+      const lookupTasks = [
+        canUseEnglishApi ? fetchEnglishMeaning(selectedWord) : Promise.resolve(null),
+        canUseEnglishApi ? fetchEnglishRelatedWords(selectedWord) : Promise.resolve(null),
+        shouldUseBilingualDictionary
+          ? fetchBilingualMeaning(selectedWord, sourceLanguage.code, targetLanguage.code)
+          : Promise.resolve(null),
+      ] as const;
+      const [meaningResult, relatedWordsResult, bilingualMeaningResult] = await Promise.allSettled(lookupTasks);
 
       if (isCancelled) return;
 
-      if (meaningResult.status === 'fulfilled') {
+      if (meaningResult.status === 'fulfilled' && meaningResult.value) {
         setApiMeaning(meaningResult.value);
       }
 
-      if (relatedWordsResult.status === 'fulfilled') {
+      if (relatedWordsResult.status === 'fulfilled' && relatedWordsResult.value) {
         setApiRelatedWords(relatedWordsResult.value);
       }
 
-      if (meaningResult.status === 'fulfilled' || relatedWordsResult.status === 'fulfilled') {
+      if (bilingualMeaningResult.status === 'fulfilled' && bilingualMeaningResult.value) {
+        setApiBilingualMeaning(bilingualMeaningResult.value);
+      } else if (shouldUseBilingualDictionary && bilingualMeaningResult.status === 'rejected') {
+        const error = bilingualMeaningResult.reason;
+        setBilingualLookupError(error instanceof Error ? error.message : 'Could not load bilingual dictionary data.');
+      }
+
+      if (
+        (meaningResult.status === 'fulfilled' && meaningResult.value) ||
+        (relatedWordsResult.status === 'fulfilled' && relatedWordsResult.value) ||
+        (bilingualMeaningResult.status === 'fulfilled' && bilingualMeaningResult.value)
+      ) {
         setLookupStatus('ready');
         return;
       }
 
-      const error = meaningResult.reason ?? relatedWordsResult.reason;
+      const error =
+        (meaningResult.status === 'rejected' && meaningResult.reason) ||
+        (bilingualMeaningResult.status === 'rejected' && bilingualMeaningResult.reason) ||
+        (relatedWordsResult.status === 'rejected' && relatedWordsResult.reason);
       setLookupStatus('error');
       setLookupError(error instanceof Error ? error.message : 'Could not load dictionary data.');
     }
@@ -176,7 +213,7 @@ export default function WordScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [canUseEnglishApi, selectedWord]);
+  }, [canUseEnglishApi, selectedWord, shouldUseBilingualDictionary, sourceLanguage.code, targetLanguage.code]);
 
   useEffect(() => {
     if (!libraryLoaded) return;
@@ -211,26 +248,72 @@ export default function WordScreen() {
     });
   };
 
+  const handleLanguageSelect = (field: LanguageField, language: LanguageOption) => {
+    router.setParams({
+      sourceLang: field === 'source' ? language.code : sourceLanguage.code,
+      targetLang: field === 'target' ? language.code : targetLanguage.code,
+    });
+    setActiveLanguageField(null);
+    setShowLanguageControls(true);
+    setActiveIndex(0);
+    scrollRef.current?.scrollTo({ x: 0, animated: false });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.lookupPanel}>
-        <View style={styles.inputBox}>
-          <Ionicons name="search" size={22} color="#2563EB" />
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-            placeholder="Tìm word, nghĩa, topic..."
-            placeholderTextColor="#94A3B8"
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={() => selectWord(query)}
-            style={styles.input}
-          />
-          {query ? (
-            <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#94A3B8" />
+        <View style={styles.lookupSearchCard}>
+          <View style={styles.inputBox}>
+            <Ionicons name="search" size={22} color="#2563EB" />
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+              placeholder="Tìm word, nghĩa, topic..."
+              placeholderTextColor="#94A3B8"
+              value={query}
+              onChangeText={setQuery}
+              onFocus={() => setShowLanguageControls(true)}
+              onSubmitEditing={() => selectWord(query)}
+              style={styles.input}
+            />
+            {query ? (
+              <TouchableOpacity onPress={() => setQuery('')}>
+                <Ionicons name="close-circle" size={20} color="#94A3B8" />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              activeOpacity={0.78}
+              onPress={() => setShowLanguageControls((value) => !value)}
+              style={styles.languageToggle}>
+              <Ionicons name="language-outline" size={18} color="#2563EB" />
             </TouchableOpacity>
+          </View>
+          <Text style={styles.languageCaption}>
+            Đang tra: {sourceLanguage.label} → {targetLanguage.label}
+          </Text>
+          {showLanguageControls ? (
+            <View style={styles.languageControls}>
+              <LookupLanguageSelect
+                active={activeLanguageField === 'source'}
+                field="source"
+                label="Ngôn ngữ gốc"
+                selectedLanguage={sourceLanguage}
+                onPress={setActiveLanguageField}
+                onSelect={handleLanguageSelect}
+              />
+              <View style={styles.languageSwap}>
+                <Ionicons name="swap-horizontal" size={17} color="#64748B" />
+              </View>
+              <LookupLanguageSelect
+                active={activeLanguageField === 'target'}
+                field="target"
+                label="Tra / dịch sang"
+                selectedLanguage={targetLanguage}
+                onPress={setActiveLanguageField}
+                onSelect={handleLanguageSelect}
+              />
+            </View>
           ) : null}
         </View>
         {query ? (
@@ -293,8 +376,10 @@ export default function WordScreen() {
       <StickyTabBar tabs={TABS} activeIndex={activeIndex} onTabPress={handleTabPress} />
       <TabPager
         apiMeaning={apiMeaning}
+        apiBilingualMeaning={apiBilingualMeaning}
         apiRelatedWords={apiRelatedWords}
         entry={selectedEntry}
+        bilingualLookupError={bilingualLookupError}
         lookupError={lookupError}
         lookupStatus={lookupStatus}
         sourceLang={sourceLanguage.code}
@@ -307,9 +392,64 @@ export default function WordScreen() {
   );
 }
 
+function LookupLanguageSelect({
+  active,
+  field,
+  label,
+  selectedLanguage,
+  onPress,
+  onSelect,
+}: {
+  active: boolean;
+  field: LanguageField;
+  label: string;
+  selectedLanguage: LanguageOption;
+  onPress: (field: LanguageField | null) => void;
+  onSelect: (field: LanguageField, language: LanguageOption) => void;
+}) {
+  return (
+    <View style={styles.languageSelectWrap}>
+      <TouchableOpacity
+        activeOpacity={0.82}
+        onPress={() => onPress(active ? null : field)}
+        style={[styles.languageSelect, active && styles.activeLanguageSelect]}>
+        <Text style={styles.languageSelectLabel}>{label}</Text>
+        <View style={styles.languageSelectValueRow}>
+          <Text numberOfLines={1} style={styles.languageSelectValue}>{selectedLanguage.label}</Text>
+          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={15} color="#64748B" />
+        </View>
+      </TouchableOpacity>
+      {active ? (
+        <View style={styles.languageMenu}>
+          {languageOptions.map((language) => {
+            const isSelected = language.code === selectedLanguage.code;
+
+            return (
+              <TouchableOpacity
+                key={`${field}-${language.code}`}
+                activeOpacity={0.82}
+                onPress={() => onSelect(field, language)}
+                style={[styles.languageOption, isSelected && styles.activeLanguageOption]}>
+                <View style={styles.languageOptionCopy}>
+                  <Text style={[styles.languageOptionText, isSelected && styles.activeLanguageOptionText]}>
+                    {language.label}
+                  </Text>
+                  <Text style={styles.languageOptionHint}>{language.hint}</Text>
+                </View>
+                {isSelected ? <Ionicons name="checkmark" size={16} color="#2563EB" /> : null}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function mergeLookupEntry(
   localEntry: DictionaryEntry | undefined,
   selectedWord: string,
+  apiBilingualMeaning: ApiBilingualMeaningResult | null,
   apiMeaning: ApiMeaningResult | null,
   canUseEnglishApi: boolean,
   hasLocalDictionarySource: boolean,
@@ -331,6 +471,36 @@ function mergeLookupEntry(
     gender: definition.gender,
     level: definition.level,
   }));
+  const bilingualDefinitions = apiBilingualMeaning?.definitions.map((definition) => ({
+    partOfSpeech: definition.partOfSpeech,
+    meaning: definition.meaning,
+    vietnamese: definition.meaning,
+    examples: definition.examples,
+    domain: definition.domain,
+    gender: definition.gender,
+    level: definition.level,
+  }));
+
+  if (apiBilingualMeaning?.definitions.length) {
+    return {
+      ...fallbackEntry,
+      word: apiBilingualMeaning.word,
+      ipa: apiBilingualMeaning.ipa || apiMeaning?.ipa || (hasLocalEntry ? fallbackEntry.ipa : ''),
+      audio: apiBilingualMeaning.audio || apiMeaning?.audio || (hasLocalEntry ? fallbackEntry.audio : ''),
+      level: hasLocalEntry ? fallbackEntry.level : 'EN-VI',
+      topic: 'Bilingual dictionary',
+      vietnamese: apiBilingualMeaning.definitions[0]?.meaning ?? fallbackEntry.vietnamese,
+      shortDefinition: apiBilingualMeaning.definitions[0]?.meaning ?? fallbackEntry.shortDefinition,
+      definitions: bilingualDefinitions ?? [],
+      synonyms: hasLocalEntry ? fallbackEntry.synonyms : [],
+      antonyms: hasLocalEntry ? fallbackEntry.antonyms : [],
+      collocations: hasLocalEntry ? fallbackEntry.collocations : [],
+      idioms: hasLocalEntry ? fallbackEntry.idioms : [],
+      conjugation: hasLocalEntry ? fallbackEntry.conjugation : [],
+      etymology: hasLocalEntry ? fallbackEntry.etymology : 'Etymology is available for monolingual entries only.',
+      pronunciationTips: hasLocalEntry ? fallbackEntry.pronunciationTips : [],
+    };
+  }
 
   if (!hasLocalEntry) {
     return {
@@ -338,8 +508,8 @@ function mergeLookupEntry(
       ipa: apiMeaning?.ipa ?? '',
       audio: apiMeaning?.audio ?? '',
       level: 'EN',
-      topic: 'Live lookup',
-      vietnamese: 'English dictionary result',
+      topic: 'General meaning',
+      vietnamese: 'Chưa có nghĩa tiếng Việt',
       shortDefinition: apiDefinitions?.[0]?.meaning ?? 'Live English dictionary lookup.',
       definitions: apiDefinitions?.length
         ? apiDefinitions
@@ -370,7 +540,7 @@ function mergeLookupEntry(
     topic: fallbackEntry.topic,
     vietnamese: fallbackEntry.vietnamese,
     shortDefinition: apiDefinitions?.[0]?.meaning ?? fallbackEntry.shortDefinition,
-    definitions: apiDefinitions?.length ? apiDefinitions : fallbackEntry.definitions,
+    definitions: fallbackEntry.definitions,
   };
 }
 
@@ -425,10 +595,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
   },
+  lookupSearchCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 10,
+  },
   inputBox: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#DBEAFE',
     borderRadius: 8,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
     height: 50,
@@ -439,6 +618,105 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '700',
+  },
+  languageToggle: {
+    alignItems: 'center',
+    backgroundColor: '#EAF1FF',
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  languageCaption: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 8,
+  },
+  languageControls: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  languageSelectWrap: {
+    flex: 1,
+  },
+  languageSelect: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 62,
+    padding: 10,
+  },
+  activeLanguageSelect: {
+    borderColor: '#2563EB',
+  },
+  languageSelectLabel: {
+    color: '#64748B',
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  languageSelectValueRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  languageSelectValue: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  languageSwap: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    marginTop: 14,
+    width: 34,
+  },
+  languageMenu: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 7,
+    overflow: 'hidden',
+  },
+  languageOption: {
+    alignItems: 'center',
+    borderBottomColor: '#E2E8F0',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  activeLanguageOption: {
+    backgroundColor: '#EFF6FF',
+  },
+  languageOptionCopy: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  languageOptionText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  activeLanguageOptionText: {
+    color: '#2563EB',
+  },
+  languageOptionHint: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 2,
   },
   resultRow: {
     gap: 10,

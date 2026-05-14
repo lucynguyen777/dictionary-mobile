@@ -23,7 +23,6 @@ export default function WordHeader({
   folders,
   isFavorite,
   isTranslationComingSoon,
-  languagePairLabel,
   note,
   savedFolderIds,
   onSaveToFolder,
@@ -34,7 +33,6 @@ export default function WordHeader({
   const [folderQuery, setFolderQuery] = useState('');
   const [noteDraft, setNoteDraft] = useState(note);
   const [saveMessage, setSaveMessage] = useState('');
-  const entryMeta = [entry.topic, entry.level, entry.gender].filter(Boolean).join(' · ');
 
   const filteredFolders = useMemo(() => {
     const normalizedQuery = folderQuery.trim().toLowerCase();
@@ -78,15 +76,6 @@ export default function WordHeader({
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchCard}>
-        <Ionicons name="book-outline" size={25} color="#2563EB" />
-        <View style={styles.searchCopy}>
-          <Text style={styles.searchWord}>{languagePairLabel}</Text>
-          <Text style={styles.language}>{entryMeta}</Text>
-        </View>
-        <Ionicons name="swap-horizontal-outline" size={22} color="#64748B" />
-      </View>
-
       {isTranslationComingSoon ? (
         <View style={styles.translationNotice}>
           <Ionicons name="time-outline" size={18} color="#2563EB" />
@@ -212,20 +201,10 @@ function handleFolderSave({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F7F8FA',
-    paddingBottom: 8,
+    paddingBottom: 6,
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 6,
     zIndex: 10,
-  },
-  searchCard: {
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 12,
-    height: 64,
-    marginBottom: 22,
-    paddingHorizontal: 12,
   },
   translationNotice: {
     alignItems: 'flex-start',
@@ -244,19 +223,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 18,
-  },
-  searchCopy: {
-    flex: 1,
-  },
-  searchWord: {
-    color: '#0F172A',
-    fontSize: 17,
-    fontWeight: '900',
-  },
-  language: {
-    color: '#64748B',
-    fontSize: 14,
-    marginTop: 5,
   },
   wordRow: {
     alignItems: 'center',
@@ -308,7 +274,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'absolute',
     right: 34,
-    top: 150,
+    top: 92,
     width: 270,
     zIndex: 50,
   },
