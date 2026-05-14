@@ -30,6 +30,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `cf6910e` Track user profile and privacy roadmap
   - `70bfe3c` Add local profile settings
   - `7a0e074` Show local profile data overview
+  - `3d29779` Improve vocabulary import validation
 - Verification habit before code commits:
   - `npx tsc --noEmit`
   - `npx eslint . --no-cache`
@@ -43,7 +44,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Meaning grouped by word type.
 - [x] DONE [MEDIUM]: Meaning domain/context shown only when available or reasonably inferred.
 - [~] IN PROGRESS [MEDIUM]: Expand domain/context extraction for common polysemous words beyond `cell`.
-- [~] IN PROGRESS [EASY]: Standardize loading, empty, and error states across all lookup tabs.
+- [x] DONE [EASY]: Standardize loading, empty, and error states across all lookup tabs.
 - [~] IN PROGRESS [EASY]: Normalize mixed Vietnamese/English UI copy.
 
 ### Lexical Relations
@@ -145,13 +146,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [EASY]` Standardize loading, empty, and error states across lookup tabs.
-2. `[~] [EASY]` Normalize mixed Vietnamese/English UI copy.
-3. `[ ] [MEDIUM]` Add custom field mapping UI for import.
-4. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
-5. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
-6. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
-7. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
+1. `[~] [EASY]` Normalize mixed Vietnamese/English UI copy.
+2. `[ ] [MEDIUM]` Add custom field mapping UI for import.
+3. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
+4. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
+5. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
+6. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
 ## Update Rule
 After finishing a task:

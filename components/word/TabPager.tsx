@@ -1,6 +1,7 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
 import { RefObject, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { router } from 'expo-router';
 
 import { DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
@@ -32,6 +33,8 @@ type MeaningDefinitionItem = {
   gender?: string;
   level?: string;
 };
+
+type StateTone = 'loading' | 'success' | 'warning' | 'empty' | 'preview';
 
 export default function TabPager({
   apiBilingualMeaning,
@@ -192,14 +195,14 @@ function MeaningTab({
         status={lookupStatus}
         successText={
           apiBilingualMeaning
-            ? 'Meaning loaded from bilingual dictionary data.'
-            : 'Meaning loaded from live dictionary data.'
+            ? 'Đã tải nghĩa từ từ điển song ngữ.'
+            : 'Đã tải nghĩa từ dữ liệu từ điển trực tuyến.'
         }
       />
       {isBilingualLookup && bilingualLookupError && !apiBilingualMeaning ? (
         <PreviewNotice
-          title="Bilingual API fallback"
-          text="The bilingual dictionary API did not return target-language meanings for this word, so the app is showing the best available fallback."
+          title="Dữ liệu song ngữ dự phòng"
+          text="API song ngữ chưa trả về nghĩa ở ngôn ngữ đích cho từ này, nên app đang hiển thị dữ liệu tốt nhất có sẵn."
         />
       ) : null}
       {groupedDefinitions.map((group) => (
@@ -209,7 +212,7 @@ function MeaningTab({
             <View
               key={`${item.meaning}-${index}`}
               style={[styles.definitionItem, index > 0 && styles.definitionItemDivider]}>
-              {group.definitions.length > 1 ? <Text style={styles.definitionNumber}>Meaning {index + 1}</Text> : null}
+              {group.definitions.length > 1 ? <Text style={styles.definitionNumber}>Nghĩa {index + 1}</Text> : null}
               <DefinitionMetaRow
                 domain={getDefinitionDomain(item.domain, entry.topic)}
                 gender={item.gender ?? entry.gender}
@@ -221,7 +224,7 @@ function MeaningTab({
               ) : null}
               {item.examples.length ? (
                 <>
-                  <Text style={styles.exampleLabel}>Examples</Text>
+                  <Text style={styles.exampleLabel}>Ví dụ</Text>
                   {item.examples.map((example) => (
                     <Text key={example} style={styles.example}>- {example}</Text>
                   ))}
@@ -361,19 +364,19 @@ function SynonymsTab({
         error={lookupError}
         source={apiRelatedWords ? 'Datamuse + dictionaryapi.dev' : undefined}
         status={lookupStatus}
-        successText="Related words loaded from live English lexical APIs."
+        successText="Đã tải từ liên quan từ API lexical tiếng Anh."
       />
-      <Text style={styles.sectionTitle}>Synonyms</Text>
+      <Text style={styles.sectionTitle}>Đồng nghĩa</Text>
       <View style={styles.chipWrap}>
         {synonyms.length ? synonyms.map((item) => (
           <WordChip key={item} sourceLang={sourceLang} targetLang={targetLang} word={item} variant="primary" />
-        )) : <EmptyState text="No synonyms found yet." />}
+        )) : <EmptyState text="Chưa tìm thấy từ đồng nghĩa phù hợp." />}
       </View>
-      <Text style={[styles.sectionTitle, styles.mediumSpace]}>Antonyms</Text>
+      <Text style={[styles.sectionTitle, styles.mediumSpace]}>Trái nghĩa</Text>
       <View style={styles.chipWrap}>
         {antonyms.length ? antonyms.map((item) => (
           <WordChip key={item} sourceLang={sourceLang} targetLang={targetLang} word={item} variant="ghost" />
-        )) : <EmptyState text="No antonyms found yet." />}
+        )) : <EmptyState text="Chưa tìm thấy từ trái nghĩa phù hợp." />}
       </View>
     </View>
   );
@@ -413,28 +416,34 @@ function LookupBanner({
 }) {
   if (status === 'loading') {
     return (
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>Loading live data</Text>
-        <Text style={styles.infoText}>Fetching English dictionary results...</Text>
-      </View>
+      <StateCard
+        icon="hourglass-outline"
+        text="Đang lấy dữ liệu nghĩa, từ liên quan và nguồn song ngữ nếu có."
+        title="Đang tải dữ liệu"
+        tone="loading"
+      />
     );
   }
 
   if (status === 'error') {
     return (
-      <View style={styles.warningCard}>
-        <Text style={styles.warningTitle}>Using fallback data</Text>
-        <Text style={styles.warningText}>{error}</Text>
-      </View>
+      <StateCard
+        icon="alert-circle-outline"
+        text={error || 'Không tải được dữ liệu trực tuyến. App đang dùng dữ liệu local/dự phòng nếu có.'}
+        title="Đang dùng dữ liệu dự phòng"
+        tone="warning"
+      />
     );
   }
 
   if (status === 'ready') {
     return (
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>{successText}</Text>
-        {source ? <Text style={styles.infoText}>Source: {source}</Text> : null}
-      </View>
+      <StateCard
+        icon="checkmark-circle-outline"
+        text={source ? `Nguồn: ${source}` : 'Dữ liệu đã sẵn sàng.'}
+        title={successText}
+        tone="success"
+      />
     );
   }
 
@@ -442,7 +451,7 @@ function LookupBanner({
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <Text style={styles.emptyState}>{text}</Text>;
+  return <StateCard icon="document-text-outline" text={text} title="Chưa có dữ liệu" tone="empty" />;
 }
 
 function uniqueWords(words: string[]) {
@@ -463,8 +472,8 @@ function CollocationTab({
   return (
     <View>
       <PreviewNotice
-        title="Local curated preview"
-        text="Idioms and phrasal verbs are text-only local data for this MVP. Tap a backlink to open that lookup."
+        title="Dữ liệu local preview"
+        text="Idioms và phrasal verbs hiện là dữ liệu text-only trong MVP. Bấm backlink để mở trang tra cứu."
       />
       {phraseItems.length ? (
         phraseItems.map((item) => (
@@ -476,13 +485,13 @@ function CollocationTab({
             <Text style={styles.body}>{item.meaning}</Text>
             {item.example ? (
               <>
-                <Text style={styles.exampleLabel}>Example</Text>
+                <Text style={styles.exampleLabel}>Ví dụ</Text>
                 <Text style={styles.example}>{item.example}</Text>
               </>
             ) : null}
             {item.backlinks.length ? (
               <>
-                <Text style={styles.exampleLabel}>Backlinks</Text>
+                <Text style={styles.exampleLabel}>Liên kết tra cứu</Text>
                 <View style={styles.chipWrap}>
                   {item.backlinks.map((backlink) => (
                     <WordChip
@@ -499,7 +508,7 @@ function CollocationTab({
           </View>
         ))
       ) : (
-        <EmptyState text="No local idioms or phrasal verbs found for this lookup yet." />
+        <EmptyState text="Chưa có idiom, phrasal verb hoặc collocation local cho từ này." />
       )}
     </View>
   );
@@ -561,15 +570,15 @@ function ConjugationTab({ entry }: { entry: DictionaryEntry }) {
   return (
     <View>
       <PreviewNotice
-        title="Coming soon"
-        text="Conjugation will move to a production resource once a reliable free or licensed source is chosen."
+        title="Sắp hỗ trợ"
+        text="Bảng chia động từ sẽ dùng resource production khi chọn được nguồn miễn phí hoặc có license ổn định."
       />
-      {entry.conjugation.map((item) => (
+      {entry.conjugation.length ? entry.conjugation.map((item) => (
         <View key={item.tense} style={styles.tenseBlock}>
           <Text style={styles.sectionTitle}>{item.tense}</Text>
           <Text style={styles.body}>{item.form}</Text>
         </View>
-      ))}
+      )) : <EmptyState text="Chưa có dữ liệu chia động từ cho mục này." />}
     </View>
   );
 }
@@ -578,14 +587,14 @@ function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
   return (
     <View>
       <PreviewNotice
-        title="Coming soon"
-        text="Etymology needs a legally usable structured resource. The text below is local preview data."
+        title="Sắp hỗ trợ"
+        text="Etymology cần nguồn dữ liệu có cấu trúc và hợp pháp. Phần dưới hiện chỉ là preview local nếu có."
       />
-      <Text style={styles.heading}>Origin</Text>
-      <Text style={styles.body}>{entry.etymology}</Text>
+      <Text style={styles.heading}>Nguồn gốc</Text>
+      {entry.etymology ? <Text style={styles.body}>{entry.etymology}</Text> : <EmptyState text="Chưa có dữ liệu etymology local cho từ này." />}
       <View style={styles.noteCard}>
-        <Text style={styles.noteTitle}>Learning note</Text>
-        <Text style={styles.body}>Connect the origin with a modern collocation to make this word easier to recall.</Text>
+        <Text style={styles.noteTitle}>Gợi ý học</Text>
+        <Text style={styles.body}>Liên hệ nguồn gốc của từ với một collocation hiện đại để ghi nhớ dễ hơn.</Text>
       </View>
     </View>
   );
@@ -595,33 +604,97 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
   return (
     <View>
       <PreviewNotice
-        title="Audio only for now"
-        text="The app can play sample pronunciation audio. Real phoneme alignment and scoring will be added in a later phase."
+        title="Hiện chỉ có audio"
+        text="App có thể phát audio mẫu. Ghi âm, căn chỉnh phoneme và chấm điểm sẽ thuộc phase sau."
       />
-      <Text style={styles.sectionTitle}>IPA guide</Text>
-      <Text style={styles.body}>Use the speaker button above to hear a model pronunciation for {entry.word}.</Text>
+      <Text style={styles.sectionTitle}>Hướng dẫn IPA</Text>
+      <Text style={styles.body}>Dùng nút loa phía trên để nghe phát âm mẫu của {entry.word}.</Text>
       <View style={styles.tableHeader}>
         <Text style={styles.tableCell}>Phoneme</Text>
-        <Text style={styles.tableCell}>Focus</Text>
+        <Text style={styles.tableCell}>Trọng tâm</Text>
       </View>
-      {entry.pronunciationTips.map((row) => (
+      {entry.pronunciationTips.length ? entry.pronunciationTips.map((row) => (
         <View key={row.phoneme} style={styles.tableRow}>
           <Text style={styles.tableCell}>{row.phoneme}</Text>
-          <Text style={styles.tableCell}>Practice</Text>
+          <Text style={styles.tableCell}>Luyện tập</Text>
           <Text style={styles.note}>{row.note}</Text>
         </View>
-      ))}
+      )) : <EmptyState text="Chưa có tip phát âm chi tiết cho từ này." />}
     </View>
   );
 }
 
 function PreviewNotice({ title, text }: { title: string; text: string }) {
+  return <StateCard icon="information-circle-outline" text={text} title={title} tone="preview" />;
+}
+
+function StateCard({
+  icon,
+  text,
+  title,
+  tone,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  text: string;
+  title: string;
+  tone: StateTone;
+}) {
+  const toneStyle = getStateToneStyle(tone);
+
   return (
-    <View style={styles.previewCard}>
-      <Text style={styles.previewTitle}>{title}</Text>
-      <Text style={styles.previewText}>{text}</Text>
+    <View style={[styles.stateCard, toneStyle.card]}>
+      <Ionicons name={icon} size={20} color={toneStyle.iconColor} />
+      <View style={styles.stateCopy}>
+        <Text style={[styles.stateTitle, toneStyle.title]}>{title}</Text>
+        <Text style={[styles.stateText, toneStyle.text]}>{text}</Text>
+      </View>
     </View>
   );
+}
+
+function getStateToneStyle(tone: StateTone) {
+  if (tone === 'success') {
+    return {
+      card: styles.successStateCard,
+      iconColor: '#166534',
+      text: styles.successStateText,
+      title: styles.successStateTitle,
+    };
+  }
+
+  if (tone === 'warning') {
+    return {
+      card: styles.warningStateCard,
+      iconColor: '#C2410C',
+      text: styles.warningStateText,
+      title: styles.warningStateTitle,
+    };
+  }
+
+  if (tone === 'empty') {
+    return {
+      card: styles.emptyStateCard,
+      iconColor: '#64748B',
+      text: styles.emptyStateText,
+      title: styles.emptyStateTitle,
+    };
+  }
+
+  if (tone === 'preview') {
+    return {
+      card: styles.previewStateCard,
+      iconColor: '#C2410C',
+      text: styles.warningStateText,
+      title: styles.warningStateTitle,
+    };
+  }
+
+  return {
+    card: styles.loadingStateCard,
+    iconColor: '#2563EB',
+    text: styles.loadingStateText,
+    title: styles.loadingStateTitle,
+  };
 }
 
 const styles = StyleSheet.create({
@@ -650,6 +723,72 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 14,
     padding: 18,
+  },
+  stateCard: {
+    alignItems: 'flex-start',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+    padding: 14,
+  },
+  stateCopy: {
+    flex: 1,
+  },
+  stateTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  stateText: {
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  loadingStateCard: {
+    backgroundColor: '#EAF1FF',
+    borderColor: '#BFDBFE',
+  },
+  loadingStateTitle: {
+    color: '#1D4ED8',
+  },
+  loadingStateText: {
+    color: '#475569',
+  },
+  successStateCard: {
+    backgroundColor: '#EAF8F0',
+    borderColor: '#BBF7D0',
+  },
+  successStateTitle: {
+    color: '#166534',
+  },
+  successStateText: {
+    color: '#475569',
+  },
+  warningStateCard: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
+  },
+  warningStateTitle: {
+    color: '#C2410C',
+  },
+  warningStateText: {
+    color: '#9A3412',
+  },
+  emptyStateCard: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+  },
+  emptyStateTitle: {
+    color: '#334155',
+  },
+  emptyStateText: {
+    color: '#64748B',
+  },
+  previewStateCard: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
   },
   infoCard: {
     backgroundColor: '#EAF1FF',
