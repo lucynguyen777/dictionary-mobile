@@ -16,9 +16,9 @@ import {
 } from '@/data/libraryStore';
 
 const flashcardOptions: { type: FlashcardType; label: string; description: string }[] = [
-  { type: 'bilingual', label: 'Bilingual', description: 'Từ + nghĩa + ghi chú' },
-  { type: 'word-definition', label: 'Từ -> nghĩa', description: 'Nhìn từ, nhớ definition' },
-  { type: 'definition-word', label: 'Nghĩa -> từ', description: 'Nhìn definition, nhớ word' },
+  { type: 'bilingual', label: 'Song ngữ', description: 'Từ + nghĩa + ghi chú' },
+  { type: 'word-definition', label: 'Từ -> nghĩa', description: 'Nhìn từ, nhớ định nghĩa' },
+  { type: 'definition-word', label: 'Nghĩa -> từ', description: 'Nhìn định nghĩa, nhớ từ' },
   { type: 'word-pronunciation', label: 'Từ -> phát âm', description: 'Nhìn từ, nhớ IPA' },
 ];
 
@@ -37,25 +37,25 @@ const typeFilterOptions: { value: FlashcardType | 'all'; label: string }[] = [
 const features = [
   {
     title: 'AI hội thoại',
-    description: 'Luyện phản xạ bằng voice hoặc text với gợi ý sửa câu.',
+    description: 'Luyện phản xạ bằng giọng nói hoặc tin nhắn với gợi ý sửa câu.',
     icon: 'chatbubbles-outline' as const,
     accent: '#EAF1FF',
   },
   {
     title: 'Dịch chuyên ngành',
-    description: 'Dịch đoạn văn theo glossary cá nhân và ngữ cảnh học thuật.',
+    description: 'Dịch đoạn văn theo thuật ngữ cá nhân và ngữ cảnh học thuật.',
     icon: 'language-outline' as const,
     accent: '#EAF8F0',
   },
   {
     title: 'Nhập dữ liệu',
-    description: 'Import CSV, book highlights hoặc danh sách từ từ lớp học.',
+    description: 'Nhập CSV, highlight từ sách hoặc danh sách từ từ lớp học.',
     icon: 'cloud-upload-outline' as const,
     accent: '#FFF1E8',
   },
   {
     title: 'Đọc sách kèm tra từ',
-    description: 'Highlight, tra nghĩa, lưu note và tạo flashcard ngay khi đọc.',
+    description: 'Highlight, tra nghĩa, lưu ghi chú và tạo flashcard ngay khi đọc.',
     icon: 'reader-outline' as const,
     accent: '#F1ECFF',
   },
@@ -162,7 +162,7 @@ export default function AdvancedScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.kicker}>Practice lab</Text>
+        <Text style={styles.kicker}>Phòng luyện tập</Text>
         <Text style={styles.title}>Công cụ học nâng cao</Text>
         <View style={styles.challengeCard}>
           <View style={styles.challengeIcon}>
@@ -177,7 +177,7 @@ export default function AdvancedScreen() {
         <View style={styles.flashcardPanel}>
           <View style={styles.panelHeader}>
             <View>
-              <Text style={styles.panelKicker}>Flashcard MVP</Text>
+              <Text style={styles.panelKicker}>Flashcard local</Text>
               <Text style={styles.panelTitle}>{filteredFlashcards.length} / {libraryState.flashcards.length} thẻ</Text>
             </View>
             <View style={styles.savedWordPill}>

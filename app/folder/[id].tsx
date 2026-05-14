@@ -69,9 +69,9 @@ export default function FolderDetailScreen() {
     try {
       const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
 
-      Alert.alert(result.ok ? 'Export complete' : 'Export unavailable', result.message);
+      Alert.alert(result.ok ? 'Xuất dữ liệu xong' : 'Chưa thể xuất dữ liệu', result.message);
     } catch (error) {
-      Alert.alert('Export failed', error instanceof Error ? error.message : 'Could not export this folder.');
+      Alert.alert('Xuất dữ liệu thất bại', error instanceof Error ? error.message : 'Chưa thể xuất bộ từ này.');
     }
   };
 
@@ -88,10 +88,10 @@ export default function FolderDetailScreen() {
   const handleDeleteFolder = () => {
     if (!folderId || !folder || isFavoriteFolder) return;
 
-    Alert.alert('Delete folder', `Delete "${folder.name}"? Words only saved in this folder will be removed from Library.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('Xóa bộ từ', `Xóa "${folder.name}"? Những từ chỉ nằm trong bộ này sẽ bị gỡ khỏi Library.`, [
+      { text: 'Hủy', style: 'cancel' },
       {
-        text: 'Delete',
+        text: 'Xóa',
         style: 'destructive',
         onPress: () => {
           deleteFolder(libraryState, folderId).then(() => router.back());
@@ -103,10 +103,10 @@ export default function FolderDetailScreen() {
   const handleRemoveWord = (word: SavedWord) => {
     if (!folderId) return;
 
-    Alert.alert('Remove word', `Remove "${word.word}" from this folder?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('Gỡ từ', `Gỡ "${word.word}" khỏi bộ từ này?`, [
+      { text: 'Hủy', style: 'cancel' },
       {
-        text: 'Remove',
+        text: 'Gỡ',
         style: 'destructive',
         onPress: () => {
           removeWordFromFolder(libraryState, word.id, folderId).then(setLibraryState);
@@ -139,19 +139,19 @@ export default function FolderDetailScreen() {
           <View style={[styles.folderIcon, { backgroundColor: folder?.color ?? '#EAF1FF' }]}>
             <Ionicons name="folder-open-outline" size={34} color="#0F172A" />
           </View>
-          <Text style={styles.kicker}>Folder</Text>
-          <Text style={styles.title}>{folder?.name ?? 'Folder not found'}</Text>
-          <Text style={styles.subtitle}>{folderWords.length} saved words</Text>
+          <Text style={styles.kicker}>Bộ từ</Text>
+          <Text style={styles.title}>{folder?.name ?? 'Không tìm thấy bộ từ'}</Text>
+          <Text style={styles.subtitle}>{folderWords.length} từ đã lưu</Text>
         </View>
 
         {folder ? (
           <View style={styles.manageCard}>
             <View style={styles.manageHeader}>
-              <Text style={styles.manageTitle}>Folder settings</Text>
-              {isFavoriteFolder ? <Text style={styles.lockedPill}>Protected</Text> : null}
+              <Text style={styles.manageTitle}>Cài đặt bộ từ</Text>
+              {isFavoriteFolder ? <Text style={styles.lockedPill}>Được bảo vệ</Text> : null}
             </View>
             <TextInput
-              placeholder="Folder name"
+              placeholder="Tên bộ từ"
               placeholderTextColor="#94A3B8"
               value={nameDraft}
               onChangeText={setNameDraft}
@@ -160,12 +160,12 @@ export default function FolderDetailScreen() {
             <View style={styles.manageActions}>
               <TouchableOpacity activeOpacity={0.82} onPress={handleRenameFolder} style={styles.saveButton}>
                 <Ionicons name="checkmark-circle-outline" size={18} color="#2563EB" />
-                <Text style={styles.saveButtonText}>Rename</Text>
+                <Text style={styles.saveButtonText}>Đổi tên</Text>
               </TouchableOpacity>
               {!isFavoriteFolder ? (
                 <TouchableOpacity activeOpacity={0.82} onPress={handleDeleteFolder} style={styles.deleteButton}>
                   <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                  <Text style={styles.deleteButtonText}>Delete</Text>
+                  <Text style={styles.deleteButtonText}>Xóa</Text>
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -177,7 +177,7 @@ export default function FolderDetailScreen() {
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder="Search word, definition, or note"
+            placeholder="Tìm từ, nghĩa hoặc ghi chú"
             placeholderTextColor="#94A3B8"
             value={query}
             onChangeText={setQuery}
@@ -192,9 +192,9 @@ export default function FolderDetailScreen() {
         {!folderWords.length ? (
           <View style={styles.emptyCard}>
             <Ionicons name="file-tray-outline" size={26} color="#94A3B8" />
-            <Text style={styles.emptyTitle}>{query ? 'No matching words' : 'This folder is empty'}</Text>
+            <Text style={styles.emptyTitle}>{query ? 'Không có từ phù hợp' : 'Bộ từ đang trống'}</Text>
             <Text style={styles.emptyText}>
-              {query ? 'Try another search term.' : 'Save a word from the lookup screen to build this folder.'}
+              {query ? 'Thử từ khóa tìm kiếm khác.' : 'Lưu một từ từ màn Tra cứu để bắt đầu xây bộ từ này.'}
             </Text>
           </View>
         ) : null}
@@ -224,7 +224,7 @@ function FolderWordCard({
         <Link href={{ pathname: '/word', params: { word: word.word } }} asChild>
           <TouchableOpacity activeOpacity={0.82} style={styles.wordLink}>
             <Text style={styles.wordTitle}>{word.word}</Text>
-            <Text style={styles.wordMeta}>{word.ipa || 'IPA pending'}</Text>
+            <Text style={styles.wordMeta}>{word.ipa || 'Đang chờ IPA'}</Text>
           </TouchableOpacity>
         </Link>
         <TouchableOpacity onPress={onRemove} style={styles.removeButton}>
@@ -232,11 +232,11 @@ function FolderWordCard({
         </TouchableOpacity>
       </View>
 
-      <Text numberOfLines={3} style={styles.definition}>{word.definition || 'Definition pending'}</Text>
+      <Text numberOfLines={3} style={styles.definition}>{word.definition || 'Đang chờ định nghĩa'}</Text>
 
       <TextInput
         multiline
-        placeholder="Add a note"
+        placeholder="Thêm ghi chú"
         placeholderTextColor="#94A3B8"
         value={noteDraft}
         onChangeText={setNoteDraft}
@@ -247,7 +247,7 @@ function FolderWordCard({
         onPress={() => onSaveNote(word.id, noteDraft)}
         style={styles.noteButton}>
         <Ionicons name="checkmark-circle-outline" size={18} color="#2563EB" />
-        <Text style={styles.noteButtonText}>Save note</Text>
+        <Text style={styles.noteButtonText}>Lưu ghi chú</Text>
       </TouchableOpacity>
     </View>
   );

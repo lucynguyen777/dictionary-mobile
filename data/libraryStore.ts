@@ -334,10 +334,10 @@ export async function importVocabularyRowsToFolder(
 
 export async function exportFolderToCsv(state: LibraryState, folderId: string): Promise<ExportResult> {
   const folder = state.folders.find((item) => item.id === folderId);
-  if (!folder) return { ok: false, message: 'Folder not found.' };
+  if (!folder) return { ok: false, message: 'Không tìm thấy bộ từ.' };
 
   const words = getFolderWords(state, folderId);
-  if (!words.length) return { ok: false, message: 'This folder has no saved words yet.' };
+  if (!words.length) return { ok: false, message: 'Bộ từ này chưa có từ đã lưu.' };
 
   const csv = buildFolderCsv(folder, words);
   const filename = `${slugify(folder.name)}-${Date.now()}.csv`;
@@ -352,15 +352,15 @@ export async function exportFolderToCsv(state: LibraryState, folderId: string): 
     });
   }
 
-  return { ok: true, message: `Exported ${words.length} words.`, uri: file.uri };
+  return { ok: true, message: `Đã xuất ${words.length} từ.`, uri: file.uri };
 }
 
 export async function exportFolderToExcel(state: LibraryState, folderId: string): Promise<ExportResult> {
   const folder = state.folders.find((item) => item.id === folderId);
-  if (!folder) return { ok: false, message: 'Folder not found.' };
+  if (!folder) return { ok: false, message: 'Không tìm thấy bộ từ.' };
 
   const words = getFolderWords(state, folderId);
-  if (!words.length) return { ok: false, message: 'This folder has no saved words yet.' };
+  if (!words.length) return { ok: false, message: 'Bộ từ này chưa có từ đã lưu.' };
 
   const workbook = buildFolderExcelWorkbook(folder, words);
   const filename = `${slugify(folder.name)}-${Date.now()}.xls`;
@@ -375,7 +375,7 @@ export async function exportFolderToExcel(state: LibraryState, folderId: string)
     });
   }
 
-  return { ok: true, message: `Exported ${words.length} words to Excel.`, uri: file.uri };
+  return { ok: true, message: `Đã xuất ${words.length} từ sang Excel.`, uri: file.uri };
 }
 
 export function getDefaultLibraryState(): LibraryState {
@@ -474,8 +474,8 @@ function upsertSavedWord(
 }
 
 function buildFlashcard(word: SavedWord, type: FlashcardType, id: string, createdAt: string): Flashcard {
-  const definition = word.definition || 'Definition pending';
-  const pronunciation = word.ipa || 'IPA pending';
+  const definition = word.definition || 'Đang chờ định nghĩa';
+  const pronunciation = word.ipa || 'Đang chờ IPA';
 
   const cardContent: Record<FlashcardType, Pick<Flashcard, 'front' | 'back'>> = {
     bilingual: {

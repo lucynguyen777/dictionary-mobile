@@ -77,13 +77,13 @@ export default function ReaderScreen() {
       const content = asset.file ? await asset.file.text() : await new File(asset.uri).text();
 
       if (!content.trim()) {
-        Alert.alert('Reader import', 'File này không có nội dung text.');
+        Alert.alert('Import Reader', 'File này không có nội dung text.');
         return;
       }
 
       importReaderText(readerState, asset.name.replace(/\.[^/.]+$/, ''), content).then(setReaderState);
     } catch (error) {
-      Alert.alert('Reader import failed', error instanceof Error ? error.message : 'Could not read this text file.');
+      Alert.alert('Import Reader thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file text này.');
     }
   };
 
@@ -142,7 +142,7 @@ export default function ReaderScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.kicker}>Reader MVP</Text>
+        <Text style={styles.kicker}>Trình đọc MVP</Text>
         <Text style={styles.title}>Đọc và tra từ nhanh</Text>
 
         {readerState.documents.length ? (

@@ -188,7 +188,7 @@ export default function WordScreen() {
         setApiBilingualMeaning(bilingualMeaningResult.value);
       } else if (shouldUseBilingualDictionary && bilingualMeaningResult.status === 'rejected') {
         const error = bilingualMeaningResult.reason;
-        setBilingualLookupError(error instanceof Error ? error.message : 'Could not load bilingual dictionary data.');
+        setBilingualLookupError(error instanceof Error ? error.message : 'Chưa thể tải dữ liệu từ điển song ngữ.');
       }
 
       if (
@@ -205,7 +205,7 @@ export default function WordScreen() {
         (bilingualMeaningResult.status === 'rejected' && bilingualMeaningResult.reason) ||
         (relatedWordsResult.status === 'rejected' && relatedWordsResult.reason);
       setLookupStatus('error');
-      setLookupError(error instanceof Error ? error.message : 'Could not load dictionary data.');
+      setLookupError(error instanceof Error ? error.message : 'Chưa thể tải dữ liệu từ điển.');
     }
 
     lookupWord();
@@ -269,7 +269,7 @@ export default function WordScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
-              placeholder="Tìm word, nghĩa, topic..."
+              placeholder="Tìm từ, nghĩa, chủ đề..."
               placeholderTextColor="#94A3B8"
               value={query}
               onChangeText={setQuery}
@@ -347,7 +347,7 @@ export default function WordScreen() {
           </ScrollView>
         ) : null}
         {query && results.length === 0 && !shouldShowApiLookup && !shouldShowLocalLookup ? (
-          <Text style={styles.emptyText}>Nhập từ thuộc ngôn ngữ gốc rồi nhấn Search.</Text>
+          <Text style={styles.emptyText}>Nhập từ thuộc ngôn ngữ gốc rồi nhấn tìm kiếm.</Text>
         ) : null}
         {!query && libraryState.searchHistory.length ? (
           <View style={styles.historyBlock}>
@@ -555,25 +555,25 @@ function createDictionaryUnavailableEntry(
   targetLanguageLabel: string
 ): DictionaryEntry {
   const sourceMessage = hasLocalDictionarySource
-    ? `No local dictionary entry found for "${word}" yet.`
-    : `${sourceLanguageLabel} dictionary data is not enabled yet.`;
+    ? `Chưa có mục từ local cho "${word}".`
+    : `Dữ liệu từ điển ${sourceLanguageLabel} chưa được bật.`;
 
   return {
     word,
     ipa: '',
     audio: '',
     level: hasLocalDictionarySource ? 'Local' : 'Soon',
-    topic: hasLocalDictionarySource ? 'Dictionary' : 'Resource needed',
-    vietnamese: `${sourceLanguageLabel} to ${targetLanguageLabel}`,
+    topic: hasLocalDictionarySource ? 'Từ điển' : 'Cần nguồn dữ liệu',
+    vietnamese: `${sourceLanguageLabel} sang ${targetLanguageLabel}`,
     shortDefinition: sourceMessage,
     definitions: [
       {
-        partOfSpeech: 'dictionary status',
+        partOfSpeech: 'trạng thái từ điển',
         meaning: sourceMessage,
         vietnamese: 'Cần bổ sung dataset hoặc API hợp pháp để tra cứu đầy đủ ngôn ngữ này.',
         examples: [],
-        domain: 'System',
-        level: hasLocalDictionarySource ? 'Preview' : 'Soon',
+        domain: 'Hệ thống',
+        level: hasLocalDictionarySource ? 'Preview' : 'Sắp hỗ trợ',
       },
     ],
     synonyms: [],
@@ -581,7 +581,7 @@ function createDictionaryUnavailableEntry(
     collocations: [],
     idioms: [],
     conjugation: [],
-    etymology: 'Etymology is available for English dictionary entries only in this MVP.',
+    etymology: 'Trong MVP này, etymology chỉ có cho một số mục từ tiếng Anh.',
     pronunciationTips: [],
   };
 }

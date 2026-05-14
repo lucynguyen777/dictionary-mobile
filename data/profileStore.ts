@@ -22,7 +22,7 @@ export type UserProfile = {
 export const proficiencyLevels: ProficiencyLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 export const loginMethodOptions: { value: LoginMethod; label: string }[] = [
-  { value: 'local', label: 'Local only' },
+  { value: 'local', label: 'Chỉ lưu local' },
   { value: 'email', label: 'Email' },
   { value: 'apple', label: 'Apple' },
   { value: 'google', label: 'Google' },
@@ -36,9 +36,9 @@ export function getDefaultProfile(): UserProfile {
     nativeLanguage: 'vi',
     learningLanguage: 'en',
     proficiencyLevel: 'B2',
-    learningGoal: 'Daily communication',
+    learningGoal: 'Giao tiếp hằng ngày',
     timezone: getDefaultTimezone(),
-    dailyGoal: '15 words/day',
+    dailyGoal: '15 từ/ngày',
     updatedAt: new Date().toISOString(),
   };
 }

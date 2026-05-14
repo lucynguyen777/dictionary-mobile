@@ -148,9 +148,9 @@ export default function LibraryScreen() {
     try {
       const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
 
-      Alert.alert(result.ok ? 'Export complete' : 'Export unavailable', result.message);
+      Alert.alert(result.ok ? 'Xuất dữ liệu xong' : 'Chưa thể xuất dữ liệu', result.message);
     } catch (error) {
-      Alert.alert('Export failed', error instanceof Error ? error.message : 'Could not export this folder.');
+      Alert.alert('Xuất dữ liệu thất bại', error instanceof Error ? error.message : 'Chưa thể xuất bộ từ này.');
     }
   };
 
@@ -167,7 +167,7 @@ export default function LibraryScreen() {
       const asset = result.assets[0];
       const csv = asset.file ? await asset.file.text() : await new File(asset.uri).text();
       const parsed = parseVocabularyCsv(csv, defaultImportOptions);
-      const defaultFolderName = asset.name.replace(/\.[^/.]+$/, '').trim() || 'Imported words';
+      const defaultFolderName = asset.name.replace(/\.[^/.]+$/, '').trim() || 'Từ đã nhập';
 
       setImportCsvContent(csv);
       setImportRows(parsed.rows);
@@ -180,13 +180,13 @@ export default function LibraryScreen() {
       setShouldCreateImportFlashcards(false);
       setImportMessage('');
     } catch (error) {
-      Alert.alert('Import failed', error instanceof Error ? error.message : 'Could not read this CSV file.');
+      Alert.alert('Import thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file CSV này.');
     }
   };
 
   const handleImportCsv = () => {
     if (!importRows.length) {
-      Alert.alert('Import unavailable', 'Chọn một CSV hợp lệ trước khi import.');
+      Alert.alert('Chưa thể import', 'Chọn một CSV hợp lệ trước khi import.');
       return;
     }
 
@@ -202,7 +202,7 @@ export default function LibraryScreen() {
 
       return createFlashcardsFromWordIds(nextState, importedWordIds, ['bilingual', 'word-definition']);
     }).then((nextState) => {
-      const folderLabel = importTarget.folderName || 'Imported words';
+      const folderLabel = importTarget.folderName || 'Từ đã nhập';
 
       setLibraryState(nextState);
       setImportMessage(
@@ -293,7 +293,7 @@ export default function LibraryScreen() {
         <View style={styles.importPanel}>
           <View style={styles.importHeader}>
             <View>
-              <Text style={styles.importKicker}>CSV import</Text>
+              <Text style={styles.importKicker}>Import CSV</Text>
               <Text style={styles.importTitle}>Thêm bộ từ từ file</Text>
             </View>
             <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
@@ -447,7 +447,7 @@ export default function LibraryScreen() {
               {importRows.slice(0, 3).map((row) => (
                 <View key={row.word} style={styles.importPreviewRow}>
                   <Text style={styles.importPreviewWord}>{row.word}</Text>
-                  <Text numberOfLines={1} style={styles.importPreviewDefinition}>{row.definition || row.ipa || 'No definition yet'}</Text>
+                  <Text numberOfLines={1} style={styles.importPreviewDefinition}>{row.definition || row.ipa || 'Chưa có định nghĩa'}</Text>
                 </View>
               ))}
               {importErrors.slice(0, 4).map((error) => (
@@ -538,7 +538,7 @@ export default function LibraryScreen() {
             <TouchableOpacity activeOpacity={0.82} style={styles.savedWord}>
               <View style={styles.savedWordCopy}>
                 <Text style={styles.savedWordTitle}>{entry.word}</Text>
-                <Text style={styles.savedWordMeta}>{entry.definition || 'Từ đã lưu'} · {entry.ipa || 'IPA pending'}</Text>
+                <Text style={styles.savedWordMeta}>{entry.definition || 'Từ đã lưu'} · {entry.ipa || 'Đang chờ IPA'}</Text>
                 {entry.note ? <Text numberOfLines={2} style={styles.savedWordNote}>{entry.note}</Text> : null}
               </View>
               <View style={styles.savedTag}>

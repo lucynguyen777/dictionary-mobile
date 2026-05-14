@@ -31,6 +31,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `70bfe3c` Add local profile settings
   - `7a0e074` Show local profile data overview
   - `3d29779` Improve vocabulary import validation
+  - `30cb448` Standardize lookup tab states
 - Verification habit before code commits:
   - `npx tsc --noEmit`
   - `npx eslint . --no-cache`
@@ -45,7 +46,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Meaning domain/context shown only when available or reasonably inferred.
 - [~] IN PROGRESS [MEDIUM]: Expand domain/context extraction for common polysemous words beyond `cell`.
 - [x] DONE [EASY]: Standardize loading, empty, and error states across all lookup tabs.
-- [~] IN PROGRESS [EASY]: Normalize mixed Vietnamese/English UI copy.
+- [x] DONE [EASY]: Normalize mixed Vietnamese/English UI copy.
 
 ### Lexical Relations
 - [x] DONE: Synonyms/Antonyms from API with local fallback.
@@ -146,12 +147,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [EASY]` Normalize mixed Vietnamese/English UI copy.
-2. `[ ] [MEDIUM]` Add custom field mapping UI for import.
-3. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
-4. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
-5. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
-6. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
+1. `[ ] [MEDIUM]` Add custom field mapping UI for import.
+2. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
+3. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
+4. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
+5. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
 ## Update Rule
 After finishing a task:

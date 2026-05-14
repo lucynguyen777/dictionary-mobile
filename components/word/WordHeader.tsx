@@ -80,7 +80,7 @@ export default function WordHeader({
         <View style={styles.translationNotice}>
           <Ionicons name="time-outline" size={18} color="#2563EB" />
           <Text style={styles.translationNoticeText}>
-            Translation for this language pair is coming soon. The Meaning tab can still show dictionary definitions for the source language when local/API data exists.
+            Cặp ngôn ngữ này chưa có dịch production. Tab Meaning vẫn có thể hiển thị định nghĩa của ngôn ngữ gốc khi có dữ liệu local/API.
           </Text>
         </View>
       ) : null}
