@@ -1,6 +1,6 @@
 # Dictionary Mobile Product Progress
 
-File này là checklist tiến độ chính của dự án. Sau mỗi bước triển khai, cập nhật trạng thái ở đây trước khi commit.
+File này là checklist tiến độ chính của dự án. Sau mỗi bước triển khai, cập nhật trạng thái ở đây sau khi commit.
 
 ## Status Legend
 - `[x] DONE`: đã triển khai và đã kiểm tra cơ bản.
@@ -109,7 +109,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Tap word to save and quick note in reading flow.
 - [ ] TODO: Import EPUB/PDF/DOCX/HTML, starting with the safest format.
 - [ ] TODO: Better text selection/highlight behavior beyond tap-token flow.
-- [ ] TODO: Create flashcards directly from Reader highlights.
+- [x] DONE: Create flashcards directly from Reader highlights.
 
 ## User Profile And Privacy
 
@@ -152,13 +152,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[x] [MEDIUM]` Add custom field mapping UI for import.
-2. `[x] [MEDIUM]` Prepare Anki text-only export from local flashcards.
-3. `[x] [MEDIUM]` Expand idioms/phrasal verbs dataset.
-4. `[x] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
-5. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
+1. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
+2. `[ ] [MEDIUM]` Add Anki `.apkg` text-only export.
+3. `[ ] [MEDIUM]` Export all local user data.
+4. `[~] [MEDIUM]` Polish flashcard creation from imported datasets.
 
-## Update Rule
+## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
 1. Kiểm tra commit/push trên GitHub để đảm bảo các thay đổi code đã được đẩy thành công.
 2. Mở `docs/product-progress.md` và cập nhật checklist để phản ánh trạng thái thực tế của code (đánh dấu `[x]`, `[~]`, `[ ]`, hoặc `[!]` tương ứng) — đồng thời thêm ghi chú ngắn kèm commit hash mới vào phần `Current Baseline` nếu cần.
