@@ -29,6 +29,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `75a0cc3` Add product progress checklist
   - `cf6910e` Track user profile and privacy roadmap
   - `70bfe3c` Add local profile settings
+  - `7a0e074` Show local profile data overview
 - Verification habit before code commits:
   - `npx tsc --noEmit`
   - `npx eslint . --no-cache`
@@ -90,7 +91,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Import into existing folder.
 - [x] DONE: Preview before import.
 - [x] DONE: Advanced import options: row/column orientation, header on/off, primary key.
-- [~] IN PROGRESS: Validate duplicates and empty data more clearly in the UI.
+- [x] DONE: Validate duplicates and empty data more clearly in the UI.
 - [ ] TODO: User-controlled custom field mapping beyond recognized headers/order.
 - [ ] TODO: Import non-CSV datasets if needed.
 
@@ -144,14 +145,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [EASY]` Improve validation messages for advanced CSV import.
-2. `[~] [EASY]` Standardize loading, empty, and error states across lookup tabs.
-3. `[~] [EASY]` Normalize mixed Vietnamese/English UI copy.
-4. `[ ] [MEDIUM]` Add custom field mapping UI for import.
-5. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
-6. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
-7. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
-8. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
+1. `[~] [EASY]` Standardize loading, empty, and error states across lookup tabs.
+2. `[~] [EASY]` Normalize mixed Vietnamese/English UI copy.
+3. `[ ] [MEDIUM]` Add custom field mapping UI for import.
+4. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
+5. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
+6. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
+7. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
 ## Update Rule
 After finishing a task:

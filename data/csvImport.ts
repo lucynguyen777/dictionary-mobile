@@ -84,7 +84,7 @@ function parseRowOrientedCsvRows(rows: string[][], options: VocabularyImportOpti
     ];
   });
 
-  return { rows: vocabularyRows, errors };
+  return finalizeParseResult(vocabularyRows, errors);
 }
 
 function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportOptions): CsvParseResult {
@@ -123,7 +123,7 @@ function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportO
     });
   }
 
-  return { rows: vocabularyRows, errors };
+  return finalizeParseResult(vocabularyRows, errors);
 }
 
 function parseCsvRows(csv: string) {
@@ -236,4 +236,34 @@ function parseTags(value: string) {
     .split(/[|,]/)
     .map((tag) => tag.trim())
     .filter(Boolean);
+}
+
+function finalizeParseResult(rows: VocabularyImportRow[], errors: string[]): CsvParseResult {
+  const duplicateWords = findDuplicateWords(rows);
+
+  if (duplicateWords.length) {
+    errors.push(
+      `Có ${duplicateWords.length} từ bị trùng và sẽ được gộp khi import: ${duplicateWords.slice(0, 5).join(', ')}${
+        duplicateWords.length > 5 ? '...' : ''
+      }.`
+    );
+  }
+
+  if (!rows.length && !errors.length) {
+    errors.push('Không tìm thấy từ hợp lệ trong file.');
+  }
+
+  return { rows, errors };
+}
+
+function findDuplicateWords(rows: VocabularyImportRow[]) {
+  const counts = new Map<string, number>();
+
+  rows.forEach((row) => {
+    counts.set(row.word, (counts.get(row.word) ?? 0) + 1);
+  });
+
+  return Array.from(counts.entries())
+    .filter(([, count]) => count > 1)
+    .map(([word]) => word);
 }

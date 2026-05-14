@@ -450,7 +450,7 @@ export default function LibraryScreen() {
                   <Text numberOfLines={1} style={styles.importPreviewDefinition}>{row.definition || row.ipa || 'No definition yet'}</Text>
                 </View>
               ))}
-              {importErrors.slice(0, 2).map((error) => (
+              {importErrors.slice(0, 4).map((error) => (
                 <Text key={error} style={styles.importError}>{error}</Text>
               ))}
               <TouchableOpacity activeOpacity={0.82} onPress={handleImportCsv} style={styles.importSubmitButton}>
