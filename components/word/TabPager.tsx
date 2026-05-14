@@ -211,7 +211,7 @@ function MeaningTab({
               style={[styles.definitionItem, index > 0 && styles.definitionItemDivider]}>
               {group.definitions.length > 1 ? <Text style={styles.definitionNumber}>Meaning {index + 1}</Text> : null}
               <DefinitionMetaRow
-                domain={item.domain ?? entry.topic}
+                domain={getDefinitionDomain(item.domain, entry.topic)}
                 gender={item.gender ?? entry.gender}
                 level={item.level ?? entry.level}
               />
@@ -251,6 +251,13 @@ function getMeaningDefinitions({
   if (apiDefinitions?.length) return apiDefinitions;
 
   return localDefinitions;
+}
+
+function getDefinitionDomain(domain: string | undefined, entryTopic: string) {
+  if (domain) return domain;
+  if (entryTopic === 'General meaning' || entryTopic === 'Bilingual dictionary') return undefined;
+
+  return entryTopic;
 }
 
 function hasVietnameseDefinitions(definitions: MeaningDefinitionItem[]) {

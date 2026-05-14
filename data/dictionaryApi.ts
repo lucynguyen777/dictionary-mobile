@@ -7,6 +7,7 @@ export type ApiDefinition = {
   domain?: string;
   gender?: string;
   level?: string;
+  source?: string;
 };
 
 export type ApiMeaningResult = {
@@ -175,14 +176,20 @@ export async function fetchBilingualMeaning(
 
   const targetMeanings = (sourceResult.meanings ?? [])
     .filter((meaning) => !meaning.definition_lang || meaning.definition_lang === targetLang)
-    .map((meaning) => ({
-      partOfSpeech: meaning.pos ?? 'word',
-      meaning: meaning.definition ?? '',
-      examples: meaning.example ? [meaning.example] : [],
-      synonyms: [],
-      antonyms: [],
-      domain: meaning.sub_pos ?? meaning.source ?? sourceResult.lang_name ?? 'Bilingual dictionary',
-    }))
+    .map((meaning) => {
+      const parsedDefinition = parseContextualDefinition(meaning.definition ?? '');
+      const inferredDomain = inferDefinitionDomain(normalizedWord, parsedDefinition.definition, targetLang);
+
+      return {
+        partOfSpeech: meaning.pos ?? 'word',
+        meaning: parsedDefinition.definition,
+        examples: meaning.example ? splitMeaningExamples(meaning.example) : [],
+        synonyms: [],
+        antonyms: [],
+        domain: parsedDefinition.context || meaning.sub_pos || inferredDomain,
+        source: meaning.source ?? sourceResult.lang_name,
+      };
+    })
     .filter((definition) => definition.meaning);
   const translations = uniqueWords(
     (sourceResult.translations ?? [])
@@ -196,7 +203,7 @@ export async function fetchBilingualMeaning(
     examples: [],
     synonyms: [],
     antonyms: [],
-    domain: sourceResult.lang_name ?? 'Bilingual dictionary',
+    source: sourceResult.lang_name,
   }));
   const definitions = targetMeanings.length ? targetMeanings : translationDefinitions;
 
@@ -217,6 +224,62 @@ export async function fetchBilingualMeaning(
 function normalizeWord(word: string) {
   return word.trim().toLowerCase();
 }
+
+function parseContextualDefinition(definition: string) {
+  const normalizedDefinition = definition.trim();
+  const leadingContextMatch = normalizedDefinition.match(/^\(([^)]+)\)\s*(.+)$/);
+  if (leadingContextMatch) {
+    return {
+      context: leadingContextMatch[1].trim(),
+      definition: leadingContextMatch[2].trim(),
+    };
+  }
+
+  const trailingContextMatch = normalizedDefinition.match(/^(.+?)\s*\[([^\]]+)\]$/);
+  if (trailingContextMatch) {
+    return {
+      context: trailingContextMatch[2].trim(),
+      definition: trailingContextMatch[1].trim(),
+    };
+  }
+
+  return {
+    context: '',
+    definition: normalizedDefinition,
+  };
+}
+
+function splitMeaningExamples(example: string) {
+  return example
+    .split(/\s*~\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function inferDefinitionDomain(word: string, definition: string, targetLang: string) {
+  if (targetLang !== 'vi') return '';
+
+  const normalizedWord = word.toLowerCase();
+  const normalizedDefinition = definition.toLowerCase();
+  const domainRules = vietnameseDomainRules[normalizedWord] ?? [];
+  const matchedRule = domainRules.find((rule) =>
+    rule.terms.some((term) => normalizedDefinition.includes(term.toLowerCase()))
+  );
+
+  return matchedRule?.domain ?? '';
+}
+
+const vietnameseDomainRules: Record<string, { domain: string; terms: string[] }[]> = {
+  cell: [
+    { domain: 'nhà tù', terms: ['phòng nhỏ', 'xà lim'] },
+    { domain: 'hình học', terms: ['lỗ tổ ong', 'ô'] },
+    { domain: 'điện học', terms: ['pin'] },
+    { domain: 'sinh vật học', terms: ['tế bào'] },
+    { domain: 'chính trị', terms: ['chi bộ'] },
+    { domain: 'kiến trúc', terms: ['am', 'túp lều', 'căn nhà'] },
+    { domain: 'nghĩa cổ', terms: ['nấm mồ'] },
+  ],
+};
 
 function pickPreferredPhonetic(phonetics: DictionaryApiPhonetic[]) {
   const phoneticsWithAudio = phonetics.filter((item) => item.audio);
