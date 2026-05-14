@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Speech from 'expo-speech';
 import { router } from 'expo-router';
 import { RefObject, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
@@ -187,6 +188,11 @@ function MeaningTab({
   const meaningSource = apiBilingualMeaning?.source ?? apiMeaning?.source;
   const groupedDefinitions = groupDefinitionsByPartOfSpeech(definitions);
 
+  const speakExample = (text: string) => {
+    Speech.stop();
+    Speech.speak(text, { language: sourceLang, rate: 0.9 });
+  };
+
   return (
     <View>
       <LookupBanner
@@ -227,7 +233,15 @@ function MeaningTab({
                   <Text style={styles.exampleLabel}>Ví dụ</Text>
                   {item.examples.map((example, i) => (
                     <View key={i} style={styles.exampleBlock}>
-                      <Text style={styles.example}>- {example.source}</Text>
+                      <View style={styles.exampleRow}>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => speakExample(example.source)}
+                          style={styles.exampleAudioButton}>
+                          <Ionicons name="volume-medium-outline" size={16} color="#2563EB" />
+                        </TouchableOpacity>
+                        <Text style={styles.example}>{example.source}</Text>
+                      </View>
                       {example.translation ? (
                         <Text style={styles.exampleTranslation}>{example.translation}</Text>
                       ) : null}
@@ -918,22 +932,34 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   exampleBlock: {
-    marginBottom: 6,
+    marginBottom: 10,
+  },
+  exampleRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  exampleAudioButton: {
+    backgroundColor: '#EAF1FF',
+    borderRadius: 999,
+    padding: 4,
+    marginTop: 1,
   },
   example: {
     color: '#0F172A',
-    fontSize: 13,
+    flex: 1,
+    fontSize: 14,
     fontWeight: '700',
     fontStyle: 'italic',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   exampleTranslation: {
     color: '#64748B',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 20,
-    marginLeft: 8,
-    marginTop: 2,
+    marginLeft: 32,
+    marginTop: 4,
   },
   sectionTitle: {
     color: '#0F172A',
