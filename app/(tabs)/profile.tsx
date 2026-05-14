@@ -6,6 +6,7 @@ import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity
 import Screen from '@/components/app/Screen';
 import { studyStats } from '@/data/dictionary';
 import { languageOptions } from '@/data/languages';
+import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import {
   LoginMethod,
   ProficiencyLevel,
@@ -16,21 +17,30 @@ import {
   proficiencyLevels,
   saveUserProfile,
 } from '@/data/profileStore';
+import { ReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 
 const days = Array.from({ length: 84 }, (_, index) => index);
 const chartValues = [1, 1.5, 2, 2.4, 4.6, 6.4, 5.5, 7.3, 9.1, 11.2, 10.5, 13.1, 15.5, 12.6, 17.5, 16.1, 23.6];
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
+  const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [saveMessage, setSaveMessage] = useState('');
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
 
-      loadUserProfile().then((nextProfile) => {
-        if (isMounted) setProfile(nextProfile);
-      });
+      Promise.all([loadUserProfile(), loadLibraryState(), loadReaderState()]).then(
+        ([nextProfile, nextLibraryState, nextReaderState]) => {
+          if (!isMounted) return;
+
+          setProfile(nextProfile);
+          setLibraryState(nextLibraryState);
+          setReaderState(nextReaderState);
+        }
+      );
 
       return () => {
         isMounted = false;
@@ -184,6 +194,22 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.card}>
+          <Text style={styles.cardTitle}>Dữ liệu local</Text>
+          <Text style={styles.cardSubtitle}>Các dữ liệu này đang lưu trên thiết bị, chưa đồng bộ cloud.</Text>
+          <View style={styles.dataGrid}>
+            <DataStat label="Bộ từ" value={libraryState.folders.length} />
+            <DataStat label="Từ đã lưu" value={libraryState.savedWords.length} />
+            <DataStat label="Flashcard" value={libraryState.flashcards.length} />
+            <DataStat label="Lịch sử tra" value={libraryState.searchHistory.length} />
+            <DataStat label="Reader files" value={readerState.documents.length} />
+            <DataStat
+              label="Import"
+              value={libraryState.savedWords.filter((word) => word.source === 'import').length}
+            />
+          </View>
+        </View>
+
+        <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Lịch học năm nay</Text>
             <View style={styles.yearPill}>
@@ -274,6 +300,15 @@ function OptionChip({ isSelected, label, onPress }: { isSelected: boolean; label
     <TouchableOpacity activeOpacity={0.78} onPress={onPress} style={[styles.optionChip, isSelected && styles.optionChipActive]}>
       <Text style={[styles.optionChipText, isSelected && styles.optionChipTextActive]}>{label}</Text>
     </TouchableOpacity>
+  );
+}
+
+function DataStat({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.dataStat}>
+      <Text style={styles.dataStatValue}>{value}</Text>
+      <Text style={styles.dataStatLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -371,6 +406,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
   },
+  cardSubtitle: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 6,
+  },
   fieldBlock: {
     marginTop: 12,
   },
@@ -434,6 +476,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
+  },
+  dataGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 12,
+  },
+  dataStat: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 11,
+    width: '48%',
+  },
+  dataStatValue: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  dataStatLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 4,
+    textTransform: 'uppercase',
   },
   yearPill: {
     alignItems: 'center',

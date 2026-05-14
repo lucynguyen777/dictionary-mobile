@@ -27,6 +27,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `3209bbf` Support advanced vocabulary import options
   - `aa75832` Add Excel folder export
   - `75a0cc3` Add product progress checklist
+  - `cf6910e` Track user profile and privacy roadmap
+  - `70bfe3c` Add local profile settings
 - Verification habit before code commits:
   - `npx tsc --noEmit`
   - `npx eslint . --no-cache`
@@ -116,7 +118,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Persist profile settings locally before cloud/auth is chosen.
 
 ### Data Privacy And Security
-- [ ] TODO [EASY]: Local data overview showing saved words, folders, flashcards, reader files, and import datasets.
+- [x] DONE [EASY]: Local data overview showing saved words, folders, flashcards, reader files, and import datasets.
 - [ ] TODO [MEDIUM]: Export all local user data.
 - [ ] TODO [MEDIUM]: Delete/reset local user data with confirmation.
 - [x] DONE [EASY]: Privacy copy explaining local-first storage and what leaves the device.
@@ -142,15 +144,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [EASY]` Add local data overview for saved words, folders, flashcards, reader files, and imports.
-2. `[~] [EASY]` Improve validation messages for advanced CSV import.
-3. `[~] [EASY]` Standardize loading, empty, and error states across lookup tabs.
-4. `[~] [EASY]` Normalize mixed Vietnamese/English UI copy.
-5. `[ ] [MEDIUM]` Add custom field mapping UI for import.
-6. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
-7. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
-8. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
-9. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
+1. `[~] [EASY]` Improve validation messages for advanced CSV import.
+2. `[~] [EASY]` Standardize loading, empty, and error states across lookup tabs.
+3. `[~] [EASY]` Normalize mixed Vietnamese/English UI copy.
+4. `[ ] [MEDIUM]` Add custom field mapping UI for import.
+5. `[ ] [MEDIUM]` Prepare Anki text-only export from local flashcards.
+6. `[ ] [MEDIUM]` Expand idioms/phrasal verbs dataset.
+7. `[ ] [MEDIUM]` Improve Reader highlight flow and create flashcards from highlights.
+8. `[!] [HARD]` Decide backend/API options for auth, cloud sync, pronunciation scoring, and multilingual translation.
 
 ## Update Rule
 After finishing a task:
