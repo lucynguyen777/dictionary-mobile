@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `8b2770d` Enable French to Vietnamese dictionary lookup
   - `536b4ad` fix(adapter): restore generic fetch functions for fallback adapter
   - `667e897` feat: expose source-specific dictionaryApi functions; use dedicated endpoints in adapters; update tests
   - `cc9020f` test: add adapter registry tests and register source adapters; add vitest
@@ -182,7 +183,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
 - [x] DONE [MEDIUM]: FR-FR dictionary via hybrid local/Wiktapi source (commit `3ec1975`).
-- [!] BLOCKED [HARD]: VI↔FR bilingual dictionary source selection; do not use machine translation as dictionary data.
+- [x] DONE [MEDIUM]: FR→VI bilingual dictionary lookup via MinhQnd lexical data (commit `8b2770d`).
+- [!] BLOCKED [HARD]: VI→FR bilingual dictionary source selection; do not use machine translation as dictionary data.
 
 ### Language Family Roadmap
 - [x] DONE [MEDIUM]: Austroasiatic baseline: Vietnamese (VI-VI) with dictionary API, suggestions, relations, tone/diacritic-sensitive display.
@@ -238,7 +240,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
+1. `[!] [HARD]` VI→FR bilingual dictionary source selection.
 2. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
 3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
 4. `[!] [HARD]` Google Sheets export with OAuth.
