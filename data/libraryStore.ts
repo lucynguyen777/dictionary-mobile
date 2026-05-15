@@ -67,6 +67,15 @@ export type ExportResult = {
   ok: boolean;
   message: string;
   uri?: string;
+  shared?: boolean;
+};
+
+export type FolderExportFormat = 'csv' | 'excel' | 'anki';
+
+const folderShareMimeTypes: Record<FolderExportFormat, { mimeType: string; UTI: string }> = {
+  csv: { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' },
+  excel: { mimeType: 'application/vnd.ms-excel', UTI: 'com.microsoft.excel.xls' },
+  anki: { mimeType: 'text/plain', UTI: 'public.plain-text' },
 };
 
 export type ImportVocabularyTarget = {
@@ -490,14 +499,7 @@ export async function exportFolderToCsv(state: LibraryState, folderId: string): 
   file.create({ overwrite: true });
   file.write(csv, { encoding: 'utf8' });
 
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(file.uri, {
-      mimeType: 'text/csv',
-      UTI: 'public.comma-separated-values-text',
-    });
-  }
-
-  return { ok: true, message: `Đã xuất ${words.length} từ.`, uri: file.uri };
+  return { ok: true, message: `Đã xuất ${words.length} từ ra file CSV trên thiết bị.`, uri: file.uri };
 }
 
 export async function exportFolderToExcel(state: LibraryState, folderId: string): Promise<ExportResult> {
@@ -513,14 +515,7 @@ export async function exportFolderToExcel(state: LibraryState, folderId: string)
   file.create({ overwrite: true });
   file.write(workbook, { encoding: 'utf8' });
 
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(file.uri, {
-      mimeType: 'application/vnd.ms-excel',
-      UTI: 'com.microsoft.excel.xls',
-    });
-  }
-
-  return { ok: true, message: `Đã xuất ${words.length} từ sang Excel.`, uri: file.uri };
+  return { ok: true, message: `Đã xuất ${words.length} từ sang Excel trên thiết bị.`, uri: file.uri };
 }
 
 export async function exportFolderToAnkiTsv(state: LibraryState, folderId: string): Promise<ExportResult> {
@@ -551,17 +546,45 @@ export async function exportFolderToAnkiTsv(state: LibraryState, folderId: strin
   file.create({ overwrite: true });
   file.write(tsv, { encoding: 'utf8' });
 
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(file.uri, {
-      mimeType: 'text/plain',
-      UTI: 'public.plain-text',
-    });
-  }
-
-  return { ok: true, message: `Đã xuất ${words.length} từ sang định dạng Anki.`, uri: file.uri };
+  return { ok: true, message: `Đã xuất ${words.length} từ sang định dạng Anki trên thiết bị.`, uri: file.uri };
 }
 
+export async function shareFolder(
+  state: LibraryState,
+  folderId: string,
+  format: FolderExportFormat
+): Promise<ExportResult> {
+  const exportResult =
+    format === 'excel'
+      ? await exportFolderToExcel(state, folderId)
+      : format === 'anki'
+        ? await exportFolderToAnkiTsv(state, folderId)
+        : await exportFolderToCsv(state, folderId);
 
+  if (!exportResult.ok || !exportResult.uri) return exportResult;
+
+  if (!(await Sharing.isAvailableAsync())) {
+    return {
+      ok: true,
+      shared: false,
+      uri: exportResult.uri,
+      message:
+        'Thiết bị hoặc trình duyệt này chưa hỗ trợ hộp thoại chia sẻ hệ thống. File đã được tạo; bạn có thể dùng mục Download để lưu file trên thiết bị.',
+    };
+  }
+
+  const shareConfig = folderShareMimeTypes[format];
+  await Sharing.shareAsync(exportResult.uri, shareConfig);
+
+  const formatLabel = format === 'excel' ? 'Excel' : format === 'anki' ? 'Anki' : 'CSV';
+
+  return {
+    ok: true,
+    shared: true,
+    uri: exportResult.uri,
+    message: `Đã mở hộp thoại chia sẻ file ${formatLabel}.`,
+  };
+}
 
 export async function exportFlashcardsToAnkiText(state: LibraryState, cardIds?: string[]): Promise<ExportResult> {
   const cards = cardIds && cardIds.length ? state.flashcards.filter((c) => cardIds.includes(c.id)) : state.flashcards;
@@ -575,14 +598,7 @@ export async function exportFlashcardsToAnkiText(state: LibraryState, cardIds?: 
   file.create({ overwrite: true });
   file.write(tsv, { encoding: 'utf8' });
 
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(file.uri, {
-      mimeType: 'text/tab-separated-values',
-      UTI: 'public.tab-separated-values-text',
-    });
-  }
-
-  return { ok: true, message: `Đã xuất ${cards.length} thẻ.`, uri: file.uri };
+  return { ok: true, message: `Đã xuất ${cards.length} thẻ ra file trên thiết bị.`, uri: file.uri };
 }
 
 function buildFlashcardsAnkiRows(state: LibraryState, cards: Flashcard[]) {

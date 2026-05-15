@@ -24,6 +24,8 @@ import {
   exportFolderToAnkiTsv,
   exportFolderToCsv,
   exportFolderToExcel,
+  FolderExportFormat,
+  shareFolder,
   getDefaultLibraryState,
   getFavoriteFolderId,
   getFolderWords,
@@ -211,33 +213,33 @@ export default function LibraryScreen() {
     }
   };
 
-  const handleShareFolder = async (folder: Folder) => {
+  const handleShareFolder = async (folderId: string, format: FolderExportFormat) => {
     try {
       setActiveFolderMenuId('');
-
-      // Default to CSV export for sharing; export helpers will invoke the native share sheet if available.
-      const result = await exportFolderToCsv(libraryState, folder.id);
+      const result = await shareFolder(libraryState, folderId, format);
 
       if (!result.ok) {
         Alert.alert('Chia sẻ thất bại', result.message);
         return;
       }
 
-      // If export returned a file uri, offer to open it (or the native share sheet already opened).
+      if (result.shared) return;
+
       const uri = result.uri;
       if (uri) {
-        Alert.alert('Chia sẻ', result.message, [
+        Alert.alert('Chưa hỗ trợ chia sẻ trực tiếp', result.message, [
           { text: 'Đóng', style: 'cancel' },
           {
             text: 'Mở file',
             onPress: () => {
-              Linking.openURL(uri).catch(() => Alert.alert('Không thể mở file'));
+              Linking.openURL(uri).catch(() => Alert.alert('Không thể mở file', 'Hãy dùng mục Download để lưu file trên thiết bị.'));
             },
           },
         ]);
-      } else {
-        Alert.alert('Chia sẻ', result.message);
+        return;
       }
+
+      Alert.alert('Chia sẻ', result.message);
     } catch (error) {
       Alert.alert('Chia sẻ thất bại', error instanceof Error ? error.message : 'Không thể chia sẻ bộ từ này.');
     }
@@ -832,13 +834,24 @@ export default function LibraryScreen() {
                       </TouchableOpacity>
                     ))}
                   </View>
-                  <TouchableOpacity
-                    activeOpacity={0.78}
-                    onPress={() => handleShareFolder(folder)}
-                    style={styles.folderActionRow}>
-                    <Ionicons name="share-social-outline" size={17} color="#64748B" />
-                    <Text style={styles.folderActionText}>Chia sẻ</Text>
-                  </TouchableOpacity>
+                  <View style={styles.folderActionDivider} />
+                  <Text style={styles.folderActionLabel}>Chia sẻ</Text>
+                  <View style={styles.downloadRow}>
+                    {[
+                      { label: 'CSV', format: 'csv' as const },
+                      { label: 'XLS', format: 'excel' as const },
+                      { label: 'Anki', format: 'anki' as const },
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={`share-${item.format}`}
+                        activeOpacity={0.78}
+                        onPress={() => handleShareFolder(folder.id, item.format)}
+                        style={styles.shareChip}>
+                        <Ionicons name="share-social-outline" size={13} color="#0F766E" />
+                        <Text style={styles.shareChipText}>{item.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
               ) : null}
             </TouchableOpacity>
@@ -1757,6 +1770,20 @@ const styles = StyleSheet.create({
   },
   downloadChipText: {
     color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  shareChip: {
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  shareChipText: {
+    color: '#0F766E',
     fontSize: 11,
     fontWeight: '900',
   },
