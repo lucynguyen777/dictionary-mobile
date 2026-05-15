@@ -16,6 +16,7 @@ export type UserProfile = {
   learningGoal: string;
   timezone: string;
   dailyGoal: string;
+  appLockEnabled: boolean;
   updatedAt: string;
 };
 
@@ -39,6 +40,7 @@ export function getDefaultProfile(): UserProfile {
     learningGoal: 'Giao tiếp hằng ngày',
     timezone: getDefaultTimezone(),
     dailyGoal: '15 từ/ngày',
+    appLockEnabled: false,
     updatedAt: new Date().toISOString(),
   };
 }

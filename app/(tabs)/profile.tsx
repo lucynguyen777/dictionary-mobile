@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import { studyStats } from '@/data/dictionary';
@@ -87,6 +88,43 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleToggleAppLock = async (nextValue: boolean) => {
+    try {
+      if (nextValue) {
+        const [hasHardware, isEnrolled] = await Promise.all([
+          LocalAuthentication.hasHardwareAsync(),
+          LocalAuthentication.isEnrolledAsync(),
+        ]);
+
+        if (!hasHardware || !isEnrolled) {
+          Alert.alert(
+            'Chưa thể bật khóa ứng dụng',
+            'Thiết bị này chưa hỗ trợ hoặc chưa thiết lập sinh trắc học/mã khóa thiết bị.'
+          );
+          return;
+        }
+
+        const result = await LocalAuthentication.authenticateAsync({
+          cancelLabel: 'Hủy',
+          disableDeviceFallback: false,
+          fallbackLabel: 'Dùng mã thiết bị',
+          promptMessage: 'Bật khóa Dictionary Mobile',
+        });
+
+        if (!result.success) {
+          Alert.alert('Chưa bật khóa', 'Bạn cần xác thực thành công trước khi bật khóa ứng dụng.');
+          return;
+        }
+      }
+
+      const nextProfile = await saveUserProfile({ ...profile, appLockEnabled: nextValue });
+      setProfile(nextProfile);
+      setSaveMessage(nextValue ? 'Đã bật khóa ứng dụng trên thiết bị này.' : 'Đã tắt khóa ứng dụng.');
+    } catch {
+      Alert.alert('Lỗi khóa ứng dụng', 'Không thể thay đổi thiết lập khóa ứng dụng lúc này.');
+    }
   };
 
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
@@ -224,6 +262,18 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Dữ liệu local</Text>
           <Text style={styles.cardSubtitle}>Các dữ liệu này đang lưu trên thiết bị, chưa đồng bộ cloud.</Text>
+          <View style={styles.securityRow}>
+            <View style={styles.securityCopy}>
+              <Text style={styles.securityTitle}>Khóa ứng dụng</Text>
+              <Text style={styles.securityText}>Yêu cầu Face ID, vân tay hoặc mã thiết bị khi mở app.</Text>
+            </View>
+            <Switch
+              onValueChange={handleToggleAppLock}
+              thumbColor={profile.appLockEnabled ? '#FFFFFF' : '#FFFFFF'}
+              trackColor={{ false: '#CBD5E1', true: '#2563EB' }}
+              value={profile.appLockEnabled}
+            />
+          </View>
           <View style={styles.dataGrid}>
             <DataStat label="Bộ từ" value={libraryState.folders.length} />
             <DataStat label="Từ đã lưu" value={libraryState.savedWords.length} />
@@ -512,6 +562,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
+  },
+  securityRow: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    marginTop: 12,
+    padding: 12,
+  },
+  securityCopy: {
+    flex: 1,
+  },
+  securityTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  securityText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 3,
   },
   dataGrid: {
     flexDirection: 'row',
