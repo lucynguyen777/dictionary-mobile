@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, type Href } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
@@ -35,42 +35,63 @@ const typeFilterOptions: { value: FlashcardType | 'all'; label: string }[] = [
   ...flashcardOptions.map((option) => ({ value: option.type, label: option.label })),
 ];
 
-const features = [
+type LearningToolId = 'flashcards' | 'ai-chat' | 'specialized-translation' | 'import' | 'reader' | 'export';
+
+const learningTools: {
+  id: LearningToolId;
+  title: string;
+  description: string;
+  icon: ComponentProps<typeof Ionicons>['name'];
+  accent: string;
+  status: string;
+}[] = [
   {
+    id: 'flashcards',
+    title: 'Flashcard local',
+    description: 'Tạo, lọc và ôn thẻ từ các từ đã lưu.',
+    icon: 'albums-outline',
+    accent: '#FFEFF3',
+    status: 'Đang dùng được',
+  },
+  {
+    id: 'ai-chat',
     title: 'AI hội thoại',
     description: 'Luyện phản xạ bằng giọng nói hoặc tin nhắn với gợi ý sửa câu.',
-    icon: 'chatbubbles-outline' as const,
+    icon: 'chatbubbles-outline',
     accent: '#EAF1FF',
+    status: 'Thiết kế UI trước',
   },
   {
+    id: 'specialized-translation',
     title: 'Dịch chuyên ngành',
     description: 'Dịch đoạn văn theo thuật ngữ cá nhân và ngữ cảnh học thuật.',
-    icon: 'language-outline' as const,
+    icon: 'language-outline',
     accent: '#EAF8F0',
+    status: 'Thiết kế UI trước',
   },
   {
+    id: 'import',
     title: 'Nhập dữ liệu',
     description: 'Nhập CSV, highlight từ sách hoặc danh sách từ từ lớp học.',
-    icon: 'cloud-upload-outline' as const,
+    icon: 'cloud-upload-outline',
     accent: '#FFF1E8',
+    status: 'CSV/TSV đã có',
   },
   {
+    id: 'reader',
     title: 'Đọc sách kèm tra từ',
     description: 'Highlight, tra nghĩa, lưu ghi chú và tạo flashcard ngay khi đọc.',
-    icon: 'reader-outline' as const,
+    icon: 'reader-outline',
     accent: '#F1ECFF',
+    status: 'TXT/HTML đã có',
   },
   {
-    title: 'Flashcard thông minh',
-    description: 'Tạo thẻ song ngữ, cloze test, phát âm và lịch ôn giãn cách.',
-    icon: 'albums-outline' as const,
-    accent: '#FFEFF3',
-  },
-  {
+    id: 'export',
     title: 'Xuất bộ từ',
     description: 'Xuất sang CSV, Google Sheets hoặc Anki khi cần học ngoài app.',
-    icon: 'download-outline' as const,
+    icon: 'download-outline',
     accent: '#EAF7FA',
+    status: 'CSV/Excel/Anki text',
   },
 ];
 
@@ -88,6 +109,7 @@ export default function AdvancedScreen() {
   const [folderFilterId, setFolderFilterId] = useState('all');
   const [typeFilter, setTypeFilter] = useState<FlashcardType | 'all'>('all');
   const [reviewFilter, setReviewFilter] = useState<FlashcardReviewState | 'all'>('all');
+  const [activeToolId, setActiveToolId] = useState<LearningToolId>('flashcards');
 
   useFocusEffect(
     useCallback(() => {
@@ -137,6 +159,7 @@ export default function AdvancedScreen() {
   }, [libraryState.flashcards]);
 
   const activeCard = filteredFlashcards[activeCardIndex];
+  const activeTool = learningTools.find((tool) => tool.id === activeToolId) ?? learningTools[0];
 
   useEffect(() => {
     setActiveCardIndex((index) => {
@@ -204,7 +227,19 @@ export default function AdvancedScreen() {
           </View>
         </View>
 
-        <View style={styles.flashcardPanel}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.toolTabs}>
+          {learningTools.map((tool) => (
+            <ToolTab
+              key={tool.id}
+              isSelected={activeToolId === tool.id}
+              tool={tool}
+              onPress={() => setActiveToolId(tool.id)}
+            />
+          ))}
+        </ScrollView>
+
+        {activeToolId === 'flashcards' ? (
+          <View style={styles.flashcardPanel}>
           <View style={styles.panelHeader}>
             <View>
               <Text style={styles.panelKicker}>Flashcard local</Text>
@@ -333,41 +368,87 @@ export default function AdvancedScreen() {
               </Text>
             </View>
           )}
-        </View>
-
-        {features.map((feature) => {
-          const featureContent = (
-            <>
-              <View style={[styles.iconWrap, { backgroundColor: feature.accent }]}>
-                <Ionicons name={feature.icon} size={28} color="#0F172A" />
-              </View>
-              <View style={styles.copy}>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={styles.description}>{feature.description}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-            </>
-          );
-
-          if (feature.title === 'Đọc sách kèm tra từ') {
-            return (
-              <Link key={feature.title} href={'/reader' as Href} asChild>
-                <TouchableOpacity style={styles.card} activeOpacity={0.8}>
-                  {featureContent}
-                </TouchableOpacity>
-              </Link>
-            );
-          }
-
-          return (
-            <TouchableOpacity key={feature.title} style={styles.card} activeOpacity={0.8}>
-              {featureContent}
-            </TouchableOpacity>
-          );
-        })}
+          </View>
+        ) : (
+          <LearningToolPanel tool={activeTool} />
+        )}
       </ScrollView>
     </Screen>
   );
+}
+
+function ToolTab({
+  isSelected,
+  onPress,
+  tool,
+}: {
+  isSelected: boolean;
+  onPress: () => void;
+  tool: (typeof learningTools)[number];
+}) {
+  return (
+    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={[styles.toolTab, isSelected && styles.toolTabActive]}>
+      <View style={[styles.toolTabIcon, { backgroundColor: tool.accent }]}>
+        <Ionicons name={tool.icon} size={18} color="#0F172A" />
+      </View>
+      <Text style={[styles.toolTabText, isSelected && styles.toolTabTextActive]} numberOfLines={1}>
+        {tool.title}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+function LearningToolPanel({ tool }: { tool: (typeof learningTools)[number] }) {
+  const readerHref = '/reader' as Href;
+  const isReader = tool.id === 'reader';
+
+  return (
+    <View style={styles.toolPanel}>
+      <View style={styles.toolPanelHeader}>
+        <View style={[styles.iconWrap, { backgroundColor: tool.accent }]}>
+          <Ionicons name={tool.icon} size={28} color="#0F172A" />
+        </View>
+        <View style={styles.copy}>
+          <Text style={styles.featureTitle}>{tool.title}</Text>
+          <Text style={styles.description}>{tool.description}</Text>
+        </View>
+      </View>
+      <View style={styles.toolStatusPill}>
+        <Text style={styles.toolStatusText}>{tool.status}</Text>
+      </View>
+      <View style={styles.toolRoadmap}>
+        <Text style={styles.toolRoadmapTitle}>Frontend/UI roadmap</Text>
+        <Text style={styles.toolRoadmapText}>
+          {getToolRoadmapText(tool.id)}
+        </Text>
+      </View>
+      {isReader ? (
+        <Link href={readerHref} asChild>
+          <TouchableOpacity activeOpacity={0.82} style={styles.openToolButton}>
+            <Ionicons name="open-outline" size={17} color="#FFFFFF" />
+            <Text style={styles.openToolButtonText}>Mở Reader</Text>
+          </TouchableOpacity>
+        </Link>
+      ) : null}
+    </View>
+  );
+}
+
+function getToolRoadmapText(toolId: LearningToolId) {
+  if (toolId === 'ai-chat') {
+    return 'Thiết kế tab hội thoại gồm danh sách hội thoại, khung chat realtime, trạng thái ghi âm, transcript và feedback sửa câu. Backend/AI vẫn blocked cho tới khi chọn auth, streaming và cost controls.';
+  }
+  if (toolId === 'specialized-translation') {
+    return 'Thiết kế UI nhập chuyên ngành/chủ đề, vùng paste/import văn bản, glossary user và kết quả dịch theo thuật ngữ. Translation production cần backend/API riêng.';
+  }
+  if (toolId === 'import') {
+    return 'Polish flow import dataset: preview, mapping cột/hàng, chọn folder đích, validate trùng/trống và tạo flashcard từ dataset.';
+  }
+  if (toolId === 'reader') {
+    return 'Reader đã có TXT/HTML, highlight, save/note/flashcard. Bước tiếp theo là chọn parser cho EPUB/PDF/DOCX và UI xử lý lỗi định dạng.';
+  }
+
+  return 'Chuẩn hóa xuất CSV/Excel/Anki text; Google Sheets vẫn cần OAuth, còn Anki .apkg cần parser/package riêng.';
 }
 
 function formatFlashcardType(type: FlashcardType) {
@@ -694,6 +775,103 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 19,
     marginTop: 5,
+  },
+  toolTabs: {
+    gap: 10,
+    paddingBottom: 14,
+  },
+  toolTab: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    minWidth: 154,
+    paddingHorizontal: 11,
+    paddingVertical: 10,
+  },
+  toolTabActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#2563EB',
+  },
+  toolTabIcon: {
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  toolTabText: {
+    color: '#64748B',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  toolTabTextActive: {
+    color: '#2563EB',
+  },
+  toolPanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+    padding: 14,
+  },
+  toolPanelHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  toolStatusPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 999,
+    marginTop: 14,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  toolStatusText: {
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  toolRoadmap: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 12,
+  },
+  toolRoadmapTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  toolRoadmapText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: 5,
+  },
+  openToolButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 7,
+    marginTop: 12,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+  },
+  openToolButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
   },
   card: {
     alignItems: 'center',

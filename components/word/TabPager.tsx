@@ -278,9 +278,9 @@ function getMeaningDefinitions({
 
 function getDefinitionDomain(domain: string | undefined, entryTopic: string) {
   if (domain) return domain;
-  if (['General meaning', 'Bilingual dictionary', 'Online dictionary'].includes(entryTopic)) return undefined;
+  if (['General meaning', 'Bilingual dictionary', 'Online dictionary'].includes(entryTopic)) return 'Nghĩa chung';
 
-  return entryTopic;
+  return entryTopic || 'Nghĩa chung';
 }
 
 function hasVietnameseDefinitions(definitions: MeaningDefinitionItem[]) {

@@ -13,6 +13,8 @@ export type ApiDefinition = {
   source?: string;
 };
 
+const DEFAULT_DEFINITION_DOMAIN = 'Nghĩa chung';
+
 export type ApiMeaningResult = {
   word: string;
   ipa: string;
@@ -228,6 +230,7 @@ async function fetchEnglishMeaningCandidate(lookupWord: string, requestedWord: s
         examples: definition.example ? [{ source: definition.example }] : [],
         synonyms: uniqueWords([...(meaning.synonyms ?? []), ...(definition.synonyms ?? [])]),
         antonyms: uniqueWords([...(meaning.antonyms ?? []), ...(definition.antonyms ?? [])]),
+        domain: DEFAULT_DEFINITION_DOMAIN,
       }))
     ).filter((definition) => definition.meaning),
     source: lookupWord === requestedWord ? 'dictionaryapi.dev' : `dictionaryapi.dev · base form of ${requestedWord}`,
@@ -287,7 +290,7 @@ export async function fetchBilingualMeaning(
         examples: meaning.example ? splitMeaningExamples(meaning.example) : [],
         synonyms: [],
         antonyms: [],
-        domain: parsedDefinition.context || meaning.sub_pos || inferredDomain,
+        domain: normalizeDefinitionDomain(parsedDefinition.context || meaning.sub_pos || inferredDomain),
         source: meaning.source ?? sourceResult.lang_name,
       };
     })
@@ -452,7 +455,7 @@ function mapMinhQndDefinitions(
         examples: meaning.example ? splitMeaningExamples(meaning.example) : [],
         synonyms: [],
         antonyms: [],
-        domain: parsedDefinition.context || meaning.sub_pos || inferredDomain,
+        domain: normalizeDefinitionDomain(parsedDefinition.context || meaning.sub_pos || inferredDomain),
         source: meaning.source ?? sourceResult.lang_name,
       };
     })
@@ -509,7 +512,7 @@ function mapWiktApiDefinitions(entry: WiktApiEntry): ApiDefinition[] {
         examples: mapWiktApiExamples(sense.examples ?? []).slice(0, 2),
         synonyms: uniqueWords(mapWiktApiLinkages(entry.synonyms ?? [])),
         antonyms: uniqueWords(mapWiktApiLinkages(entry.antonyms ?? [])),
-        domain: sense.topics?.[0],
+        domain: normalizeDefinitionDomain(sense.topics?.[0]),
         gender: getWiktApiGender([...(entry.tags ?? []), ...(entry.raw_tags ?? []), ...(sense.tags ?? [])]),
         level: undefined,
         source: 'Wiktionary',
@@ -552,11 +555,13 @@ function normalizeWord(word: string) {
 
 function parseContextualDefinition(definition: string) {
   const normalizedDefinition = definition.trim();
-  const leadingContextMatch = normalizedDefinition.match(/^\(([^)]+)\)\s*(.+)$/);
+  const leadingContextMatch = normalizedDefinition.match(/^(\(([^)]+)\)\s*)+(.+)$/);
   if (leadingContextMatch) {
+    const contexts = Array.from(normalizedDefinition.matchAll(/\(([^)]+)\)/g)).map((match) => match[1].trim());
+
     return {
-      context: leadingContextMatch[1].trim(),
-      definition: leadingContextMatch[2].trim(),
+      context: contexts.join(' · '),
+      definition: leadingContextMatch[3].trim(),
     };
   }
 
@@ -572,6 +577,12 @@ function parseContextualDefinition(definition: string) {
     context: '',
     definition: normalizedDefinition,
   };
+}
+
+function normalizeDefinitionDomain(domain: string | undefined) {
+  const normalizedDomain = domain?.trim();
+
+  return normalizedDomain || DEFAULT_DEFINITION_DOMAIN;
 }
 
 function splitMeaningExamples(example: string): BilingualExample[] {
