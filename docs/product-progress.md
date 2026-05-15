@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `0ecb3c9` fix(library): prevent toolbar, menu, and FAB overlap on mobile and web
   - `3e441ba` feat(library): add folder share action with format picker
   - `2636f15` Add folder favorite metadata
   - `b5fa8cc` Update progress after library controls
