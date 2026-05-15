@@ -30,8 +30,9 @@ import {
   importVocabularyRowsToFolder,
   isFavoriteWordsFolder,
   loadLibraryState,
+  renameFolder,
   toggleFavoriteFolder,
-  updateFolderColorAndNote,
+  updateFolderColorAndNote
 } from '@/data/libraryStore';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
@@ -104,6 +105,9 @@ export default function LibraryScreen() {
   const [colorPickerFolderId, setColorPickerFolderId] = useState('');
   const [selectedColorDraft, setSelectedColorDraft] = useState('');
   const [colorNoteDraft, setColorNoteDraft] = useState('');
+  const [renameFolderId, setRenameFolderId] = useState('');
+  const [renameDraft, setRenameDraft] = useState('');
+  const [renameError, setRenameError] = useState('');
   const [sortPanelOpen, setSortPanelOpen] = useState(false);
   const [viewPanelOpen, setViewPanelOpen] = useState(false);
 
@@ -772,7 +776,9 @@ export default function LibraryScreen() {
                     activeOpacity={0.78}
                     onPress={() => {
                       setActiveFolderMenuId('');
-                      router.push(`/folder/${folder.id}` as never);
+                      setRenameFolderId(folder.id);
+                      setRenameDraft(folder.name);
+                      setRenameError('');
                     }}
                     style={styles.folderActionRow}>
                     <Ionicons name="pencil-outline" size={17} color="#64748B" />
@@ -885,6 +891,47 @@ export default function LibraryScreen() {
                       <Text style={styles.colorPickerSaveText}>Lưu</Text>
                     </TouchableOpacity>
                   </View>
+          </View>
+        </View>
+      ) : null}
+      {renameFolderId ? (
+        <View style={styles.colorPickerOverlay} pointerEvents="box-none">
+          <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => { setRenameFolderId(''); setRenameDraft(''); setRenameError(''); }} />
+          <View style={styles.colorPickerSheet}>
+            <Text style={styles.colorPickerTitle}>Đổi tên bộ từ</Text>
+            <TextInput
+              value={renameDraft}
+              onChangeText={(text) => { setRenameDraft(text); setRenameError(''); }}
+              placeholder="Tên mới cho bộ từ"
+              placeholderTextColor="#94A3B8"
+              style={styles.renameInput}
+            />
+            {renameError ? <Text style={styles.renameError}>{renameError}</Text> : null}
+            <View style={styles.colorPickerActions}>
+              <TouchableOpacity onPress={() => { setRenameFolderId(''); setRenameDraft(''); setRenameError(''); }} style={styles.colorPickerCancel}>
+                <Text style={styles.colorPickerCancelText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  const trimmed = renameDraft.trim();
+                  if (!trimmed) { setRenameError('Tên không được để trống'); return; }
+                  if (libraryState.folders.some((f) => f.name.toLowerCase() === trimmed.toLowerCase() && f.id !== renameFolderId)) {
+                    setRenameError('Tên bộ từ đã tồn tại');
+                    return;
+                  }
+
+                  renameFolder(libraryState, renameFolderId, trimmed).then((nextState: LibraryState) => {
+                    setLibraryState(nextState);
+                    setRenameFolderId('');
+                    setRenameDraft('');
+                    setRenameError('');
+                  });
+                }}
+                style={styles.colorPickerSave}>
+                <Text style={styles.colorPickerSaveText}>Lưu</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       ) : null}
@@ -1510,6 +1557,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '900',
+  },
+  renameInput: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: '#0F172A',
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  renameError: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '800',
+    marginBottom: 8,
   },
   viewModeButtonActive: {
     backgroundColor: '#EFF6FF',
