@@ -117,6 +117,21 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Anki text-only export from folder/saved words (commit `72abef2`).
 - [!] BLOCKED [HARD]: Google Sheets export, requires OAuth and Google API flow.
 
+### Library Folder UI/UX
+- [x] DONE [EASY]: Replace visible per-folder export tags (`CSV`, `XLS`, `Anki`) with a kebab menu button on each folder card.
+- [x] DONE [EASY]: Keep the create-folder plus button fixed just above the bottom tab bar so it does not move while the folder list scrolls.
+- [x] DONE [EASY]: Add common folder sort options under the left control below search: newest, oldest, A-Z, Z-A, most words, least words, favorites first.
+- [x] DONE [EASY]: Add folder view mode control under the right control below search: grid, list, compact.
+- [x] DONE [MEDIUM]: Build the folder kebab menu/action sheet with grouped actions: favorite, duplicate, color, rename, download, share.
+- [x] DONE [MEDIUM]: Move existing CSV, XLS, and Anki export actions into the kebab menu `Download` section.
+- [ ] TODO [MEDIUM]: Add folder favorite metadata and visual state without confusing it with saved-word favorites.
+- [ ] TODO [MEDIUM]: Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
+- [ ] TODO [MEDIUM]: Add color picker for folders and persist color metadata locally.
+- [ ] TODO [MEDIUM]: Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
+- [ ] TODO [MEDIUM]: Reuse or polish rename flow from the kebab menu.
+- [ ] TODO [MEDIUM]: Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
+- [ ] TODO [MEDIUM]: Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
+
 ### Pronunciation
 - [x] DONE: Audio-only pronunciation in lookup.
 - [x] DONE [MEDIUM]: Record user pronunciation (commit `8764019`).
@@ -166,6 +181,22 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Create flashcards directly from Reader highlights.
 
 ## User Profile And Privacy
+
+### Profile Settings Sidebar
+- [ ] TODO [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
+- [ ] TODO [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
+- [ ] TODO [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
+- [ ] TODO [EASY]: Reuse existing local profile fields where possible instead of duplicating state: display name, email, native language, learning language, proficiency, goal, timezone, daily goal.
+- [ ] TODO [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
+- [ ] TODO [HARD]: Real account deletion requires backend account lifecycle; current reset/delete local data remains local-only.
+- [ ] TODO [EASY]: Add Notification settings UI: reminders, friends, leaderboards, announcements.
+- [ ] TODO [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
+- [ ] TODO [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
+- [ ] TODO [EASY]: Add Support settings items: Help center and Feedback.
+- [ ] TODO [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected.
+- [ ] TODO [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
+- [ ] TODO [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
+- [ ] TODO [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
 
 ### Basic Profile
 - [x] DONE [EASY]: Profile tab UI exists and now uses local editable data.
@@ -251,14 +282,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Build AI hội thoại frontend tab UI/UX shell.
-2. `[ ] [MEDIUM]` Build Dịch chuyên ngành frontend tab UI/UX shell.
-3. `[ ] [MEDIUM]` Build Import frontend tab polish.
-4. `[ ] [MEDIUM]` Build Export frontend tab polish.
-5. `[!] [HARD]` VI→FR bilingual dictionary source selection.
-6. `[~] [HARD]` Select parser libraries for EPUB/PDF/DOCX Reader import after unsupported format guard.
-7. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-8. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[ ] [MEDIUM]` Add folder favorite metadata and visual state without confusing it with saved-word favorites.
+2. `[ ] [MEDIUM]` Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
+3. `[ ] [MEDIUM]` Add color picker for folders and persist color metadata locally.
+4. `[ ] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
+5. `[ ] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
@@ -266,10 +294,11 @@ Sau khi hoàn thành và đẩy code lên GitHub:
 2. Mở `docs/product-progress.md` và cập nhật checklist để phản ánh trạng thái thực tế của code (đánh dấu `[x]`, `[~]`, `[ ]`, hoặc `[!]` tương ứng) — đồng thời thêm ghi chú ngắn kèm commit hash mới vào phần `Current Baseline` nếu cần.
 3. Chạy kiểm tra xác minh: `npx tsc --noEmit` và `npx eslint . --no-cache`.
 4. Commit (và push) bất kỳ chỉnh sửa nào của file checklist lên GitHub cùng hoặc ngay sau commit code.
-5. Sau khi checklist trên GitHub khớp với code thực tế, bắt đầu task tiếp theo trong `Next Work Queue` bằng cách chuyển trạng thái task đó sang `[~] IN PROGRESS` và tiến hành triển khai.
-6. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó và ghi vào `Language Family Roadmap`.
-7. Nếu family/typology đó đã có ngôn ngữ được build trong hệ thống, so sánh ngôn ngữ mới với các baseline đã build trong cùng family trước: script, writing direction, segmentation, morphology, pronunciation/IPA, romanization, gender/case/tone/classifier/noun class, dictionary source, và UI/search implications.
-8. Nếu family/typology đó chưa có ngôn ngữ nào được build, research và phân tích đặc điểm ngôn ngữ trước để tạo baseline đầu tiên cho family đó, rồi mới lập plan implement.
-9. Khi build một ngôn ngữ mới, luôn build từ điển tra cứu trong cùng ngôn ngữ trước (monolingual: `lang -> lang`) với definition, part of speech, pronunciation/IPA/audio nếu có, và các field đặc thù của ngôn ngữ đó. Chỉ sau khi monolingual lookup ổn mới mở bilingual dictionary từ/ngôn ngữ đó sang các ngôn ngữ đã build trong hệ thống.
-10. Bilingual dictionary giữa hai ngôn ngữ phải dùng nguồn dictionary/lexical source đáng tin; không dùng machine translation để giả lập definition từ điển.
-11. Với các nhóm gây tranh luận như Altaic hoặc Amerind, chỉ dùng như bucket kỹ thuật/roadmap; không coi là taxonomy production khi thiết kế dữ liệu.
+5. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất. Các task chưa vào queue vẫn giữ ở section checklist tương ứng.
+6. Sau khi checklist trên GitHub khớp với code thực tế, bắt đầu task tiếp theo trong `Next Work Queue` bằng cách chuyển trạng thái task đó sang `[~] IN PROGRESS` và tiến hành triển khai.
+7. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó và ghi vào `Language Family Roadmap`.
+8. Nếu family/typology đó đã có ngôn ngữ được build trong hệ thống, so sánh ngôn ngữ mới với các baseline đã build trong cùng family trước: script, writing direction, segmentation, morphology, pronunciation/IPA, romanization, gender/case/tone/classifier/noun class, dictionary source, và UI/search implications.
+9. Nếu family/typology đó chưa có ngôn ngữ nào được build, research và phân tích đặc điểm ngôn ngữ trước để tạo baseline đầu tiên cho family đó, rồi mới lập plan implement.
+10. Khi build một ngôn ngữ mới, luôn build từ điển tra cứu trong cùng ngôn ngữ trước (monolingual: `lang -> lang`) với definition, part of speech, pronunciation/IPA/audio nếu có, và các field đặc thù của ngôn ngữ đó. Chỉ sau khi monolingual lookup ổn mới mở bilingual dictionary từ/ngôn ngữ đó sang các ngôn ngữ đã build trong hệ thống.
+11. Bilingual dictionary giữa hai ngôn ngữ phải dùng nguồn dictionary/lexical source đáng tin; không dùng machine translation để giả lập definition từ điển.
+12. Với các nhóm gây tranh luận như Altaic hoặc Amerind, chỉ dùng như bucket kỹ thuật/roadmap; không coi là taxonomy production khi thiết kế dữ liệu.
