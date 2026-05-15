@@ -149,8 +149,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### Training Tools UI/UX
 - [x] DONE [MEDIUM]: Collapse Advanced/Luyện tập into selectable tool tabs instead of showing Flashcard local as one large default block (commit `b524692`).
 - [x] DONE [MEDIUM]: Add frontend shell panels for AI hội thoại, Dịch chuyên ngành, Import, Reader, Export, and Flashcard local with per-tool status/roadmap copy (commit `b524692`).
-- [ ] TODO [MEDIUM]: Build AI hội thoại frontend tab: chat list, realtime chat surface, voice recording state, transcript area, correction/feedback panel, empty/loading/error states.
-- [ ] TODO [MEDIUM]: Build Dịch chuyên ngành frontend tab: domain/topic selector, glossary import/paste surface, source text editor, translated output panel, terminology highlights, blocked backend notice.
+- [x] DONE [MEDIUM]: Build AI hội thoại frontend tab: chat list, realtime chat surface, voice recording state, transcript area, correction/feedback panel, empty/loading/error states.
+- [x] DONE [MEDIUM]: Build Dịch chuyên ngành frontend tab: domain/topic selector, glossary import/paste surface, source text editor, translated output panel, terminology highlights, blocked backend notice.
 - [ ] TODO [MEDIUM]: Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
 - [ ] TODO [MEDIUM]: Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
 
@@ -188,9 +188,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## User Profile And Privacy
 
 ### Profile Settings Sidebar
-- [~] IN PROGRESS [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
-- [ ] TODO [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
-- [ ] TODO [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
+- [x] DONE [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
+- [x] DONE [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
+- [x] DONE [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
 - [ ] TODO [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
 - [ ] TODO [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [ ] TODO [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
@@ -284,11 +284,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [EASY]` Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
-2. `[ ] [MEDIUM]` Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
-3. `[ ] [MEDIUM]` Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
-4. `[ ] [MEDIUM]` Build AI hội thoại frontend tab: chat list, realtime chat surface, voice recording state, transcript area, correction/feedback panel, empty/loading/error states.
-5. `[ ] [MEDIUM]` Build Dịch chuyên ngành frontend tab: domain/topic selector, glossary import/paste surface, source text editor, translated output panel, terminology highlights, blocked backend notice.
+1. `[ ] [EASY]` Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
+2. `[ ] [EASY]` Add Support settings items: Help center and Feedback.
+3. `[ ] [MEDIUM]` Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
+4. `[ ] [MEDIUM]` Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
+5. `[ ] [MEDIUM]` Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
 
 ## Rule
 

@@ -1,8 +1,20 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import {
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
 import { studyStats } from '@/data/dictionary';
@@ -24,8 +36,10 @@ import { ReaderState, getDefaultReaderState, loadReaderState } from '@/data/read
 
 const days = Array.from({ length: 84 }, (_, index) => index);
 const chartValues = [1, 1.5, 2, 2.4, 4.6, 6.4, 5.5, 7.3, 9.1, 11.2, 10.5, 13.1, 15.5, 12.6, 17.5, 16.1, 23.6];
+const defaultAvatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop';
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
@@ -131,21 +145,44 @@ export default function ProfileScreen() {
 
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
   const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
+  const avatarUri = profile.avatarUrl || defaultAvatarUri;
+
+  const handleDeleteLocalProfile = () => {
+    Alert.alert('Xóa hồ sơ local', 'Hành động này sẽ xóa hồ sơ local trên thiết bị. Bạn có muốn tiếp tục?', [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Xóa hồ sơ',
+        style: 'destructive',
+        onPress: async () => {
+          await clearUserProfile();
+          setProfile(getDefaultProfile());
+          setSaveMessage('Hồ sơ đã xóa.');
+          setSidebarOpen(false);
+          Alert.alert('Đã xóa hồ sơ', 'Hồ sơ local đã được xóa.');
+        },
+      },
+    ]);
+  };
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <TouchableOpacity activeOpacity={0.82} onPress={() => setSidebarOpen(true)} style={styles.menuButton}>
-            <Ionicons name="menu" size={27} color="#0F172A" />
-          </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="Mở cài đặt"
+            accessibilityRole="button"
+            onPress={() => setSidebarOpen(true)}
+            style={({ pressed }) => [styles.settingsButton, pressed && styles.settingsButtonPressed]}>
+            <Ionicons name="settings-outline" size={20} color="#0F172A" />
+            <Text style={styles.settingsButtonText}>Cài đặt</Text>
+          </Pressable>
           <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={styles.saveProfileButton}>
             <Ionicons name="save-outline" size={18} color="#2563EB" />
             <Text style={styles.saveProfileText}>Lưu</Text>
           </TouchableOpacity>
         </View>
 
-        <Image source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop' }} style={styles.avatar} />
+        <Image source={{ uri: avatarUri }} style={styles.avatar} />
         <Text style={styles.userName}>{profile.displayName}</Text>
         <Text style={styles.userMeta}>
           {nativeLanguage?.label ?? profile.nativeLanguage} {'->'} {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel} ·{' '}
@@ -353,81 +390,116 @@ export default function ProfileScreen() {
 
       {sidebarOpen ? (
         <View style={styles.sidebarOverlay} pointerEvents="box-none">
-          <TouchableOpacity style={styles.sidebarBackdrop} activeOpacity={1} onPress={() => setSidebarOpen(false)} />
-          <View style={styles.sidebarSheet}>
+          <TouchableOpacity
+            accessibilityLabel="Đóng cài đặt"
+            activeOpacity={1}
+            onPress={() => setSidebarOpen(false)}
+            style={styles.sidebarBackdrop}
+          />
+          <View style={[styles.sidebarSheet, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
             <View style={styles.sidebarHeader}>
               <Text style={styles.sidebarTitle}>Cài đặt</Text>
-              <TouchableOpacity activeOpacity={0.82} onPress={() => setSidebarOpen(false)}>
+              <Pressable
+                accessibilityLabel="Đóng"
+                accessibilityRole="button"
+                onPress={() => setSidebarOpen(false)}
+                style={({ pressed }) => [styles.sidebarCloseButton, pressed && styles.sidebarCloseButtonPressed]}>
                 <Ionicons name="close" size={20} color="#64748B" />
-              </TouchableOpacity>
+              </Pressable>
             </View>
-            <ScrollView contentContainerStyle={styles.sidebarContent} showsVerticalScrollIndicator={false}>
-              <View style={{ alignItems: 'center', marginBottom: 12 }}>
-                <Image
-                  source={{ uri: profile.avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop' }}
-                  style={styles.sidebarAvatar}
-                />
-                <TouchableOpacity activeOpacity={0.82} onPress={() => setEditingAvatar((v) => !v)}>
-                  <Text style={[styles.sidebarItemText, { color: '#2563EB', marginTop: 6 }]}>{editingAvatar ? 'Hủy' : 'Thay ảnh'}</Text>
-                </TouchableOpacity>
-              </View>
-
-              {editingAvatar ? (
+            <ScrollView
+              contentContainerStyle={styles.sidebarContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}>
+              <SidebarSection title="Tài khoản">
+                <View style={styles.sidebarAvatarBlock}>
+                  <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
+                  <Pressable
+                    onPress={() => setEditingAvatar((value) => !value)}
+                    style={({ pressed }) => [styles.sidebarAvatarAction, pressed && styles.sidebarAvatarActionPressed]}>
+                    <Text style={styles.sidebarAvatarActionText}>{editingAvatar ? 'Hủy' : 'Thay ảnh'}</Text>
+                  </Pressable>
+                </View>
+                {editingAvatar ? (
+                  <ProfileInput
+                    label="Avatar URL"
+                    onChangeText={(value) => updateProfile('avatarUrl', value)}
+                    placeholder="https://..."
+                    value={profile.avatarUrl}
+                  />
+                ) : null}
                 <ProfileInput
-                  label="Avatar URL"
-                  onChangeText={(value) => updateProfile('avatarUrl', value)}
-                  placeholder="https://..."
-                  value={profile.avatarUrl}
+                  label="Tên hiển thị"
+                  onChangeText={(value) => updateProfile('displayName', value)}
+                  placeholder="Tên hiển thị"
+                  value={profile.displayName}
                 />
-              ) : null}
+                <ProfileInput
+                  label="Tên người dùng"
+                  onChangeText={(value) => updateProfile('username', value)}
+                  placeholder="username"
+                  value={profile.username}
+                />
+                <ProfileInput
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  label="Email"
+                  onChangeText={(value) => updateProfile('email', value)}
+                  placeholder="you@example.com"
+                  value={profile.email}
+                />
+                <ProfileInput
+                  label="Số điện thoại"
+                  onChangeText={(value) => updateProfile('phone', value)}
+                  placeholder="+84..."
+                  value={profile.phone}
+                />
+                <View style={styles.fieldBlock}>
+                  <Text style={styles.fieldLabel}>Mật khẩu</Text>
+                  <TextInput
+                    editable={false}
+                    placeholder="Chưa hỗ trợ — cần đăng nhập cloud"
+                    placeholderTextColor="#94A3B8"
+                    secureTextEntry
+                    style={[styles.profileInput, styles.profileInputDisabled]}
+                    value=""
+                  />
+                  <Text style={styles.fieldHint}>Chỉ lưu local. Đổi mật khẩu sẽ có sau khi chọn nhà cung cấp đăng nhập.</Text>
+                </View>
+                <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
+                  <Ionicons name="save-outline" size={16} color="#2563EB" />
+                  <Text style={styles.saveProfileText}>Lưu thay đổi</Text>
+                </TouchableOpacity>
+              </SidebarSection>
 
-              <ProfileInput label="Tên hiển thị" onChangeText={(value) => updateProfile('displayName', value)} placeholder="Tên hiển thị" value={profile.displayName} />
-              <ProfileInput label="Tên người dùng" onChangeText={(value) => updateProfile('username', value)} placeholder="username" value={profile.username} />
-              <ProfileInput autoCapitalize="none" label="Email" keyboardType="email-address" onChangeText={(value) => updateProfile('email', value)} placeholder="you@example.com" value={profile.email} />
-              <ProfileInput label="Số điện thoại" onChangeText={(value) => updateProfile('phone', value)} placeholder="+84..." value={profile.phone} />
-
-              <TouchableOpacity style={[styles.saveProfileButton, { marginTop: 12 }]} activeOpacity={0.82} onPress={handleSaveProfile}>
-                <Ionicons name="save-outline" size={16} color="#2563EB" />
-                <Text style={styles.saveProfileText}>Lưu thay đổi</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.clearDataButton, { marginTop: 12 }]}
-                activeOpacity={0.82}
-                onPress={() => {
-                  Alert.alert('Thay đổi mật khẩu', 'Chức năng thay đổi mật khẩu chưa khả dụng.', [{ text: 'OK' }]);
-                }}
-              >
-                <Text style={styles.clearDataText}>Thay đổi mật khẩu (chưa khả dụng)</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.clearDataButton, { marginTop: 12 }]}
-                activeOpacity={0.82}
-                onPress={() => {
-                  Alert.alert('Xóa tài khoản', 'Hành động này sẽ xóa hồ sơ local của bạn. Bạn có muốn tiếp tục?', [
-                    { text: 'Hủy', style: 'cancel' },
-                    {
-                      text: 'Xóa',
-                      style: 'destructive',
-                      onPress: async () => {
-                        await clearUserProfile();
-                        setProfile(getDefaultProfile());
-                        setSaveMessage('Hồ sơ đã xóa.');
-                        setSidebarOpen(false);
-                        Alert.alert('Đã xóa hồ sơ', 'Hồ sơ local đã được xóa.');
-                      },
-                    },
-                  ]);
-                }}
-              >
-                <Text style={styles.clearDataText}>Xóa hồ sơ local</Text>
-              </TouchableOpacity>
+              <SidebarSection title="Bảo mật & dữ liệu">
+                <TouchableOpacity
+                  activeOpacity={0.82}
+                  onPress={() => Alert.alert('Thay đổi mật khẩu', 'Chức năng này cần đăng nhập cloud và chưa khả dụng trên bản local.', [{ text: 'OK' }])}
+                  style={styles.sidebarSecondaryAction}>
+                  <Ionicons name="key-outline" size={17} color="#64748B" />
+                  <Text style={styles.sidebarSecondaryActionText}>Thay đổi mật khẩu</Text>
+                  <Text style={styles.sidebarComingSoon}>Sắp có</Text>
+                </TouchableOpacity>
+                <TouchableOpacity activeOpacity={0.82} onPress={handleDeleteLocalProfile} style={styles.sidebarDestructiveAction}>
+                  <Ionicons name="trash-outline" size={17} color="#DC2626" />
+                  <Text style={styles.sidebarDestructiveText}>Xóa hồ sơ local</Text>
+                </TouchableOpacity>
+              </SidebarSection>
             </ScrollView>
           </View>
         </View>
       ) : null}
     </Screen>
+  );
+}
+
+function SidebarSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.sidebarSection}>
+      <Text style={styles.sidebarSectionTitle}>{title}</Text>
+      {children}
+    </View>
   );
 }
 
@@ -490,21 +562,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  menuButton: {
+  settingsButton: {
     alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderRadius: 8,
-    padding: 6,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  settingsButtonPressed: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    transform: [{ scale: 0.98 }],
+  },
+  settingsButtonText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
   },
   sidebarOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
     bottom: 0,
-    zIndex: 999,
     elevation: 20,
     justifyContent: 'flex-start',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 999,
   },
   sidebarBackdrop: {
     position: 'absolute',
@@ -515,27 +602,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#00000066',
   },
   sidebarSheet: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: '78%',
-    maxWidth: 420,
     backgroundColor: '#FFFFFF',
-    paddingTop: 36,
-    paddingHorizontal: 14,
-    paddingBottom: 24,
+    bottom: 0,
     elevation: 22,
+    left: 0,
+    maxWidth: 420,
+    paddingHorizontal: 14,
+    position: 'absolute',
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 8,
+    top: 0,
+    width: '78%',
   },
   sidebarHeader: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingRight: 6,
+    marginBottom: 10,
+    paddingRight: 4,
+  },
+  sidebarCloseButton: {
+    alignItems: 'center',
+    borderRadius: 999,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  sidebarCloseButtonPressed: {
+    backgroundColor: '#F1F5F9',
   },
   sidebarTitle: {
     color: '#0F172A',
@@ -543,24 +638,97 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   sidebarContent: {
-    paddingBottom: 36,
+    paddingBottom: 24,
   },
-  sidebarItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+  sidebarSection: {
+    marginBottom: 18,
   },
-  sidebarItemText: {
-    color: '#0F172A',
-    fontSize: 15,
-    fontWeight: '800',
+  sidebarSectionTitle: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+  },
+  sidebarAvatarBlock: {
+    alignItems: 'center',
+    marginBottom: 12,
   },
   sidebarAvatar: {
-    width: 72,
-    height: 72,
     borderRadius: 36,
+    height: 72,
+    width: 72,
+  },
+  sidebarAvatarAction: {
+    borderRadius: 999,
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  sidebarAvatarActionPressed: {
+    backgroundColor: '#EFF6FF',
+  },
+  sidebarAvatarActionText: {
+    color: '#2563EB',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  sidebarPrimaryAction: {
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  sidebarSecondaryAction: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
     marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+  },
+  sidebarSecondaryActionText: {
+    color: '#334155',
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  sidebarComingSoon: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  sidebarDestructiveAction: {
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+  },
+  sidebarDestructiveText: {
+    color: '#DC2626',
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  profileInputDisabled: {
+    backgroundColor: '#F1F5F9',
+    color: '#94A3B8',
+  },
+  fieldHint: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 16,
+    marginTop: 6,
   },
   saveProfileButton: {
     alignItems: 'center',

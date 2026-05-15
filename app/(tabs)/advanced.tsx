@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, type Href } from 'expo-router';
 import { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import {
@@ -59,7 +59,7 @@ const learningTools: {
     description: 'Luyện phản xạ bằng giọng nói hoặc tin nhắn với gợi ý sửa câu.',
     icon: 'chatbubbles-outline',
     accent: '#EAF1FF',
-    status: 'Thiết kế UI trước',
+    status: 'UI shell sẵn sàng',
   },
   {
     id: 'specialized-translation',
@@ -67,7 +67,7 @@ const learningTools: {
     description: 'Dịch đoạn văn theo thuật ngữ cá nhân và ngữ cảnh học thuật.',
     icon: 'language-outline',
     accent: '#EAF8F0',
-    status: 'Thiết kế UI trước',
+    status: 'UI shell sẵn sàng',
   },
   {
     id: 'import',
@@ -369,6 +369,10 @@ export default function AdvancedScreen() {
             </View>
           )}
           </View>
+        ) : activeToolId === 'ai-chat' ? (
+          <AiConversationToolPanel />
+        ) : activeToolId === 'specialized-translation' ? (
+          <SpecializedTranslationToolPanel />
         ) : (
           <LearningToolPanel tool={activeTool} />
         )}
@@ -395,6 +399,300 @@ function ToolTab({
         {tool.title}
       </Text>
     </TouchableOpacity>
+  );
+}
+
+type AiChatPreviewState = 'empty' | 'loading' | 'ready' | 'error';
+type VoiceRecordingState = 'idle' | 'recording' | 'processing';
+
+const aiChatThreads = [
+  { id: 'travel', title: 'Đặt phòng khách sạn', preview: 'I would like to book a room...' },
+  { id: 'work', title: 'Email công việc', preview: 'Please find attached the report...' },
+];
+
+const translationDomains = [
+  { id: 'general', label: 'Chung' },
+  { id: 'medical', label: 'Y khoa' },
+  { id: 'legal', label: 'Pháp lý' },
+  { id: 'tech', label: 'CNTT' },
+  { id: 'academic', label: 'Học thuật' },
+];
+
+function AiConversationToolPanel() {
+  const [previewState, setPreviewState] = useState<AiChatPreviewState>('empty');
+  const [activeThreadId, setActiveThreadId] = useState('');
+  const [voiceState, setVoiceState] = useState<VoiceRecordingState>('idle');
+  const [draftMessage, setDraftMessage] = useState('');
+  const [transcript, setTranscript] = useState('');
+
+  const activeThread = aiChatThreads.find((thread) => thread.id === activeThreadId);
+
+  const handleOpenThread = (threadId: string) => {
+    setActiveThreadId(threadId);
+    setPreviewState('loading');
+    setVoiceState('idle');
+    setTranscript('');
+    setDraftMessage('');
+
+    setTimeout(() => {
+      setPreviewState('ready');
+      setDraftMessage(aiChatThreads.find((thread) => thread.id === threadId)?.preview ?? '');
+      setTranscript('Bản ghi âm và transcript sẽ hiển thị tại đây khi backend AI sẵn sàng.');
+    }, 500);
+  };
+
+  const handleSimulateError = () => {
+    setActiveThreadId('');
+    setPreviewState('error');
+    setVoiceState('idle');
+    setTranscript('');
+    setDraftMessage('');
+  };
+
+  const handleToggleRecording = () => {
+    if (previewState !== 'ready') return;
+
+    if (voiceState === 'idle') {
+      setVoiceState('recording');
+      setTranscript('Đang ghi âm... (UI preview)');
+      return;
+    }
+
+    if (voiceState === 'recording') {
+      setVoiceState('processing');
+      setTranscript('Đang xử lý giọng nói... (UI preview)');
+      setTimeout(() => {
+        setVoiceState('idle');
+        setTranscript('I would like to book a room for two nights, please.');
+      }, 700);
+    }
+  };
+
+  return (
+    <View style={styles.toolPanel}>
+      <View style={styles.toolPanelHeader}>
+        <View style={[styles.iconWrap, { backgroundColor: '#EAF1FF' }]}>
+          <Ionicons name="chatbubbles-outline" size={28} color="#0F172A" />
+        </View>
+        <View style={styles.copy}>
+          <Text style={styles.featureTitle}>AI hội thoại</Text>
+          <Text style={styles.description}>Luyện phản xạ bằng giọng nói hoặc tin nhắn. Backend AI chưa kết nối — đây là UI shell.</Text>
+        </View>
+      </View>
+
+      <View style={styles.blockedNotice}>
+        <Ionicons name="lock-closed-outline" size={16} color="#B45309" />
+        <Text style={styles.blockedNoticeText}>Cần backend streaming, auth và cost controls trước khi chat thật.</Text>
+      </View>
+
+      <Text style={styles.toolSectionLabel}>Danh sách hội thoại</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+        {aiChatThreads.map((thread) => (
+          <FilterChip
+            key={thread.id}
+            isSelected={activeThreadId === thread.id}
+            label={thread.title}
+            onPress={() => handleOpenThread(thread.id)}
+          />
+        ))}
+        <FilterChip isSelected={previewState === 'error'} label="Lỗi mẫu" onPress={handleSimulateError} />
+      </ScrollView>
+
+      {previewState === 'empty' ? (
+        <View style={styles.toolStateCard}>
+          <Ionicons name="chatbubble-ellipses-outline" size={22} color="#94A3B8" />
+          <Text style={styles.toolStateTitle}>Chưa chọn hội thoại</Text>
+          <Text style={styles.toolStateText}>Chọn một chủ đề ở trên để xem khung chat, ghi âm và feedback.</Text>
+        </View>
+      ) : null}
+
+      {previewState === 'loading' ? (
+        <View style={styles.toolStateCard}>
+          <Text style={styles.toolStateTitle}>Đang tải hội thoại...</Text>
+          <Text style={styles.toolStateText}>Chuẩn bị khung chat và transcript.</Text>
+        </View>
+      ) : null}
+
+      {previewState === 'error' ? (
+        <View style={[styles.toolStateCard, styles.toolStateCardError]}>
+          <Ionicons name="alert-circle-outline" size={22} color="#DC2626" />
+          <Text style={styles.toolStateTitle}>Không tải được hội thoại</Text>
+          <Text style={styles.toolStateText}>Kiểm tra kết nối hoặc thử lại sau khi backend AI sẵn sàng.</Text>
+          <TouchableOpacity activeOpacity={0.82} onPress={() => setPreviewState('empty')} style={styles.toolRetryButton}>
+            <Text style={styles.toolRetryButtonText}>Thử lại</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      {previewState === 'ready' && activeThread ? (
+        <>
+          <View style={styles.chatSurface}>
+            <Text style={styles.chatBubbleLabel}>Chủ đề · {activeThread.title}</Text>
+            <View style={styles.chatBubbleAssistant}>
+              <Text style={styles.chatBubbleText}>Xin chào! Hãy luyện tập câu mở đầu cho tình huống này.</Text>
+            </View>
+            <View style={styles.chatBubbleUser}>
+              <Text style={styles.chatBubbleTextUser}>{draftMessage || '...'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.voiceRow}>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              disabled={voiceState === 'processing'}
+              onPress={handleToggleRecording}
+              style={[
+                styles.voiceButton,
+                voiceState === 'recording' && styles.voiceButtonRecording,
+                voiceState === 'processing' && styles.voiceButtonDisabled,
+              ]}>
+              <Ionicons
+                name={voiceState === 'recording' ? 'stop-circle' : 'mic-outline'}
+                size={18}
+                color="#FFFFFF"
+              />
+              <Text style={styles.voiceButtonText}>
+                {voiceState === 'idle' ? 'Ghi âm' : voiceState === 'recording' ? 'Dừng' : 'Đang xử lý...'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.voiceStateText}>
+              {voiceState === 'idle' ? 'Sẵn sàng ghi âm' : voiceState === 'recording' ? 'Đang ghi...' : 'Đang xử lý...'}
+            </Text>
+          </View>
+
+          <View style={styles.transcriptCard}>
+            <Text style={styles.toolSectionLabel}>Transcript</Text>
+            <Text style={styles.transcriptText}>{transcript}</Text>
+          </View>
+
+          <View style={styles.feedbackCard}>
+            <Text style={styles.toolSectionLabel}>Correction / Feedback</Text>
+            <Text style={styles.feedbackText}>
+              Gợi ý: thay &quot;I want book room&quot; bằng &quot;I would like to book a room&quot; để tự nhiên hơn.
+            </Text>
+          </View>
+
+          <TextInput
+            editable={false}
+            multiline
+            placeholder="Nhập tin nhắn (chờ backend)..."
+            placeholderTextColor="#94A3B8"
+            style={styles.toolTextArea}
+            value={draftMessage}
+          />
+        </>
+      ) : null}
+    </View>
+  );
+}
+
+function SpecializedTranslationToolPanel() {
+  const [domainId, setDomainId] = useState('general');
+  const [glossaryText, setGlossaryText] = useState('MRI -> cộng hưởng từ\nCT scan -> chụp cắt lớp');
+  const [sourceText, setSourceText] = useState('The patient underwent an MRI after the initial screening.');
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const glossaryTerms = glossaryText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [source, target] = line.split('->').map((part) => part.trim());
+      return { source: source ?? line, target: target ?? '' };
+    });
+
+  const highlightedTerms = glossaryTerms.filter((term) => sourceText.toLowerCase().includes(term.source.toLowerCase()));
+
+  const handleTranslatePreview = () => {
+    setIsTranslating(true);
+    setTimeout(() => setIsTranslating(false), 600);
+  };
+
+  return (
+    <View style={styles.toolPanel}>
+      <View style={styles.toolPanelHeader}>
+        <View style={[styles.iconWrap, { backgroundColor: '#EAF8F0' }]}>
+          <Ionicons name="language-outline" size={28} color="#0F172A" />
+        </View>
+        <View style={styles.copy}>
+          <Text style={styles.featureTitle}>Dịch chuyên ngành</Text>
+          <Text style={styles.description}>Dịch theo glossary và ngữ cảnh chuyên ngành. Production translation cần backend riêng.</Text>
+        </View>
+      </View>
+
+      <View style={styles.blockedNotice}>
+        <Ionicons name="cloud-offline-outline" size={16} color="#B45309" />
+        <Text style={styles.blockedNoticeText}>Backend dịch chuyên ngành chưa kết nối. UI preview không phải bản dịch production.</Text>
+      </View>
+
+      <Text style={styles.toolSectionLabel}>Chuyên ngành / chủ đề</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+        {translationDomains.map((domain) => (
+          <FilterChip
+            key={domain.id}
+            isSelected={domainId === domain.id}
+            label={domain.label}
+            onPress={() => setDomainId(domain.id)}
+          />
+        ))}
+      </ScrollView>
+
+      <Text style={styles.toolSectionLabel}>Glossary (mỗi dòng: thuật ngữ -&gt; bản dịch)</Text>
+      <TextInput
+        multiline
+        onChangeText={setGlossaryText}
+        placeholder="term -> bản dịch"
+        placeholderTextColor="#94A3B8"
+        style={styles.toolTextArea}
+        value={glossaryText}
+      />
+
+      <Text style={styles.toolSectionLabel}>Văn bản nguồn</Text>
+      <TextInput
+        multiline
+        onChangeText={setSourceText}
+        placeholder="Nhập đoạn cần dịch..."
+        placeholderTextColor="#94A3B8"
+        style={styles.toolTextArea}
+        value={sourceText}
+      />
+
+      {highlightedTerms.length ? (
+        <View style={styles.terminologyCard}>
+          <Text style={styles.toolSectionLabel}>Thuật ngữ nhận diện</Text>
+          <View style={styles.terminologyRow}>
+            {highlightedTerms.map((term) => (
+              <View key={term.source} style={styles.terminologyChip}>
+                <Text style={styles.terminologyChipText}>
+                  {term.source}
+                  {term.target ? ` → ${term.target}` : ''}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        disabled={isTranslating || !sourceText.trim()}
+        onPress={handleTranslatePreview}
+        style={[styles.generateButton, (isTranslating || !sourceText.trim()) && styles.generateButtonDisabled]}>
+        <Ionicons name="language-outline" size={18} color="#FFFFFF" />
+        <Text style={styles.generateButtonText}>{isTranslating ? 'Đang mô phỏng...' : 'Xem preview dịch (local)'}</Text>
+      </TouchableOpacity>
+
+      <View style={styles.translationOutputCard}>
+        <Text style={styles.toolSectionLabel}>Kết quả dịch</Text>
+        {isTranslating ? (
+          <Text style={styles.toolStateText}>Đang xử lý theo glossary và domain {translationDomains.find((d) => d.id === domainId)?.label}...</Text>
+        ) : (
+          <Text style={styles.translationOutputText}>
+            Bệnh nhân đã được chụp cộng hưởng từ sau khi sàng lọc ban đầu. (Preview UI — không dùng làm dữ liệu production.)
+          </Text>
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -904,5 +1202,221 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 19,
     marginTop: 8,
+  },
+  blockedNotice: {
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+    padding: 10,
+  },
+  blockedNoticeText: {
+    color: '#92400E',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+  },
+  toolSectionLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 14,
+    textTransform: 'uppercase',
+  },
+  toolStateCard: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    marginTop: 12,
+    padding: 16,
+  },
+  toolStateCardError: {
+    backgroundColor: '#FEF2F2',
+  },
+  toolStateTitle: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+    marginTop: 8,
+  },
+  toolStateText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  toolRetryButton: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FECACA',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  toolRetryButtonText: {
+    color: '#DC2626',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  chatSurface: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+    marginTop: 12,
+    padding: 12,
+  },
+  chatBubbleLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  chatBubbleAssistant: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    maxWidth: '92%',
+    padding: 10,
+  },
+  chatBubbleUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    maxWidth: '92%',
+    padding: 10,
+  },
+  chatBubbleText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
+  chatBubbleTextUser: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
+  voiceRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  voiceButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  voiceButtonRecording: {
+    backgroundColor: '#DC2626',
+  },
+  voiceButtonDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  voiceButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  voiceStateText: {
+    color: '#64748B',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  transcriptCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 12,
+  },
+  transcriptText: {
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: 4,
+  },
+  feedbackCard: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 12,
+  },
+  feedbackText: {
+    color: '#1D4ED8',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  toolTextArea: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+    marginTop: 8,
+    minHeight: 88,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    textAlignVertical: 'top',
+  },
+  terminologyCard: {
+    marginTop: 4,
+  },
+  terminologyRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  terminologyChip: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  terminologyChipText: {
+    color: '#047857',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  translationOutputCard: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 12,
+  },
+  translationOutputText: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 21,
+    marginTop: 4,
   },
 });
