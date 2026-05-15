@@ -1,9 +1,12 @@
 # Skill: Dictionary Adapter Builder
 
-## Trigger
+## Use when
 Use this when adding or changing dictionary lookup adapters, local lexicon behavior, morphology helpers, search normalization, or language-specific lookup logic.
 
-## Inputs
+## Context to read first
+- `.ai/agents/language-adapter.md`
+- `.ai/skills/language-build-planner.md`
+- `.ai/skills/blocked-task-gatekeeper.md`
 - `data/adapterRegistry.ts`
 - `data/dictionaryApi.ts`
 - `data/dictionary.ts`
@@ -13,30 +16,29 @@ Use this when adding or changing dictionary lookup adapters, local lexicon behav
 - related tests in `tests/`
 
 ## Workflow
-1. Read the adapter registry and existing adapter shape before adding new behavior.
-2. Keep adapter interfaces stable unless all callers and tests are updated.
-3. Prefer language-specific normalization inside the adapter or helper, not scattered across screens.
-4. Return structured dictionary entries that match existing UI expectations.
-5. Handle no-result, partial-result, and unsupported-language cases explicitly.
-6. Add or update tests for registry behavior and lookup output.
-7. Keep network or licensed-data assumptions out unless the product decision exists.
+1. Read the adapter registry and existing adapter shape before editing.
+2. Confirm the requested language or source is not blocked by licensing.
+3. Keep adapter interfaces stable unless all callers and tests are updated.
+4. Put language-specific normalization in an adapter or helper, not scattered across screens.
+5. Return structured dictionary entries that match current UI expectations.
+6. Handle empty input, no result, partial result, and unsupported language cases.
+7. Add or update registry and lookup tests.
 
-## Adapter Checklist
-- language id is registered
-- display metadata exists in `data/languages.ts`
-- lookup function handles empty and malformed input
-- normalization is deterministic
-- morphology output is optional and typed
-- fallback behavior is explicit
-- tests cover success and no-result paths
-
-## Guardrails
-- Do not use machine translation as source dictionary content.
+## Rules
+- Build monolingual lookup first unless a trustworthy bilingual source is selected.
+- Never use machine translation as dictionary data.
 - Do not hardcode large lexical datasets directly into source files.
-- Do not break existing adapter tests.
 - Do not add production remote calls without privacy, quota, and offline decisions.
+- Do not break existing adapters or fallback lookup behavior.
 
-## Done Criteria
-- Adapter is discoverable through the registry.
-- Existing dictionary API callers still work.
-- Tests document the expected lookup behavior.
+## Output
+- Adapter change summary.
+- Registered language/source ids.
+- Normalization and morphology behavior.
+- Tests added or updated.
+- Blocked data or licensing decisions.
+
+## Stop conditions
+- Stop if no legal source exists for the requested production dictionary.
+- Stop if the task requires a licensed offline bundle decision.
+- Stop if changing the adapter contract would require broad unplanned rewrites.

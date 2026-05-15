@@ -1,40 +1,40 @@
 # Skill: Expo React Native UI Builder
 
-## Trigger
-Use this when building or polishing screens, tabs, controls, empty states, or local-first flows in this Expo Router React Native app.
+## Use when
+Use this when building or polishing screens, tabs, controls, forms, menus, empty states, or local-first workflows in this Expo Router React Native app.
 
-## Inputs
+## Context to read first
+- `.ai/agents/ui-polish.md`
+- `docs/product-progress.md`
 - target route in `app/`
-- reusable components in `components/app`, `components/ui`, and feature folders
+- shared components in `components/app`, `components/ui`, and feature folders
 - theme tokens in `constants/theme.ts`
 - related data APIs in `data/`
-- current mobile and web behavior
 
 ## Workflow
 1. Inspect the existing screen and nearby components before editing.
-2. Reuse `Screen`, `SectionTitle`, themed text/view helpers, and existing feature components where they fit.
+2. Reuse `Screen`, `SectionTitle`, themed text/view helpers, icons, and existing feature components where they fit.
 3. Keep layouts safe for portrait mobile and Expo web.
-4. Add empty, loading, disabled, and error states when the workflow needs them.
-5. Keep copy concise and consistent with existing app language.
-6. Use local state or existing stores for UI behavior; avoid new persistence unless required.
-7. Run typecheck and lint after changes when code was edited.
+4. Add empty, loading, disabled, destructive, and error states when the flow needs them.
+5. Keep copy concise and consistent with surrounding Vietnamese UI.
+6. Use local state or existing stores for UI behavior.
+7. Run typecheck and lint after code edits.
 
-## UI Checklist
-- Empty state is useful.
-- Error state is recoverable.
-- Buttons have clear disabled states.
-- Text does not overflow on narrow screens.
-- Touch targets are comfortable.
-- Web spacing still scans well.
-- Accessibility labels exist for icon-only actions.
-
-## Guardrails
+## Rules
 - Do not add new dependencies without a strong reason.
-- Do not introduce backend assumptions.
+- Do not introduce backend, auth, sync, OAuth, AI, or production integration assumptions.
 - Do not change shared data models for visual-only work.
-- Do not implement blocked production behavior; show placeholder UI only.
+- Do not hide blocked features; show honest disabled or coming-soon states.
+- Avoid decorative UI that reduces scanability or causes overlap.
 
-## Done Criteria
-- The screen works on mobile and web assumptions.
-- The implementation follows local component patterns.
-- Verification commands or skipped-test reasons are reported.
+## Output
+- UI change summary.
+- Changed files.
+- States handled: empty, loading, error, disabled, destructive.
+- Mobile/web layout notes.
+- Verification results or skipped-check reason.
+
+## Stop conditions
+- Stop if the requested UI requires unresolved backend or legal behavior.
+- Stop if copy or legal/privacy text needs product approval.
+- Stop if fixing layout requires a data-model change outside the task scope.

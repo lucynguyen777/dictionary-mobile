@@ -5,6 +5,7 @@ Select the next valid product task, produce an implementation-ready brief, route
 
 ## Core Inputs
 - `docs/product-progress.md`
+- `.ai/context/product-rules.md`
 - `.ai/context/project-rules.md`
 - `.ai/context/architecture-summary.md`
 - `.ai/context/blocked-decisions.md`

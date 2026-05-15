@@ -1,32 +1,38 @@
 # Skill: Language Build Planner
 
-## Trigger
-Use this before adding support for a new language, script, morphology system, pronunciation feature, transliteration, or language-specific dictionary behavior.
+## Use when
+Use this before adding support for a new language, script, morphology system, pronunciation feature, transliteration, segmentation behavior, or language-specific dictionary adapter.
 
-## Inputs
-- requested language and locale variants
+## Context to read first
+- `.ai/agents/language-adapter.md`
+- `.ai/prompts/create-language-adapter-plan.md`
+- `.ai/skills/dictionary-adapter-builder.md`
+- `.ai/skills/blocked-task-gatekeeper.md`
+- `docs/product-progress.md`
 - `data/languages.ts`
 - `data/adapterRegistry.ts`
-- existing morphology or dictionary modules
-- available lexical source candidates and licenses
+- existing morphology and dictionary modules
+- `.docs/decisions/dictionary-source-licensing.md`
+- `.docs/decisions/offline-dictionary-bundle.md`
 
-## Required Analysis
+## Workflow
 1. Identify language family, typology, and locale variants.
-2. Determine script, writing direction, casing, and normalization needs.
+2. Determine script, writing direction, casing, normalization, and sorting needs.
 3. Determine segmentation requirements for search and reader import.
 4. Identify morphology needs such as gender, case, tone, classifiers, noun class, conjugation, or inflection.
-5. Identify pronunciation fields such as IPA, romanization, kana, pinyin, or audio.
+5. Identify pronunciation fields such as IPA, romanization, kana, pinyin, transliteration, or audio.
 6. Identify dictionary source candidates and license risk.
-7. Decide whether UI labels, sort order, or search behavior must change.
+7. Decide UI/search/storage implications.
 8. Propose the smallest adapter-first implementation path.
 
-## Product Rules
+## Rules
 - Build monolingual lookup first.
 - Add bilingual dictionary only after a trustworthy lexical source is selected.
 - Never use machine translation as dictionary data.
 - Treat licensed offline dictionary bundles as blocked until licensing is resolved.
+- Do not treat disputed macro-families as production taxonomy.
 
-## Output Template
+## Output
 ```md
 Language:
 Scope:
@@ -39,9 +45,10 @@ License risks:
 Implementation plan:
 Tests:
 Blocked decisions:
+First safe task:
 ```
 
-## Done Criteria
-- The plan separates unblocked code work from data/licensing decisions.
-- Adapter changes are named before UI changes.
-- Search and storage implications are explicit.
+## Stop conditions
+- Stop if no trustworthy legal source candidate exists for the requested scope.
+- Stop if the language requires a production offline bundle decision.
+- Stop if backend translation is being requested as dictionary data.

@@ -1,9 +1,12 @@
 # Skill: Import Export Feature Builder
 
-## Trigger
-Use this when changing import, export, backup, restore, CSV/TSV/XLS handling, Anki generation, or file picker/sharing flows.
+## Use when
+Use this when changing import, export, backup, restore, CSV/TSV/XLS handling, Anki generation, file picker, sharing, import preview, mapping, validation, or export status flows.
 
-## Inputs
+## Context to read first
+- `.ai/agents/import-export-builder.md`
+- `.ai/skills/expo-react-native-ui-builder.md`
+- `.ai/skills/blocked-task-gatekeeper.md`
 - `data/csvImport.ts`
 - `data/exportAllData.ts`
 - `data/readerImport.ts`
@@ -11,28 +14,32 @@ Use this when changing import, export, backup, restore, CSV/TSV/XLS handling, An
 - UI screens that trigger import/export
 - tests covering parser or export behavior
 
-## Import Workflow
-1. Preserve existing CSV and TSV behavior.
-2. Parse with structured helpers rather than ad hoc splitting when quoted fields or delimiters matter.
-3. Validate empty rows, duplicate words, missing primary fields, and unsupported formats.
-4. Preserve field mapping and preview-before-import behavior when present.
-5. Keep folder or collection destination explicit.
-6. Report import counts and recoverable row errors.
+## Workflow
+1. Inspect current parser/export helpers before editing UI.
+2. Preserve existing CSV, TSV, Excel-compatible XLS, and Anki TSV behavior.
+3. Parse with structured helpers when quoted fields or delimiters matter.
+4. Validate empty rows, duplicate words, missing primary fields, unsupported fields, and unsupported formats.
+5. Preserve mapping preview and preview-before-import behavior where present.
+6. Keep destination folder or collection explicit.
+7. Show import/export success, cancellation, recoverable errors, and unsupported-platform feedback.
+8. Add tests when parser, export, or data behavior changes.
 
-## Export Workflow
-1. Preserve CSV, Excel-compatible XLS, and Anki TSV behavior.
-2. Keep Google Sheets blocked until OAuth and API decisions exist.
-3. Use platform-safe file and sharing APIs.
-4. Show success, cancellation, and unsupported-platform feedback.
-5. Avoid leaking internal-only fields unless the export format expects them.
-
-## Guardrails
+## Rules
 - Do not silently drop rows.
-- Do not fake Google Sheets sync.
-- Do not couple import/export to UI-only state when a data helper belongs in `data/`.
-- Do not break existing tests for dictionary API or reader import.
+- Do not fake Google Sheets sync or export.
+- Do not add backend, cloud sync, or OAuth.
+- Do not couple parsing/export logic to visual-only state.
+- Do not leak internal-only fields unless the export format expects them.
 
-## Done Criteria
-- Parser/export tests cover the changed behavior.
-- Typecheck and lint pass or failures are documented.
-- Manual smoke path is described for file picker/sharing changes.
+## Output
+- Import/export behavior summary.
+- Formats supported and formats blocked.
+- Validation behavior.
+- Changed files.
+- Tests and manual smoke path.
+- Product progress update needed.
+
+## Stop conditions
+- Stop if requested format support lacks a parser or product decision.
+- Stop if Google Sheets, cloud sync, or OAuth is required.
+- Stop if data loss risk is discovered and cannot be resolved in scope.

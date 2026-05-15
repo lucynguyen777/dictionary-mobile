@@ -78,7 +78,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `30cb448` Standardize lookup tab states
 - Verification habit before code commits:
   - `npx tsc --noEmit`
-  - `npx eslint . --no-cache`
+  - `npm run lint`
 
 ## Core Features
 
@@ -288,11 +288,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[x] [EASY]` Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
-2. `[x] [EASY]` Add Support settings items: Help center and Feedback.
-3. `[ ] [MEDIUM]` Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
-4. `[ ] [MEDIUM]` Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
-5. `[ ] [MEDIUM]` Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
+1. `[ ] [MEDIUM]` Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
+2. `[ ] [MEDIUM]` Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
+3. `[ ] [MEDIUM]` Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
+4. `[ ] [EASY]` Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
+5. `[ ] [MEDIUM]` Persist notification preferences locally until cloud sync/auth is selected.
 
 ## Rule
 
@@ -301,7 +301,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 2. Khi bắt đầu một task trong `Next Work Queue`, chuyển task đó sang `[~] IN PROGRESS` trong checklist tương ứng và trong queue.
 3. Sau khi triển khai xong, cập nhật checklist theo trạng thái thực tế của code: `[x]`, `[~]`, `[ ]`, hoặc `[!]`.
 4. Trước mỗi commit, kiểm tra lại tiến độ code và `docs/product-progress.md` đã đồng bộ. Nếu commit hash chưa tồn tại, có thể cập nhật `Current Baseline` ngay sau commit code bằng một commit checklist kế tiếp.
-5. Trước mỗi commit code, chạy kiểm tra xác minh: `npx tsc --noEmit` và `npx eslint . --no-cache`. Nếu chỉ sửa tài liệu, vẫn ưu tiên chạy hai lệnh này trừ khi có blocker rõ ràng.
+5. Trước mỗi commit code, chạy kiểm tra xác minh: `npx tsc --noEmit` và `npm run lint`. Nếu chỉ sửa tài liệu, vẫn ưu tiên chạy hai lệnh này trừ khi có blocker rõ ràng.
 6. Commit code và checklist cùng nhau khi hợp lý. Nếu cần ghi commit hash mới vào `Current Baseline`, commit cập nhật checklist ngay sau commit code.
 7. Trước mỗi lần push lên GitHub, kiểm tra lại `git status`, commit gần nhất, và `docs/product-progress.md` để đảm bảo code/checklist không lệch.
 8. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
