@@ -1503,6 +1503,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     top: 0,
     justifyContent: 'flex-end',
+    zIndex: 60,
+    elevation: 60,
   },
   colorPickerBackdrop: {
     position: 'absolute',
@@ -1510,7 +1512,8 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.32)'
+    backgroundColor: 'rgba(0,0,0,0.32)',
+    zIndex: 50,
   },
   colorPickerSheet: {
     backgroundColor: '#FFFFFF',
@@ -1519,6 +1522,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderColor: '#E2E8F0',
     borderTopWidth: 1,
+    zIndex: 61,
+    elevation: 61,
   },
   colorPickerTitle: {
     color: '#0F172A',
@@ -1615,6 +1620,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingTop: 18,
+    overflow: 'visible',
   },
   gridList: {
     flexDirection: 'column',
@@ -1627,6 +1633,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 10,
     width: '48%',
+    overflow: 'visible',
   },
   folderCardList: {
     width: '100%',
@@ -1697,6 +1704,7 @@ const styles = StyleSheet.create({
     height: 34,
     justifyContent: 'center',
     width: 34,
+    zIndex: 35,
   },
   folderActionPanel: {
     backgroundColor: '#F8FAFC',
@@ -1706,6 +1714,8 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 10,
     padding: 9,
+    zIndex: 30,
+    elevation: 30,
   },
   folderActionRow: {
     alignItems: 'center',
