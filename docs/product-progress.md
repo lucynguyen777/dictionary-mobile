@@ -176,6 +176,45 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: FR-FR dictionary via hybrid local/Wiktapi source (commit `3ec1975`).
 - [!] BLOCKED [HARD]: VI↔FR bilingual dictionary source selection; do not use machine translation as dictionary data.
 
+### Language Family Roadmap
+- [x] DONE [MEDIUM]: Austroasiatic baseline: Vietnamese (VI-VI) with dictionary API, suggestions, relations, tone/diacritic-sensitive display.
+- [x] DONE [MEDIUM]: Indo-European baseline: English and French with monolingual lookup, IPA/audio when available, gender for French when source provides it.
+- [~] IN PROGRESS [MEDIUM]: Add language-family metadata to language config before adding more languages: `family`, `script`, `writingDirection`, `adapterKey`, `dictionaryStatus`.
+- [~] IN PROGRESS [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states.
+- [ ] TODO [MEDIUM]: Indo-European next-build candidates: Spanish, Hindi, Russian.
+  - Spanish: Latin script, gender, conjugation, easier after French.
+  - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
+  - Hindi: Devanagari, gender, transliteration, postpositions.
+- [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Mandarin, Cantonese, Burmese, Tibetan.
+  - Mandarin: Hanzi, pinyin, tones, segmentation, classifiers.
+  - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
+  - Burmese/Tibetan: script-specific segmentation and source selection required.
+- [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
+  - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
+  - Amharic: Ge'ez script and transliteration.
+  - Somali: Latin script but needs morphology/source research.
+- [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Swahili, Yoruba, Zulu, Igbo.
+  - Swahili/Zulu: noun classes and prefixes.
+  - Yoruba/Igbo: tone and diacritic-safe search.
+- [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Malay, Hawaiian.
+  - Malay: easiest candidate, Latin script, relatively light inflection.
+  - Tagalog: focus/voice system and affix-heavy morphology.
+  - Javanese/Hawaiian: register or diacritic-sensitive search.
+- [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
+  - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
+- [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
+  - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
+  - Uzbek/Kazakh/Uyghur need script-specific source strategy.
+- [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
+  - Case-rich morphology and lemmatization are required before production lookup.
+- [ ] TODO [HARD]: Japanese/Korean build track.
+  - Japanese: kana/kanji, romaji, tokenizer, pitch accent if source supports it.
+  - Korean: Hangul, romanization, particles, verb/adjective endings; treat as Korean-specific, not dependent on disputed Altaic grouping.
+- [!] BLOCKED [HARD]: Amerind/proposed-family candidates: Quechua, Nahuatl, Guarani.
+  - Do not treat Amerind as a production taxonomy; choose each language only after source/license research.
+- [!] BLOCKED [HARD]: Isolate-language candidates: Basque, Ainu, Korean if modeled as isolate.
+  - Basque can be researched after Indo-European Latin-script pipeline; Ainu is blocked until source availability is proven.
+
 ### Translation
 - [~] IN PROGRESS [MEDIUM]: Language selector and bilingual English-Vietnamese dictionary flow.
 - [!] BLOCKED [HARD]: Production multilingual translation for many language pairs needs selected API/backend.
@@ -191,10 +230,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
-2. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
-3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-4. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[~] [MEDIUM]` Add language-family metadata to language config.
+2. `[~] [MEDIUM]` Build adapter registry by language pair/family.
+3. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
+4. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
+5. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+6. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
@@ -203,3 +244,5 @@ Sau khi hoàn thành và đẩy code lên GitHub:
 3. Chạy kiểm tra xác minh: `npx tsc --noEmit` và `npx eslint . --no-cache`.
 4. Commit (và push) bất kỳ chỉnh sửa nào của file checklist lên GitHub cùng hoặc ngay sau commit code.
 5. Sau khi checklist trên GitHub khớp với code thực tế, bắt đầu task tiếp theo trong `Next Work Queue` bằng cách chuyển trạng thái task đó sang `[~] IN PROGRESS` và tiến hành triển khai.
+6. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó, research đặc điểm giống và khác so với các ngôn ngữ đã build (hiện tại: English, Vietnamese, French), rồi ghi plan cá nhân hóa vào section `Language Family Roadmap` trước khi implement.
+7. Với các nhóm gây tranh luận như Altaic hoặc Amerind, chỉ dùng như bucket kỹ thuật/roadmap; không coi là taxonomy production khi thiết kế dữ liệu.
