@@ -130,7 +130,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Add folder favorite metadata and visual state without confusing it with saved-word favorites.
 - [x] DONE [MEDIUM]: Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
   - [x] DONE [MEDIUM]: Add color picker for folders and persist color metadata locally.
-  - [~] IN PROGRESS [MEDIUM]: Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
+  - [x] DONE [MEDIUM]: Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
 - [ ] TODO [MEDIUM]: Reuse or polish rename flow from the kebab menu.
 - [ ] TODO [MEDIUM]: Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
 - [ ] TODO [MEDIUM]: Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
@@ -286,7 +286,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Queue
 1. `[x] [MEDIUM]` Add color picker for folders and persist color metadata locally.
-2. `[~] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
+2. `[x] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
 3. `[ ] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
 4. `[ ] [MEDIUM]` Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
 5. `[ ] [MEDIUM]` Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
