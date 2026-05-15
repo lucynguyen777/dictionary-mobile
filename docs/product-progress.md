@@ -197,7 +197,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
 - [ ] TODO [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected.
-- [ ] TODO [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
+- [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [ ] TODO [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
 - [ ] TODO [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
 
