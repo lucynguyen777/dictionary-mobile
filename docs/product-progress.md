@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `1651d83` Guard unsupported Reader document imports
   - `8b2770d` Enable French to Vietnamese dictionary lookup
   - `536b4ad` fix(adapter): restore generic fetch functions for fallback adapter
   - `667e897` feat: expose source-specific dictionaryApi functions; use dedicated endpoints in adapters; update tests
@@ -150,7 +151,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Reader settings: font size, font family, background color.
 - [x] DONE: Tap word to lookup.
 - [x] DONE: Tap word to save and quick note in reading flow.
-- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
+- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; unsupported format picker guard is done, parser libraries still need selection (commit `1651d83`).
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 
@@ -241,7 +242,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Queue
 1. `[!] [HARD]` VI→FR bilingual dictionary source selection.
-2. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
+2. `[~] [HARD]` Select parser libraries for EPUB/PDF/DOCX Reader import after unsupported format guard.
 3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
 4. `[!] [HARD]` Google Sheets export with OAuth.
 
