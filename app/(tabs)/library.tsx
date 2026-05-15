@@ -224,13 +224,14 @@ export default function LibraryScreen() {
       }
 
       // If export returned a file uri, offer to open it (or the native share sheet already opened).
-      if (result.uri) {
+      const uri = result.uri;
+      if (uri) {
         Alert.alert('Chia sẻ', result.message, [
           { text: 'Đóng', style: 'cancel' },
           {
             text: 'Mở file',
             onPress: () => {
-              Linking.openURL(result.uri).catch(() => Alert.alert('Không thể mở file'));
+              Linking.openURL(uri).catch(() => Alert.alert('Không thể mở file'));
             },
           },
         ]);
@@ -246,10 +247,6 @@ export default function LibraryScreen() {
     setActiveFolderMenuId((current) => (current === folderId ? '' : folderId));
   };
 
-  const handleComingSoonFolderAction = (title: string, message: string) => {
-    setActiveFolderMenuId('');
-    Alert.alert(title, message);
-  };
 
   const handleToggleFavoriteFolder = (folder: Folder) => {
     if (isFavoriteWordsFolder(folder.id)) {
