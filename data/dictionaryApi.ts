@@ -322,7 +322,7 @@ export async function fetchBilingualMeaning(
   };
 }
 
-async function fetchMinhQndMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
+export async function fetchMinhQndMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
   const normalizedWord = normalizeWord(word);
   const result = await fetchMinhQndLookup(normalizedWord, languageCode, languageCode);
   const sourceResult = getMinhQndSourceResult(result, languageCode);
@@ -351,7 +351,7 @@ async function fetchMinhQndMonolingualMeaning(word: string, languageCode: string
   };
 }
 
-async function fetchMinhQndRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
+export async function fetchMinhQndRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
   const normalizedWord = normalizeWord(word);
   const result = await fetchMinhQndLookup(normalizedWord, languageCode, languageCode);
   const sourceResult = getMinhQndSourceResult(result, languageCode);
@@ -359,7 +359,7 @@ async function fetchMinhQndRelatedWords(word: string, languageCode: string): Pro
   return mapMinhQndRelations(sourceResult?.relations ?? []);
 }
 
-async function fetchWiktApiMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
+export async function fetchWiktApiMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
   const normalizedWord = normalizeWord(word);
   const result = await fetchWiktApiWord(normalizedWord, languageCode);
   const entries = getWiktApiEntries(result, languageCode);
@@ -381,7 +381,7 @@ async function fetchWiktApiMonolingualMeaning(word: string, languageCode: string
   };
 }
 
-async function fetchWiktApiRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
+export async function fetchWiktApiRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
   const normalizedWord = normalizeWord(word);
   const result = await fetchWiktApiWord(normalizedWord, languageCode);
   const entries = getWiktApiEntries(result, languageCode);

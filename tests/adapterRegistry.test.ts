@@ -1,12 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../data/dictionaryApi', () => {
-  const mockFetchMonolingualMeaning = vi.fn(async (word: string, lang?: string) => ({
+  const mockFetchEnglishMeaning = vi.fn(async (word: string) => ({
     word: `${word}-mock`,
     ipa: '',
     audio: '',
     definitions: [],
-    source: lang ?? 'mock',
+    source: 'en',
+  }));
+
+  const mockFetchMinhQndMonolingual = vi.fn(async (word: string) => ({
+    word: `${word}-mock`,
+    ipa: '',
+    audio: '',
+    definitions: [],
+    source: 'vi',
+  }));
+
+  const mockFetchWiktApiMonolingual = vi.fn(async (word: string) => ({
+    word: `${word}-mock`,
+    ipa: '',
+    audio: '',
+    definitions: [],
+    source: 'fr',
   }));
 
   const mockFetchBilingualMeaning = vi.fn(async (word: string, sourceLang: string, targetLang: string) => ({
@@ -18,17 +34,20 @@ vi.mock('../data/dictionaryApi', () => {
     source: `${sourceLang}->${targetLang}`,
   }));
 
-  const mockFetchRelatedWords = vi.fn(async (word: string, lang?: string) => ({
-    synonyms: ['s1'],
-    antonyms: ['a1'],
-  }));
+  const mockFetchEnglishRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
+  const mockFetchMinhQndRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
+  const mockFetchWiktApiRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
 
   const mockFetchVietnameseSuggestions = vi.fn(async (q: string) => ['g1', 'g2']);
 
   return {
-    fetchMonolingualMeaning: mockFetchMonolingualMeaning,
+    fetchEnglishMeaning: mockFetchEnglishMeaning,
+    fetchMinhQndMonolingualMeaning: mockFetchMinhQndMonolingual,
+    fetchWiktApiMonolingualMeaning: mockFetchWiktApiMonolingual,
     fetchBilingualMeaning: mockFetchBilingualMeaning,
-    fetchRelatedWords: mockFetchRelatedWords,
+    fetchEnglishRelatedWords: mockFetchEnglishRelated,
+    fetchMinhQndRelatedWords: mockFetchMinhQndRelated,
+    fetchWiktApiRelatedWords: mockFetchWiktApiRelated,
     fetchVietnameseSuggestions: mockFetchVietnameseSuggestions,
   };
 });
@@ -62,7 +81,7 @@ describe('adapterRegistry', () => {
     const result = await lookupMonolingual('hello', 'vi');
 
     expect(result.word).toBe('hello-mock');
-    expect((dictApi as any).fetchMonolingualMeaning).toHaveBeenCalledWith('hello', 'vi');
+    expect((dictApi as any).fetchMinhQndMonolingualMeaning).toHaveBeenCalledWith('hello', 'vi');
   });
 
   it('lookupBilingual delegates to dictionaryApi', async () => {
