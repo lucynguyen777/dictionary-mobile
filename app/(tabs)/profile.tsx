@@ -59,8 +59,8 @@ export default function ProfileScreen() {
   const handleSaveProfile = () => {
     saveUserProfile(profile).then((nextProfile) => {
       setProfile(nextProfile);
-      setSaveMessage('Đã lưu hồ sơ học tập trên thiết bị này.');
-      Alert.alert('Đã lưu hồ sơ', 'Hồ sơ học tập đã được lưu trên thiết bị này.');
+      setSaveMessage('Hồ sơ đã lưu.');
+      Alert.alert('Đã lưu hồ sơ', 'Hồ sơ đã được lưu trên thiết bị này.');
     });
   };
 
@@ -72,7 +72,7 @@ export default function ProfileScreen() {
   const handleClearAllData = () => {
     Alert.alert(
       'Xóa tất cả dữ liệu',
-      'Hành động này sẽ xóa toàn bộ từ đã lưu, flashcard, lịch sử tra cứu và hồ sơ học tập trên thiết bị. Không thể hoàn tác. Bạn có chắc không?',
+      'Hành động này sẽ xóa toàn bộ dữ liệu local trên thiết bị (từ đã lưu, flashcard, lịch sử tra cứu, hồ sơ). Không thể hoàn tác. Bạn có chắc không?',
       [
         { text: 'Hủy', style: 'cancel' },
         {

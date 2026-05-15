@@ -230,12 +230,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [MEDIUM]` Add language-family metadata to language config.
-2. `[~] [MEDIUM]` Build adapter registry by language pair/family.
-3. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
-4. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
-5. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-6. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[x] [EASY]` Audit UI copy (profile/reader/library) — localized microcopy normalized in workspace.
+2. `[x] [EASY]` Improve import validation messages (CSV/TSV) — messages standardized in `data/csvImport.ts`.
+3. `[~] [MEDIUM]` Add language-family metadata to language config.
+4. `[~] [MEDIUM]` Build adapter registry by language pair/family.
+5. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
+6. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
+7. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+8. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:

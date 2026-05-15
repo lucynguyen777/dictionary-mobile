@@ -41,7 +41,7 @@ const defaultImportOptions: VocabularyImportOptions = {
 export function parseVocabularyCsv(csv: string, options: Partial<VocabularyImportOptions> = {}): CsvParseResult {
   const importOptions = { ...defaultImportOptions, ...options };
   const rows = parseCsvRows(csv);
-  if (!rows.length) return { rows: [], errors: ['CSV đang trống.'] };
+  if (!rows.length) return { rows: [], errors: ['Tệp CSV trống.'] };
 
   if (importOptions.orientation === 'columns') {
     return parseColumnOrientedCsvRows(rows, importOptions);
@@ -60,7 +60,7 @@ function parseRowOrientedCsvRows(rows: string[][], options: VocabularyImportOpti
   const wordIndex = fieldIndexes.word;
   const primaryIndex = fieldIndexes[options.primaryField];
   if (options.hasHeader && wordIndex < 0 && primaryIndex < 0) {
-    return { rows: [], errors: [`CSV cần có cột word hoặc cột khóa chính ${options.primaryField}.`] };
+    return { rows: [], errors: [`CSV cần có cột "word" hoặc cột khóa chính "${options.primaryField}".`] };
   }
 
   const errors: string[] = [];
@@ -71,7 +71,7 @@ function parseRowOrientedCsvRows(rows: string[][], options: VocabularyImportOpti
     const rawWord = getCell(row, wordIndex).trim() || primaryValue;
     const word = normalizeWord(rawWord);
     if (!word || !primaryValue) {
-      errors.push(`Dòng ${index + rowOffset} bị bỏ qua vì thiếu ${options.primaryField}.`);
+      errors.push(`Bỏ qua dòng ${index + rowOffset}: thiếu "${options.primaryField}".`);
       return [];
     }
 
@@ -91,14 +91,14 @@ function parseRowOrientedCsvRows(rows: string[][], options: VocabularyImportOpti
 
 function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportOptions): CsvParseResult {
   const dataRows = options.hasHeader ? rows.slice(1) : rows;
-  if (!dataRows.length) return { rows: [], errors: ['CSV đọc theo cột cần ít nhất một dòng dữ liệu.'] };
+  if (!dataRows.length) return { rows: [], errors: ['CSV theo cột cần ít nhất một dòng dữ liệu.'] };
 
   const headers = options.hasHeader ? dataRows.map((row) => (row[0] ?? '').trim()) : dataRows.map((_, index) => `Hàng ${index + 1}`);
   const fieldRowIndexes = getColumnFieldRowIndexes(dataRows, options.hasHeader, options.fieldMapping);
   const wordRowIndex = fieldRowIndexes.word;
   const primaryRowIndex = fieldRowIndexes[options.primaryField];
   if (wordRowIndex < 0 && primaryRowIndex < 0) {
-    return { rows: [], errors: [`CSV đọc theo cột cần hàng word hoặc hàng khóa chính ${options.primaryField}.`] };
+    return { rows: [], errors: [`CSV đọc theo cột cần hàng "word" hoặc hàng khóa chính "${options.primaryField}".`] };
   }
 
   const maxColumnCount = Math.max(...dataRows.map((row) => row.length));
@@ -113,7 +113,7 @@ function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportO
     const word = normalizeWord(rawWord);
 
     if (!word || !primaryValue) {
-      errors.push(`Cột ${columnIndex + 1} bị bỏ qua vì thiếu ${options.primaryField}.`);
+      errors.push(`Bỏ qua cột ${columnIndex + 1}: thiếu "${options.primaryField}".`);
       continue;
     }
 
@@ -324,14 +324,14 @@ function finalizeParseResult(rows: VocabularyImportRow[], errors: string[]): Csv
 
   if (duplicateWords.length) {
     errors.push(
-      `Có ${duplicateWords.length} từ bị trùng và sẽ được gộp khi import: ${duplicateWords.slice(0, 5).join(', ')}${
-        duplicateWords.length > 5 ? '...' : ''
-      }.`
+      `Phát hiện ${duplicateWords.length} từ trùng. Các mục trùng sẽ được gộp khi import: ${duplicateWords
+        .slice(0, 5)
+        .join(', ')}${duplicateWords.length > 5 ? '...' : ''}.`
     );
   }
 
   if (!rows.length && !errors.length) {
-    errors.push('Không tìm thấy từ hợp lệ trong file.');
+    errors.push('Không tìm thấy từ hợp lệ trong tệp.');
   }
 
   return { rows, errors };
