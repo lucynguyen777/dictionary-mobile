@@ -23,6 +23,7 @@ import {
   normalizeLookupTerm,
   supportsLocalDictionary,
 } from '@/data/localLexicon';
+import { getMorphologyCandidates } from '@/data/morphology';
 import {
   LibraryState,
   addSearchHistory,
@@ -113,6 +114,10 @@ export default function WordScreen() {
   const spellingSuggestions = useMemo(() => {
     if (!query || results.length > 0) return [];
     return getSpellingSuggestions(sourceLanguage.code, query, 3);
+  }, [query, results.length, sourceLanguage.code]);
+  const morphologySuggestions = useMemo(() => {
+    if (!query || results.length > 0) return [];
+    return getMorphologyCandidates(sourceLanguage.code, query);
   }, [query, results.length, sourceLanguage.code]);
 
   const normalizedQuery = normalizeLookupTerm(query);
@@ -362,6 +367,23 @@ export default function WordScreen() {
               {spellingSuggestions.map((suggestion) => (
                 <TouchableOpacity key={suggestion} activeOpacity={0.82} onPress={() => selectWord(suggestion)} style={styles.suggestionChip}>
                   <Text style={styles.suggestionText}>{suggestion}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+        {query && results.length === 0 && morphologySuggestions.length > 0 ? (
+          <View style={styles.morphologyBlock}>
+            <Text style={styles.morphologyTitle}>Dạng gốc có thể là:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionRow}>
+              {morphologySuggestions.map((suggestion) => (
+                <TouchableOpacity
+                  key={`${suggestion.word}-${suggestion.reason}`}
+                  activeOpacity={0.82}
+                  onPress={() => selectWord(suggestion.word)}
+                  style={styles.morphologyChip}>
+                  <Text style={styles.morphologyText}>{suggestion.label}</Text>
+                  <Text style={styles.morphologyMeta}>{suggestion.reason}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -846,5 +868,35 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     fontSize: 13,
     fontWeight: '800',
+  },
+  morphologyBlock: {
+    paddingBottom: 12,
+  },
+  morphologyTitle: {
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  morphologyChip: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 104,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  morphologyText: {
+    color: '#1D4ED8',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  morphologyMeta: {
+    color: '#64748B',
+    fontSize: 10,
+    fontWeight: '800',
+    marginTop: 3,
   },
 });

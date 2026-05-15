@@ -1,4 +1,5 @@
 import { BilingualExample } from './dictionary';
+import { getMorphologyCandidates } from './morphology';
 
 export type ApiDefinition = {
   partOfSpeech: string;
@@ -105,17 +106,38 @@ const MINH_QND_DICTIONARY_API_BASE = 'https://dict.minhqnd.com/api/v1/lookup';
 
 export async function fetchEnglishMeaning(word: string): Promise<ApiMeaningResult> {
   const normalizedWord = normalizeWord(word);
-  const response = await fetch(`${DICTIONARY_API_BASE}/${encodeURIComponent(normalizedWord)}`);
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('en', normalizedWord).map((candidate) => candidate.word),
+  ]);
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      return await fetchEnglishMeaningCandidate(lookupWord, normalizedWord);
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  const firstError = errors[0];
+  if (firstError instanceof Error) throw firstError;
+
+  throw new Error(`No dictionary entry found for "${normalizedWord}".`);
+}
+
+async function fetchEnglishMeaningCandidate(lookupWord: string, requestedWord: string): Promise<ApiMeaningResult> {
+  const response = await fetch(`${DICTIONARY_API_BASE}/${encodeURIComponent(lookupWord)}`);
 
   if (!response.ok) {
-    throw new Error(`No dictionary entry found for "${normalizedWord}".`);
+    throw new Error(`No dictionary entry found for "${requestedWord}".`);
   }
 
   const payload = (await response.json()) as DictionaryApiEntry[];
   const entry = payload[0];
 
   if (!entry?.meanings?.length) {
-    throw new Error(`No meanings found for "${normalizedWord}".`);
+    throw new Error(`No meanings found for "${requestedWord}".`);
   }
 
   const preferredPhonetic = pickPreferredPhonetic(entry.phonetics ?? []);
@@ -123,7 +145,7 @@ export async function fetchEnglishMeaning(word: string): Promise<ApiMeaningResul
   const audio = normalizeAudioUrl(preferredPhonetic?.audio ?? '');
 
   return {
-    word: entry.word ?? normalizedWord,
+    word: entry.word ?? lookupWord,
     ipa: phonetic,
     audio: audio.startsWith('//') ? `https:${audio}` : audio,
     definitions: entry.meanings.flatMap((meaning) =>
@@ -135,7 +157,7 @@ export async function fetchEnglishMeaning(word: string): Promise<ApiMeaningResul
         antonyms: uniqueWords([...(meaning.antonyms ?? []), ...(definition.antonyms ?? [])]),
       }))
     ).filter((definition) => definition.meaning),
-    source: 'dictionaryapi.dev',
+    source: lookupWord === requestedWord ? 'dictionaryapi.dev' : `dictionaryapi.dev · base form of ${requestedWord}`,
   };
 }
 
