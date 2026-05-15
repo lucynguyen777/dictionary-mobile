@@ -14,12 +14,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: profile settings, privacy copy, loading/empty/error polish, UI copy normalization, import validation messages.
-- Medium next tasks: custom import field mapping, Anki text-only export, larger idiom dataset, Reader highlights to flashcards.
+- Easy next tasks: profile settings sidebar entry points and small UI copy polish.
+- Medium next tasks: folder favorite metadata, duplicate folder, folder color picker, color rule notes, rename/menu polish.
 - Hard next tasks: auth/cloud sync, Google Sheets OAuth, speech scoring, production multilingual translation, AI features.
 
 ## Current Baseline
 - Latest completed commits:
+  - `b5fa8cc` Update progress after library controls
   - `5afb932` Polish library folder controls
   - `b524692` Polish meaning context and training tabs
   - `1651d83` Guard unsupported Reader document imports
