@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `5afb932` Polish library folder controls
   - `b524692` Polish meaning context and training tabs
   - `1651d83` Guard unsupported Reader document imports
   - `8b2770d` Enable French to Vietnamese dictionary lookup
