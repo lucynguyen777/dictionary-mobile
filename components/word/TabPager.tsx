@@ -278,7 +278,7 @@ function getMeaningDefinitions({
 
 function getDefinitionDomain(domain: string | undefined, entryTopic: string) {
   if (domain) return domain;
-  if (entryTopic === 'General meaning' || entryTopic === 'Bilingual dictionary') return undefined;
+  if (['General meaning', 'Bilingual dictionary', 'Online dictionary'].includes(entryTopic)) return undefined;
 
   return entryTopic;
 }

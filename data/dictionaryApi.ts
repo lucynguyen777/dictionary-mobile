@@ -85,6 +85,11 @@ type MinhQndTranslation = {
   translation?: string;
 };
 
+type MinhQndRelation = {
+  related_word?: string;
+  relation_type?: string;
+};
+
 type MinhQndLanguageResult = {
   lang_code?: string;
   lang_name?: string;
@@ -92,6 +97,7 @@ type MinhQndLanguageResult = {
   meanings?: MinhQndMeaning[];
   pronunciations?: MinhQndPronunciation[];
   translations?: MinhQndTranslation[];
+  relations?: MinhQndRelation[];
 };
 
 type MinhQndLookupResponse = {
@@ -100,9 +106,76 @@ type MinhQndLookupResponse = {
   results?: MinhQndLanguageResult[];
 };
 
+type MinhQndSuggestResponse = {
+  suggestions?: string[];
+  results?: string[];
+};
+
+type WiktApiSense = {
+  glosses?: string[];
+  examples?: (string | { text?: string; english?: string; translation?: string })[];
+  tags?: string[];
+  topics?: string[];
+};
+
+type WiktApiSound = {
+  ipa?: string;
+  audio?: string;
+  mp3_url?: string;
+  ogg_url?: string;
+};
+
+type WiktApiLinkage = string | { word?: string };
+
+type WiktApiEntry = {
+  word?: string;
+  lang?: string;
+  lang_code?: string;
+  pos?: string;
+  tags?: string[];
+  raw_tags?: string[];
+  senses?: WiktApiSense[];
+  sounds?: WiktApiSound[];
+  synonyms?: WiktApiLinkage[];
+  antonyms?: WiktApiLinkage[];
+  derived?: WiktApiLinkage[];
+};
+
+type WiktApiWordResponse = {
+  word?: string;
+  edition?: string;
+  entries?: WiktApiEntry[];
+};
+
 const DICTIONARY_API_BASE = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const DATAMUSE_API_BASE = 'https://api.datamuse.com/words';
 const MINH_QND_DICTIONARY_API_BASE = 'https://dict.minhqnd.com/api/v1/lookup';
+const MINH_QND_SUGGEST_API_BASE = 'https://dict.minhqnd.com/api/v1/suggest';
+const WIKTAPI_BASE = 'https://api.wiktapi.dev/v1';
+
+export function canUseMonolingualDictionaryApi(languageCode: string) {
+  return ['en', 'vi', 'fr'].includes(languageCode);
+}
+
+export function isBlockedBilingualDictionaryPair(sourceLang: string, targetLang: string) {
+  return (sourceLang === 'vi' && targetLang === 'fr') || (sourceLang === 'fr' && targetLang === 'vi');
+}
+
+export async function fetchMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
+  if (languageCode === 'en') return fetchEnglishMeaning(word);
+  if (languageCode === 'vi') return fetchMinhQndMonolingualMeaning(word, 'vi');
+  if (languageCode === 'fr') return fetchWiktApiMonolingualMeaning(word, 'fr');
+
+  throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
+}
+
+export async function fetchRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
+  if (languageCode === 'en') return fetchEnglishRelatedWords(word);
+  if (languageCode === 'vi') return fetchMinhQndRelatedWords(word, 'vi');
+  if (languageCode === 'fr') return fetchWiktApiRelatedWords(word, 'fr');
+
+  return { synonyms: [], antonyms: [] };
+}
 
 export async function fetchEnglishMeaning(word: string): Promise<ApiMeaningResult> {
   const normalizedWord = normalizeWord(word);
@@ -179,6 +252,10 @@ export async function fetchBilingualMeaning(
   sourceLang: string,
   targetLang: string
 ): Promise<ApiBilingualMeaningResult> {
+  if (isBlockedBilingualDictionaryPair(sourceLang, targetLang)) {
+    throw new Error('VI↔FR dictionary source has not been selected yet.');
+  }
+
   const normalizedWord = normalizeWord(word);
   const params = new URLSearchParams({
     word: normalizedWord,
@@ -243,6 +320,230 @@ export async function fetchBilingualMeaning(
     translations,
     source: 'dict.minhqnd.com',
   };
+}
+
+async function fetchMinhQndMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
+  const normalizedWord = normalizeWord(word);
+  const result = await fetchMinhQndLookup(normalizedWord, languageCode, languageCode);
+  const sourceResult = getMinhQndSourceResult(result, languageCode);
+
+  if (!sourceResult) {
+    throw new Error(`No ${languageCode} dictionary entry found for "${normalizedWord}".`);
+  }
+
+  const definitions = mapMinhQndDefinitions(normalizedWord, sourceResult, languageCode);
+  if (!definitions.length) {
+    throw new Error(`No ${languageCode} meanings found for "${normalizedWord}".`);
+  }
+
+  const relatedWords = mapMinhQndRelations(sourceResult.relations ?? []);
+
+  return {
+    word: result.word ?? normalizedWord,
+    ipa: sourceResult.pronunciations?.[0]?.ipa ?? '',
+    audio: sourceResult.audio ? normalizeMinhQndAudioUrl(sourceResult.audio) : '',
+    definitions: definitions.map((definition) => ({
+      ...definition,
+      synonyms: relatedWords.synonyms,
+      antonyms: relatedWords.antonyms,
+    })),
+    source: 'dict.minhqnd.com',
+  };
+}
+
+async function fetchMinhQndRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
+  const normalizedWord = normalizeWord(word);
+  const result = await fetchMinhQndLookup(normalizedWord, languageCode, languageCode);
+  const sourceResult = getMinhQndSourceResult(result, languageCode);
+
+  return mapMinhQndRelations(sourceResult?.relations ?? []);
+}
+
+async function fetchWiktApiMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
+  const normalizedWord = normalizeWord(word);
+  const result = await fetchWiktApiWord(normalizedWord, languageCode);
+  const entries = getWiktApiEntries(result, languageCode);
+  const definitions = entries.flatMap((entry) => mapWiktApiDefinitions(entry));
+
+  if (!definitions.length) {
+    throw new Error(`No ${languageCode} Wiktionary meanings found for "${normalizedWord}".`);
+  }
+
+  const sounds = entries.flatMap((entry) => entry.sounds ?? []);
+  const preferredSound = sounds.find((sound) => sound.ipa || sound.mp3_url || sound.audio || sound.ogg_url);
+
+  return {
+    word: result.word ?? entries[0]?.word ?? normalizedWord,
+    ipa: preferredSound?.ipa ?? '',
+    audio: normalizeAudioUrl(preferredSound?.mp3_url ?? preferredSound?.audio ?? preferredSound?.ogg_url ?? ''),
+    definitions,
+    source: 'wiktapi.dev',
+  };
+}
+
+async function fetchWiktApiRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
+  const normalizedWord = normalizeWord(word);
+  const result = await fetchWiktApiWord(normalizedWord, languageCode);
+  const entries = getWiktApiEntries(result, languageCode);
+
+  return {
+    synonyms: uniqueWords(entries.flatMap((entry) => mapWiktApiLinkages(entry.synonyms ?? []))),
+    antonyms: uniqueWords(entries.flatMap((entry) => mapWiktApiLinkages(entry.antonyms ?? []))),
+  };
+}
+
+export async function fetchVietnameseSuggestions(query: string): Promise<string[]> {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) return [];
+
+  const params = new URLSearchParams({ q: normalizedQuery });
+  const response = await fetch(`${MINH_QND_SUGGEST_API_BASE}?${params.toString()}`);
+
+  if (!response.ok) return [];
+
+  const payload = (await response.json()) as MinhQndSuggestResponse | string[];
+  if (Array.isArray(payload)) return uniqueWords(payload);
+
+  return uniqueWords([...(payload.suggestions ?? []), ...(payload.results ?? [])]);
+}
+
+async function fetchMinhQndLookup(
+  word: string,
+  sourceLang: string,
+  targetLang: string
+): Promise<MinhQndLookupResponse> {
+  const params = new URLSearchParams({
+    word,
+    lang: sourceLang,
+    def_lang: targetLang,
+  });
+  const response = await fetch(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`No dictionary entry found for "${word}".`);
+  }
+
+  const payload = (await response.json()) as MinhQndLookupResponse;
+  if (!payload.exists) {
+    throw new Error(`No dictionary entry found for "${word}".`);
+  }
+
+  return payload;
+}
+
+function getMinhQndSourceResult(payload: MinhQndLookupResponse, sourceLang: string) {
+  return payload.results?.find((result) => result.lang_code === sourceLang) ?? payload.results?.[0];
+}
+
+function mapMinhQndDefinitions(
+  word: string,
+  sourceResult: MinhQndLanguageResult,
+  targetLang: string
+): ApiDefinition[] {
+  return (sourceResult.meanings ?? [])
+    .filter((meaning) => !meaning.definition_lang || meaning.definition_lang === targetLang)
+    .map((meaning) => {
+      const parsedDefinition = parseContextualDefinition(meaning.definition ?? '');
+      const inferredDomain = inferDefinitionDomain(word, parsedDefinition.definition, targetLang);
+
+      return {
+        partOfSpeech: meaning.pos ?? 'word',
+        meaning: parsedDefinition.definition,
+        examples: meaning.example ? splitMeaningExamples(meaning.example) : [],
+        synonyms: [],
+        antonyms: [],
+        domain: parsedDefinition.context || meaning.sub_pos || inferredDomain,
+        source: meaning.source ?? sourceResult.lang_name,
+      };
+    })
+    .filter((definition) => definition.meaning);
+}
+
+function mapMinhQndRelations(relations: MinhQndRelation[]): ApiRelatedWords {
+  const synonyms: string[] = [];
+  const antonyms: string[] = [];
+
+  relations.forEach((relation) => {
+    const word = relation.related_word?.trim();
+    if (!word) return;
+
+    const relationType = relation.relation_type?.toLocaleLowerCase() ?? '';
+    if (relationType.includes('trái') || relationType.includes('antonym')) {
+      antonyms.push(word);
+      return;
+    }
+
+    if (relationType.includes('đồng') || relationType.includes('synonym')) {
+      synonyms.push(word);
+    }
+  });
+
+  return {
+    synonyms: uniqueWords(synonyms),
+    antonyms: uniqueWords(antonyms),
+  };
+}
+
+async function fetchWiktApiWord(word: string, languageCode: string): Promise<WiktApiWordResponse> {
+  const params = new URLSearchParams({ lang: languageCode });
+  const response = await fetch(`${WIKTAPI_BASE}/${languageCode}/word/${encodeURIComponent(word)}?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(`No ${languageCode} Wiktionary entry found for "${word}".`);
+  }
+
+  return (await response.json()) as WiktApiWordResponse;
+}
+
+function getWiktApiEntries(payload: WiktApiWordResponse, languageCode: string) {
+  return (payload.entries ?? []).filter((entry) => !entry.lang_code || entry.lang_code === languageCode);
+}
+
+function mapWiktApiDefinitions(entry: WiktApiEntry): ApiDefinition[] {
+  return (entry.senses ?? [])
+    .slice(0, 12)
+    .flatMap((sense) =>
+      (sense.glosses ?? []).map((gloss) => ({
+        partOfSpeech: entry.pos ?? 'word',
+        meaning: gloss,
+        examples: mapWiktApiExamples(sense.examples ?? []).slice(0, 2),
+        synonyms: uniqueWords(mapWiktApiLinkages(entry.synonyms ?? [])),
+        antonyms: uniqueWords(mapWiktApiLinkages(entry.antonyms ?? [])),
+        domain: sense.topics?.[0],
+        gender: getWiktApiGender([...(entry.tags ?? []), ...(entry.raw_tags ?? []), ...(sense.tags ?? [])]),
+        level: undefined,
+        source: 'Wiktionary',
+      }))
+    )
+    .filter((definition) => definition.meaning);
+}
+
+function mapWiktApiExamples(examples: NonNullable<WiktApiSense['examples']>): BilingualExample[] {
+  return examples
+    .map((example) => {
+      if (typeof example === 'string') return { source: example };
+
+      return {
+        source: example.text ?? '',
+        translation: example.translation ?? example.english,
+      };
+    })
+    .filter((example) => example.source);
+}
+
+function mapWiktApiLinkages(linkages: WiktApiLinkage[]) {
+  return linkages
+    .map((linkage) => (typeof linkage === 'string' ? linkage : linkage.word))
+    .filter(Boolean) as string[];
+}
+
+function getWiktApiGender(tags: string[]) {
+  const normalizedTags = tags.map((tag) => tag.toLocaleLowerCase());
+
+  if (normalizedTags.some((tag) => tag.includes('masculine'))) return 'masculin';
+  if (normalizedTags.some((tag) => tag.includes('feminine'))) return 'féminin';
+
+  return undefined;
 }
 
 function normalizeWord(word: string) {

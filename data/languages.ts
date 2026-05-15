@@ -1,7 +1,7 @@
 export const languageOptions = [
   { code: 'en', label: 'English', hint: 'Dictionary/API' },
-  { code: 'vi', label: 'Tiếng Việt', hint: 'Local dictionary' },
-  { code: 'fr', label: 'Français', hint: 'Local preview' },
+  { code: 'vi', label: 'Tiếng Việt', hint: 'Dictionary/API' },
+  { code: 'fr', label: 'Français', hint: 'Wiktionary preview' },
   { code: 'ja', label: '日本語', hint: 'Sắp hỗ trợ' },
   { code: 'ko', label: '한국어', hint: 'Sắp hỗ trợ' },
 ];
@@ -22,7 +22,9 @@ export function getAlternativeLanguage(excludedCode: string) {
 }
 
 export function isEnglishDictionaryPair(sourceCode: string, targetCode: string) {
-  return sourceCode === 'en' && (targetCode === 'en' || targetCode === 'vi');
+  const pair = `${sourceCode}->${targetCode}`;
+
+  return ['en->en', 'en->vi', 'vi->en'].includes(pair);
 }
 
 export function isSameLanguagePair(sourceCode: string, targetCode: string) {

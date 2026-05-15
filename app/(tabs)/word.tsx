@@ -11,9 +11,12 @@ import {
   ApiBilingualMeaningResult,
   ApiMeaningResult,
   ApiRelatedWords,
+  canUseMonolingualDictionaryApi,
   fetchBilingualMeaning,
-  fetchEnglishMeaning,
-  fetchEnglishRelatedWords,
+  fetchMonolingualMeaning,
+  fetchRelatedWords,
+  fetchVietnameseSuggestions,
+  isBlockedBilingualDictionaryPair,
 } from '@/data/dictionaryApi';
 import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair, languageOptions } from '@/data/languages';
 import {
@@ -53,6 +56,7 @@ export default function WordScreen() {
   const [apiMeaning, setApiMeaning] = useState<ApiMeaningResult | null>(null);
   const [apiBilingualMeaning, setApiBilingualMeaning] = useState<ApiBilingualMeaningResult | null>(null);
   const [apiRelatedWords, setApiRelatedWords] = useState<ApiRelatedWords | null>(null);
+  const [externalSuggestions, setExternalSuggestions] = useState<string[]>([]);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [libraryLoaded, setLibraryLoaded] = useState(false);
   const [showLanguageControls, setShowLanguageControls] = useState(false);
@@ -60,8 +64,9 @@ export default function WordScreen() {
   const scrollRef = useRef<ScrollView | null>(null);
   const sourceLanguage = getLanguageByCode(getRouteParam(params.sourceLang), 'en');
   const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
-  const canUseEnglishApi = sourceLanguage.code === 'en';
   const shouldUseBilingualDictionary = sourceLanguage.code !== targetLanguage.code;
+  const isBilingualSourceBlocked = isBlockedBilingualDictionaryPair(sourceLanguage.code, targetLanguage.code);
+  const canUseSourceDictionaryApi = canUseMonolingualDictionaryApi(sourceLanguage.code);
   const hasLocalDictionarySource = supportsLocalDictionary(sourceLanguage.code);
   const isTranslationComingSoon = isTranslationComingSoonPair(sourceLanguage.code, targetLanguage.code);
   const sourceEntries = useMemo(() => getLocalDictionaryEntries(sourceLanguage.code), [sourceLanguage.code]);
@@ -74,16 +79,18 @@ export default function WordScreen() {
         selectedWord,
         apiBilingualMeaning,
         apiMeaning,
-        canUseEnglishApi,
+        canUseSourceDictionaryApi,
         hasLocalDictionarySource,
+        isBilingualSourceBlocked,
         sourceLanguage.label,
         targetLanguage.label
       ),
     [
       apiMeaning,
       apiBilingualMeaning,
-      canUseEnglishApi,
+      canUseSourceDictionaryApi,
       hasLocalDictionarySource,
+      isBilingualSourceBlocked,
       localEntry,
       selectedWord,
       sourceLanguage.label,
@@ -115,6 +122,10 @@ export default function WordScreen() {
     if (!query || results.length > 0) return [];
     return getSpellingSuggestions(sourceLanguage.code, query, 3);
   }, [query, results.length, sourceLanguage.code]);
+  const allSpellingSuggestions = useMemo(
+    () => Array.from(new Set([...spellingSuggestions, ...externalSuggestions])).slice(0, 6),
+    [externalSuggestions, spellingSuggestions]
+  );
   const morphologySuggestions = useMemo(() => {
     if (!query || results.length > 0) return [];
     return getMorphologyCandidates(sourceLanguage.code, query);
@@ -122,8 +133,8 @@ export default function WordScreen() {
 
   const normalizedQuery = normalizeLookupTerm(query);
   const hasExactLocalResult = results.some((entry) => normalizeLookupTerm(entry.word) === normalizedQuery);
-  const shouldShowApiLookup = Boolean(normalizedQuery) && canUseEnglishApi && !hasExactLocalResult;
-  const shouldShowLocalLookup = Boolean(normalizedQuery) && !canUseEnglishApi && !hasExactLocalResult;
+  const canSearchRemoteSource = canUseSourceDictionaryApi || shouldUseBilingualDictionary;
+  const shouldShowApiLookup = Boolean(normalizedQuery) && canSearchRemoteSource && !hasExactLocalResult;
   const savedWord = getSavedWord(libraryState, selectedEntry.word);
   const favoriteFolderId = getFavoriteFolderId();
   const isFavorite = Boolean(savedWord?.folderIds.includes(favoriteFolderId));
@@ -159,7 +170,17 @@ export default function WordScreen() {
     let isCancelled = false;
 
     async function lookupWord() {
-      if (!canUseEnglishApi && !shouldUseBilingualDictionary) {
+      if (isBilingualSourceBlocked) {
+        setLookupStatus('error');
+        setLookupError('VI↔FR dictionary source has not been selected yet.');
+        setBilingualLookupError('VI↔FR dictionary source has not been selected yet.');
+        setApiMeaning(null);
+        setApiBilingualMeaning(null);
+        setApiRelatedWords(null);
+        return;
+      }
+
+      if (!canUseSourceDictionaryApi && !shouldUseBilingualDictionary) {
         setLookupStatus('idle');
         setLookupError('');
         setBilingualLookupError('');
@@ -177,8 +198,8 @@ export default function WordScreen() {
       setApiRelatedWords(null);
 
       const lookupTasks = [
-        canUseEnglishApi ? fetchEnglishMeaning(selectedWord) : Promise.resolve(null),
-        canUseEnglishApi ? fetchEnglishRelatedWords(selectedWord) : Promise.resolve(null),
+        canUseSourceDictionaryApi ? fetchMonolingualMeaning(selectedWord, sourceLanguage.code) : Promise.resolve(null),
+        canUseSourceDictionaryApi ? fetchRelatedWords(selectedWord, sourceLanguage.code) : Promise.resolve(null),
         shouldUseBilingualDictionary
           ? fetchBilingualMeaning(selectedWord, sourceLanguage.code, targetLanguage.code)
           : Promise.resolve(null),
@@ -224,7 +245,35 @@ export default function WordScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [canUseEnglishApi, selectedWord, shouldUseBilingualDictionary, sourceLanguage.code, targetLanguage.code]);
+  }, [
+    canUseSourceDictionaryApi,
+    isBilingualSourceBlocked,
+    selectedWord,
+    shouldUseBilingualDictionary,
+    sourceLanguage.code,
+    targetLanguage.code,
+  ]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (sourceLanguage.code !== 'vi' || !query.trim() || results.length > 0) {
+      setExternalSuggestions([]);
+      return;
+    }
+
+    fetchVietnameseSuggestions(query)
+      .then((suggestions) => {
+        if (!isCancelled) setExternalSuggestions(suggestions);
+      })
+      .catch(() => {
+        if (!isCancelled) setExternalSuggestions([]);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [query, results.length, sourceLanguage.code]);
 
   useEffect(() => {
     if (!libraryLoaded) return;
@@ -346,25 +395,21 @@ export default function WordScreen() {
             {shouldShowApiLookup ? (
               <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
                 <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
-                <Text style={styles.apiLookupMeta}>English API</Text>
-              </TouchableOpacity>
-            ) : null}
-            {shouldShowLocalLookup ? (
-              <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
-                <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
-                <Text style={styles.apiLookupMeta}>{sourceLanguage.label} dictionary</Text>
+                <Text style={styles.apiLookupMeta}>
+                  {isBilingualSourceBlocked ? 'Source pending' : `${sourceLanguage.label} dictionary`}
+                </Text>
               </TouchableOpacity>
             ) : null}
           </ScrollView>
         ) : null}
-        {query && results.length === 0 && !shouldShowApiLookup && !shouldShowLocalLookup && spellingSuggestions.length === 0 ? (
+        {query && results.length === 0 && !shouldShowApiLookup && allSpellingSuggestions.length === 0 ? (
           <Text style={styles.emptyText}>Nhập từ thuộc ngôn ngữ gốc rồi nhấn tìm kiếm.</Text>
         ) : null}
-        {query && results.length === 0 && spellingSuggestions.length > 0 ? (
+        {query && results.length === 0 && allSpellingSuggestions.length > 0 ? (
           <View style={styles.suggestionBlock}>
             <Text style={styles.suggestionTitle}>Có phải ý bạn là:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionRow}>
-              {spellingSuggestions.map((suggestion) => (
+              {allSpellingSuggestions.map((suggestion) => (
                 <TouchableOpacity key={suggestion} activeOpacity={0.82} onPress={() => selectWord(suggestion)} style={styles.suggestionChip}>
                   <Text style={styles.suggestionText}>{suggestion}</Text>
                 </TouchableOpacity>
@@ -491,15 +536,12 @@ function mergeLookupEntry(
   selectedWord: string,
   apiBilingualMeaning: ApiBilingualMeaningResult | null,
   apiMeaning: ApiMeaningResult | null,
-  canUseEnglishApi: boolean,
+  canUseSourceDictionaryApi: boolean,
   hasLocalDictionarySource: boolean,
+  isBilingualSourceBlocked: boolean,
   sourceLanguageLabel: string,
   targetLanguageLabel: string
 ): DictionaryEntry {
-  if (!canUseEnglishApi && !localEntry) {
-    return createDictionaryUnavailableEntry(selectedWord, hasLocalDictionarySource, sourceLanguageLabel, targetLanguageLabel);
-  }
-
   const fallbackEntry = localEntry ?? dictionaryEntries[0];
   const hasLocalEntry = Boolean(localEntry);
   const apiDefinitions = apiMeaning?.definitions.map((definition) => ({
@@ -520,6 +562,16 @@ function mergeLookupEntry(
     gender: definition.gender,
     level: definition.level,
   }));
+
+  if (isBilingualSourceBlocked) {
+    return createDictionaryUnavailableEntry(
+      selectedWord,
+      hasLocalDictionarySource,
+      sourceLanguageLabel,
+      targetLanguageLabel,
+      'Chưa chọn nguồn dữ liệu từ điển Việt-Pháp / Pháp-Việt đủ tin cậy.'
+    );
+  }
 
   if (apiBilingualMeaning?.definitions.length) {
     return {
@@ -543,14 +595,18 @@ function mergeLookupEntry(
   }
 
   if (!hasLocalEntry) {
+    if (!canUseSourceDictionaryApi && !apiMeaning) {
+      return createDictionaryUnavailableEntry(selectedWord, hasLocalDictionarySource, sourceLanguageLabel, targetLanguageLabel);
+    }
+
     return {
       word: apiMeaning?.word ?? selectedWord,
       ipa: apiMeaning?.ipa ?? '',
       audio: apiMeaning?.audio ?? '',
-      level: 'EN',
-      topic: 'General meaning',
-      vietnamese: 'Chưa có nghĩa tiếng Việt',
-      shortDefinition: apiDefinitions?.[0]?.meaning ?? 'Live English dictionary lookup.',
+      level: sourceLanguageLabel,
+      topic: 'Online dictionary',
+      vietnamese: apiDefinitions?.[0]?.meaning ?? 'Chưa có nghĩa đích',
+      shortDefinition: apiDefinitions?.[0]?.meaning ?? 'Live dictionary lookup.',
       definitions: apiDefinitions?.length
         ? apiDefinitions
         : [
@@ -592,11 +648,12 @@ function createDictionaryUnavailableEntry(
   word: string,
   hasLocalDictionarySource: boolean,
   sourceLanguageLabel: string,
-  targetLanguageLabel: string
+  targetLanguageLabel: string,
+  customMessage?: string
 ): DictionaryEntry {
-  const sourceMessage = hasLocalDictionarySource
+  const sourceMessage = customMessage ?? (hasLocalDictionarySource
     ? `Chưa có mục từ local cho "${word}".`
-    : `Dữ liệu từ điển ${sourceLanguageLabel} chưa được bật.`;
+    : `Dữ liệu từ điển ${sourceLanguageLabel} chưa được bật.`);
 
   return {
     word,
