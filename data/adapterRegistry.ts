@@ -1,13 +1,13 @@
-import { languageOptions } from './languages';
 import {
-  ApiMeaningResult,
-  ApiRelatedWords,
-  ApiBilingualMeaningResult,
-  fetchMonolingualMeaning,
-  fetchRelatedWords,
-  fetchBilingualMeaning,
-  fetchVietnameseSuggestions,
+    ApiBilingualMeaningResult,
+    ApiMeaningResult,
+    ApiRelatedWords,
+    fetchBilingualMeaning,
+    fetchMonolingualMeaning,
+    fetchRelatedWords,
+    fetchVietnameseSuggestions,
 } from './dictionaryApi';
+import { languageOptions } from './languages';
 
 export type LanguageAdapter = {
   key: string;
@@ -26,6 +26,7 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: true,
     fetchMonolingualMeaning: (word: string) => fetchMonolingualMeaning(word, 'en'),
     fetchRelatedWords: (word: string) => fetchRelatedWords(word, 'en'),
+    fetchBilingualMeaning: (word: string, s: string, t: string) => fetchBilingualMeaning(word, s, t),
   },
   vi: {
     key: 'vi',
@@ -34,12 +35,31 @@ const adapters: Record<string, LanguageAdapter> = {
     fetchMonolingualMeaning: (word: string) => fetchMonolingualMeaning(word, 'vi'),
     fetchRelatedWords: (word: string) => fetchRelatedWords(word, 'vi'),
     fetchSuggestions: (q: string) => fetchVietnameseSuggestions(q),
+    fetchBilingualMeaning: (word: string, s: string, t: string) => fetchBilingualMeaning(word, s, t),
   },
   fr: {
     key: 'fr',
     supportsMonolingual: true,
     supportsBilingual: true,
     fetchMonolingualMeaning: (word: string) => fetchMonolingualMeaning(word, 'fr'),
+    fetchRelatedWords: (word: string) => fetchRelatedWords(word, 'fr'),
+    fetchBilingualMeaning: (word: string, s: string, t: string) => fetchBilingualMeaning(word, s, t),
+  },
+  // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
+  minhqnd: {
+    key: 'minhqnd',
+    supportsMonolingual: true,
+    supportsBilingual: true,
+    fetchMonolingualMeaning: (word: string) => fetchMonolingualMeaning(word, 'vi'),
+    fetchBilingualMeaning: (word: string, s: string, t: string) => fetchBilingualMeaning(word, s, t),
+    fetchRelatedWords: (word: string) => fetchRelatedWords(word, 'vi'),
+  },
+  wiktapi: {
+    key: 'wiktapi',
+    supportsMonolingual: true,
+    supportsBilingual: true,
+    fetchMonolingualMeaning: (word: string) => fetchMonolingualMeaning(word, 'fr'),
+    fetchBilingualMeaning: (word: string, s: string, t: string) => fetchBilingualMeaning(word, s, t),
     fetchRelatedWords: (word: string) => fetchRelatedWords(word, 'fr'),
   },
 };
