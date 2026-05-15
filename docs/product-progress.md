@@ -126,7 +126,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Add folder view mode control under the right control below search: grid, list, compact.
 - [x] DONE [MEDIUM]: Build the folder kebab menu/action sheet with grouped actions: favorite, duplicate, color, rename, download, share.
 - [x] DONE [MEDIUM]: Move existing CSV, XLS, and Anki export actions into the kebab menu `Download` section.
-- [ ] TODO [MEDIUM]: Add folder favorite metadata and visual state without confusing it with saved-word favorites.
+- [x] DONE [MEDIUM]: Add folder favorite metadata and visual state without confusing it with saved-word favorites.
 - [ ] TODO [MEDIUM]: Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
 - [ ] TODO [MEDIUM]: Add color picker for folders and persist color metadata locally.
 - [ ] TODO [MEDIUM]: Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
@@ -284,11 +284,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Add folder favorite metadata and visual state without confusing it with saved-word favorites.
-2. `[ ] [MEDIUM]` Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
-3. `[ ] [MEDIUM]` Add color picker for folders and persist color metadata locally.
-4. `[ ] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
-5. `[ ] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
+1. `[ ] [MEDIUM]` Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
+2. `[ ] [MEDIUM]` Add color picker for folders and persist color metadata locally.
+3. `[ ] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
+4. `[ ] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
+5. `[ ] [MEDIUM]` Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
 
 ## Rule
 

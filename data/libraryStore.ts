@@ -12,6 +12,7 @@ export type Folder = {
   id: string;
   name: string;
   color: string;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -101,6 +102,7 @@ export async function createFolder(state: LibraryState, name?: string) {
     id: `folder-${Date.now()}`,
     name: name?.trim() || `New folder ${state.folders.length + 1}`,
     color: pickFolderColor(state.folders.length),
+    isFavorite: false,
     createdAt,
     updatedAt: createdAt,
   };
@@ -135,6 +137,32 @@ export async function renameFolder(state: LibraryState, folderId: string, name: 
   await saveLibraryState(nextState);
 
   return nextState;
+}
+
+export async function toggleFavoriteFolder(state: LibraryState, folderId: string) {
+  if (folderId === FAVORITES_FOLDER_ID) return state;
+
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    folders: state.folders.map((folder) =>
+      folder.id === folderId
+        ? {
+            ...folder,
+            isFavorite: !folder.isFavorite,
+            updatedAt: timestamp,
+          }
+        : folder
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export function isFavoriteWordsFolder(folderId: string) {
+  return folderId === FAVORITES_FOLDER_ID;
 }
 
 export async function deleteFolder(state: LibraryState, folderId: string) {
@@ -355,6 +383,7 @@ export async function importVocabularyRowsToFolder(
         id: `folder-${Date.now()}`,
         name: targetConfig.folderName.trim() || `Imported ${state.folders.length + 1}`,
         color: pickFolderColor(state.folders.length),
+        isFavorite: false,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -526,6 +555,7 @@ export function getDefaultLibraryState(): LibraryState {
       id: slugify(folder.name) || `folder-${folder.name.length}`,
       name: folder.name,
       color: folder.color,
+      isFavorite: false,
       createdAt: timestamp,
       updatedAt: timestamp,
     })),
@@ -571,10 +601,23 @@ function normalizeLibraryState(state: Partial<LibraryState>): LibraryState {
 function mergeFolders(defaultFolders: Folder[], storedFolders: Folder[]) {
   const byId = new Map<string, Folder>();
 
-  defaultFolders.forEach((folder) => byId.set(folder.id, folder));
-  storedFolders.forEach((folder) => byId.set(folder.id, folder));
+  defaultFolders.forEach((folder) => byId.set(folder.id, normalizeFolder(folder)));
+  storedFolders.forEach((folder) => byId.set(folder.id, normalizeFolder(folder)));
 
   return Array.from(byId.values());
+}
+
+function normalizeFolder(folder: Partial<Folder>): Folder {
+  const timestamp = now();
+
+  return {
+    id: folder.id ?? `folder-${Date.now()}`,
+    name: folder.name?.trim() || 'Untitled folder',
+    color: folder.color || pickFolderColor(0),
+    isFavorite: Boolean(folder.isFavorite),
+    createdAt: folder.createdAt ?? timestamp,
+    updatedAt: folder.updatedAt ?? folder.createdAt ?? timestamp,
+  };
 }
 
 function upsertSavedWord(

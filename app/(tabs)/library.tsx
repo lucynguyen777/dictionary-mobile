@@ -27,7 +27,9 @@ import {
     getFavoriteFolderId,
     getFolderWords,
     importVocabularyRowsToFolder,
+    isFavoriteWordsFolder,
     loadLibraryState,
+    toggleFavoriteFolder,
 } from '@/data/libraryStore';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
@@ -116,9 +118,8 @@ export default function LibraryScreen() {
 
   const filteredFolders = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    const favoriteFolderId = getFavoriteFolderId();
     const foldersBySegment = libraryState.folders.filter((folder) => {
-      if (activeSegment === 'favorites') return folder.id === favoriteFolderId;
+      if (activeSegment === 'favorites') return folder.isFavorite && !isFavoriteWordsFolder(folder.id);
       if (activeSegment === 'imported') {
         return libraryState.savedWords.some((word) => word.source === 'import' && word.folderIds.includes(folder.id));
       }
@@ -208,6 +209,22 @@ export default function LibraryScreen() {
   const handleComingSoonFolderAction = (title: string, message: string) => {
     setActiveFolderMenuId('');
     Alert.alert(title, message);
+  };
+
+  const handleToggleFavoriteFolder = (folder: Folder) => {
+    if (isFavoriteWordsFolder(folder.id)) {
+      setActiveFolderMenuId('');
+      Alert.alert(
+        'Bộ từ hệ thống',
+        'Bộ Favorites này đang dùng cho các từ vựng được yêu thích. Folder favorite riêng sẽ áp dụng cho các bộ từ khác.'
+      );
+      return;
+    }
+
+    toggleFavoriteFolder(libraryState, folder.id).then((nextState) => {
+      setLibraryState(nextState);
+      setActiveFolderMenuId('');
+    });
   };
 
   const handlePickCsv = async () => {
@@ -675,7 +692,15 @@ export default function LibraryScreen() {
                 </View>
                 <View style={[styles.folderInfo, (isList || isCompact) && styles.folderInfoList]}>
                   <View style={styles.folderCopy}>
-                    <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
+                    <View style={styles.folderNameRow}>
+                      <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
+                      {folder.isFavorite ? (
+                        <View style={styles.folderFavoritePill}>
+                          <Ionicons name="star" size={11} color="#B45309" />
+                          <Text style={styles.folderFavoriteText}>Bộ từ yêu thích</Text>
+                        </View>
+                      ) : null}
+                    </View>
                     <Text style={styles.wordNumber}>{wordCount} từ</Text>
                   </View>
                   <TouchableOpacity
@@ -695,15 +720,12 @@ export default function LibraryScreen() {
                   onStartShouldSetResponder={() => true}>
                   <TouchableOpacity
                     activeOpacity={0.78}
-                    onPress={() =>
-                      handleComingSoonFolderAction(
-                        'Sắp có',
-                        'Yêu thích bộ từ sẽ được lưu riêng với yêu thích từ vựng.'
-                      )
-                    }
+                    onPress={() => handleToggleFavoriteFolder(folder)}
                     style={styles.folderActionRow}>
-                    <Ionicons name="star-outline" size={17} color="#64748B" />
-                    <Text style={styles.folderActionText}>Thêm vào yêu thích</Text>
+                    <Ionicons name={folder.isFavorite ? 'star' : 'star-outline'} size={17} color={folder.isFavorite ? '#D97706' : '#64748B'} />
+                    <Text style={styles.folderActionText}>
+                      {folder.isFavorite ? 'Gỡ khỏi bộ từ yêu thích' : 'Thêm bộ từ vào yêu thích'}
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.78}
@@ -1410,6 +1432,26 @@ const styles = StyleSheet.create({
   folderCopy: {
     flex: 1,
   },
+  folderNameRow: {
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  folderFavoritePill: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  folderFavoriteText: {
+    color: '#B45309',
+    fontSize: 10,
+    fontWeight: '900',
+  },
   folderMenuButton: {
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
@@ -1574,7 +1616,6 @@ function getSortLabel(sortOption: FolderSortOption) {
 function sortFolders(leftFolder: Folder, rightFolder: Folder, sortOption: FolderSortOption, state: LibraryState) {
   const leftWordCount = getFolderWords(state, leftFolder.id).length;
   const rightWordCount = getFolderWords(state, rightFolder.id).length;
-  const favoriteFolderId = getFavoriteFolderId();
 
   switch (sortOption) {
     case 'oldest':
@@ -1588,8 +1629,7 @@ function sortFolders(leftFolder: Folder, rightFolder: Folder, sortOption: Folder
     case 'leastWords':
       return leftWordCount - rightWordCount || leftFolder.name.localeCompare(rightFolder.name);
     case 'favoritesFirst':
-      if (leftFolder.id === favoriteFolderId) return -1;
-      if (rightFolder.id === favoriteFolderId) return 1;
+      if (leftFolder.isFavorite !== rightFolder.isFavorite) return leftFolder.isFavorite ? -1 : 1;
       return rightWordCount - leftWordCount || leftFolder.name.localeCompare(rightFolder.name);
     case 'recent':
     default:
