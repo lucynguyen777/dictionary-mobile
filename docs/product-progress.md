@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `293174f` Add HTML import for Reader
   - `3706441` Add English morphology lookup fallback
   - `1a07198` Add biometric app lock option
   - `b46a5d2` Support TSV vocabulary import
@@ -135,10 +136,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Reader
 - [x] DONE: TXT reader MVP.
+- [x] DONE [MEDIUM]: HTML Reader import with local text extraction (commit `293174f`).
 - [x] DONE: Reader settings: font size, font family, background color.
 - [x] DONE: Tap word to lookup.
 - [x] DONE: Tap word to save and quick note in reading flow.
-- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 
@@ -183,7 +185,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+1. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
 2. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
 3. `[!] [HARD]` Google Sheets export with OAuth.
 
