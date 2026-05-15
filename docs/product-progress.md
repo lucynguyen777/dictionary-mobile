@@ -128,7 +128,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Build the folder kebab menu/action sheet with grouped actions: favorite, duplicate, color, rename, download, share.
 - [x] DONE [MEDIUM]: Move existing CSV, XLS, and Anki export actions into the kebab menu `Download` section.
 - [x] DONE [MEDIUM]: Add folder favorite metadata and visual state without confusing it with saved-word favorites.
-- [ ] TODO [MEDIUM]: Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
+- [x] DONE [MEDIUM]: Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
 - [ ] TODO [MEDIUM]: Add color picker for folders and persist color metadata locally.
 - [ ] TODO [MEDIUM]: Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
 - [ ] TODO [MEDIUM]: Reuse or polish rename flow from the kebab menu.
@@ -285,11 +285,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Add duplicate folder action that copies folder metadata and word membership safely without duplicating saved word records unnecessarily.
-2. `[ ] [MEDIUM]` Add color picker for folders and persist color metadata locally.
-3. `[ ] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
-4. `[ ] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
-5. `[ ] [MEDIUM]` Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
+1. `[ ] [MEDIUM]` Add color picker for folders and persist color metadata locally.
+2. `[ ] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
+3. `[ ] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
+4. `[ ] [MEDIUM]` Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
+5. `[ ] [MEDIUM]` Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
 
 ## Rule
 

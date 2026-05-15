@@ -161,6 +161,38 @@ export async function toggleFavoriteFolder(state: LibraryState, folderId: string
   return nextState;
 }
 
+export async function duplicateFolder(state: LibraryState, folderId: string) {
+  const sourceFolder = state.folders.find((folder) => folder.id === folderId);
+  if (!sourceFolder || folderId === FAVORITES_FOLDER_ID) return state;
+
+  const timestamp = now();
+  const copyFolder: Folder = {
+    ...sourceFolder,
+    id: `folder-${Date.now()}`,
+    name: buildDuplicateFolderName(state.folders, sourceFolder.name),
+    isFavorite: false,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+  const nextState = {
+    ...state,
+    folders: [copyFolder, ...state.folders],
+    savedWords: state.savedWords.map((word) =>
+      word.folderIds.includes(folderId)
+        ? {
+            ...word,
+            folderIds: Array.from(new Set([...word.folderIds, copyFolder.id])),
+            updatedAt: timestamp,
+          }
+        : word
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
 export function isFavoriteWordsFolder(folderId: string) {
   return folderId === FAVORITES_FOLDER_ID;
 }
@@ -618,6 +650,23 @@ function normalizeFolder(folder: Partial<Folder>): Folder {
     createdAt: folder.createdAt ?? timestamp,
     updatedAt: folder.updatedAt ?? folder.createdAt ?? timestamp,
   };
+}
+
+function buildDuplicateFolderName(folders: Folder[], sourceName: string) {
+  const baseName = `${sourceName} copy`;
+  const existingNames = new Set(folders.map((folder) => folder.name.trim().toLowerCase()));
+
+  if (!existingNames.has(baseName.toLowerCase())) return baseName;
+
+  let index = 2;
+  let nextName = `${baseName} ${index}`;
+
+  while (existingNames.has(nextName.toLowerCase())) {
+    index += 1;
+    nextName = `${baseName} ${index}`;
+  }
+
+  return nextName;
 }
 
 function upsertSavedWord(

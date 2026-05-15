@@ -20,6 +20,7 @@ import {
     LibraryState,
     createFlashcardsFromWordIds,
     createFolder,
+    duplicateFolder,
     exportFolderToAnkiTsv,
     exportFolderToCsv,
     exportFolderToExcel,
@@ -224,6 +225,23 @@ export default function LibraryScreen() {
     toggleFavoriteFolder(libraryState, folder.id).then((nextState) => {
       setLibraryState(nextState);
       setActiveFolderMenuId('');
+    });
+  };
+
+  const handleDuplicateFolder = (folder: Folder) => {
+    if (isFavoriteWordsFolder(folder.id)) {
+      setActiveFolderMenuId('');
+      Alert.alert('Bộ từ hệ thống', 'Bộ Favorites dùng cho từ vựng yêu thích nên chưa hỗ trợ tạo bản sao.');
+      return;
+    }
+
+    duplicateFolder(libraryState, folder.id).then((nextState) => {
+      const copiedFolder = nextState.folders.find((item) => item.id !== folder.id && item.name.startsWith(`${folder.name} copy`));
+
+      setLibraryState(nextState);
+      setActiveFolderMenuId('');
+      setActiveSegment('folders');
+      Alert.alert('Đã tạo bản sao', copiedFolder ? `"${copiedFolder.name}" đã được thêm vào tủ từ.` : 'Bộ từ đã được sao chép.');
     });
   };
 
@@ -729,12 +747,7 @@ export default function LibraryScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.78}
-                    onPress={() =>
-                      handleComingSoonFolderAction(
-                        'Sắp có',
-                        'Tạo bản sao bộ từ sẽ được thêm sau khi metadata folder hoàn tất.'
-                      )
-                    }
+                    onPress={() => handleDuplicateFolder(folder)}
                     style={styles.folderActionRow}>
                     <Ionicons name="copy-outline" size={17} color="#64748B" />
                     <Text style={styles.folderActionText}>Tạo bản sao</Text>
