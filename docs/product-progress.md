@@ -186,13 +186,16 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## User Profile And Privacy
 
 ### Profile Settings Sidebar
-- [ ] TODO [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
+ [~] IN PROGRESS [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
 - [ ] TODO [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
-- [ ] TODO [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
-- [ ] TODO [EASY]: Reuse existing local profile fields where possible instead of duplicating state: display name, email, native language, learning language, proficiency, goal, timezone, daily goal.
+ [x] DONE [MEDIUM]: Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
+ [x] DONE [MEDIUM]: Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
 - [ ] TODO [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
-- [ ] TODO [HARD]: Real account deletion requires backend account lifecycle; current reset/delete local data remains local-only.
-- [ ] TODO [EASY]: Add Notification settings UI: reminders, friends, leaderboards, announcements.
+ 1. `[~] [EASY]` Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
+ 2. `[ ] [MEDIUM]` Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
+ 3. `[ ] [MEDIUM]` Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
+ 4. `[x] [MEDIUM]` Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
+ 5. `[x] [MEDIUM]` Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
 - [ ] TODO [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [ ] TODO [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [ ] TODO [EASY]: Add Support settings items: Help center and Feedback.
@@ -308,6 +311,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 1. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất.
 2. Các task chưa vào queue vẫn phải giữ ở section checklist tương ứng, không xóa khỏi roadmap.
 3. Ưu tiên task theo thứ tự dễ đến khó, trừ khi user chọn rõ một ưu tiên khác.
+4. Khi nhiều hơn 3 task được mark [x] DONE, cập nhật Next Work Queue theo trạng thái thực tế của code: `[~]`, `[ ]`, hoặc `[!]`.
 
 ### Language Build Rules
 1. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó và ghi vào `Language Family Roadmap`.

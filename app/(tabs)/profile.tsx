@@ -30,6 +30,7 @@ export default function ProfileScreen() {
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [saveMessage, setSaveMessage] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -134,7 +135,9 @@ export default function ProfileScreen() {
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <Ionicons name="menu" size={27} color="#0F172A" />
+          <TouchableOpacity activeOpacity={0.82} onPress={() => setSidebarOpen(true)} style={styles.menuButton}>
+            <Ionicons name="menu" size={27} color="#0F172A" />
+          </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={styles.saveProfileButton}>
             <Ionicons name="save-outline" size={18} color="#2563EB" />
             <Text style={styles.saveProfileText}>Lưu</Text>
@@ -346,6 +349,31 @@ export default function ProfileScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {sidebarOpen ? (
+        <View style={styles.sidebarOverlay} pointerEvents="box-none">
+          <TouchableOpacity style={styles.sidebarBackdrop} activeOpacity={1} onPress={() => setSidebarOpen(false)} />
+          <View style={styles.sidebarSheet}>
+            <View style={styles.sidebarHeader}>
+              <Text style={styles.sidebarTitle}>Cài đặt</Text>
+              <TouchableOpacity activeOpacity={0.82} onPress={() => setSidebarOpen(false)}>
+                <Ionicons name="close" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.sidebarContent} showsVerticalScrollIndicator={false}>
+              <TouchableOpacity style={styles.sidebarItem} activeOpacity={0.82} onPress={() => {}}>
+                <Text style={styles.sidebarItemText}>Hồ sơ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.sidebarItem} activeOpacity={0.82} onPress={() => {}}>
+                <Text style={styles.sidebarItemText}>Quyền riêng tư</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.sidebarItem} activeOpacity={0.82} onPress={() => {}}>
+                <Text style={styles.sidebarItemText}>Thông báo</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      ) : null}
     </Screen>
   );
 }
@@ -408,6 +436,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  menuButton: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+    padding: 6,
+  },
+  sidebarOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 999,
+    elevation: 20,
+    justifyContent: 'flex-start',
+  },
+  sidebarBackdrop: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: '#00000066',
+  },
+  sidebarSheet: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '78%',
+    maxWidth: 420,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 36,
+    paddingHorizontal: 14,
+    paddingBottom: 24,
+    elevation: 22,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+  },
+  sidebarHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingRight: 6,
+  },
+  sidebarTitle: {
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  sidebarContent: {
+    paddingBottom: 36,
+  },
+  sidebarItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  sidebarItemText: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '800',
   },
   saveProfileButton: {
     alignItems: 'center',
