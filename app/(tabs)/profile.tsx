@@ -45,6 +45,7 @@ export default function ProfileScreen() {
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [saveMessage, setSaveMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarSection, setSidebarSection] = useState<'account' | 'privacy' | 'support'>('account');
   const [editingAvatar, setEditingAvatar] = useState(false);
 
   useFocusEffect(
@@ -171,7 +172,10 @@ export default function ProfileScreen() {
           <Pressable
             accessibilityLabel="Mở cài đặt"
             accessibilityRole="button"
-            onPress={() => setSidebarOpen(true)}
+            onPress={() => {
+              setSidebarSection('account');
+              setSidebarOpen(true);
+            }}
             style={({ pressed }) => [styles.settingsButton, pressed && styles.settingsButtonPressed]}>
             <Ionicons name="settings-outline" size={20} color="#0F172A" />
             <Text style={styles.settingsButtonText}>Cài đặt</Text>
@@ -407,10 +411,35 @@ export default function ProfileScreen() {
                 <Ionicons name="close" size={20} color="#64748B" />
               </Pressable>
             </View>
+            <View style={styles.sidebarNavRow}>
+              {[
+                { key: 'account' as const, label: 'Tài khoản', icon: 'person-outline' as const },
+                { key: 'privacy' as const, label: 'Riêng tư', icon: 'shield-outline' as const },
+                { key: 'support' as const, label: 'Hỗ trợ', icon: 'help-circle-outline' as const },
+              ].map((item) => {
+                const isActive = sidebarSection === item.key;
+
+                return (
+                  <Pressable
+                    key={item.key}
+                    onPress={() => setSidebarSection(item.key)}
+                    style={({ pressed }) => [
+                      styles.sidebarNavChip,
+                      isActive && styles.sidebarNavChipActive,
+                      pressed && styles.sidebarNavChipPressed,
+                    ]}>
+                    <Ionicons name={item.icon} size={15} color={isActive ? '#2563EB' : '#64748B'} />
+                    <Text style={[styles.sidebarNavChipText, isActive && styles.sidebarNavChipTextActive]}>{item.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
             <ScrollView
               contentContainerStyle={styles.sidebarContent}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}>
+              {sidebarSection === 'account' ? (
               <SidebarSection title="Tài khoản">
                 <View style={styles.sidebarAvatarBlock}>
                   <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
@@ -471,7 +500,68 @@ export default function ProfileScreen() {
                   <Text style={styles.saveProfileText}>Lưu thay đổi</Text>
                 </TouchableOpacity>
               </SidebarSection>
+              ) : null}
 
+              {sidebarSection === 'privacy' ? (
+              <SidebarSection title="Riêng tư & dữ liệu">
+                <View style={styles.privacyNote}>
+                  <Ionicons name="lock-closed-outline" size={18} color="#2563EB" />
+                  <Text style={styles.privacyText}>
+                    Dữ liệu học tập, hồ sơ và file Reader đang lưu local trên thiết bị. Chưa đồng bộ cloud trừ khi bạn bật đăng nhập sau này.
+                  </Text>
+                </View>
+                <View style={styles.securityRow}>
+                  <View style={styles.securityCopy}>
+                    <Text style={styles.securityTitle}>Khóa ứng dụng</Text>
+                    <Text style={styles.securityText}>Face ID, vân tay hoặc mã thiết bị khi mở app.</Text>
+                  </View>
+                  <Switch
+                    onValueChange={handleToggleAppLock}
+                    thumbColor="#FFFFFF"
+                    trackColor={{ false: '#CBD5E1', true: '#2563EB' }}
+                    value={profile.appLockEnabled}
+                  />
+                </View>
+                <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
+                  <Ionicons name="cloud-upload-outline" size={16} color="#2563EB" />
+                  <Text style={styles.saveProfileText}>Xuất dữ liệu local</Text>
+                </TouchableOpacity>
+                <TouchableOpacity activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
+                  <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                  <Text style={styles.clearDataText}>Xóa tất cả dữ liệu local</Text>
+                </TouchableOpacity>
+              </SidebarSection>
+              ) : null}
+
+              {sidebarSection === 'support' ? (
+              <SidebarSection title="Hỗ trợ">
+                <TouchableOpacity
+                  activeOpacity={0.82}
+                  onPress={() => Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp sẽ mở khi chọn kênh hỗ trợ chính thức.', [{ text: 'OK' }])}
+                  style={styles.sidebarSecondaryAction}>
+                  <Ionicons name="book-outline" size={17} color="#64748B" />
+                  <Text style={styles.sidebarSecondaryActionText}>Trung tâm trợ giúp</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.82}
+                  onPress={() => Alert.alert('Gửi phản hồi', 'Gửi email/helpdesk cần backend hoặc kênh hỗ trợ — hiện chỉ là UI shell.', [{ text: 'OK' }])}
+                  style={styles.sidebarSecondaryAction}>
+                  <Ionicons name="chatbox-ellipses-outline" size={17} color="#64748B" />
+                  <Text style={styles.sidebarSecondaryActionText}>Gửi phản hồi</Text>
+                  <Text style={styles.sidebarComingSoon}>Sắp có</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.82}
+                  onPress={() => Alert.alert('Đăng xuất', 'Chưa có phiên đăng nhập. Đăng xuất sẽ khả dụng sau khi bật auth.', [{ text: 'OK' }])}
+                  style={styles.sidebarSecondaryAction}>
+                  <Ionicons name="log-out-outline" size={17} color="#94A3B8" />
+                  <Text style={[styles.sidebarSecondaryActionText, { color: '#94A3B8' }]}>Đăng xuất</Text>
+                  <Text style={styles.sidebarComingSoon}>Sắp có</Text>
+                </TouchableOpacity>
+              </SidebarSection>
+              ) : null}
+
+              {sidebarSection === 'account' ? (
               <SidebarSection title="Bảo mật & dữ liệu">
                 <TouchableOpacity
                   activeOpacity={0.82}
@@ -486,6 +576,7 @@ export default function ProfileScreen() {
                   <Text style={styles.sidebarDestructiveText}>Xóa hồ sơ local</Text>
                 </TouchableOpacity>
               </SidebarSection>
+              ) : null}
             </ScrollView>
           </View>
         </View>
@@ -636,6 +727,38 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontSize: 16,
     fontWeight: '900',
+  },
+  sidebarNavRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  sidebarNavChip: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+  },
+  sidebarNavChipActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  sidebarNavChipPressed: {
+    opacity: 0.88,
+  },
+  sidebarNavChipText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  sidebarNavChipTextActive: {
+    color: '#2563EB',
   },
   sidebarContent: {
     paddingBottom: 24,

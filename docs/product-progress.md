@@ -194,8 +194,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
 - [ ] TODO [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
 - [ ] TODO [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
-- [ ] TODO [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
-- [ ] TODO [EASY]: Add Support settings items: Help center and Feedback.
+- [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
+- [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
 - [ ] TODO [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected.
 - [ ] TODO [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [ ] TODO [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
@@ -285,8 +285,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [EASY]` Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
-2. `[ ] [EASY]` Add Support settings items: Help center and Feedback.
+1. `[x] [EASY]` Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
+2. `[x] [EASY]` Add Support settings items: Help center and Feedback.
 3. `[ ] [MEDIUM]` Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
 4. `[ ] [MEDIUM]` Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
 5. `[ ] [MEDIUM]` Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
