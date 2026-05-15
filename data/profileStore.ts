@@ -9,6 +9,9 @@ export type LoginMethod = 'local' | 'email' | 'apple' | 'google';
 export type UserProfile = {
   displayName: string;
   email: string;
+  username: string;
+  phone: string;
+  avatarUrl: string;
   loginMethod: LoginMethod;
   nativeLanguage: LanguageCode;
   learningLanguage: LanguageCode;
@@ -33,6 +36,9 @@ export function getDefaultProfile(): UserProfile {
   return {
     displayName: 'Mai Anh',
     email: '',
+    username: '',
+    phone: '',
+    avatarUrl: '',
     loginMethod: 'local',
     nativeLanguage: 'vi',
     learningLanguage: 'en',
@@ -80,6 +86,9 @@ function normalizeProfile(profile: Partial<UserProfile>): UserProfile {
     ...profile,
     displayName: profile.displayName?.trim() || defaultProfile.displayName,
     email: profile.email?.trim() ?? '',
+    avatarUrl: profile.avatarUrl?.trim() || defaultProfile.avatarUrl,
+    username: profile.username?.trim() || defaultProfile.username,
+    phone: profile.phone?.trim() || defaultProfile.phone,
     learningGoal: profile.learningGoal?.trim() || defaultProfile.learningGoal,
     timezone: profile.timezone?.trim() || defaultProfile.timezone,
     dailyGoal: profile.dailyGoal?.trim() || defaultProfile.dailyGoal,

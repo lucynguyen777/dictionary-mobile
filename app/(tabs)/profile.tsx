@@ -31,6 +31,7 @@ export default function ProfileScreen() {
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [saveMessage, setSaveMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editingAvatar, setEditingAvatar] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -361,14 +362,66 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={styles.sidebarContent} showsVerticalScrollIndicator={false}>
-              <TouchableOpacity style={styles.sidebarItem} activeOpacity={0.82} onPress={() => {}}>
-                <Text style={styles.sidebarItemText}>Hồ sơ</Text>
+              <View style={{ alignItems: 'center', marginBottom: 12 }}>
+                <Image
+                  source={{ uri: profile.avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop' }}
+                  style={styles.sidebarAvatar}
+                />
+                <TouchableOpacity activeOpacity={0.82} onPress={() => setEditingAvatar((v) => !v)}>
+                  <Text style={[styles.sidebarItemText, { color: '#2563EB', marginTop: 6 }]}>{editingAvatar ? 'Hủy' : 'Thay ảnh'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {editingAvatar ? (
+                <ProfileInput
+                  label="Avatar URL"
+                  onChangeText={(value) => updateProfile('avatarUrl', value)}
+                  placeholder="https://..."
+                  value={profile.avatarUrl}
+                />
+              ) : null}
+
+              <ProfileInput label="Tên hiển thị" onChangeText={(value) => updateProfile('displayName', value)} placeholder="Tên hiển thị" value={profile.displayName} />
+              <ProfileInput label="Tên người dùng" onChangeText={(value) => updateProfile('username', value)} placeholder="username" value={profile.username} />
+              <ProfileInput autoCapitalize="none" label="Email" keyboardType="email-address" onChangeText={(value) => updateProfile('email', value)} placeholder="you@example.com" value={profile.email} />
+              <ProfileInput label="Số điện thoại" onChangeText={(value) => updateProfile('phone', value)} placeholder="+84..." value={profile.phone} />
+
+              <TouchableOpacity style={[styles.saveProfileButton, { marginTop: 12 }]} activeOpacity={0.82} onPress={handleSaveProfile}>
+                <Ionicons name="save-outline" size={16} color="#2563EB" />
+                <Text style={styles.saveProfileText}>Lưu thay đổi</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.sidebarItem} activeOpacity={0.82} onPress={() => {}}>
-                <Text style={styles.sidebarItemText}>Quyền riêng tư</Text>
+
+              <TouchableOpacity
+                style={[styles.clearDataButton, { marginTop: 12 }]}
+                activeOpacity={0.82}
+                onPress={() => {
+                  Alert.alert('Thay đổi mật khẩu', 'Chức năng thay đổi mật khẩu chưa khả dụng.', [{ text: 'OK' }]);
+                }}
+              >
+                <Text style={styles.clearDataText}>Thay đổi mật khẩu (chưa khả dụng)</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.sidebarItem} activeOpacity={0.82} onPress={() => {}}>
-                <Text style={styles.sidebarItemText}>Thông báo</Text>
+
+              <TouchableOpacity
+                style={[styles.clearDataButton, { marginTop: 12 }]}
+                activeOpacity={0.82}
+                onPress={() => {
+                  Alert.alert('Xóa tài khoản', 'Hành động này sẽ xóa hồ sơ local của bạn. Bạn có muốn tiếp tục?', [
+                    { text: 'Hủy', style: 'cancel' },
+                    {
+                      text: 'Xóa',
+                      style: 'destructive',
+                      onPress: async () => {
+                        await clearUserProfile();
+                        setProfile(getDefaultProfile());
+                        setSaveMessage('Hồ sơ đã xóa.');
+                        setSidebarOpen(false);
+                        Alert.alert('Đã xóa hồ sơ', 'Hồ sơ local đã được xóa.');
+                      },
+                    },
+                  ]);
+                }}
+              >
+                <Text style={styles.clearDataText}>Xóa hồ sơ local</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -502,6 +555,12 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontSize: 15,
     fontWeight: '800',
+  },
+  sidebarAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    marginBottom: 8,
   },
   saveProfileButton: {
     alignItems: 'center',
