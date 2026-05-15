@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `083addb` feat: add language-family metadata to language config
   - `3ec1975` Add VI and FR dictionary lookup sources
   - `293174f` Add HTML import for Reader
   - `3706441` Add English morphology lookup fallback
@@ -232,7 +233,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Next Work Queue
 1. `[x] [EASY]` Audit UI copy (profile/reader/library) — localized microcopy normalized in workspace.
 2. `[x] [EASY]` Improve import validation messages (CSV/TSV) — messages standardized in `data/csvImport.ts`.
-3. `[~] [MEDIUM]` Add language-family metadata to language config.
+3. `[x] [MEDIUM]` Add language-family metadata to language config (commit `083addb`).
 4. `[~] [MEDIUM]` Build adapter registry by language pair/family.
 5. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
 6. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
