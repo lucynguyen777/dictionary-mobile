@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `2636f15` Add folder favorite metadata
   - `b5fa8cc` Update progress after library controls
   - `5afb932` Polish library folder controls
   - `b524692` Polish meaning context and training tabs
