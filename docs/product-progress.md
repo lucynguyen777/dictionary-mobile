@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `3706441` Add English morphology lookup fallback
   - `1a07198` Add biometric app lock option
   - `b46a5d2` Support TSV vocabulary import
   - `8764019` Add pronunciation recording playback
@@ -74,7 +75,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Normalize mixed Vietnamese/English UI copy.
 - [x] DONE [EASY]: Search History / Recent searches (Lịch sử tìm kiếm).
 - [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
-- [~] IN PROGRESS [HARD]: Word variations/morphology search (Tìm kiếm theo dạng từ, VD: "went" -> "go").
+- [x] DONE [HARD]: Word variations/morphology search for English inflections and common irregular forms (VD: "went" -> "go") (commit `3706441`).
 - [ ] TODO [HARD]: Offline dictionary database bundle (Bộ dữ liệu từ điển offline hoàn chỉnh).
 - [ ] TODO [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
 
@@ -137,7 +138,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Reader settings: font size, font family, background color.
 - [x] DONE: Tap word to lookup.
 - [x] DONE: Tap word to save and quick note in reading flow.
-- [ ] TODO [HARD]: Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX/HTML, starting with the safest format.
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 
@@ -182,10 +183,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
-2. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
-3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-4. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[~] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+2. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+3. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
