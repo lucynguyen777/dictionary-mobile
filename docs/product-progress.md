@@ -20,6 +20,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `2e77772` Expand bilingual domain inference rules
+  - `bd96e80` Fix CSV import field mapping flow
   - `4ed73c1` feat(reader): improve highlight behavior to support adjacent multi-word selection
   - `66c5dd0` feat(library): implement SuperMemo-2 (SM-2) algorithm for flashcard spaced repetition
   - `fc1fa77` feat(lookup): add text-to-speech for example sentences using expo-speech
@@ -33,9 +35,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `a6f1c79` fix(ui): localize profile, reader, library copy; polish lookup error message
   - `a1958c5` docs: update Next Work Queue and mark Reader highlights done
   - `1f44f37` Add Anki TSV export and UI
-   - `c2feab9` Add custom field mapping UI for CSV import
-    - `1f44f37` Add Anki TSV export and UI
-   - `66a8ae4` Expand idioms/phrasal verbs dataset
+  - `c2feab9` Add custom field mapping UI for CSV import
+  - `66a8ae4` Expand idioms/phrasal verbs dataset
   - `ff470d7` Improve Reader highlight flow and create flashcards from highlights
   - `de2bdc8` Stabilize deep dictionary lookup
   - `1b77af3` Improve vocabulary import workflow
@@ -65,7 +66,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: English-Vietnamese bilingual dictionary lookup.
 - [x] DONE [EASY]: Meaning grouped by word type.
 - [x] DONE [MEDIUM]: Meaning domain/context shown only when available or reasonably inferred.
-- [~] IN PROGRESS [MEDIUM]: Expand domain/context extraction for common polysemous words beyond `cell`.
+- [x] DONE [MEDIUM]: Expand domain/context extraction for common polysemous words beyond `cell` (commit `2e77772`).
 - [x] DONE [EASY]: Standardize loading, empty, and error states across all lookup tabs.
 - [x] DONE [EASY]: Normalize mixed Vietnamese/English UI copy.
 - [x] DONE [EASY]: Search History / Recent searches (Lịch sử tìm kiếm).
@@ -84,7 +85,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Synonym/antonym backlink to lookup route.
 - [x] DONE: Local idioms/phrasal verbs text-only preview.
 - [x] DONE: Phrase backlink to lookup route.
-- [~] IN PROGRESS: Expand idioms/phrasal verbs dataset and classification.
+- [x] DONE [MEDIUM]: Expand idioms/phrasal verbs dataset and classification (commit `66a8ae4`).
 
 ### Library And Saved Words
 - [x] DONE: Save words to folder.
@@ -96,14 +97,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Export folder to CSV.
 - [x] DONE [MEDIUM]: Export folder to Excel-compatible `.xls`.
 - [x] DONE [MEDIUM]: Anki text-only export from folder/saved words (commit `72abef2`).
-- [!] BLOCKED: Google Sheets export, requires OAuth and Google API flow.
+- [!] BLOCKED [HARD]: Google Sheets export, requires OAuth and Google API flow.
 
 ### Pronunciation
 - [x] DONE: Audio-only pronunciation in lookup.
-- [ ] TODO: Record user pronunciation.
-- [!] BLOCKED: IPA comparison with per-phoneme alignment and scoring needs speech/phoneme engine or backend.
-- [!] BLOCKED: Phoneme-level scoring table needs reliable alignment engine.
-- [!] BLOCKED: GIF/visual pronunciation guidance needs content production pipeline.
+- [ ] TODO [MEDIUM]: Record user pronunciation.
+- [!] BLOCKED [HARD]: IPA comparison with per-phoneme alignment and scoring needs speech/phoneme engine or backend.
+- [!] BLOCKED [HARD]: Phoneme-level scoring table needs reliable alignment engine.
+- [!] BLOCKED [HARD]: GIF/visual pronunciation guidance needs content production pipeline.
 
 ## Learning Tools
 
@@ -115,7 +116,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Create flashcards after CSV import.
 - [x] DONE: Polish flashcard creation from imported datasets.
 - [x] DONE: Prepare Anki text-only export from flashcards.
-- [ ] TODO: Add richer review scheduling after local MVP is stable.
+- [x] DONE [MEDIUM]: Add richer review scheduling after local MVP is stable (commit `66c5dd0`).
 
 ### Import Dataset
 - [x] DONE: CSV import MVP.
@@ -125,16 +126,16 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Preview before import.
 - [x] DONE: Advanced import options: row/column orientation, header on/off, primary key.
 - [x] DONE: Validate duplicates and empty data more clearly in the UI.
-- [x] DONE: User-controlled custom field mapping beyond recognized headers/order.
-- [ ] TODO: Import non-CSV datasets if needed.
+- [x] DONE [MEDIUM]: User-controlled custom field mapping beyond recognized headers/order (commits `c2feab9`, `bd96e80`).
+- [ ] TODO [MEDIUM]: Import non-CSV datasets if needed.
 
 ### Reader
 - [x] DONE: TXT reader MVP.
 - [x] DONE: Reader settings: font size, font family, background color.
 - [x] DONE: Tap word to lookup.
 - [x] DONE: Tap word to save and quick note in reading flow.
-- [ ] TODO: Import EPUB/PDF/DOCX/HTML, starting with the safest format.
-- [ ] TODO: Better text selection/highlight behavior beyond tap-token flow.
+- [ ] TODO [HARD]: Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+- [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 
 ## User Profile And Privacy
@@ -164,25 +165,26 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Advanced Features
 
 ### Translation
-- [~] IN PROGRESS: Language selector and bilingual English-Vietnamese dictionary flow.
-- [!] BLOCKED: Production multilingual translation for many language pairs needs selected API/backend.
-- [!] BLOCKED: Specialized translation with user glossary/database needs backend, auth, and cost controls.
+- [~] IN PROGRESS [MEDIUM]: Language selector and bilingual English-Vietnamese dictionary flow.
+- [!] BLOCKED [HARD]: Production multilingual translation for many language pairs needs selected API/backend.
+- [!] BLOCKED [HARD]: Specialized translation with user glossary/database needs backend, auth, and cost controls.
 
 ### Etymology And Conjugation
-- [ ] TODO: Choose legal structured resource for etymology.
-- [ ] TODO: Choose reliable resource for conjugation.
-- [!] BLOCKED: Production etymology and conjugation should not be mocked without a real resource.
+- [ ] TODO [HARD]: Choose legal structured resource for etymology.
+- [ ] TODO [HARD]: Choose reliable resource for conjugation.
+- [!] BLOCKED [HARD]: Production etymology and conjugation should not be mocked without a real resource.
 
 ### AI
-- [!] BLOCKED: Real-time voice/text chatbot needs backend, streaming, auth, and cost controls.
-- [!] BLOCKED: Specialized document translation with imported glossary needs backend and persistence strategy.
+- [!] BLOCKED [HARD]: Real-time voice/text chatbot needs backend, streaming, auth, and cost controls.
+- [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[x] [MEDIUM]` Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ). ✓ commit `d1f96b5`.
-2. `[x] [MEDIUM]` Text-to-speech (TTS) for example sentences (Đọc câu ví dụ). ✓ commit `fc1fa77`.
-3. `[x] [MEDIUM]` Add richer review scheduling after local MVP is stable. ✓ commit `66c5dd0`.
-4. `[x] [MEDIUM]` Better text selection/highlight behavior beyond tap-token flow in Reader. ✓ commit `4ed73c1`.
-5. `[~] [MEDIUM]` App lock or biometric lock option if native support is added.
+1. `[ ] [MEDIUM]` Record user pronunciation.
+2. `[ ] [MEDIUM]` Import non-CSV datasets if needed.
+3. `[ ] [MEDIUM]` App lock or biometric lock option if native support is added.
+4. `[ ] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
+5. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+6. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
