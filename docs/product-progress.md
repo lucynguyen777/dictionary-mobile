@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `b524692` Polish meaning context and training tabs
   - `1651d83` Guard unsupported Reader document imports
   - `8b2770d` Enable French to Vietnamese dictionary lookup
   - `536b4ad` fix(adapter): restore generic fetch functions for fallback adapter
@@ -82,6 +83,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: English-Vietnamese bilingual dictionary lookup.
 - [x] DONE [EASY]: Meaning grouped by word type.
 - [x] DONE [MEDIUM]: Meaning domain/context shown only when available or reasonably inferred.
+- [x] DONE [MEDIUM]: Meaning context/domain chips always normalize to a dedicated tag; missing API tags display `Nghĩa chung` instead of disappearing or mixing into definitions (commit `b524692`).
 - [x] DONE [MEDIUM]: Expand domain/context extraction for common polysemous words beyond `cell` (commit `2e77772`).
 - [x] DONE [EASY]: Standardize loading, empty, and error states across all lookup tabs.
 - [x] DONE [EASY]: Normalize mixed Vietnamese/English UI copy.
@@ -123,6 +125,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: GIF/visual pronunciation guidance needs content production pipeline.
 
 ## Learning Tools
+
+### Training Tools UI/UX
+- [x] DONE [MEDIUM]: Collapse Advanced/Luyện tập into selectable tool tabs instead of showing Flashcard local as one large default block (commit `b524692`).
+- [x] DONE [MEDIUM]: Add frontend shell panels for AI hội thoại, Dịch chuyên ngành, Import, Reader, Export, and Flashcard local with per-tool status/roadmap copy (commit `b524692`).
+- [ ] TODO [MEDIUM]: Build AI hội thoại frontend tab: chat list, realtime chat surface, voice recording state, transcript area, correction/feedback panel, empty/loading/error states.
+- [ ] TODO [MEDIUM]: Build Dịch chuyên ngành frontend tab: domain/topic selector, glossary import/paste surface, source text editor, translated output panel, terminology highlights, blocked backend notice.
+- [ ] TODO [MEDIUM]: Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
+- [ ] TODO [MEDIUM]: Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
 
 ### Flashcards
 - [x] DONE: Flashcard MVP from saved words.
@@ -241,10 +251,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[!] [HARD]` VI→FR bilingual dictionary source selection.
-2. `[~] [HARD]` Select parser libraries for EPUB/PDF/DOCX Reader import after unsupported format guard.
-3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-4. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[ ] [MEDIUM]` Build AI hội thoại frontend tab UI/UX shell.
+2. `[ ] [MEDIUM]` Build Dịch chuyên ngành frontend tab UI/UX shell.
+3. `[ ] [MEDIUM]` Build Import frontend tab polish.
+4. `[ ] [MEDIUM]` Build Export frontend tab polish.
+5. `[!] [HARD]` VI→FR bilingual dictionary source selection.
+6. `[~] [HARD]` Select parser libraries for EPUB/PDF/DOCX Reader import after unsupported format guard.
+7. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+8. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
