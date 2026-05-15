@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { router } from 'expo-router';
-import { RefObject, useRef } from 'react';
+import { RefObject, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
@@ -622,12 +623,97 @@ function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
 }
 
 function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordedUri, setRecordedUri] = useState('');
+  const [recordingStatus, setRecordingStatus] = useState('Chưa có bản ghi.');
+
+  const handleStartRecording = async () => {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) {
+        setRecordingStatus('Cần cấp quyền microphone để ghi âm.');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording: nextRecording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording(nextRecording);
+      setRecordedUri('');
+      setRecordingStatus('Đang ghi âm phát âm của bạn...');
+    } catch {
+      setRecordingStatus('Chưa thể bắt đầu ghi âm. Thử lại sau.');
+    }
+  };
+
+  const handleStopRecording = async () => {
+    if (!recording) return;
+
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI() ?? '';
+      setRecordedUri(uri);
+      setRecording(null);
+      setRecordingStatus(uri ? 'Đã lưu bản ghi tạm thời trên thiết bị.' : 'Không tạo được bản ghi.');
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+    } catch {
+      setRecording(null);
+      setRecordingStatus('Chưa thể dừng ghi âm. Thử lại sau.');
+    }
+  };
+
+  const handlePlayRecording = async () => {
+    if (!recordedUri) return;
+
+    try {
+      const { sound } = await Audio.Sound.createAsync({ uri: recordedUri }, { shouldPlay: true });
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+      setRecordingStatus('Đang phát lại bản ghi của bạn.');
+    } catch {
+      setRecordingStatus('Chưa thể phát lại bản ghi.');
+    }
+  };
+
   return (
     <View>
       <PreviewNotice
-        title="Hiện chỉ có audio"
-        text="App có thể phát audio mẫu. Ghi âm, căn chỉnh phoneme và chấm điểm sẽ thuộc phase sau."
+        title="Ghi âm phát âm"
+        text="Bạn có thể ghi âm và phát lại phát âm của mình. Căn chỉnh phoneme và chấm điểm sẽ thuộc phase sau."
       />
+      <View style={styles.recordingCard}>
+        <View style={styles.recordingCopy}>
+          <Text style={styles.recordingTitle}>Bản ghi của bạn</Text>
+          <Text style={styles.recordingText}>{recordingStatus}</Text>
+        </View>
+        <View style={styles.recordingActions}>
+          <TouchableOpacity
+            activeOpacity={0.82}
+            onPress={recording ? handleStopRecording : handleStartRecording}
+            style={[styles.recordingButton, recording && styles.stopRecordingButton]}>
+            <Ionicons name={recording ? 'stop' : 'mic-outline'} size={17} color={recording ? '#FFFFFF' : '#2563EB'} />
+            <Text style={[styles.recordingButtonText, recording && styles.stopRecordingButtonText]}>
+              {recording ? 'Dừng' : 'Ghi âm'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.82}
+            disabled={!recordedUri || Boolean(recording)}
+            onPress={handlePlayRecording}
+            style={[styles.playRecordingButton, (!recordedUri || recording) && styles.disabledRecordingButton]}>
+            <Ionicons name="play-outline" size={17} color={recordedUri && !recording ? '#166534' : '#94A3B8'} />
+            <Text style={[styles.playRecordingText, (!recordedUri || recording) && styles.disabledRecordingText]}>
+              Nghe lại
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <Text style={styles.sectionTitle}>Hướng dẫn IPA</Text>
       <Text style={styles.body}>Dùng nút loa phía trên để nghe phát âm mẫu của {entry.word}.</Text>
       <View style={styles.tableHeader}>
@@ -1066,6 +1152,75 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
     marginBottom: 8,
+  },
+  recordingCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DBEAFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 18,
+    padding: 14,
+  },
+  recordingCopy: {
+    marginBottom: 12,
+  },
+  recordingTitle: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  recordingText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  recordingActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  recordingButton: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
+    justifyContent: 'center',
+    paddingVertical: 11,
+  },
+  stopRecordingButton: {
+    backgroundColor: '#DC2626',
+  },
+  recordingButtonText: {
+    color: '#2563EB',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  stopRecordingButtonText: {
+    color: '#FFFFFF',
+  },
+  playRecordingButton: {
+    alignItems: 'center',
+    backgroundColor: '#EAF8F0',
+    borderRadius: 8,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
+    justifyContent: 'center',
+    paddingVertical: 11,
+  },
+  playRecordingText: {
+    color: '#166534',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  disabledRecordingButton: {
+    backgroundColor: '#F1F5F9',
+  },
+  disabledRecordingText: {
+    color: '#94A3B8',
   },
   tableHeader: {
     backgroundColor: '#EAF1FF',
