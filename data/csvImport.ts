@@ -130,6 +130,7 @@ function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportO
 }
 
 function parseCsvRows(csv: string) {
+  const delimiter = detectDelimiter(csv);
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = '';
@@ -150,7 +151,7 @@ function parseCsvRows(csv: string) {
       continue;
     }
 
-    if (char === ',' && !inQuotes) {
+    if (char === delimiter && !inQuotes) {
       row.push(cell);
       cell = '';
       continue;
@@ -172,6 +173,14 @@ function parseCsvRows(csv: string) {
   if (row.some((value) => value.trim())) rows.push(row);
 
   return rows;
+}
+
+function detectDelimiter(text: string) {
+  const firstDataLine = text.split(/\r?\n/).find((line) => line.trim()) ?? '';
+  const tabCount = (firstDataLine.match(/\t/g) ?? []).length;
+  const commaCount = (firstDataLine.match(/,/g) ?? []).length;
+
+  return tabCount > commaCount ? '\t' : ',';
 }
 
 function normalizeHeader(value: string) {

@@ -180,7 +180,7 @@ export default function LibraryScreen() {
       const result = await DocumentPicker.getDocumentAsync({
         base64: false,
         copyToCacheDirectory: true,
-        type: ['text/csv', 'text/comma-separated-values', 'text/plain'],
+        type: ['text/csv', 'text/comma-separated-values', 'text/tab-separated-values', 'text/plain'],
       });
 
       if (result.canceled) return;
@@ -206,7 +206,7 @@ export default function LibraryScreen() {
       setShouldCreateImportFlashcards(false);
       setImportMessage('');
     } catch (error) {
-      Alert.alert('Import thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file CSV này.');
+      Alert.alert('Import thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file CSV/TSV này.');
     }
   };
 
@@ -332,7 +332,7 @@ export default function LibraryScreen() {
         <View style={styles.importPanel}>
           <View style={styles.importHeader}>
             <View>
-              <Text style={styles.importKicker}>Import CSV</Text>
+              <Text style={styles.importKicker}>Import CSV/TSV</Text>
               <Text style={styles.importTitle}>Thêm bộ từ từ file</Text>
             </View>
             <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
@@ -530,7 +530,7 @@ export default function LibraryScreen() {
             </>
           ) : (
             <Text style={styles.importHint}>
-              CSV có thể đọc theo hàng hoặc theo cột. Các trường hỗ trợ: word, definition, ipa, note, tags.
+              CSV/TSV có thể đọc theo hàng hoặc theo cột. Các trường hỗ trợ: word, definition, ipa, note, tags.
             </Text>
           )}
           {importMessage ? <Text style={styles.importMessage}>{importMessage}</Text> : null}
