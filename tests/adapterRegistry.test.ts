@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getAdapterByKey, getAdapterForLanguage, lookupBilingual, lookupMonolingual } from '../data/adapterRegistry';
+import * as dictApi from '../data/dictionaryApi';
+
 vi.mock('../data/dictionaryApi', () => {
   const mockFetchEnglishMeaning = vi.fn(async (word: string) => ({
     word: `${word}-mock`,
@@ -51,9 +54,6 @@ vi.mock('../data/dictionaryApi', () => {
     fetchVietnameseSuggestions: mockFetchVietnameseSuggestions,
   };
 });
-
-import { getAdapterByKey, getAdapterForLanguage, lookupBilingual, lookupMonolingual } from '../data/adapterRegistry';
-import * as dictApi from '../data/dictionaryApi';
 
 describe('adapterRegistry', () => {
   beforeEach(() => {

@@ -20,6 +20,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `5e2ea50` docs: mark privacy, support, and sign-out sidebar items done
+  - `c97f011` feat(profile): add privacy and support sections in settings sidebar
+  - `f6b5855` docs: update baseline after profile and training UI shells
   - `ebbf93f` feat(profile,advanced): settings sidebar and training tool UI shells
   - `0ecb3c9` fix(library): prevent toolbar, menu, and FAB overlap on mobile and web
   - `3e441ba` feat(library): add folder share action with format picker
