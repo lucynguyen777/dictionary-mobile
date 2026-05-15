@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `8764019` Add pronunciation recording playback
   - `2e77772` Expand bilingual domain inference rules
   - `bd96e80` Fix CSV import field mapping flow
   - `4ed73c1` feat(reader): improve highlight behavior to support adjacent multi-word selection
@@ -101,7 +102,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Pronunciation
 - [x] DONE: Audio-only pronunciation in lookup.
-- [ ] TODO [MEDIUM]: Record user pronunciation.
+- [x] DONE [MEDIUM]: Record user pronunciation (commit `8764019`).
 - [!] BLOCKED [HARD]: IPA comparison with per-phoneme alignment and scoring needs speech/phoneme engine or backend.
 - [!] BLOCKED [HARD]: Phoneme-level scoring table needs reliable alignment engine.
 - [!] BLOCKED [HARD]: GIF/visual pronunciation guidance needs content production pipeline.
@@ -179,12 +180,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Record user pronunciation.
-2. `[ ] [MEDIUM]` Import non-CSV datasets if needed.
-3. `[ ] [MEDIUM]` App lock or biometric lock option if native support is added.
-4. `[ ] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
-5. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
-6. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+1. `[ ] [MEDIUM]` Import non-CSV datasets if needed.
+2. `[ ] [MEDIUM]` App lock or biometric lock option if native support is added.
+3. `[ ] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
+4. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+5. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
