@@ -24,6 +24,7 @@ import {
     selectReaderDocument,
     updateReaderSettings,
 } from '@/data/readerStore';
+import { extractReaderText } from '@/data/readerImport';
 
 const fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[] = [
   { label: 'System', value: 'system' },
@@ -75,22 +76,28 @@ export default function ReaderScreen() {
       const result = await DocumentPicker.getDocumentAsync({
         base64: false,
         copyToCacheDirectory: true,
-        type: ['text/plain', 'text/*'],
+        type: ['text/plain', 'text/html', 'text/*'],
       });
 
       if (result.canceled) return;
 
       const asset = result.assets[0];
-      const content = asset.file ? await asset.file.text() : await new File(asset.uri).text();
+      const rawContent = asset.file ? await asset.file.text() : await new File(asset.uri).text();
+      const importedDocument = extractReaderText(asset.name, rawContent);
 
-      if (!content.trim()) {
-        Alert.alert('Import Reader', 'File này không có nội dung text.');
+      if (!importedDocument.content.trim()) {
+        Alert.alert('Import Reader', 'File này không có nội dung text có thể đọc.');
         return;
       }
 
-      importReaderText(readerState, asset.name.replace(/\.[^/.]+$/, ''), content).then(setReaderState);
+      importReaderText(
+        readerState,
+        importedDocument.title,
+        importedDocument.content,
+        importedDocument.sourceFormat
+      ).then(setReaderState);
     } catch (error) {
-      Alert.alert('Import Reader thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file text này.');
+      Alert.alert('Import Reader thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file TXT/HTML này.');
     }
   };
 
@@ -184,7 +191,7 @@ export default function ReaderScreen() {
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.82} onPress={handlePickText} style={styles.importButton}>
             <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.importButtonText}>Nhập TXT</Text>
+            <Text style={styles.importButtonText}>Nhập TXT/HTML</Text>
           </TouchableOpacity>
         </View>
 
@@ -203,6 +210,9 @@ export default function ReaderScreen() {
                   onPress={() => handleSelectDocument(document.id)}
                   style={[styles.documentChip, isSelected && styles.activeDocumentChip]}>
                   <Text style={[styles.documentChipText, isSelected && styles.activeDocumentChipText]}>{document.title}</Text>
+                  <Text style={[styles.documentFormatText, isSelected && styles.activeDocumentFormatText]}>
+                    {(document.sourceFormat ?? 'txt').toUpperCase()}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -300,7 +310,7 @@ export default function ReaderScreen() {
           <View style={styles.emptyCard}>
             <Ionicons name="reader-outline" size={28} color="#94A3B8" />
             <Text style={styles.emptyTitle}>Chưa có văn bản</Text>
-            <Text style={styles.emptyText}>Import file TXT để đọc. Bấm vào một từ tiếng Anh để tra nghĩa, lưu từ hoặc ghi chú nhanh.</Text>
+            <Text style={styles.emptyText}>Import file TXT hoặc HTML để đọc. Bấm vào một từ tiếng Anh để tra nghĩa, lưu từ hoặc ghi chú nhanh.</Text>
           </View>
         )}
         {selectionRange && selectedHighlightText ? (
@@ -447,10 +457,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   documentChip: {
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderColor: '#E2E8F0',
     borderRadius: 999,
     borderWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -465,6 +478,14 @@ const styles = StyleSheet.create({
   },
   activeDocumentChipText: {
     color: '#FFFFFF',
+  },
+  documentFormatText: {
+    color: '#94A3B8',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  activeDocumentFormatText: {
+    color: '#BFDBFE',
   },
   settingsPanel: {
     backgroundColor: '#FFFFFF',

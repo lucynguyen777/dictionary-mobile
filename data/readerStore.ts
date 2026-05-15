@@ -6,6 +6,7 @@ export type ReaderDocument = {
   id: string;
   title: string;
   content: string;
+  sourceFormat?: 'txt' | 'html';
   createdAt: string;
   updatedAt: string;
 };
@@ -35,12 +36,18 @@ export async function loadReaderState(): Promise<ReaderState> {
   }
 }
 
-export async function importReaderText(state: ReaderState, title: string, content: string) {
+export async function importReaderText(
+  state: ReaderState,
+  title: string,
+  content: string,
+  sourceFormat: ReaderDocument['sourceFormat'] = 'txt'
+) {
   const timestamp = now();
   const document: ReaderDocument = {
     id: `reader-${Date.now()}`,
     title: title.trim() || `Reader text ${state.documents.length + 1}`,
     content: content.trim(),
+    sourceFormat,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -112,4 +119,3 @@ function normalizeReaderState(state: Partial<ReaderState>): ReaderState {
     },
   };
 }
-
