@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `3ec1975` Add VI and FR dictionary lookup sources
   - `293174f` Add HTML import for Reader
   - `3706441` Add English morphology lookup fallback
   - `1a07198` Add biometric app lock option
@@ -170,6 +171,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Advanced Features
 
+### Multilingual Dictionary Expansion
+- [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
+- [x] DONE [MEDIUM]: FR-FR dictionary via hybrid local/Wiktapi source (commit `3ec1975`).
+- [!] BLOCKED [HARD]: VI↔FR bilingual dictionary source selection; do not use machine translation as dictionary data.
+
 ### Translation
 - [~] IN PROGRESS [MEDIUM]: Language selector and bilingual English-Vietnamese dictionary flow.
 - [!] BLOCKED [HARD]: Production multilingual translation for many language pairs needs selected API/backend.
@@ -185,9 +191,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
-2. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-3. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
+2. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
+3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+4. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
