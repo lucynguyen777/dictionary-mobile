@@ -7,31 +7,31 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 
 import Screen from '@/components/app/Screen';
 import {
-    VocabularyImportField,
-    VocabularyImportOptions,
-    VocabularyImportOrientation,
-    VocabularyImportRow,
-    detectHeaderFieldMapping,
-    parseVocabularyCsv,
+  VocabularyImportField,
+  VocabularyImportOptions,
+  VocabularyImportOrientation,
+  VocabularyImportRow,
+  detectHeaderFieldMapping,
+  parseVocabularyCsv,
 } from '@/data/csvImport';
 import {
-    FlashcardType,
-    Folder,
-    LibraryState,
-    createFlashcardsFromWordIds,
-    createFolder,
-    duplicateFolder,
-    exportFolderToAnkiTsv,
-    exportFolderToCsv,
-    exportFolderToExcel,
-    getDefaultLibraryState,
-    getFavoriteFolderId,
-    getFolderWords,
-    importVocabularyRowsToFolder,
-    isFavoriteWordsFolder,
-    loadLibraryState,
-    toggleFavoriteFolder,
-    updateFolderColor,
+  FlashcardType,
+  Folder,
+  LibraryState,
+  createFlashcardsFromWordIds,
+  createFolder,
+  duplicateFolder,
+  exportFolderToAnkiTsv,
+  exportFolderToCsv,
+  exportFolderToExcel,
+  getDefaultLibraryState,
+  getFavoriteFolderId,
+  getFolderWords,
+  importVocabularyRowsToFolder,
+  isFavoriteWordsFolder,
+  loadLibraryState,
+  toggleFavoriteFolder,
+  updateFolderColorAndNote,
 } from '@/data/libraryStore';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
@@ -102,6 +102,8 @@ export default function LibraryScreen() {
   const [folderViewMode, setFolderViewMode] = useState<FolderViewMode>('grid');
   const [activeFolderMenuId, setActiveFolderMenuId] = useState('');
   const [colorPickerFolderId, setColorPickerFolderId] = useState('');
+  const [selectedColorDraft, setSelectedColorDraft] = useState('');
+  const [colorNoteDraft, setColorNoteDraft] = useState('');
   const [sortPanelOpen, setSortPanelOpen] = useState(false);
   const [viewPanelOpen, setViewPanelOpen] = useState(false);
 
@@ -759,6 +761,8 @@ export default function LibraryScreen() {
                     onPress={() => {
                       setActiveFolderMenuId('');
                       setColorPickerFolderId(folder.id);
+                        setSelectedColorDraft(folder.color);
+                        setColorNoteDraft(folder.colorNote ?? '');
                     }}
                     style={styles.folderActionRow}>
                     <Ionicons name="color-palette-outline" size={17} color="#64748B" />
@@ -842,25 +846,45 @@ export default function LibraryScreen() {
           <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => setColorPickerFolderId('')} />
           <View style={styles.colorPickerSheet}>
             <Text style={styles.colorPickerTitle}>Chọn màu cho bộ từ</Text>
-            <View style={styles.colorSwatchRow}>
-              {['#E8F0FF', '#EAF8F0', '#FFF1E8', '#F1ECFF', '#FFEFF3', '#EAF7FA'].map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    const folderId = colorPickerFolderId;
-                    updateFolderColor(libraryState, folderId, c).then((nextState) => {
-                      setLibraryState(nextState);
-                      setColorPickerFolderId('');
-                    });
-                  }}
-                  style={[styles.colorSwatch, { backgroundColor: c }]}
-                />
-              ))}
-            </View>
-            <TouchableOpacity onPress={() => setColorPickerFolderId('')} style={styles.colorPickerCancel}>
-              <Text style={styles.colorPickerCancelText}>Hủy</Text>
-            </TouchableOpacity>
+                  <View style={styles.colorSwatchRow}>
+                    {['#E8F0FF', '#EAF8F0', '#FFF1E8', '#F1ECFF', '#FFEFF3', '#EAF7FA'].map((c) => (
+                      <TouchableOpacity
+                        key={c}
+                        activeOpacity={0.85}
+                        onPress={() => setSelectedColorDraft(c)}
+                        style={[
+                          styles.colorSwatch,
+                          { backgroundColor: c },
+                          selectedColorDraft === c ? styles.colorSwatchSelected : null,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                  <TextInput
+                    value={colorNoteDraft}
+                    onChangeText={setColorNoteDraft}
+                    placeholder="Ghi chú cho màu này (ví dụ: 'Học vựng hằng ngày')"
+                    placeholderTextColor="#94A3B8"
+                    style={styles.colorNoteInput}
+                  />
+                  <View style={styles.colorPickerActions}>
+                    <TouchableOpacity onPress={() => setColorPickerFolderId('')} style={styles.colorPickerCancel}>
+                      <Text style={styles.colorPickerCancelText}>Hủy</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        const folderId = colorPickerFolderId;
+                        const colorToSave = selectedColorDraft || libraryState.folders.find((f) => f.id === folderId)?.color || '#E8F0FF';
+                        updateFolderColorAndNote(libraryState, folderId, colorToSave, colorNoteDraft ?? '').then((nextState: LibraryState) => {
+                          setLibraryState(nextState);
+                          setColorPickerFolderId('');
+                        });
+                      }}
+                      style={styles.colorPickerSave}>
+                      <Text style={styles.colorPickerSaveText}>Lưu</Text>
+                    </TouchableOpacity>
+                  </View>
           </View>
         </View>
       ) : null}
@@ -1452,6 +1476,38 @@ const styles = StyleSheet.create({
   },
   colorPickerCancelText: {
     color: '#475569',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  colorSwatchSelected: {
+    borderWidth: 2,
+    borderColor: '#2563EB',
+  },
+  colorNoteInput: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: '#0F172A',
+    fontWeight: '800',
+    marginBottom: 10,
+  },
+  colorPickerActions: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'flex-end',
+  },
+  colorPickerSave: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  colorPickerSaveText: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '900',
   },

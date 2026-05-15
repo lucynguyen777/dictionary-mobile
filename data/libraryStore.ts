@@ -12,6 +12,7 @@ export type Folder = {
   id: string;
   name: string;
   color: string;
+  colorNote?: string;
   isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
@@ -607,6 +608,7 @@ export function getDefaultLibraryState(): LibraryState {
       id: slugify(folder.name) || `folder-${folder.name.length}`,
       name: folder.name,
       color: folder.color,
+        colorNote: (folder as any).colorNote ?? '',
       isFavorite: false,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -666,10 +668,32 @@ function normalizeFolder(folder: Partial<Folder>): Folder {
     id: folder.id ?? `folder-${Date.now()}`,
     name: folder.name?.trim() || 'Untitled folder',
     color: folder.color || pickFolderColor(0),
+    colorNote: folder.colorNote || '',
     isFavorite: Boolean(folder.isFavorite),
     createdAt: folder.createdAt ?? timestamp,
     updatedAt: folder.updatedAt ?? folder.createdAt ?? timestamp,
   };
+}
+
+export async function updateFolderColorAndNote(state: LibraryState, folderId: string, color: string, colorNote?: string) {
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    folders: state.folders.map((folder) =>
+      folder.id === folderId
+        ? {
+            ...folder,
+            color,
+            colorNote: colorNote ?? folder.colorNote ?? '',
+            updatedAt: timestamp,
+          }
+        : folder
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
 }
 
 function buildDuplicateFolderName(folders: Folder[], sourceName: string) {
