@@ -5,6 +5,8 @@ import {
   fetchBilingualMeaning,
   fetchEnglishMeaning,
   fetchEnglishRelatedWords,
+  fetchMonolingualMeaning,
+  fetchRelatedWords,
   fetchMinhQndMonolingualMeaning,
   fetchMinhQndRelatedWords,
   fetchWiktApiMonolingualMeaning,
