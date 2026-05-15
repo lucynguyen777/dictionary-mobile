@@ -291,17 +291,27 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 5. `[ ] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
 
 ## Rule
-Sau khi hoàn thành và đẩy code lên GitHub:
-1. Kiểm tra commit/push trên GitHub để đảm bảo các thay đổi code đã được đẩy thành công.
-2. Mở `docs/product-progress.md` và cập nhật checklist để phản ánh trạng thái thực tế của code (đánh dấu `[x]`, `[~]`, `[ ]`, hoặc `[!]` tương ứng) — đồng thời thêm ghi chú ngắn kèm commit hash mới vào phần `Current Baseline` nếu cần.
-3. Trước khi commit và trước khi push lên GitHub, phải kiểm tra tiến độ code và `docs/product-progress.md` đã đồng bộ chưa: các task đã làm phải được đánh dấu đúng trạng thái, `Next Work Queue` phải phản ánh bước tiếp theo, và `Current Baseline` phải có commit liên quan nếu cần.
-4. Chạy kiểm tra xác minh: `npx tsc --noEmit` và `npx eslint . --no-cache`.
-5. Commit (và push) bất kỳ chỉnh sửa nào của file checklist lên GitHub cùng hoặc ngay sau commit code.
-6. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất. Các task chưa vào queue vẫn giữ ở section checklist tương ứng.
-7. Sau khi checklist trên GitHub khớp với code thực tế, bắt đầu task tiếp theo trong `Next Work Queue` bằng cách chuyển trạng thái task đó sang `[~] IN PROGRESS` và tiến hành triển khai.
-8. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó và ghi vào `Language Family Roadmap`.
-9. Nếu family/typology đó đã có ngôn ngữ được build trong hệ thống, so sánh ngôn ngữ mới với các baseline đã build trong cùng family trước: script, writing direction, segmentation, morphology, pronunciation/IPA, romanization, gender/case/tone/classifier/noun class, dictionary source, và UI/search implications.
-10. Nếu family/typology đó chưa có ngôn ngữ nào được build, research và phân tích đặc điểm ngôn ngữ trước để tạo baseline đầu tiên cho family đó, rồi mới lập plan implement.
-11. Khi build một ngôn ngữ mới, luôn build từ điển tra cứu trong cùng ngôn ngữ trước (monolingual: `lang -> lang`) với definition, part of speech, pronunciation/IPA/audio nếu có, và các field đặc thù của ngôn ngữ đó. Chỉ sau khi monolingual lookup ổn mới mở bilingual dictionary từ/ngôn ngữ đó sang các ngôn ngữ đã build trong hệ thống.
-12. Bilingual dictionary giữa hai ngôn ngữ phải dùng nguồn dictionary/lexical source đáng tin; không dùng machine translation để giả lập definition từ điển.
-13. Với các nhóm gây tranh luận như Altaic hoặc Amerind, chỉ dùng như bucket kỹ thuật/roadmap; không coi là taxonomy production khi thiết kế dữ liệu.
+
+### Task Workflow
+1. Trước khi bắt đầu task mới, kiểm tra code hiện tại và `docs/product-progress.md` đã đồng bộ: task đang làm/đã làm đúng trạng thái, `Next Work Queue` phản ánh bước tiếp theo, và queue có tối đa 5 task.
+2. Khi bắt đầu một task trong `Next Work Queue`, chuyển task đó sang `[~] IN PROGRESS` trong checklist tương ứng và trong queue.
+3. Sau khi triển khai xong, cập nhật checklist theo trạng thái thực tế của code: `[x]`, `[~]`, `[ ]`, hoặc `[!]`.
+4. Trước mỗi commit, kiểm tra lại tiến độ code và `docs/product-progress.md` đã đồng bộ. Nếu commit hash chưa tồn tại, có thể cập nhật `Current Baseline` ngay sau commit code bằng một commit checklist kế tiếp.
+5. Trước mỗi commit code, chạy kiểm tra xác minh: `npx tsc --noEmit` và `npx eslint . --no-cache`. Nếu chỉ sửa tài liệu, vẫn ưu tiên chạy hai lệnh này trừ khi có blocker rõ ràng.
+6. Commit code và checklist cùng nhau khi hợp lý. Nếu cần ghi commit hash mới vào `Current Baseline`, commit cập nhật checklist ngay sau commit code.
+7. Trước mỗi lần push lên GitHub, kiểm tra lại `git status`, commit gần nhất, và `docs/product-progress.md` để đảm bảo code/checklist không lệch.
+8. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
+9. Sau khi checklist trên GitHub khớp với code thực tế, mới bắt đầu task tiếp theo trong `Next Work Queue`.
+
+### Progress Queue Rules
+1. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất.
+2. Các task chưa vào queue vẫn phải giữ ở section checklist tương ứng, không xóa khỏi roadmap.
+3. Ưu tiên task theo thứ tự dễ đến khó, trừ khi user chọn rõ một ưu tiên khác.
+
+### Language Build Rules
+1. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó và ghi vào `Language Family Roadmap`.
+2. Nếu family/typology đó đã có ngôn ngữ được build trong hệ thống, so sánh ngôn ngữ mới với các baseline đã build trong cùng family trước: script, writing direction, segmentation, morphology, pronunciation/IPA, romanization, gender/case/tone/classifier/noun class, dictionary source, và UI/search implications.
+3. Nếu family/typology đó chưa có ngôn ngữ nào được build, research và phân tích đặc điểm ngôn ngữ trước để tạo baseline đầu tiên cho family đó, rồi mới lập plan implement.
+4. Khi build một ngôn ngữ mới, luôn build từ điển tra cứu trong cùng ngôn ngữ trước (monolingual: `lang -> lang`) với definition, part of speech, pronunciation/IPA/audio nếu có, và các field đặc thù của ngôn ngữ đó. Chỉ sau khi monolingual lookup ổn mới mở bilingual dictionary từ/ngôn ngữ đó sang các ngôn ngữ đã build trong hệ thống.
+5. Bilingual dictionary giữa hai ngôn ngữ phải dùng nguồn dictionary/lexical source đáng tin; không dùng machine translation để giả lập definition từ điển.
+6. Với các nhóm gây tranh luận như Altaic hoặc Amerind, chỉ dùng như bucket kỹ thuật/roadmap; không coi là taxonomy production khi thiết kế dữ liệu.
