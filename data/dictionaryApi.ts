@@ -278,6 +278,20 @@ function inferDefinitionDomain(word: string, definition: string, targetLang: str
 }
 
 const vietnameseDomainRules: Record<string, { domain: string; terms: string[] }[]> = {
+  bank: [
+    { domain: 'tài chính', terms: ['ngân hàng', 'nhà băng', 'tín dụng', 'tiền gửi', 'cho vay'] },
+    { domain: 'địa lý', terms: ['bờ sông', 'bờ suối', 'bờ hồ', 'bãi bồi'] },
+    { domain: 'hàng không', terms: ['nghiêng cánh', 'lượn nghiêng'] },
+    { domain: 'trò chơi', terms: ['nhà cái', 'tiền cược'] },
+    { domain: 'lưu trữ', terms: ['kho', 'ngân hàng dữ liệu', 'dữ liệu'] },
+  ],
+  charge: [
+    { domain: 'tài chính', terms: ['phí', 'giá tiền', 'tính tiền', 'thu tiền'] },
+    { domain: 'pháp lý', terms: ['buộc tội', 'cáo buộc', 'tội danh'] },
+    { domain: 'điện học', terms: ['điện tích', 'sạc', 'nạp điện'] },
+    { domain: 'quân sự', terms: ['xung phong', 'tấn công'] },
+    { domain: 'trách nhiệm', terms: ['phụ trách', 'trách nhiệm', 'giao phó'] },
+  ],
   cell: [
     { domain: 'nhà tù', terms: ['phòng nhỏ', 'xà lim'] },
     { domain: 'hình học', terms: ['lỗ tổ ong', 'ô'] },
@@ -286,6 +300,22 @@ const vietnameseDomainRules: Record<string, { domain: string; terms: string[] }[
     { domain: 'chính trị', terms: ['chi bộ'] },
     { domain: 'kiến trúc', terms: ['am', 'túp lều', 'căn nhà'] },
     { domain: 'nghĩa cổ', terms: ['nấm mồ'] },
+  ],
+  run: [
+    { domain: 'di chuyển', terms: ['chạy', 'chạy bộ', 'di chuyển nhanh'] },
+    { domain: 'quản lý', terms: ['điều hành', 'quản lý', 'vận hành'] },
+    { domain: 'máy móc', terms: ['hoạt động', 'chạy máy', 'vận hành'] },
+    { domain: 'chất lỏng', terms: ['chảy', 'rỉ', 'tuôn'] },
+    { domain: 'bầu cử', terms: ['tranh cử', 'ứng cử'] },
+    { domain: 'xuất bản', terms: ['đăng', 'phát hành', 'chiếu'] },
+  ],
+  set: [
+    { domain: 'sắp đặt', terms: ['đặt', 'sắp đặt', 'bố trí'] },
+    { domain: 'thiết lập', terms: ['thiết lập', 'cài đặt', 'định'] },
+    { domain: 'toán học', terms: ['tập hợp'] },
+    { domain: 'thể thao', terms: ['hiệp', 'ván', 'set'] },
+    { domain: 'giải trí', terms: ['bối cảnh', 'phim trường', 'sân khấu'] },
+    { domain: 'trạng thái', terms: ['đông lại', 'cứng lại', 'cố định'] },
   ],
 };
 
