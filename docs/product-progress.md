@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `1a07198` Add biometric app lock option
   - `b46a5d2` Support TSV vocabulary import
   - `8764019` Add pronunciation recording playback
   - `2e77772` Expand bilingual domain inference rules
@@ -73,7 +74,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Normalize mixed Vietnamese/English UI copy.
 - [x] DONE [EASY]: Search History / Recent searches (Lịch sử tìm kiếm).
 - [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
-- [ ] TODO [HARD]: Word variations/morphology search (Tìm kiếm theo dạng từ, VD: "went" -> "go").
+- [~] IN PROGRESS [HARD]: Word variations/morphology search (Tìm kiếm theo dạng từ, VD: "went" -> "go").
 - [ ] TODO [HARD]: Offline dictionary database bundle (Bộ dữ liệu từ điển offline hoàn chỉnh).
 - [ ] TODO [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
 
@@ -159,7 +160,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Export all local user data.
 - [x] DONE [MEDIUM]: Delete/reset local user data with confirmation (commit `a9cf589`).
 - [x] DONE [EASY]: Privacy copy explaining local-first storage and what leaves the device.
-- [ ] TODO [MEDIUM]: App lock or biometric lock option if native support is added.
+- [x] DONE [MEDIUM]: App lock or biometric lock option if native support is added (commit `1a07198`).
 - [!] BLOCKED [HARD]: Email login/auth requires choosing an auth provider.
 - [!] BLOCKED [HARD]: Cloud sync and encrypted backup require backend/auth decisions.
 - [!] BLOCKED [HARD]: Account deletion workflow requires real accounts and backend support.
@@ -181,11 +182,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` App lock or biometric lock option if native support is added.
-2. `[ ] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
-3. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
-4. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-5. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[~] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
+2. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+4. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
