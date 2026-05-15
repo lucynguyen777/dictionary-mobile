@@ -20,7 +20,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `536b4ad` fix(adapter): restore generic fetch functions for fallback adapter
+  - `667e897` feat: expose source-specific dictionaryApi functions; use dedicated endpoints in adapters; update tests
+  - `cc9020f` test: add adapter registry tests and register source adapters; add vitest
+  - `1c4a0aa` feat: add adapter registry for language adapters
+  - `9902674` docs: mark language metadata added
   - `083addb` feat: add language-family metadata to language config
+  - `a58278d` chore: normalize UI copy and import messages
+  - `0baa208` Document monolingual-first language build rule
   - `3ec1975` Add VI and FR dictionary lookup sources
   - `293174f` Add HTML import for Reader
   - `3706441` Add English morphology lookup fallback
@@ -180,8 +187,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### Language Family Roadmap
 - [x] DONE [MEDIUM]: Austroasiatic baseline: Vietnamese (VI-VI) with dictionary API, suggestions, relations, tone/diacritic-sensitive display.
 - [x] DONE [MEDIUM]: Indo-European baseline: English and French with monolingual lookup, IPA/audio when available, gender for French when source provides it.
-- [~] IN PROGRESS [MEDIUM]: Add language-family metadata to language config before adding more languages: `family`, `script`, `writingDirection`, `adapterKey`, `dictionaryStatus`.
-- [~] IN PROGRESS [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states.
+- [x] DONE [MEDIUM]: Add language-family metadata to language config before adding more languages: `family`, `script`, `writingDirection`, `adapterKey`, `dictionaryStatus` (commit `083addb`).
+- [x] DONE [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states (commits `1c4a0aa`, `cc9020f`, `667e897`, `536b4ad`).
 - [ ] TODO [MEDIUM]: Indo-European next-build candidates: Spanish, Hindi, Russian.
   - Spanish: Latin script, gender, conjugation, easier after French.
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
@@ -231,14 +238,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[x] [EASY]` Audit UI copy (profile/reader/library) — localized microcopy normalized in workspace.
-2. `[x] [EASY]` Improve import validation messages (CSV/TSV) — messages standardized in `data/csvImport.ts`.
-3. `[x] [MEDIUM]` Add language-family metadata to language config (commit `083addb`).
-4. `[~] [MEDIUM]` Build adapter registry by language pair/family.
-5. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
-6. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
-7. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
-8. `[!] [HARD]` Google Sheets export with OAuth.
+1. `[!] [HARD]` VI↔FR bilingual dictionary source selection.
+2. `[~] [HARD]` Import EPUB/PDF/DOCX after HTML; needs format-specific parser decisions.
+3. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+4. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
