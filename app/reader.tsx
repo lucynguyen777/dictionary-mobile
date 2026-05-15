@@ -24,7 +24,12 @@ import {
     selectReaderDocument,
     updateReaderSettings,
 } from '@/data/readerStore';
-import { extractReaderText } from '@/data/readerImport';
+import {
+  extractReaderText,
+  getReaderImportFormat,
+  getUnsupportedReaderImportMessage,
+  isSupportedReaderImportFormat,
+} from '@/data/readerImport';
 
 const fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[] = [
   { label: 'System', value: 'system' },
@@ -76,12 +81,26 @@ export default function ReaderScreen() {
       const result = await DocumentPicker.getDocumentAsync({
         base64: false,
         copyToCacheDirectory: true,
-        type: ['text/plain', 'text/html', 'text/*'],
+        type: [
+          'text/plain',
+          'text/html',
+          'text/*',
+          'application/epub+zip',
+          'application/pdf',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
       });
 
       if (result.canceled) return;
 
       const asset = result.assets[0];
+      const importFormat = getReaderImportFormat(asset.name, asset.mimeType);
+
+      if (!isSupportedReaderImportFormat(importFormat)) {
+        Alert.alert('Import Reader', getUnsupportedReaderImportMessage(importFormat));
+        return;
+      }
+
       const rawContent = asset.file ? await asset.file.text() : await new File(asset.uri).text();
       const importedDocument = extractReaderText(asset.name, rawContent);
 
@@ -97,7 +116,7 @@ export default function ReaderScreen() {
         importedDocument.sourceFormat
       ).then(setReaderState);
     } catch (error) {
-      Alert.alert('Import Reader thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file TXT/HTML này.');
+      Alert.alert('Import Reader thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file này.');
     }
   };
 
@@ -191,7 +210,7 @@ export default function ReaderScreen() {
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.82} onPress={handlePickText} style={styles.importButton}>
             <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.importButtonText}>Nhập TXT/HTML</Text>
+            <Text style={styles.importButtonText}>Nhập file</Text>
           </TouchableOpacity>
         </View>
 

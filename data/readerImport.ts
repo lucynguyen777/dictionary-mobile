@@ -1,13 +1,25 @@
-export type ReaderImportFormat = 'txt' | 'html';
+export type SupportedReaderImportFormat = 'txt' | 'html';
+export type UnsupportedReaderImportFormat = 'pdf' | 'docx' | 'epub';
+export type ReaderImportFormat = SupportedReaderImportFormat | UnsupportedReaderImportFormat;
 
 export type ReaderImportResult = {
   title: string;
   content: string;
-  sourceFormat: ReaderImportFormat;
+  sourceFormat: SupportedReaderImportFormat;
+};
+
+const unsupportedFormatLabels: Record<UnsupportedReaderImportFormat, string> = {
+  docx: 'DOCX',
+  epub: 'EPUB',
+  pdf: 'PDF',
 };
 
 export function extractReaderText(fileName: string, rawContent: string): ReaderImportResult {
   const sourceFormat = getReaderImportFormat(fileName);
+  if (!isSupportedReaderImportFormat(sourceFormat)) {
+    throw new Error(getUnsupportedReaderImportMessage(sourceFormat));
+  }
+
   const title = fileName.replace(/\.[^/.]+$/, '').trim() || 'Reader document';
   const content = sourceFormat === 'html' ? htmlToPlainText(rawContent) : rawContent.trim();
 
@@ -18,12 +30,30 @@ export function extractReaderText(fileName: string, rawContent: string): ReaderI
   };
 }
 
-function getReaderImportFormat(fileName: string): ReaderImportFormat {
+export function getReaderImportFormat(fileName: string, mimeType = ''): ReaderImportFormat {
   const normalizedName = fileName.toLocaleLowerCase();
+  const normalizedMimeType = mimeType.toLocaleLowerCase();
+
+  if (normalizedName.endsWith('.pdf') || normalizedMimeType.includes('pdf')) return 'pdf';
+  if (
+    normalizedName.endsWith('.docx') ||
+    normalizedMimeType.includes('officedocument.wordprocessingml.document')
+  ) {
+    return 'docx';
+  }
+  if (normalizedName.endsWith('.epub') || normalizedMimeType.includes('epub')) return 'epub';
 
   if (normalizedName.endsWith('.html') || normalizedName.endsWith('.htm')) return 'html';
 
   return 'txt';
+}
+
+export function isSupportedReaderImportFormat(format: ReaderImportFormat): format is SupportedReaderImportFormat {
+  return format === 'txt' || format === 'html';
+}
+
+export function getUnsupportedReaderImportMessage(format: UnsupportedReaderImportFormat) {
+  return `${unsupportedFormatLabels[format]} cần parser riêng trước khi import vào Reader. Hiện app mới hỗ trợ TXT và HTML an toàn.`;
 }
 
 function htmlToPlainText(html: string) {
