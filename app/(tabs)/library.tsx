@@ -15,6 +15,7 @@ import {
     parseVocabularyCsv,
 } from '@/data/csvImport';
 import {
+    FlashcardType,
     LibraryState,
     createFlashcardsFromWordIds,
     createFolder,
@@ -117,7 +118,18 @@ export default function LibraryScreen() {
     const parsed = parseVocabularyCsv(importCsvContent, nextOptions);
     setImportRows(parsed.rows);
     setImportErrors(parsed.errors);
+    setImportHeaders(parsed.headers ?? []);
     setImportMessage('');
+  };
+
+  const handleCycleImportFieldMapping = (index: number) => {
+    const order: (VocabularyImportField | 'ignore')[] = ['ignore', 'word', 'definition', 'ipa', 'note', 'tags'];
+    const current = importFieldMapping[index] ?? 'ignore';
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    const nextMapping = { ...importFieldMapping, [index]: next };
+
+    setImportFieldMapping(nextMapping);
+    updateImportOptions({ ...importOptions, fieldMapping: nextMapping });
   };
 
   const handleOpenCreateFolder = () => {
@@ -177,16 +189,17 @@ export default function LibraryScreen() {
       const csv = asset.file ? await asset.file.text() : await new File(asset.uri).text();
       const parsed = parseVocabularyCsv(csv, defaultImportOptions);
       const defaultFolderName = asset.name.replace(/\.[^/.]+$/, '').trim() || 'Từ đã nhập';
+      const autoMapping = parsed.headers ? detectHeaderFieldMapping(parsed.headers) : {};
+      const nextImportOptions = { ...defaultImportOptions, fieldMapping: autoMapping };
+      const mappedParsed = parseVocabularyCsv(csv, nextImportOptions);
 
       setImportCsvContent(csv);
-      setImportRows(parsed.rows);
-      setImportErrors(parsed.errors);
+      setImportRows(mappedParsed.rows);
+      setImportErrors(mappedParsed.errors);
       setImportFileName(asset.name);
-      setImportOptions(defaultImportOptions);
-      setImportHeaders(parsed.headers ?? []);
-      const autoMapping = parsed.headers ? detectHeaderFieldMapping(parsed.headers) : {};
+      setImportOptions(nextImportOptions);
+      setImportHeaders(mappedParsed.headers ?? []);
       setImportFieldMapping(autoMapping);
-      // apply auto mapping to parsing options
       setImportFolderName(defaultFolderName);
       setImportTargetMode('new');
       setSelectedImportFolderId(importTargetFolders[0]?.id ?? '');
@@ -224,7 +237,7 @@ export default function LibraryScreen() {
       if (hasIpa) types.push('word-pronunciation');
       if (!types.length) types.push('bilingual');
 
-      return createFlashcardsFromWordIds(nextState, importedWordIds, types as any);
+      return createFlashcardsFromWordIds(nextState, importedWordIds, types);
     }).then((nextState) => {
       const folderLabel = importTarget.folderName || 'Từ đã nhập';
 
@@ -239,6 +252,8 @@ export default function LibraryScreen() {
       setImportCsvContent('');
       setImportFileName('');
       setImportOptions(defaultImportOptions);
+      setImportHeaders([]);
+      setImportFieldMapping({});
       setImportFolderName('');
       setImportTargetMode('new');
       setSelectedImportFolderId('');
@@ -254,37 +269,6 @@ export default function LibraryScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.kicker}>Thư viện</Text>
-                {importHeaders.length ? (
-                  <>
-                    <Text style={styles.importConfigLabel}>Mapping trường</Text>
-                    <View style={styles.mappingRow}>
-                      {importHeaders.map((hdr, idx) => {
-                        const mapped = importFieldMapping[idx] ?? 'ignore';
-
-                        return (
-                          <View key={String(idx)} style={styles.mappingCard}>
-                            <Text style={styles.mappingHeader} numberOfLines={1}>{hdr || `Cột ${idx + 1}`}</Text>
-                            <TouchableOpacity
-                              activeOpacity={0.82}
-                              onPress={() => {
-                                const order: (VocabularyImportField | 'ignore')[] = ['ignore', 'word', 'definition', 'ipa', 'note', 'tags'];
-                                const current = importFieldMapping[idx] ?? 'ignore';
-                                const next = order[(order.indexOf(current) + 1) % order.length];
-                                const nextMap = { ...importFieldMapping, [idx]: next };
-                                setImportFieldMapping(nextMap);
-                                updateImportOptions({ ...importOptions, fieldMapping: nextMap });
-                              }}
-                              style={[styles.mappingButton, mapped !== 'ignore' && styles.mappingButtonActive]}>
-                              <Text style={[styles.mappingButtonText, mapped !== 'ignore' && styles.mappingButtonTextActive]}>
-                                {mapped === 'ignore' ? 'Bỏ qua' : mapped}
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  </>
-                ) : null}
             <Text style={styles.title}>Tủ từ của bạn</Text>
           </View>
           <TouchableOpacity activeOpacity={0.85} onPress={handleOpenCreateFolder} style={styles.addButton}>
@@ -369,7 +353,11 @@ export default function LibraryScreen() {
                       <TouchableOpacity
                         key={option.value}
                         activeOpacity={0.82}
-                        onPress={() => updateImportOptions({ ...importOptions, orientation: option.value })}
+                        onPress={() => {
+                          const nextOptions = { ...importOptions, orientation: option.value, fieldMapping: {} };
+                          setImportFieldMapping({});
+                          updateImportOptions(nextOptions);
+                        }}
                         style={[styles.importOptionCard, isSelected && styles.activeImportOptionCard]}>
                         <Ionicons
                           name={isSelected ? 'radio-button-on' : 'radio-button-off'}
@@ -388,7 +376,11 @@ export default function LibraryScreen() {
                 </View>
                 <TouchableOpacity
                   activeOpacity={0.82}
-                  onPress={() => updateImportOptions({ ...importOptions, hasHeader: !importOptions.hasHeader })}
+                  onPress={() => {
+                    const nextOptions = { ...importOptions, hasHeader: !importOptions.hasHeader, fieldMapping: {} };
+                    setImportFieldMapping({});
+                    updateImportOptions(nextOptions);
+                  }}
                   style={styles.importHeaderToggle}>
                   <Ionicons
                     name={importOptions.hasHeader ? 'checkbox' : 'square-outline'}
@@ -402,6 +394,30 @@ export default function LibraryScreen() {
                     </Text>
                   </View>
                 </TouchableOpacity>
+                {importHeaders.length ? (
+                  <>
+                    <Text style={styles.importConfigLabel}>Mapping trường</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.mappingRow}>
+                      {importHeaders.map((header, index) => {
+                        const mapped = importFieldMapping[index] ?? 'ignore';
+
+                        return (
+                          <View key={`${header}-${index}`} style={styles.mappingCard}>
+                            <Text style={styles.mappingHeader} numberOfLines={1}>{header || `Trường ${index + 1}`}</Text>
+                            <TouchableOpacity
+                              activeOpacity={0.82}
+                              onPress={() => handleCycleImportFieldMapping(index)}
+                              style={[styles.mappingButton, mapped !== 'ignore' && styles.mappingButtonActive]}>
+                              <Text style={[styles.mappingButtonText, mapped !== 'ignore' && styles.mappingButtonTextActive]}>
+                                {mapped === 'ignore' ? 'Bỏ qua' : mapped}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
+                  </>
+                ) : null}
                 <Text style={styles.importConfigLabel}>Khóa chính</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importPrimaryRow}>
                   {primaryFieldOptions.map((option) => {

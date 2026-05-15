@@ -55,7 +55,7 @@ function parseRowOrientedCsvRows(rows: string[][], options: VocabularyImportOpti
     return { rows: [], errors: ['CSV cần có header và ít nhất một dòng dữ liệu.'] };
   }
 
-  const headers = options.hasHeader ? rows[0].map((v) => v.trim()) : [];
+  const headers = options.hasHeader ? rows[0].map((v) => v.trim()) : rows[0]?.map((_, index) => `Cột ${index + 1}`) ?? [];
   const fieldIndexes = getRowFieldIndexes(headers.map(normalizeHeader), options.hasHeader, options.fieldMapping);
   const wordIndex = fieldIndexes.word;
   const primaryIndex = fieldIndexes[options.primaryField];
@@ -93,7 +93,7 @@ function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportO
   const dataRows = options.hasHeader ? rows.slice(1) : rows;
   if (!dataRows.length) return { rows: [], errors: ['CSV đọc theo cột cần ít nhất một dòng dữ liệu.'] };
 
-  const headers = options.hasHeader ? rows.map((row) => (row[0] ?? '').trim()) : [];
+  const headers = options.hasHeader ? dataRows.map((row) => (row[0] ?? '').trim()) : dataRows.map((_, index) => `Hàng ${index + 1}`);
   const fieldRowIndexes = getColumnFieldRowIndexes(dataRows, options.hasHeader, options.fieldMapping);
   const wordRowIndex = fieldRowIndexes.word;
   const primaryRowIndex = fieldRowIndexes[options.primaryField];
@@ -194,13 +194,15 @@ function getRowFieldIndexes(
   fieldMapping?: Record<number, VocabularyImportField | 'ignore'>
 ): Record<VocabularyImportField, number> {
   if (!hasHeader) {
-    return defaultFieldOrder.reduce(
+    const indexes = defaultFieldOrder.reduce(
       (indexes, field, index) => ({
         ...indexes,
         [field]: index,
       }),
       {} as Record<VocabularyImportField, number>
     );
+
+    return applyImportFieldMapping(indexes, fieldMapping);
   }
 
   const indexes: Record<VocabularyImportField, number> = {
@@ -211,21 +213,16 @@ function getRowFieldIndexes(
     tags: -1,
   };
 
-  if (fieldMapping) {
-    Object.entries(fieldMapping).forEach(([key, value]) => {
-      const idx = Number(key);
-      if (value !== 'ignore') indexes[value as VocabularyImportField] = idx;
-    });
-  }
+  const mappedIndexes = applyImportFieldMapping(indexes, fieldMapping);
 
   // fallback to auto-detection for unmapped fields
   defaultFieldOrder.forEach((field) => {
-    if (indexes[field] >= 0) return;
+    if (mappedIndexes[field] >= 0) return;
 
-    indexes[field] = findHeaderIndex(headers, headerAliases[field]);
+    mappedIndexes[field] = findHeaderIndex(headers, headerAliases[field]);
   });
 
-  return indexes;
+  return mappedIndexes;
 }
 
 function getColumnFieldRowIndexes(
@@ -234,13 +231,15 @@ function getColumnFieldRowIndexes(
   fieldMapping?: Record<number, VocabularyImportField | 'ignore'>
 ): Record<VocabularyImportField, number> {
   if (!hasHeader) {
-    return defaultFieldOrder.reduce(
+    const indexes = defaultFieldOrder.reduce(
       (indexes, field, index) => ({
         ...indexes,
         [field]: index,
       }),
       {} as Record<VocabularyImportField, number>
     );
+
+    return applyImportFieldMapping(indexes, fieldMapping);
   }
 
   const headers = rows.map((row) => normalizeHeader(row[0] ?? ''));
@@ -253,20 +252,31 @@ function getColumnFieldRowIndexes(
     tags: -1,
   };
 
-  if (fieldMapping) {
-    Object.entries(fieldMapping).forEach(([key, value]) => {
-      const idx = Number(key);
-      if (value !== 'ignore') indexes[value as VocabularyImportField] = idx;
-    });
-  }
+  const mappedIndexes = applyImportFieldMapping(indexes, fieldMapping);
 
   defaultFieldOrder.forEach((field) => {
-    if (indexes[field] >= 0) return;
+    if (mappedIndexes[field] >= 0) return;
 
-    indexes[field] = findHeaderIndex(headers, headerAliases[field]);
+    mappedIndexes[field] = findHeaderIndex(headers, headerAliases[field]);
   });
 
-  return indexes;
+  return mappedIndexes;
+}
+
+function applyImportFieldMapping(
+  indexes: Record<VocabularyImportField, number>,
+  fieldMapping?: Record<number, VocabularyImportField | 'ignore'>
+) {
+  if (!fieldMapping) return indexes;
+
+  const nextIndexes = { ...indexes };
+
+  Object.entries(fieldMapping).forEach(([key, value]) => {
+    const index = Number(key);
+    if (value !== 'ignore') nextIndexes[value] = index;
+  });
+
+  return nextIndexes;
 }
 
 export function detectHeaderFieldMapping(headers: string[]): Record<number, VocabularyImportField | 'ignore'> {
