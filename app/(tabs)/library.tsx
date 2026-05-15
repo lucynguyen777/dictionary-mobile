@@ -31,6 +31,7 @@ import {
     isFavoriteWordsFolder,
     loadLibraryState,
     toggleFavoriteFolder,
+    updateFolderColor,
 } from '@/data/libraryStore';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
@@ -100,6 +101,7 @@ export default function LibraryScreen() {
   const [folderSort, setFolderSort] = useState<FolderSortOption>('recent');
   const [folderViewMode, setFolderViewMode] = useState<FolderViewMode>('grid');
   const [activeFolderMenuId, setActiveFolderMenuId] = useState('');
+  const [colorPickerFolderId, setColorPickerFolderId] = useState('');
   const [sortPanelOpen, setSortPanelOpen] = useState(false);
   const [viewPanelOpen, setViewPanelOpen] = useState(false);
 
@@ -754,12 +756,10 @@ export default function LibraryScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.78}
-                    onPress={() =>
-                      handleComingSoonFolderAction(
-                        'Sắp có',
-                        'Bộ chọn màu và rule riêng cho màu sẽ được triển khai ở bước tiếp theo.'
-                      )
-                    }
+                    onPress={() => {
+                      setActiveFolderMenuId('');
+                      setColorPickerFolderId(folder.id);
+                    }}
                     style={styles.folderActionRow}>
                     <Ionicons name="color-palette-outline" size={17} color="#64748B" />
                     <Text style={styles.folderActionText}>Thay đổi màu sắc</Text>
@@ -837,6 +837,33 @@ export default function LibraryScreen() {
           </View>
         ) : null}
       </ScrollView>
+      {colorPickerFolderId ? (
+        <View style={styles.colorPickerOverlay} pointerEvents="box-none">
+          <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => setColorPickerFolderId('')} />
+          <View style={styles.colorPickerSheet}>
+            <Text style={styles.colorPickerTitle}>Chọn màu cho bộ từ</Text>
+            <View style={styles.colorSwatchRow}>
+              {['#E8F0FF', '#EAF8F0', '#FFF1E8', '#F1ECFF', '#FFEFF3', '#EAF7FA'].map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    const folderId = colorPickerFolderId;
+                    updateFolderColor(libraryState, folderId, c).then((nextState) => {
+                      setLibraryState(nextState);
+                      setColorPickerFolderId('');
+                    });
+                  }}
+                  style={[styles.colorSwatch, { backgroundColor: c }]}
+                />
+              ))}
+            </View>
+            <TouchableOpacity onPress={() => setColorPickerFolderId('')} style={styles.colorPickerCancel}>
+              <Text style={styles.colorPickerCancelText}>Hủy</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
       <TouchableOpacity activeOpacity={0.86} onPress={handleOpenCreateFolder} style={styles.floatingAddButton}>
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
@@ -1374,6 +1401,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 8,
     paddingVertical: 9,
+  },
+  colorPickerOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    justifyContent: 'flex-end',
+  },
+  colorPickerBackdrop: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.32)'
+  },
+  colorPickerSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    padding: 14,
+    borderColor: '#E2E8F0',
+    borderTopWidth: 1,
+  },
+  colorPickerTitle: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+    marginBottom: 10,
+  },
+  colorSwatchRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  colorSwatch: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E6EEF8',
+  },
+  colorPickerCancel: {
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    paddingVertical: 10,
+  },
+  colorPickerCancelText: {
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: '900',
   },
   viewModeButtonActive: {
     backgroundColor: '#EFF6FF',

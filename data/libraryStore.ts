@@ -139,6 +139,26 @@ export async function renameFolder(state: LibraryState, folderId: string, name: 
   return nextState;
 }
 
+export async function updateFolderColor(state: LibraryState, folderId: string, color: string) {
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    folders: state.folders.map((folder) =>
+      folder.id === folderId
+        ? {
+            ...folder,
+            color,
+            updatedAt: timestamp,
+          }
+        : folder
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
 export async function toggleFavoriteFolder(state: LibraryState, folderId: string) {
   if (folderId === FAVORITES_FOLDER_ID) return state;
 
