@@ -172,8 +172,8 @@ export default function WordScreen() {
     async function lookupWord() {
       if (isBilingualSourceBlocked) {
         setLookupStatus('error');
-        setLookupError('VI↔FR dictionary source has not been selected yet.');
-        setBilingualLookupError('VI↔FR dictionary source has not been selected yet.');
+        setLookupError('Vietnamese → French dictionary source has not been selected yet.');
+        setBilingualLookupError('Vietnamese → French dictionary source has not been selected yet.');
         setApiMeaning(null);
         setApiBilingualMeaning(null);
         setApiRelatedWords(null);
@@ -569,7 +569,7 @@ function mergeLookupEntry(
       hasLocalDictionarySource,
       sourceLanguageLabel,
       targetLanguageLabel,
-      'Chưa chọn nguồn dữ liệu từ điển Việt-Pháp / Pháp-Việt đủ tin cậy.'
+      `Chưa chọn nguồn dữ liệu từ điển ${sourceLanguageLabel} sang ${targetLanguageLabel} đủ tin cậy.`
     );
   }
 

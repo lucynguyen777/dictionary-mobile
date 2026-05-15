@@ -158,7 +158,7 @@ export function canUseMonolingualDictionaryApi(languageCode: string) {
 }
 
 export function isBlockedBilingualDictionaryPair(sourceLang: string, targetLang: string) {
-  return (sourceLang === 'vi' && targetLang === 'fr') || (sourceLang === 'fr' && targetLang === 'vi');
+  return sourceLang === 'vi' && targetLang === 'fr';
 }
 
 export async function fetchMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
@@ -253,7 +253,7 @@ export async function fetchBilingualMeaning(
   targetLang: string
 ): Promise<ApiBilingualMeaningResult> {
   if (isBlockedBilingualDictionaryPair(sourceLang, targetLang)) {
-    throw new Error('VI↔FR dictionary source has not been selected yet.');
+    throw new Error('Vietnamese → French dictionary source has not been selected yet.');
   }
 
   const normalizedWord = normalizeWord(word);
