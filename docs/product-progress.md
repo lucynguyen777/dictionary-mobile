@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `3e441ba` feat(library): add folder share action with format picker
   - `2636f15` Add folder favorite metadata
   - `b5fa8cc` Update progress after library controls
   - `5afb932` Polish library folder controls
@@ -133,7 +134,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
   - [x] DONE [MEDIUM]: Reuse or polish rename flow from the kebab menu.
 - [x] DONE [MEDIUM]: Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
-- [ ] TODO [MEDIUM]: Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
+- [x] DONE [MEDIUM]: Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
 
 ### Pronunciation
 - [x] DONE: Audio-only pronunciation in lookup.
@@ -282,11 +283,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[x] [MEDIUM]` Add color picker for folders and persist color metadata locally.
-2. `[x] [MEDIUM]` Add user-defined color rule notes for each folder color so users can assign their own meaning to colors.
-3. `[x] [MEDIUM]` Reuse or polish rename flow from the kebab menu.
-4. `[x] [MEDIUM]` Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
-5. `[ ] [MEDIUM]` Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
+1. `[~] [EASY]` Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
+2. `[ ] [MEDIUM]` Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
+3. `[ ] [MEDIUM]` Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
+4. `[ ] [MEDIUM]` Build AI hội thoại frontend tab: chat list, realtime chat surface, voice recording state, transcript area, correction/feedback panel, empty/loading/error states.
+5. `[ ] [MEDIUM]` Build Dịch chuyên ngành frontend tab: domain/topic selector, glossary import/paste surface, source text editor, translated output panel, terminology highlights, blocked backend notice.
 
 ## Rule
 

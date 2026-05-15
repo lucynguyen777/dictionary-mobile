@@ -3,7 +3,18 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Linking,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
 import {
@@ -82,7 +93,12 @@ const viewModeOptions: { value: FolderViewMode; label: string; icon: keyof typeo
   { value: 'compact', label: 'Gọn', icon: 'albums-outline' },
 ];
 
+const FAB_SIZE = 48;
+const FAB_BOTTOM_GAP = 16;
+const SCROLL_BOTTOM_PADDING = 148;
+
 export default function LibraryScreen() {
+  const insets = useSafeAreaInsets();
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
   const [activeSegment, setActiveSegment] = useState<LibrarySegment>('folders');
@@ -112,6 +128,15 @@ export default function LibraryScreen() {
   const [renameError, setRenameError] = useState('');
   const [sortPanelOpen, setSortPanelOpen] = useState(false);
   const [viewPanelOpen, setViewPanelOpen] = useState(false);
+
+  const closeFolderControls = useCallback(() => {
+    setSortPanelOpen(false);
+    setViewPanelOpen(false);
+    setActiveFolderMenuId('');
+  }, []);
+
+  const floatingButtonBottom = FAB_BOTTOM_GAP + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0);
+  const scrollBottomPadding = SCROLL_BOTTOM_PADDING + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0);
 
   useFocusEffect(
     useCallback(() => {
@@ -246,6 +271,8 @@ export default function LibraryScreen() {
   };
 
   const handleToggleFolderMenu = (folderId: string) => {
+    setSortPanelOpen(false);
+    setViewPanelOpen(false);
     setActiveFolderMenuId((current) => (current === folderId ? '' : folderId));
   };
 
@@ -374,7 +401,12 @@ export default function LibraryScreen() {
   return (
     <Screen>
       <View style={styles.screenBody}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: scrollBottomPadding }]}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+        onScrollBeginDrag={closeFolderControls}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
             <Text style={styles.kicker}>Thư viện</Text>
@@ -659,17 +691,21 @@ export default function LibraryScreen() {
           <TouchableOpacity
             activeOpacity={0.82}
             onPress={() => {
+              setActiveFolderMenuId('');
               setSortPanelOpen((isOpen) => !isOpen);
               setViewPanelOpen(false);
             }}
             style={styles.toolbarLeft}>
             <Ionicons name="swap-vertical" size={18} color="#64748B" />
-            <Text style={styles.toolbarText}>{getSortLabel(folderSort)}</Text>
+            <Text ellipsizeMode="tail" numberOfLines={1} style={styles.toolbarText}>
+              {getSortLabel(folderSort)}
+            </Text>
             <Ionicons name="chevron-down" size={15} color="#94A3B8" />
           </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.82}
             onPress={() => {
+              setActiveFolderMenuId('');
               setViewPanelOpen((isOpen) => !isOpen);
               setSortPanelOpen(false);
             }}
@@ -689,7 +725,12 @@ export default function LibraryScreen() {
           </TouchableOpacity>
         </View>
         {sortPanelOpen ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionStrip}>
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.optionStrip}
+            style={styles.folderControlsDropdown}>
             {sortOptions.map((option) => {
               const isActive = folderSort === option.value;
 
@@ -709,7 +750,7 @@ export default function LibraryScreen() {
           </ScrollView>
         ) : null}
         {viewPanelOpen ? (
-          <View style={styles.viewModePanel}>
+          <View style={[styles.viewModePanel, styles.folderControlsDropdown]}>
             {viewModeOptions.map((option) => {
               const isActive = folderViewMode === option.value;
 
@@ -739,9 +780,21 @@ export default function LibraryScreen() {
             return (
             <TouchableOpacity
               key={folder.id}
-              style={[styles.folderCard, isList && styles.folderCardList, isCompact && styles.folderCardCompact]}
+              style={[
+                styles.folderCard,
+                isList && styles.folderCardList,
+                isCompact && styles.folderCardCompact,
+                activeFolderMenuId === folder.id && styles.folderCardMenuOpen,
+              ]}
               activeOpacity={0.85}
-              onPress={() => router.push(`/folder/${folder.id}` as never)}>
+              onPress={() => {
+                if (activeFolderMenuId === folder.id) {
+                  setActiveFolderMenuId('');
+                  return;
+                }
+
+                router.push(`/folder/${folder.id}` as never);
+              }}>
               <View style={[(isList || isCompact) && styles.folderContentList]}>
                 <View style={[styles.cover, isList && styles.coverList, isCompact && styles.coverCompact, { backgroundColor: folder.color }]}>
                   <Ionicons name="folder-open-outline" size={isCompact ? 21 : 28} color="#0F172A" />
@@ -771,9 +824,11 @@ export default function LibraryScreen() {
                 </View>
               </View>
               {activeFolderMenuId === folder.id ? (
-                <View
+                <ScrollView
+                  nestedScrollEnabled
                   style={styles.folderActionPanel}
-                  onStartShouldSetResponder={() => true}>
+                  onStartShouldSetResponder={() => true}
+                  showsVerticalScrollIndicator={false}>
                   <TouchableOpacity
                     activeOpacity={0.78}
                     onPress={() => handleToggleFavoriteFolder(folder)}
@@ -852,7 +907,7 @@ export default function LibraryScreen() {
                       </TouchableOpacity>
                     ))}
                   </View>
-                </View>
+                </ScrollView>
               ) : null}
             </TouchableOpacity>
             );
@@ -971,7 +1026,10 @@ export default function LibraryScreen() {
           </View>
         </View>
       ) : null}
-      <TouchableOpacity activeOpacity={0.86} onPress={handleOpenCreateFolder} style={styles.floatingAddButton}>
+      <TouchableOpacity
+        activeOpacity={0.86}
+        onPress={handleOpenCreateFolder}
+        style={[styles.floatingAddButton, { bottom: floatingButtonBottom, height: FAB_SIZE, width: FAB_SIZE }]}>
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
       </View>
@@ -984,7 +1042,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingBottom: 132,
     paddingHorizontal: 18,
     paddingTop: 16,
   },
@@ -1009,8 +1066,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2563EB',
     borderRadius: 24,
-    bottom: 18,
-    height: 48,
+    elevation: 45,
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
@@ -1018,7 +1074,7 @@ const styles = StyleSheet.create({
     shadowOffset: { height: 8, width: 0 },
     shadowOpacity: 0.2,
     shadowRadius: 18,
-    width: 48,
+    zIndex: 45,
   },
   segment: {
     backgroundColor: '#EAF1FF',
@@ -1435,21 +1491,28 @@ const styles = StyleSheet.create({
   toolbar: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10,
     marginTop: 18,
+    ...(Platform.OS === 'web'
+      ? {
+          flexWrap: 'wrap',
+        }
+      : {}),
   },
   toolbarLeft: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
+    flex: 1,
     flexDirection: 'row',
     gap: 5,
-    maxWidth: '68%',
+    minWidth: 0,
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
   toolbarText: {
     color: '#64748B',
+    flexShrink: 1,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -1458,9 +1521,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     flexDirection: 'row',
+    flexShrink: 0,
     gap: 8,
     paddingHorizontal: 8,
     paddingVertical: 6,
+  },
+  folderControlsDropdown: {
+    elevation: 25,
+    zIndex: 25,
   },
   optionStrip: {
     gap: 8,
@@ -1495,6 +1563,11 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10,
     padding: 8,
+    ...(Platform.OS === 'web'
+      ? {
+          flexWrap: 'wrap',
+        }
+      : {}),
   },
   viewModeButton: {
     alignItems: 'center',
@@ -1644,9 +1717,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     marginBottom: 12,
-    padding: 10,
-    width: '48%',
     overflow: 'visible',
+    padding: 10,
+    position: 'relative',
+    width: '48%',
+  },
+  folderCardMenuOpen: {
+    elevation: 50,
+    zIndex: 50,
   },
   folderCardList: {
     width: '100%',
@@ -1726,6 +1804,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 4,
     marginTop: 10,
+    maxHeight: 340,
     padding: 9,
     zIndex: 30,
     elevation: 30,
