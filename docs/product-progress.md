@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `b46a5d2` Support TSV vocabulary import
   - `8764019` Add pronunciation recording playback
   - `2e77772` Expand bilingual domain inference rules
   - `bd96e80` Fix CSV import field mapping flow
@@ -128,7 +129,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Advanced import options: row/column orientation, header on/off, primary key.
 - [x] DONE: Validate duplicates and empty data more clearly in the UI.
 - [x] DONE [MEDIUM]: User-controlled custom field mapping beyond recognized headers/order (commits `c2feab9`, `bd96e80`).
-- [ ] TODO [MEDIUM]: Import non-CSV datasets if needed.
+- [x] DONE [MEDIUM]: Import non-CSV datasets if needed (TSV support, commit `b46a5d2`).
 
 ### Reader
 - [x] DONE: TXT reader MVP.
@@ -180,11 +181,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Import non-CSV datasets if needed.
-2. `[ ] [MEDIUM]` App lock or biometric lock option if native support is added.
-3. `[ ] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
-4. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
-5. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+1. `[ ] [MEDIUM]` App lock or biometric lock option if native support is added.
+2. `[ ] [HARD]` Word variations/morphology search (VD: `went` -> `go`).
+3. `[ ] [HARD]` Import EPUB/PDF/DOCX/HTML, starting with the safest format.
+4. `[!] [HARD]` Decide backend/API options for production multilingual translation and pronunciation scoring.
+5. `[!] [HARD]` Google Sheets export with OAuth.
 
 ## Rule
 Sau khi hoàn thành và đẩy code lên GitHub:
