@@ -3,7 +3,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import {
@@ -208,6 +208,37 @@ export default function LibraryScreen() {
       Alert.alert(result.ok ? 'Xuất dữ liệu xong' : 'Chưa thể xuất dữ liệu', result.message);
     } catch (error) {
       Alert.alert('Xuất dữ liệu thất bại', error instanceof Error ? error.message : 'Chưa thể xuất bộ từ này.');
+    }
+  };
+
+  const handleShareFolder = async (folder: Folder) => {
+    try {
+      setActiveFolderMenuId('');
+
+      // Default to CSV export for sharing; export helpers will invoke the native share sheet if available.
+      const result = await exportFolderToCsv(libraryState, folder.id);
+
+      if (!result.ok) {
+        Alert.alert('Chia sẻ thất bại', result.message);
+        return;
+      }
+
+      // If export returned a file uri, offer to open it (or the native share sheet already opened).
+      if (result.uri) {
+        Alert.alert('Chia sẻ', result.message, [
+          { text: 'Đóng', style: 'cancel' },
+          {
+            text: 'Mở file',
+            onPress: () => {
+              Linking.openURL(result.uri).catch(() => Alert.alert('Không thể mở file'));
+            },
+          },
+        ]);
+      } else {
+        Alert.alert('Chia sẻ', result.message);
+      }
+    } catch (error) {
+      Alert.alert('Chia sẻ thất bại', error instanceof Error ? error.message : 'Không thể chia sẻ bộ từ này.');
     }
   };
 
@@ -806,12 +837,7 @@ export default function LibraryScreen() {
                   </View>
                   <TouchableOpacity
                     activeOpacity={0.78}
-                    onPress={() =>
-                      handleComingSoonFolderAction(
-                        'Sắp có',
-                        'Chia sẻ bộ từ sẽ dùng file export/share path ở bước sau.'
-                      )
-                    }
+                    onPress={() => handleShareFolder(folder)}
                     style={styles.folderActionRow}>
                     <Ionicons name="share-social-outline" size={17} color="#64748B" />
                     <Text style={styles.folderActionText}>Chia sẻ</Text>
