@@ -37,6 +37,23 @@ import { ReaderState, getDefaultReaderState, loadReaderState } from '@/data/read
 const days = Array.from({ length: 84 }, (_, index) => index);
 const chartValues = [1, 1.5, 2, 2.4, 4.6, 6.4, 5.5, 7.3, 9.1, 11.2, 10.5, 13.1, 15.5, 12.6, 17.5, 16.1, 23.6];
 const defaultAvatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop';
+const legalLinks = [
+  {
+    icon: 'document-text-outline' as const,
+    message: 'Điều khoản sử dụng sẽ được hoàn thiện trước khi phát hành công khai. Hiện app đang chạy local-first.',
+    title: 'Điều khoản',
+  },
+  {
+    icon: 'shield-checkmark-outline' as const,
+    message: 'Dictionary Mobile hiện lưu dữ liệu học tập trên thiết bị. Đồng bộ cloud và chia sẻ dữ liệu sẽ cần xác nhận riêng.',
+    title: 'Chính sách riêng tư',
+  },
+  {
+    icon: 'information-circle-outline' as const,
+    message: 'Ứng dụng dùng Expo, React Native và các nguồn dữ liệu/adapter từ điển được tách theo giấy phép tương ứng.',
+    title: 'Ghi nhận',
+  },
+];
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -577,6 +594,19 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               </SidebarSection>
               ) : null}
+
+              <View style={styles.sidebarLegalFooter}>
+                {legalLinks.map((item) => (
+                  <Pressable
+                    accessibilityRole="button"
+                    key={item.title}
+                    onPress={() => Alert.alert(item.title, item.message, [{ text: 'OK' }])}
+                    style={({ pressed }) => [styles.sidebarLegalLink, pressed && styles.sidebarLegalLinkPressed]}>
+                    <Ionicons name={item.icon} size={15} color="#64748B" />
+                    <Text style={styles.sidebarLegalLinkText}>{item.title}</Text>
+                  </Pressable>
+                ))}
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -841,6 +871,30 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     fontWeight: '900',
+  },
+  sidebarLegalFooter: {
+    borderTopColor: '#E2E8F0',
+    borderTopWidth: 1,
+    gap: 6,
+    marginTop: 6,
+    paddingTop: 14,
+  },
+  sidebarLegalLink: {
+    alignItems: 'center',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 7,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+  },
+  sidebarLegalLinkPressed: {
+    backgroundColor: '#F1F5F9',
+  },
+  sidebarLegalLinkText: {
+    color: '#64748B',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
   },
   profileInputDisabled: {
     backgroundColor: '#F1F5F9',
