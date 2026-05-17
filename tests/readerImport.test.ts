@@ -1,9 +1,13 @@
 import JSZip from 'jszip';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
   extractDocxReaderText,
   extractEpubReaderText,
+  extractPdfReaderDocument,
+  extractPdfReaderText,
   extractReaderDocument,
   extractReaderText,
   getReaderImportFormat,
@@ -12,6 +16,9 @@ import {
   isSupportedReaderImportFormat,
   readerImportPlans,
 } from '../data/readerImport';
+
+const pdfFixtureDir = join(process.cwd(), 'tests', 'fixtures', 'reader-pdf');
+const standardFontDataUrl = join(process.cwd(), 'node_modules', 'pdfjs-dist', 'standard_fonts') + '/';
 
 describe('readerImport', () => {
   it('extracts readable text from HTML', () => {
@@ -102,6 +109,40 @@ describe('readerImport', () => {
     expect(result.content).toBe('Reader EPUB import.');
     expect(isEnabledReaderImportFormat('epub')).toBe(true);
   });
+
+  it('extracts text from the simple digital PDF fixture without enabling PDF imports', async () => {
+    const buffer = await readFixtureArrayBuffer('digital-simple.pdf');
+    const text = await extractPdfReaderText(buffer, undefined, { standardFontDataUrl });
+
+    expect(text).toContain('Reader PDF Simple Fixture');
+    expect(text).toContain('selectable text for Reader import tests');
+    expect(isEnabledReaderImportFormat('pdf')).toBe(false);
+  });
+
+  it('wraps PDF extraction in the Reader import result shape', async () => {
+    const buffer = await readFixtureArrayBuffer('digital-multiline.pdf');
+    const result = await extractPdfReaderDocument('digital-multiline.pdf', buffer, (rawContent) =>
+      extractPdfReaderText(rawContent, undefined, { standardFontDataUrl })
+    );
+
+    expect(result.title).toBe('digital-multiline');
+    expect(result.sourceFormat).toBe('pdf');
+    expect(result.content).toContain('Reader PDF Multiline Fixture');
+    expect(result.content).toContain('Final line confirms extraction reaches the end of the page.');
+  });
+
+  it('rejects PDF fixtures with no extractable text', async () => {
+    const buffer = await readFixtureArrayBuffer('empty.pdf');
+
+    await expect(extractPdfReaderDocument('empty.pdf', buffer)).rejects.toThrow('Tài liệu trống');
+  });
+
+  it('keeps image-only PDF fixtures on the empty/OCR-required path', async () => {
+    const buffer = await readFixtureArrayBuffer('scanned-image.pdf');
+
+    await expect(extractPdfReaderDocument('scanned-image.pdf', buffer)).rejects.toThrow('Tài liệu trống');
+  });
+
   it('rejects files exceeding the size limit', async () => {
     const largeContent = 'a'.repeat(10 * 1024 * 1024 + 1); // > 10MB
     await expect(extractReaderDocument('large.txt', largeContent)).rejects.toThrow('Kích thước file quá lớn');
@@ -111,3 +152,9 @@ describe('readerImport', () => {
     expect(() => extractReaderText('empty.html', '<p>   </p>')).toThrow('Tài liệu trống');
   });
 });
+
+async function readFixtureArrayBuffer(fileName: string) {
+  const buffer = await readFile(join(pdfFixtureDir, fileName));
+
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+}

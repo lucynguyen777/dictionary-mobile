@@ -205,7 +205,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Harden Reader structured imports: add file-size (10MB limit) and empty-text limits.
 - [x] DONE [HARD]: Reader PDF extraction fixture gate: dev-client/web fixture expectations are documented and PDF remains disabled until a digital PDF test path is verified.
 - [x] DONE [HARD]: Reader PDF extraction implementation preparation: repo-owned digital/empty/image-only fixtures are committed, parser path is selected as web-first PDF.js-style prototype before native dev-client evaluation, and PDF remains disabled.
-- [ ] TODO [HARD]: Reader PDF extraction parser prototype. Add parser abstraction and web fixture tests before enabling PDF import.
+- [x] DONE [HARD]: Reader PDF extraction parser prototype: PDF.js-style parser abstraction and fixture tests cover digital, empty, and image-only PDFs while app PDF import remains disabled.
+- [ ] TODO [HARD]: Reader PDF import enablement gate. Wire PDF into Reader import only after Expo web manual smoke and unsupported native/Expo Go copy are verified.
 
 ## User Profile And Privacy
 
@@ -312,7 +313,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Reader PDF extraction parser prototype: add parser abstraction and web fixture tests before enabling PDF import.
+1. [ ] [HARD] Reader PDF import enablement gate: manually smoke the PDF.js prototype on Expo web, confirm unsupported native/Expo Go copy, then wire PDF into Reader import.
 2. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
 3. [ ] [HARD] Find verified Japanese/Korean monolingual source: identify JA->JA or KO->KO structured data before adapter implementation.
 

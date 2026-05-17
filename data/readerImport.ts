@@ -20,8 +20,37 @@ export type ReaderImportResult = {
   sourceFormat: EnabledReaderImportFormat;
 };
 
+export type ReaderPdfImportResult = {
+  title: string;
+  content: string;
+  sourceFormat: 'pdf';
+};
+
 type MammothConvertToHtml = typeof mammoth.convertToHtml;
 type XmlNode = Record<string, unknown>;
+type PdfJsTextItem = {
+  str?: string;
+  hasEOL?: boolean;
+};
+type PdfJsPage = {
+  getTextContent: () => Promise<{ items: PdfJsTextItem[] }>;
+};
+type PdfJsDocument = {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<PdfJsPage>;
+};
+type PdfJsModule = {
+  getDocument: (params: {
+    data: Uint8Array;
+    disableWorker: true;
+    isEvalSupported: false;
+    useWorkerFetch: false;
+    standardFontDataUrl?: string;
+  }) => { promise: Promise<PdfJsDocument> };
+};
+type PdfJsLoader = () => Promise<PdfJsModule>;
+
+export type ReaderPdfParser = (fileName: string, rawContent: ArrayBuffer) => Promise<ReaderPdfImportResult>;
 
 export const MAX_READER_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
@@ -174,6 +203,56 @@ export async function extractDocxReaderText(
   return htmlToPlainText(result.value);
 }
 
+export async function extractPdfReaderDocument(
+  fileName: string,
+  rawContent: ArrayBuffer,
+  parser: (rawContent: ArrayBuffer) => Promise<string> = extractPdfReaderText
+): Promise<ReaderPdfImportResult> {
+  if (rawContent.byteLength > MAX_READER_FILE_SIZE_BYTES) {
+    throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 10MB.');
+  }
+
+  const content = await parser(rawContent);
+
+  if (!content) {
+    throw new Error('Tài liệu trống hoặc không thể trích xuất văn bản hợp lệ.');
+  }
+
+  return {
+    title: getReaderImportTitle(fileName),
+    content,
+    sourceFormat: 'pdf',
+  };
+}
+
+export async function extractPdfReaderText(
+  arrayBuffer: ArrayBuffer,
+  loadPdfJs: PdfJsLoader = loadPdfJsParser,
+  options: { standardFontDataUrl?: string } = {}
+) {
+  const pdfjs = await loadPdfJs();
+  const document = await pdfjs.getDocument({
+    data: new Uint8Array(arrayBuffer),
+    disableWorker: true,
+    isEvalSupported: false,
+    standardFontDataUrl: options.standardFontDataUrl,
+    useWorkerFetch: false,
+  }).promise;
+  const pageTexts: string[] = [];
+
+  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const textContent = await page.getTextContent();
+    const lines = textContent.items
+      .map((item) => item.str?.trim() ?? '')
+      .filter(Boolean);
+
+    if (lines.length) pageTexts.push(lines.join('\n'));
+  }
+
+  return pageTexts.join('\n\n').trim();
+}
+
 export function getReaderImportFormat(fileName: string, mimeType = ''): ReaderImportFormat {
   const normalizedName = fileName.toLocaleLowerCase();
   const normalizedMimeType = mimeType.toLocaleLowerCase();
@@ -212,6 +291,10 @@ function getReaderImportTitle(fileName: string) {
 
 function decodeUtf8(arrayBuffer: ArrayBuffer) {
   return new TextDecoder().decode(arrayBuffer);
+}
+
+async function loadPdfJsParser(): Promise<PdfJsModule> {
+  return import('pdfjs-dist/legacy/build/pdf.mjs') as Promise<PdfJsModule>;
 }
 
 async function readZipText(zip: JSZip, path: string) {
