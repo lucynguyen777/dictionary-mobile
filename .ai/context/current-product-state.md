@@ -20,7 +20,6 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Current Queue Notes
 `docs/product-progress.md` currently includes `Next Work Queue` items for:
-- Hindi monolingual baseline planning.
 - Mandarin monolingual baseline planning.
 
 If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.

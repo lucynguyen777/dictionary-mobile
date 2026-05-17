@@ -246,9 +246,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Add language-family metadata to language config before adding more languages: `family`, `script`, `writingDirection`, `adapterKey`, `dictionaryStatus` (commit `083addb`).
 - [x] DONE [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states (commits `1c4a0aa`, `cc9020f`, `667e897`, `536b4ad`).
 - [x] DONE [MEDIUM]: Spanish monolingual baseline: WiktAPI adapter, language metadata, morphology candidates, gender labels.
-- [ ] TODO [MEDIUM]: Indo-European next-build candidates: Hindi, Russian.
+- [ ] TODO [MEDIUM]: Indo-European next-build candidates: Russian.
+  - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: Implementation BLOCKED (WiktAPI 'hi' returns 404).
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
-  - Hindi: Devanagari, gender, transliteration, postpositions.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Mandarin, Cantonese, Burmese, Tibetan.
   - Mandarin: Hanzi, pinyin, tones, segmentation, classifiers.
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
@@ -295,8 +295,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
-2. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
+1. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
 
 ## Rule
 

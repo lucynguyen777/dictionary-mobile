@@ -61,6 +61,16 @@ export const languageOptions = [
     dictionaryStatus: 'unavailable',
   },
   {
+    code: 'hi',
+    label: 'हिन्दी',
+    hint: 'Sắp hỗ trợ',
+    family: 'indo-european',
+    script: 'devanagari',
+    writingDirection: 'ltr',
+    adapterKey: undefined,
+    dictionaryStatus: 'unavailable',
+  },
+  {
     code: 'ja',
     label: '日本語',
     hint: 'Sắp hỗ trợ',
