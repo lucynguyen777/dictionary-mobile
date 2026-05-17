@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   extractReaderText,
+  extractDocxReaderText,
   getReaderImportFormat,
   getUnsupportedReaderImportMessage,
   isSupportedReaderImportFormat,
@@ -34,4 +35,14 @@ describe('readerImport', () => {
     expect(readerImportPlans.epub.parser).toContain('epub.js');
     expect(readerImportPlans.pdf.nextStep).toContain('Expo web');
   });
+
+  it('converts DOCX HTML output into Reader text', async () => {
+    const text = await extractDocxReaderText(new ArrayBuffer(2), async () => ({
+      messages: [],
+      value: '<h1>Lesson</h1><p>Hello&nbsp;DOCX</p><script>ignore()</script>',
+    }));
+
+    expect(text).toBe('Lesson\n\nHello DOCX');
+  });
+
 });

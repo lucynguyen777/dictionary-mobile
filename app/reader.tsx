@@ -25,10 +25,11 @@ import {
     updateReaderSettings,
 } from '@/data/readerStore';
 import {
+  extractReaderDocument,
   extractReaderText,
   getReaderImportFormat,
   getUnsupportedReaderImportMessage,
-  isSupportedReaderImportFormat,
+  isEnabledReaderImportFormat,
 } from '@/data/readerImport';
 
 const fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[] = [
@@ -96,13 +97,16 @@ export default function ReaderScreen() {
       const asset = result.assets[0];
       const importFormat = getReaderImportFormat(asset.name, asset.mimeType);
 
-      if (!isSupportedReaderImportFormat(importFormat)) {
+      if (!isEnabledReaderImportFormat(importFormat)) {
         Alert.alert('Import Reader', getUnsupportedReaderImportMessage(importFormat));
         return;
       }
 
-      const rawContent = asset.file ? await asset.file.text() : await new File(asset.uri).text();
-      const importedDocument = extractReaderText(asset.name, rawContent);
+      const pickedFile = asset.file ?? new File(asset.uri);
+      const importedDocument =
+        importFormat === 'docx'
+          ? await extractReaderDocument(asset.name, await pickedFile.arrayBuffer(), asset.mimeType)
+          : extractReaderText(asset.name, await pickedFile.text());
 
       if (!importedDocument.content.trim()) {
         Alert.alert('Import Reader', 'File này không có nội dung text có thể đọc.');

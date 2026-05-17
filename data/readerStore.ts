@@ -1,4 +1,5 @@
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
+import type { EnabledReaderImportFormat } from '@/data/readerImport';
 
 const STORAGE_KEY = 'dictionary-mobile.reader.v1';
 
@@ -6,7 +7,7 @@ export type ReaderDocument = {
   id: string;
   title: string;
   content: string;
-  sourceFormat?: 'txt' | 'html';
+  sourceFormat?: EnabledReaderImportFormat;
   createdAt: string;
   updatedAt: string;
 };

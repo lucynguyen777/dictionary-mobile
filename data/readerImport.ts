@@ -1,6 +1,9 @@
+import mammoth from 'mammoth';
+
 export type SupportedReaderImportFormat = 'txt' | 'html';
 export type UnsupportedReaderImportFormat = 'pdf' | 'docx' | 'epub';
 export type ReaderImportFormat = SupportedReaderImportFormat | UnsupportedReaderImportFormat;
+export type EnabledReaderImportFormat = SupportedReaderImportFormat | 'docx';
 export type ReaderImportPlan = {
   label: string;
   status: 'supported' | 'planned';
@@ -12,8 +15,10 @@ export type ReaderImportPlan = {
 export type ReaderImportResult = {
   title: string;
   content: string;
-  sourceFormat: SupportedReaderImportFormat;
+  sourceFormat: EnabledReaderImportFormat;
 };
+
+type MammothConvertToHtml = typeof mammoth.convertToHtml;
 
 export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
   txt: {
@@ -59,7 +64,7 @@ export function extractReaderText(fileName: string, rawContent: string): ReaderI
     throw new Error(getUnsupportedReaderImportMessage(sourceFormat));
   }
 
-  const title = fileName.replace(/\.[^/.]+$/, '').trim() || 'Reader document';
+  const title = getReaderImportTitle(fileName);
   const content = sourceFormat === 'html' ? htmlToPlainText(rawContent) : rawContent.trim();
 
   return {
@@ -67,6 +72,50 @@ export function extractReaderText(fileName: string, rawContent: string): ReaderI
     content,
     sourceFormat,
   };
+}
+
+export async function extractReaderDocument(
+  fileName: string,
+  rawContent: string | ArrayBuffer,
+  mimeType = ''
+): Promise<ReaderImportResult> {
+  const sourceFormat = getReaderImportFormat(fileName, mimeType);
+
+  if (sourceFormat === 'docx') {
+    if (typeof rawContent === 'string') {
+      throw new Error('DOCX cần đọc ở dạng ArrayBuffer trước khi chuyển sang Reader text.');
+    }
+
+    const title = getReaderImportTitle(fileName);
+    const content = await extractDocxReaderText(rawContent);
+
+    return {
+      title,
+      content,
+      sourceFormat,
+    };
+  }
+
+  if (!isSupportedReaderImportFormat(sourceFormat)) {
+    throw new Error(getUnsupportedReaderImportMessage(sourceFormat));
+  }
+
+  return extractReaderText(fileName, typeof rawContent === 'string' ? rawContent : decodeUtf8(rawContent));
+}
+
+export async function extractDocxReaderText(
+  arrayBuffer: ArrayBuffer,
+  convertToHtml: MammothConvertToHtml = mammoth.convertToHtml
+) {
+  const result = await convertToHtml(
+    { arrayBuffer },
+    {
+      includeDefaultStyleMap: true,
+      includeEmbeddedStyleMap: true,
+    }
+  );
+
+  return htmlToPlainText(result.value);
 }
 
 export function getReaderImportFormat(fileName: string, mimeType = ''): ReaderImportFormat {
@@ -91,10 +140,22 @@ export function isSupportedReaderImportFormat(format: ReaderImportFormat): forma
   return format === 'txt' || format === 'html';
 }
 
+export function isEnabledReaderImportFormat(format: ReaderImportFormat): format is EnabledReaderImportFormat {
+  return isSupportedReaderImportFormat(format) || format === 'docx';
+}
+
 export function getUnsupportedReaderImportMessage(format: UnsupportedReaderImportFormat) {
   const plan = readerImportPlans[format];
 
   return `${plan.label} cần parser riêng trước khi import vào Reader. Chiến lược: ${plan.parser}. ${plan.nextStep} Hiện app mới hỗ trợ TXT và HTML an toàn.`;
+}
+
+function getReaderImportTitle(fileName: string) {
+  return fileName.replace(/\.[^/.]+$/, '').trim() || 'Reader document';
+}
+
+function decodeUtf8(arrayBuffer: ArrayBuffer) {
+  return new TextDecoder().decode(arrayBuffer);
 }
 
 function htmlToPlainText(html: string) {
