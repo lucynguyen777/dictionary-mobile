@@ -105,6 +105,9 @@ export const languageOptions = [
 export type LanguageOption = (typeof languageOptions)[number];
 export type LanguageCode = LanguageOption['code'];
 
+export const supportedBilingualDictionaryPairs = ['en->vi', 'vi->en', 'fr->vi'] as const;
+export const blockedBilingualDictionaryPairs = ['vi->fr'] as const;
+
 export function getLanguageByCode(code: string | undefined, fallbackCode: LanguageCode) {
   return languageOptions.find((language) => language.code === code) ?? getFallbackLanguage(fallbackCode);
 }
@@ -124,9 +127,15 @@ export function isEnglishDictionaryPair(sourceCode: string, targetCode: string) 
 }
 
 export function isSupportedBilingualDictionaryPair(sourceCode: string, targetCode: string) {
-  const pair = `${sourceCode}->${targetCode}`;
+  const pair = getLanguagePairKey(sourceCode, targetCode);
 
-  return ['en->vi', 'vi->en', 'fr->vi'].includes(pair);
+  return supportedBilingualDictionaryPairs.includes(pair as (typeof supportedBilingualDictionaryPairs)[number]);
+}
+
+export function isBlockedBilingualDictionaryPair(sourceCode: string, targetCode: string) {
+  const pair = getLanguagePairKey(sourceCode, targetCode);
+
+  return blockedBilingualDictionaryPairs.includes(pair as (typeof blockedBilingualDictionaryPairs)[number]);
 }
 
 export function isSameLanguagePair(sourceCode: string, targetCode: string) {
@@ -137,4 +146,8 @@ export function isTranslationComingSoonPair(sourceCode: string, targetCode: stri
   if (isSameLanguagePair(sourceCode, targetCode)) return false;
 
   return !isSupportedBilingualDictionaryPair(sourceCode, targetCode);
+}
+
+export function getLanguagePairKey(sourceCode: string, targetCode: string) {
+  return `${sourceCode}->${targetCode}`;
 }

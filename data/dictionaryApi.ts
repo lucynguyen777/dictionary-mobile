@@ -1,4 +1,8 @@
 import { BilingualExample } from './dictionary';
+import {
+  isBlockedBilingualDictionaryPair as isBlockedPair,
+  isSupportedBilingualDictionaryPair,
+} from './languages';
 import { getMorphologyCandidates } from './morphology';
 
 export type ApiDefinition = {
@@ -160,11 +164,11 @@ export function canUseMonolingualDictionaryApi(languageCode: string) {
 }
 
 export function canUseBilingualDictionaryApi(sourceLang: string, targetLang: string) {
-  return ['en->vi', 'vi->en', 'fr->vi'].includes(`${sourceLang}->${targetLang}`);
+  return isSupportedBilingualDictionaryPair(sourceLang, targetLang);
 }
 
 export function isBlockedBilingualDictionaryPair(sourceLang: string, targetLang: string) {
-  return sourceLang === 'vi' && targetLang === 'fr';
+  return isBlockedPair(sourceLang, targetLang);
 }
 
 export async function fetchMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {

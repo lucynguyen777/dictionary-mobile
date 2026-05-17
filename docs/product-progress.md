@@ -15,11 +15,19 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
-- Medium next tasks: language selector/bilingual flow stabilization and adapter-first language build planning.
-- Hard next tasks: Reader parser selection for EPUB/PDF/DOCX, source selection for etymology/conjugation, and voice/OCR exploration.
+- Medium next tasks: adapter-first Russian language build planning and local UI/data consistency polish.
+- Hard next tasks: Reader PDF extraction fixture/prototype gating, source selection for etymology/conjugation, and voice/OCR exploration.
 
 ## Current Baseline
 - Latest completed commits:
+  - `e9c6e82` feat(flashcards): implement offline sync state management
+  - `6f40044` docs(lang): plan Mandarin monolingual baseline and document blocked status
+  - `cdf245b` docs(lang): plan Hindi monolingual baseline and document blocked status
+  - `68de9fd` feat(reader): harden structured imports with file size and empty text limits
+  - `b9e92cb` docs(lang): plan Swahili monolingual baseline and document blocked status
+  - `46bd89e` feat(lang): add Malay monolingual baseline with WiktAPI adapter
+  - `b2fe0cd` feat(lang): add Spanish monolingual baseline with WiktAPI adapter
+  - `43e999e` docs: update epub prototype baseline
   - `f502322` feat(reader): prototype epub import
   - `591c1eb` feat(reader): prototype docx import
   - `acc5df1` docs(reader): select structured import strategy
@@ -282,7 +290,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Basque can be researched after Indo-European Latin-script pipeline; Ainu is blocked until source availability is proven.
 
 ### Translation
-- [~] IN PROGRESS [MEDIUM]: Language selector and bilingual English-Vietnamese dictionary flow; unsupported bilingual pair routing is guarded, broader UI polish still pending.
+- [x] DONE [MEDIUM]: Language selector and bilingual dictionary flow; supported/blocked pair rules are centralized, unsupported pair routing is guarded, and API/UI coming-soon behavior is covered by tests.
 - [!] BLOCKED [HARD]: Production multilingual translation for many language pairs needs selected API/backend.
 - [!] BLOCKED [HARD]: Specialized translation with user glossary/database needs backend, auth, and cost controls.
 
@@ -296,7 +304,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-*(Queue is currently empty. Ready for next phase specifications.)*
+1. [ ] [MEDIUM] Plan Russian monolingual baseline: compare against existing Indo-European adapters (English/French/Spanish), document Cyrillic/case/aspect morphology implications, and confirm a legal source candidate before implementation.
+2. [ ] [HARD] Prepare Reader PDF extraction fixture gate: define dev-client/web fixture expectations and keep PDF disabled until a digital PDF test path is verified.
+3. [ ] [HARD] Draft etymology/conjugation source decision brief: list candidate legal structured resources and keep production etymology/conjugation blocked until a source is accepted.
+4. [ ] [HARD] Plan Japanese/Korean lookup track: document script, segmentation, romanization/pronunciation, and source strategy before any adapter implementation.
 
 ## Rule
 

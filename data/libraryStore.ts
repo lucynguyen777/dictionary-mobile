@@ -366,7 +366,11 @@ export async function createFlashcardsFromWordIds(state: LibraryState, wordIds: 
   return nextState;
 }
 
-export async function updateFlashcardReviewState(state: LibraryState, cardId: string, reviewState: FlashcardReviewState) {
+export async function updateFlashcardReviewState(
+  state: LibraryState,
+  cardId: string,
+  reviewState: FlashcardReviewState
+): Promise<LibraryState> {
   const nextState = {
     ...state,
     flashcards: state.flashcards.map((card) =>
@@ -374,7 +378,7 @@ export async function updateFlashcardReviewState(state: LibraryState, cardId: st
         ? {
             ...card,
             reviewState,
-            syncStatus: card.syncStatus === 'pending_create' ? 'pending_create' : 'pending_update',
+            syncStatus: getPendingFlashcardSyncStatus(card),
             version: (card.version || 1) + 1,
           }
         : card
@@ -390,8 +394,8 @@ export async function updateFlashcardReviewState(state: LibraryState, cardId: st
  * SuperMemo-2 (SM-2) algorithm for flashcard spaced repetition.
  * Quality: 0-5 (0 = complete blackout, 5 = perfect response)
  */
-export async function reviewFlashcard(state: LibraryState, cardId: string, quality: number) {
-  const nextState = {
+export async function reviewFlashcard(state: LibraryState, cardId: string, quality: number): Promise<LibraryState> {
+  const nextState: LibraryState = {
     ...state,
     flashcards: state.flashcards.map((card) => {
       if (card.id !== cardId) return card;
@@ -430,7 +434,7 @@ export async function reviewFlashcard(state: LibraryState, cardId: string, quali
         efactor,
         dueDate: nextDue.toISOString(),
         reviewState,
-        syncStatus: card.syncStatus === 'pending_create' ? 'pending_create' : 'pending_update',
+        syncStatus: getPendingFlashcardSyncStatus(card),
         version: (card.version || 1) + 1,
       };
     }),
@@ -677,6 +681,10 @@ export async function deleteFlashcard(state: LibraryState, cardId: string) {
   await saveLibraryState(nextState);
 
   return nextState;
+}
+
+function getPendingFlashcardSyncStatus(card: Flashcard): NonNullable<Flashcard['syncStatus']> {
+  return card.syncStatus === 'pending_create' ? 'pending_create' : 'pending_update';
 }
 
 export function getDefaultLibraryState(): LibraryState {
