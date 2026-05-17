@@ -321,6 +321,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Acceptance criteria: product owner accepts a legal structured source in `docs/decisions/etymology-conjugation-source.md`; chosen source has documented license/terms and a plan for smoke-testing integration before enabling production.
 3. [ ] [HARD] Find verified Japanese/Korean monolingual source: identify JA->JA or KO->KO structured data before adapter implementation.
 
+4. [~] [MEDIUM] Schedule bulk crawl and import for headword batches: implement a batch runner to crawl Wiktionary headwords, cache parse results, and produce importable JSONL artifacts.
+  - Implementation: add `scripts/wiktionary-bulk.mjs` (batch scheduler), `scripts/wiktionary-client.mjs` (shared client utilities), and sample headword lists under `data/headword-lists/`.
+  - Acceptance criteria: the bulk runner can process a list file, skip existing cached entries when `--resume` is used, write per-run JSONL logs to `data/wiktionary-bulk-runs/`, and produce cached parse JSON under `data/wiktionary-cache/<lang>/` for each headword. A sample run is in repo and documented in README or this product-progress entry.
+
 ## Rule
 
 ### Task Workflow

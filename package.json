@@ -11,6 +11,7 @@
     "web": "expo start --web",
     "wikiserver": "node ./scripts/wiktionary-server.mjs",
     "wikicrawl": "node ./scripts/wiktionary-crawler.mjs",
+    "wikibulk": "node ./scripts/wiktionary-bulk.mjs",
     "lint": "expo lint"
   },
   "dependencies": {

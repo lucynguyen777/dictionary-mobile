@@ -1,0 +1,8 @@
+# sample headword list for bulk crawler
+# format: <lang>|<title>
+en|book
+en|house
+en|run
+ru|дом
+ja|本
+ko|책

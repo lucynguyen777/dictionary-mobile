@@ -4,23 +4,12 @@ import cors from 'cors';
 import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
+import { fetchParse, slugify } from './wiktionary-client.mjs';
 
 const app = express();
 app.use(cors());
 
-function slugify(s) { return String(s).replace(/\s+/g, '_'); }
-
-async function fetchParse(lang, title) {
-  const url = `https://${lang}.wiktionary.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=text|sections&format=json&formatversion=2&origin=*`;
-  const USER_AGENT = 'dictionary-mobile-api/1.0 (+https://github.com/lucynguyen777/dictionary-mobile)';
-  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
-  if (!res.ok) {
-    console.error('fetchParse failed', res.status, res.statusText);
-    return null;
-  }
-  const data = await res.json();
-  return data;
-}
+// use shared fetchParse/slugify from wiktionary-client.mjs
 
 function extractSectionHtml(html, anchor) {
   if (!html) return null;
