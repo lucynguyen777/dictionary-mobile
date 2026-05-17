@@ -10,6 +10,7 @@ Status: selected strategy; TXT/HTML/DOCX/EPUB prototypes are enabled, PDF remain
 
 ## Planned Structured Formats
 - PDF: keep disabled until platform testing is done. Use `expo-pdf-text-extract` only in an Expo dev-client/native prototype for digital PDFs, and evaluate a PDF.js-style web fallback separately. Do not support scanned PDFs without an OCR decision.
+- Fixture gate: see `docs/reader-pdf-fixture-gate.md` before enabling any PDF parser.
 
 ## Guardrails
 - Keep PDF disabled until parser prototypes pass tests with small local samples.

@@ -203,7 +203,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 - [x] DONE [HARD]: Harden Reader structured imports: add file-size (10MB limit) and empty-text limits.
-- [ ] TODO [HARD]: Reader PDF extraction. Wait for dev-client or web test fixture before implementing PDF text extraction.
+- [x] DONE [HARD]: Reader PDF extraction fixture gate: dev-client/web fixture expectations are documented and PDF remains disabled until a digital PDF test path is verified.
+- [ ] TODO [HARD]: Reader PDF extraction implementation. Requires fixture evidence and platform parser selection before enabling PDF text extraction.
 
 ## User Profile And Privacy
 
@@ -257,7 +258,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states (commits `1c4a0aa`, `cc9020f`, `667e897`, `536b4ad`).
 - [x] DONE [MEDIUM]: Spanish monolingual baseline: WiktAPI adapter, language metadata, morphology candidates, gender labels.
 - [x] DONE [MEDIUM]: Russian monolingual baseline planning: compare against English/French/Spanish Indo-European adapters, document Cyrillic/case/aspect morphology implications, and select WiktAPI/Russian Wiktionary as the live API candidate pending endpoint smoke test.
-  - [ ] TODO [MEDIUM]: Russian monolingual baseline implementation: run endpoint smoke test, add metadata/adapter dispatch, and keep bilingual RU pairs unsupported until a lexical source is selected.
+  - [!] BLOCKED [MEDIUM]: Russian monolingual baseline implementation: WiktAPI `ru` endpoint smoke test returned 404 for common words (`дом`, `мир`, `книга`), so no adapter should be registered until a working RU->RU source is selected.
   - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: Implementation BLOCKED (WiktAPI 'hi' returns 404).
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
@@ -306,10 +307,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [MEDIUM] Russian monolingual baseline implementation: run WiktAPI endpoint smoke test, add `ru` metadata/adapter dispatch, and keep bilingual RU pairs unsupported until a lexical source is selected.
-2. [ ] [HARD] Prepare Reader PDF extraction fixture gate: define dev-client/web fixture expectations and keep PDF disabled until a digital PDF test path is verified.
-3. [ ] [HARD] Draft etymology/conjugation source decision brief: list candidate legal structured resources and keep production etymology/conjugation blocked until a source is accepted.
-4. [ ] [HARD] Plan Japanese/Korean lookup track: document script, segmentation, romanization/pronunciation, and source strategy before any adapter implementation.
+1. [ ] [HARD] Draft etymology/conjugation source decision brief: list candidate legal structured resources and keep production etymology/conjugation blocked until a source is accepted.
+2. [ ] [HARD] Plan Japanese/Korean lookup track: document script, segmentation, romanization/pronunciation, and source strategy before any adapter implementation.
+3. [ ] [HARD] Prepare Reader PDF extraction implementation: collect acceptable digital PDF fixtures and select dev-client/web parser path before enabling PDF text extraction.
 
 ## Rule
 
