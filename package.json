@@ -9,6 +9,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "wikiserver": "node ./scripts/wiktionary-server.mjs",
+    "wikicrawl": "node ./scripts/wiktionary-crawler.mjs",
     "lint": "expo lint"
   },
   "dependencies": {
@@ -48,6 +50,9 @@
     "react-native-screens": "~4.16.0",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1"
+    ,"express": "^4.18.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@types/jszip": "^3.4.0",
