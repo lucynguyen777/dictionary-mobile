@@ -314,6 +314,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Queue
 1. [~] [HARD] Reader PDF import enablement gate: Expo web export smoke passed with a separate PDF.js chunk; manual browser fixture smoke and unsupported native/Expo Go copy still required before wiring PDF into Reader import.
+  - Implementation: added a runtime gate `isPdfImportEnabled()` controlled by environment variable `READER_ENABLE_PDF=true` and limited to web (`EXPO_OS=web`). Manual browser fixture smoke and native/Expo Go verification remain required before fully wiring PDF into Reader import.
 2. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
 3. [ ] [HARD] Find verified Japanese/Korean monolingual source: identify JA->JA or KO->KO structured data before adapter implementation.
 

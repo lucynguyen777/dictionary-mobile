@@ -276,7 +276,20 @@ export function isSupportedReaderImportFormat(format: ReaderImportFormat): forma
 }
 
 export function isEnabledReaderImportFormat(format: ReaderImportFormat): format is EnabledReaderImportFormat {
-  return isSupportedReaderImportFormat(format) || format === 'docx' || format === 'epub';
+  return (
+    isSupportedReaderImportFormat(format) ||
+    format === 'docx' ||
+    format === 'epub' ||
+    (format === 'pdf' && isPdfImportEnabled())
+  );
+}
+
+export function isPdfImportEnabled(): boolean {
+  try {
+    return Boolean(process.env.READER_ENABLE_PDF === 'true' && process.env.EXPO_OS === 'web');
+  } catch {
+    return false;
+  }
 }
 
 export function getUnsupportedReaderImportMessage(format: UnsupportedReaderImportFormat) {
