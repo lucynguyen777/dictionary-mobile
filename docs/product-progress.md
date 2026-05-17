@@ -249,8 +249,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [MEDIUM]: Indo-European next-build candidates: Russian.
   - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: Implementation BLOCKED (WiktAPI 'hi' returns 404).
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
-- [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Mandarin, Cantonese, Burmese, Tibetan.
-  - Mandarin: Hanzi, pinyin, tones, segmentation, classifiers.
+- [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
+  - [x] DONE [HARD]: Mandarin monolingual baseline planning: Implementation BLOCKED (WiktAPI 'zh' returns 404), requires Intl.Segmenter.
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
@@ -295,7 +295,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
+1. `[ ] [HARD]` Implement offline sync state management for Flashcards (prepare for background sync).
 
 ## Rule
 

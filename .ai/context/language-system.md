@@ -14,6 +14,7 @@ Current languages:
 - `ms`: Bahasa Melayu, Austronesian, Latin, LTR, adapter `ms`, monolingual.
 - `sw`: Kiswahili, Niger-Congo, Latin, LTR, adapter undefined, unavailable (blocked).
 - `hi`: हिन्दी (Hindi), Indo-European, Devanagari, LTR, adapter undefined, unavailable (blocked).
+- `zh`: 中文 (Mandarin), Sino-Tibetan, Han, LTR, adapter undefined, unavailable (blocked, requires segmenter).
 - `ja`: 日本語, Japonic, kanji-kana, LTR in current metadata, adapter `ja`, coming soon.
 - `ko`: 한국어, Koreanic, Hangul, LTR, adapter `ko`, coming soon.
 
