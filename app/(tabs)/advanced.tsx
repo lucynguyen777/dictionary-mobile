@@ -8,9 +8,13 @@ import {
   Flashcard,
   FlashcardReviewState,
   FlashcardType,
+  FolderExportFormat,
   LibraryState,
   createFlashcardsFromSavedWords,
   exportFlashcardsToAnkiText,
+  exportFolderToAnkiTsv,
+  exportFolderToCsv,
+  exportFolderToExcel,
   getFavoriteFolderId,
   getDefaultLibraryState,
   loadLibraryState,
@@ -38,6 +42,15 @@ const typeFilterOptions: { value: FlashcardType | 'all'; label: string }[] = [
 
 type LearningToolId = 'flashcards' | 'ai-chat' | 'specialized-translation' | 'import' | 'reader' | 'export';
 type ImportSourceId = 'csv-tsv' | 'reader-highlights' | 'class-list';
+type ExportActionId = FolderExportFormat | 'google-sheets';
+type ExportHistoryItem = {
+  id: string;
+  action: ExportActionId;
+  folderName: string;
+  message: string;
+  status: 'success' | 'failed' | 'blocked';
+  createdAt: string;
+};
 
 const learningTools: {
   id: LearningToolId;
@@ -426,6 +439,8 @@ export default function AdvancedScreen() {
           <SpecializedTranslationToolPanel />
         ) : activeToolId === 'import' ? (
           <ImportToolPanel libraryState={libraryState} />
+        ) : activeToolId === 'export' ? (
+          <ExportToolPanel libraryState={libraryState} />
         ) : (
           <LearningToolPanel tool={activeTool} />
         )}
@@ -953,6 +968,268 @@ function ImportValidationStat({ label, value }: { label: string; value: string }
   );
 }
 
+const exportActions: {
+  id: ExportActionId;
+  title: string;
+  description: string;
+  icon: ComponentProps<typeof Ionicons>['name'];
+  status: string;
+}[] = [
+  {
+    id: 'csv',
+    title: 'CSV',
+    description: 'Bảng từ vựng cơ bản, dễ mở bằng Sheets hoặc Excel.',
+    icon: 'document-text-outline',
+    status: 'Sẵn sàng',
+  },
+  {
+    id: 'excel',
+    title: 'Excel .xls',
+    description: 'File HTML-compatible để mở nhanh trong Excel.',
+    icon: 'grid-outline',
+    status: 'Sẵn sàng',
+  },
+  {
+    id: 'anki',
+    title: 'Anki text',
+    description: 'TSV text deck với front, back và tags.',
+    icon: 'albums-outline',
+    status: 'Sẵn sàng',
+  },
+  {
+    id: 'google-sheets',
+    title: 'Google Sheets',
+    description: 'Cần OAuth và Google API trước khi xuất trực tiếp.',
+    icon: 'cloud-offline-outline',
+    status: 'Bị chặn',
+  },
+];
+
+function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
+  const libraryHref = '/library' as Href;
+  const [selectedFolderId, setSelectedFolderId] = useState('');
+  const [activeActionId, setActiveActionId] = useState<ExportActionId>('csv');
+  const [isRunningExport, setIsRunningExport] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('Chọn bộ từ và định dạng để xuất file local.');
+  const [history, setHistory] = useState<ExportHistoryItem[]>([]);
+
+  const exportFolders = useMemo(
+    () => libraryState.folders.filter((folder) => folder.id !== getFavoriteFolderId()),
+    [libraryState.folders]
+  );
+  const selectedFolder = exportFolders.find((folder) => folder.id === selectedFolderId);
+  const selectedFolderWordCount = selectedFolder
+    ? libraryState.savedWords.filter((word) => word.folderIds.includes(selectedFolder.id)).length
+    : 0;
+  const canExport = Boolean(selectedFolder && selectedFolderWordCount && activeActionId !== 'google-sheets');
+
+  useEffect(() => {
+    if (!selectedFolderId && exportFolders.length) {
+      setSelectedFolderId(exportFolders[0].id);
+      return;
+    }
+
+    if (selectedFolderId && !exportFolders.some((folder) => folder.id === selectedFolderId)) {
+      setSelectedFolderId(exportFolders[0]?.id ?? '');
+    }
+  }, [exportFolders, selectedFolderId]);
+
+  const addHistoryItem = (item: Omit<ExportHistoryItem, 'id' | 'createdAt'>) => {
+    setHistory((current) => [
+      {
+        ...item,
+        id: `${item.action}-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      },
+      ...current,
+    ].slice(0, 5));
+  };
+
+  const handleRunExport = async () => {
+    if (activeActionId === 'google-sheets') {
+      const message = 'Google Sheets cần OAuth và Google API flow, nên chưa thể xuất trực tiếp.';
+      setStatusMessage(message);
+      addHistoryItem({
+        action: activeActionId,
+        folderName: selectedFolder?.name ?? 'Chưa chọn bộ từ',
+        message,
+        status: 'blocked',
+      });
+      return;
+    }
+
+    if (!selectedFolder) {
+      const message = 'Chọn một bộ từ trước khi xuất.';
+      setStatusMessage(message);
+      addHistoryItem({ action: activeActionId, folderName: 'Chưa chọn bộ từ', message, status: 'failed' });
+      return;
+    }
+
+    if (!selectedFolderWordCount) {
+      const message = 'Bộ từ này chưa có từ đã lưu để xuất.';
+      setStatusMessage(message);
+      addHistoryItem({ action: activeActionId, folderName: selectedFolder.name, message, status: 'failed' });
+      return;
+    }
+
+    try {
+      setIsRunningExport(true);
+      setStatusMessage(`Đang xuất ${selectedFolder.name} sang ${formatExportActionLabel(activeActionId)}...`);
+      const result =
+        activeActionId === 'excel'
+          ? await exportFolderToExcel(libraryState, selectedFolder.id)
+          : activeActionId === 'anki'
+            ? await exportFolderToAnkiTsv(libraryState, selectedFolder.id)
+            : await exportFolderToCsv(libraryState, selectedFolder.id);
+
+      setStatusMessage(result.message);
+      addHistoryItem({
+        action: activeActionId,
+        folderName: selectedFolder.name,
+        message: result.message,
+        status: result.ok ? 'success' : 'failed',
+      });
+
+      Alert.alert(result.ok ? 'Đã xuất' : 'Chưa thể xuất', result.message);
+    } catch {
+      const message = 'Không thể xuất bộ từ này.';
+      setStatusMessage(message);
+      addHistoryItem({ action: activeActionId, folderName: selectedFolder.name, message, status: 'failed' });
+      Alert.alert('Lỗi xuất dữ liệu', message);
+    } finally {
+      setIsRunningExport(false);
+    }
+  };
+
+  return (
+    <View style={styles.toolPanel}>
+      <View style={styles.toolPanelHeader}>
+        <View style={[styles.iconWrap, { backgroundColor: '#EAF7FA' }]}>
+          <Ionicons name="download-outline" size={28} color="#0F172A" />
+        </View>
+        <View style={styles.copy}>
+          <Text style={styles.featureTitle}>Xuất bộ từ</Text>
+          <Text style={styles.description}>Xuất bộ từ local sang CSV, Excel-compatible hoặc Anki text để học ngoài app.</Text>
+        </View>
+      </View>
+
+      <View style={styles.blockedNotice}>
+        <Ionicons name="lock-closed-outline" size={16} color="#B45309" />
+        <Text style={styles.blockedNoticeText}>Google Sheets export vẫn bị chặn cho tới khi chọn OAuth và Google API flow.</Text>
+      </View>
+
+      <Text style={styles.toolSectionLabel}>Bộ từ cần xuất</Text>
+      {exportFolders.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importFolderPickerRow}>
+          {exportFolders.map((folder) => (
+            <FilterChip
+              key={folder.id}
+              isSelected={selectedFolderId === folder.id}
+              label={folder.name}
+              onPress={() => setSelectedFolderId(folder.id)}
+            />
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.toolStateCard}>
+          <Ionicons name="folder-open-outline" size={22} color="#94A3B8" />
+          <Text style={styles.toolStateTitle}>Chưa có bộ từ để xuất</Text>
+          <Text style={styles.toolStateText}>Tạo folder và lưu vài từ trong Library trước khi xuất file.</Text>
+          <Link href={libraryHref} asChild>
+            <TouchableOpacity activeOpacity={0.82} style={styles.toolRetryButton}>
+              <Text style={styles.toolRetryButtonText}>Mở Library</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+      )}
+
+      <View style={styles.exportSummaryGrid}>
+        <ImportValidationStat label="Bộ từ" value={selectedFolder?.name ?? 'Chưa chọn'} />
+        <ImportValidationStat label="Số từ" value={`${selectedFolderWordCount} từ`} />
+      </View>
+
+      <Text style={styles.toolSectionLabel}>Định dạng</Text>
+      <View style={styles.exportActionGrid}>
+        {exportActions.map((action) => {
+          const isSelected = activeActionId === action.id;
+          const isBlocked = action.id === 'google-sheets';
+
+          return (
+            <TouchableOpacity
+              activeOpacity={0.82}
+              key={action.id}
+              onPress={() => setActiveActionId(action.id)}
+              style={[
+                styles.exportActionCard,
+                isSelected && styles.exportActionCardActive,
+                isBlocked && styles.exportActionCardBlocked,
+              ]}>
+              <View style={styles.importSourceHeader}>
+                <Ionicons name={action.icon} size={18} color={isBlocked ? '#B45309' : isSelected ? '#2563EB' : '#64748B'} />
+                <Ionicons
+                  name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                  size={18}
+                  color={isSelected ? '#2563EB' : '#CBD5E1'}
+                />
+              </View>
+              <Text style={[styles.importSourceTitle, isSelected && styles.importSourceTitleActive]}>{action.title}</Text>
+              <Text style={styles.importSourceText}>{action.description}</Text>
+              <Text style={[styles.importSourceStatus, isBlocked && styles.exportBlockedStatus]}>{action.status}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        disabled={isRunningExport || (!canExport && activeActionId !== 'google-sheets')}
+        onPress={handleRunExport}
+        style={[
+          styles.exportButton,
+          (isRunningExport || (!canExport && activeActionId !== 'google-sheets')) && styles.exportButtonDisabled,
+        ]}>
+        <Ionicons name={activeActionId === 'google-sheets' ? 'lock-closed-outline' : 'download-outline'} size={18} color="#FFFFFF" />
+        <Text style={styles.exportButtonText}>
+          {isRunningExport ? 'Đang xuất...' : activeActionId === 'google-sheets' ? 'Xem trạng thái bị chặn' : 'Xuất file'}
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.exportStatusCard}>
+        <Text style={styles.toolSectionLabel}>Trạng thái</Text>
+        <Text style={styles.exportStatusText}>{statusMessage}</Text>
+      </View>
+
+      <Text style={styles.toolSectionLabel}>Lịch sử phiên này</Text>
+      {history.length ? (
+        <View style={styles.exportHistoryList}>
+          {history.map((item) => (
+            <View key={item.id} style={styles.exportHistoryRow}>
+              <Ionicons
+                name={item.status === 'success' ? 'checkmark-circle-outline' : item.status === 'blocked' ? 'lock-closed-outline' : 'alert-circle-outline'}
+                size={18}
+                color={item.status === 'success' ? '#16A34A' : item.status === 'blocked' ? '#B45309' : '#DC2626'}
+              />
+              <View style={styles.exportHistoryCopy}>
+                <Text style={styles.exportHistoryTitle} numberOfLines={1}>
+                  {formatExportActionLabel(item.action)} · {item.folderName}
+                </Text>
+                <Text style={styles.exportHistoryMessage} numberOfLines={2}>{item.message}</Text>
+              </View>
+              <Text style={styles.exportHistoryTime}>{formatExportTimestamp(item.createdAt)}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.toolStateCard}>
+          <Ionicons name="time-outline" size={22} color="#94A3B8" />
+          <Text style={styles.toolStateTitle}>Chưa có lượt xuất</Text>
+          <Text style={styles.toolStateText}>Kết quả xuất file trong phiên này sẽ hiện ở đây.</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
 function LearningToolPanel({ tool }: { tool: (typeof learningTools)[number] }) {
   const readerHref = '/reader' as Href;
   const isReader = tool.id === 'reader';
@@ -1017,6 +1294,22 @@ function formatReviewState(state: FlashcardReviewState) {
   if (state === 'learning') return 'Đang học';
 
   return 'Mới';
+}
+
+function formatExportActionLabel(actionId: ExportActionId) {
+  if (actionId === 'excel') return 'Excel';
+  if (actionId === 'anki') return 'Anki text';
+  if (actionId === 'google-sheets') return 'Google Sheets';
+
+  return 'CSV';
+}
+
+function formatExportTimestamp(value: string) {
+  const date = new Date(value);
+  const hours = `${date.getHours()}`.padStart(2, '0');
+  const minutes = `${date.getMinutes()}`.padStart(2, '0');
+
+  return `${hours}:${minutes}`;
 }
 
 function FilterChip({ label, isSelected, onPress }: { label: string; isSelected: boolean; onPress: () => void }) {
@@ -1615,6 +1908,83 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 17,
     marginTop: 3,
+  },
+  exportSummaryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  exportActionGrid: {
+    gap: 8,
+    marginTop: 10,
+  },
+  exportActionCard: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 11,
+  },
+  exportActionCardActive: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+  },
+  exportActionCardBlocked: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+  },
+  exportBlockedStatus: {
+    color: '#B45309',
+  },
+  exportStatusCard: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 12,
+  },
+  exportStatusText: {
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: 5,
+  },
+  exportHistoryList: {
+    gap: 8,
+    marginTop: 10,
+  },
+  exportHistoryRow: {
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    padding: 10,
+  },
+  exportHistoryCopy: {
+    flex: 1,
+  },
+  exportHistoryTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  exportHistoryMessage: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 3,
+  },
+  exportHistoryTime: {
+    color: '#94A3B8',
+    fontSize: 11,
+    fontWeight: '900',
   },
   openToolButton: {
     alignItems: 'center',

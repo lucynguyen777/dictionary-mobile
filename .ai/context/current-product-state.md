@@ -14,14 +14,17 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 - Reader settings for font size, font family, and background color.
 - Profile store with local profile, language, level, goal, timezone, daily goal, and app lock fields.
 - Privacy/support UI shells and local data reset/export flows.
+- Advanced Export tab polish with folder selection, CSV/Excel/Anki text actions, blocked Google Sheets state, and per-session export status/history.
+- Polished profile settings sidebar with compact navigation rows, safer text truncation, section headers, disabled coming-soon actions, and destructive styling.
+- Local notification preferences persisted in the profile store with privacy sidebar controls for daily reminders, review reminders, weekly summaries, and reminder time.
 
 ## Current Queue Notes
 `docs/product-progress.md` currently includes `Next Work Queue` items for:
-- Import frontend tab polish.
-- Export frontend tab polish.
-- Sidebar UI/UX polish.
-- Bottom legal links.
-- Local notification preferences.
+- Reader EPUB/PDF/DOCX parser/library strategy.
+- Language selector and bilingual English-Vietnamese flow stabilization.
+- Spanish monolingual baseline planning.
+- Malay monolingual baseline planning.
+- Swahili monolingual baseline planning.
 
 If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.
 

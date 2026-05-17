@@ -23,6 +23,7 @@ import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import {
     LoginMethod,
+    NotificationPreferences,
     ProficiencyLevel,
     UserProfile,
     clearUserProfile,
@@ -53,6 +54,11 @@ const legalLinks = [
     message: 'Ứng dụng dùng Expo, React Native và các nguồn dữ liệu/adapter từ điển được tách theo giấy phép tương ứng.',
     title: 'Ghi nhận',
   },
+];
+const sidebarNavItems = [
+  { key: 'account' as const, label: 'Tài khoản', icon: 'person-outline' as const },
+  { key: 'privacy' as const, label: 'Riêng tư', icon: 'shield-outline' as const },
+  { key: 'support' as const, label: 'Hỗ trợ', icon: 'help-circle-outline' as const },
 ];
 
 export default function ProfileScreen() {
@@ -159,6 +165,33 @@ export default function ProfileScreen() {
     } catch {
       Alert.alert('Lỗi khóa ứng dụng', 'Không thể thay đổi thiết lập khóa ứng dụng lúc này.');
     }
+  };
+
+  const handleUpdateNotificationPreference = async <Key extends keyof NotificationPreferences>(
+    key: Key,
+    value: NotificationPreferences[Key]
+  ) => {
+    const nextProfile = await saveUserProfile({
+      ...profile,
+      notificationPreferences: {
+        ...profile.notificationPreferences,
+        [key]: value,
+      },
+    });
+
+    setProfile(nextProfile);
+    setSaveMessage('Đã lưu tùy chọn thông báo local.');
+  };
+
+  const handleChangeNotificationTime = (value: string) => {
+    updateProfile('notificationPreferences', {
+      ...profile.notificationPreferences,
+      reminderTime: value,
+    });
+  };
+
+  const handleCommitNotificationTime = () => {
+    handleUpdateNotificationPreference('reminderTime', profile.notificationPreferences.reminderTime);
   };
 
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
@@ -428,12 +461,19 @@ export default function ProfileScreen() {
                 <Ionicons name="close" size={20} color="#64748B" />
               </Pressable>
             </View>
-            <View style={styles.sidebarNavRow}>
-              {[
-                { key: 'account' as const, label: 'Tài khoản', icon: 'person-outline' as const },
-                { key: 'privacy' as const, label: 'Riêng tư', icon: 'shield-outline' as const },
-                { key: 'support' as const, label: 'Hỗ trợ', icon: 'help-circle-outline' as const },
-              ].map((item) => {
+            <View style={styles.sidebarProfileCard}>
+              <Image source={{ uri: avatarUri }} style={styles.sidebarProfileAvatar} />
+              <View style={styles.sidebarProfileCopy}>
+                <Text style={styles.sidebarProfileName} numberOfLines={1}>{profile.displayName}</Text>
+                <Text style={styles.sidebarProfileMeta} numberOfLines={1}>
+                  {profile.username ? `@${profile.username}` : profile.email || 'Hồ sơ local'}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.sidebarGroupLabel}>Mục cài đặt</Text>
+            <View style={styles.sidebarNavList}>
+              {sidebarNavItems.map((item) => {
                 const isActive = sidebarSection === item.key;
 
                 return (
@@ -441,12 +481,17 @@ export default function ProfileScreen() {
                     key={item.key}
                     onPress={() => setSidebarSection(item.key)}
                     style={({ pressed }) => [
-                      styles.sidebarNavChip,
-                      isActive && styles.sidebarNavChipActive,
-                      pressed && styles.sidebarNavChipPressed,
+                      styles.sidebarNavItem,
+                      isActive && styles.sidebarNavItemActive,
+                      pressed && styles.sidebarNavItemPressed,
                     ]}>
                     <Ionicons name={item.icon} size={15} color={isActive ? '#2563EB' : '#64748B'} />
-                    <Text style={[styles.sidebarNavChipText, isActive && styles.sidebarNavChipTextActive]}>{item.label}</Text>
+                    <Text
+                      numberOfLines={1}
+                      style={[styles.sidebarNavItemText, isActive && styles.sidebarNavItemTextActive]}>
+                      {item.label}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={14} color={isActive ? '#2563EB' : '#CBD5E1'} />
                   </Pressable>
                 );
               })}
@@ -514,7 +559,7 @@ export default function ProfileScreen() {
                 </View>
                 <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="save-outline" size={16} color="#2563EB" />
-                  <Text style={styles.saveProfileText}>Lưu thay đổi</Text>
+                  <Text style={styles.saveProfileText} numberOfLines={1}>Lưu thay đổi</Text>
                 </TouchableOpacity>
               </SidebarSection>
               ) : null}
@@ -539,59 +584,90 @@ export default function ProfileScreen() {
                     value={profile.appLockEnabled}
                   />
                 </View>
+                <Text style={styles.sidebarGroupLabel}>Thông báo local</Text>
+                <View style={styles.notificationPanel}>
+                  <NotificationPreferenceRow
+                    description="Nhắc bạn quay lại học theo giờ đã chọn."
+                    label="Nhắc học mỗi ngày"
+                    onValueChange={(value) => handleUpdateNotificationPreference('dailyReminderEnabled', value)}
+                    value={profile.notificationPreferences.dailyReminderEnabled}
+                  />
+                  <NotificationPreferenceRow
+                    description="Ưu tiên thẻ flashcard đến hạn trong ngày."
+                    label="Nhắc ôn flashcard"
+                    onValueChange={(value) => handleUpdateNotificationPreference('reviewReminderEnabled', value)}
+                    value={profile.notificationPreferences.reviewReminderEnabled}
+                  />
+                  <NotificationPreferenceRow
+                    description="Tổng kết nhẹ vào cuối tuần, vẫn chỉ lưu local."
+                    label="Tổng kết tuần"
+                    onValueChange={(value) => handleUpdateNotificationPreference('weeklySummaryEnabled', value)}
+                    value={profile.notificationPreferences.weeklySummaryEnabled}
+                  />
+                  <View style={styles.notificationTimeRow}>
+                    <View style={styles.securityCopy}>
+                      <Text style={styles.securityTitle}>Giờ nhắc</Text>
+                      <Text style={styles.securityText}>Định dạng 24h, ví dụ 20:00.</Text>
+                    </View>
+                    <TextInput
+                      autoCapitalize="none"
+                      onBlur={handleCommitNotificationTime}
+                      onChangeText={handleChangeNotificationTime}
+                      placeholder="20:00"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.notificationTimeInput}
+                      value={profile.notificationPreferences.reminderTime}
+                    />
+                  </View>
+                </View>
                 <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="cloud-upload-outline" size={16} color="#2563EB" />
-                  <Text style={styles.saveProfileText}>Xuất dữ liệu local</Text>
+                  <Text style={styles.saveProfileText} numberOfLines={1}>Xuất dữ liệu local</Text>
                 </TouchableOpacity>
                 <TouchableOpacity activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="trash-outline" size={16} color="#DC2626" />
-                  <Text style={styles.clearDataText}>Xóa tất cả dữ liệu local</Text>
+                  <Text style={styles.clearDataText} numberOfLines={1}>Xóa tất cả dữ liệu local</Text>
                 </TouchableOpacity>
               </SidebarSection>
               ) : null}
 
               {sidebarSection === 'support' ? (
               <SidebarSection title="Hỗ trợ">
-                <TouchableOpacity
-                  activeOpacity={0.82}
+                <SidebarActionRow
+                  icon="book-outline"
+                  label="Trung tâm trợ giúp"
                   onPress={() => Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp sẽ mở khi chọn kênh hỗ trợ chính thức.', [{ text: 'OK' }])}
-                  style={styles.sidebarSecondaryAction}>
-                  <Ionicons name="book-outline" size={17} color="#64748B" />
-                  <Text style={styles.sidebarSecondaryActionText}>Trung tâm trợ giúp</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.82}
+                />
+                <SidebarActionRow
+                  badge="Sắp có"
+                  icon="chatbox-ellipses-outline"
+                  label="Gửi phản hồi"
                   onPress={() => Alert.alert('Gửi phản hồi', 'Gửi email/helpdesk cần backend hoặc kênh hỗ trợ — hiện chỉ là UI shell.', [{ text: 'OK' }])}
-                  style={styles.sidebarSecondaryAction}>
-                  <Ionicons name="chatbox-ellipses-outline" size={17} color="#64748B" />
-                  <Text style={styles.sidebarSecondaryActionText}>Gửi phản hồi</Text>
-                  <Text style={styles.sidebarComingSoon}>Sắp có</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.82}
+                />
+                <SidebarActionRow
+                  badge="Sắp có"
+                  disabled
+                  icon="log-out-outline"
+                  label="Đăng xuất"
                   onPress={() => Alert.alert('Đăng xuất', 'Chưa có phiên đăng nhập. Đăng xuất sẽ khả dụng sau khi bật auth.', [{ text: 'OK' }])}
-                  style={styles.sidebarSecondaryAction}>
-                  <Ionicons name="log-out-outline" size={17} color="#94A3B8" />
-                  <Text style={[styles.sidebarSecondaryActionText, { color: '#94A3B8' }]}>Đăng xuất</Text>
-                  <Text style={styles.sidebarComingSoon}>Sắp có</Text>
-                </TouchableOpacity>
+                />
               </SidebarSection>
               ) : null}
 
               {sidebarSection === 'account' ? (
               <SidebarSection title="Bảo mật & dữ liệu">
-                <TouchableOpacity
-                  activeOpacity={0.82}
+                <SidebarActionRow
+                  badge="Sắp có"
+                  icon="key-outline"
+                  label="Thay đổi mật khẩu"
                   onPress={() => Alert.alert('Thay đổi mật khẩu', 'Chức năng này cần đăng nhập cloud và chưa khả dụng trên bản local.', [{ text: 'OK' }])}
-                  style={styles.sidebarSecondaryAction}>
-                  <Ionicons name="key-outline" size={17} color="#64748B" />
-                  <Text style={styles.sidebarSecondaryActionText}>Thay đổi mật khẩu</Text>
-                  <Text style={styles.sidebarComingSoon}>Sắp có</Text>
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.82} onPress={handleDeleteLocalProfile} style={styles.sidebarDestructiveAction}>
-                  <Ionicons name="trash-outline" size={17} color="#DC2626" />
-                  <Text style={styles.sidebarDestructiveText}>Xóa hồ sơ local</Text>
-                </TouchableOpacity>
+                />
+                <SidebarActionRow
+                  destructive
+                  icon="trash-outline"
+                  label="Xóa hồ sơ local"
+                  onPress={handleDeleteLocalProfile}
+                />
               </SidebarSection>
               ) : null}
 
@@ -620,6 +696,76 @@ function SidebarSection({ title, children }: { title: string; children: React.Re
     <View style={styles.sidebarSection}>
       <Text style={styles.sidebarSectionTitle}>{title}</Text>
       {children}
+    </View>
+  );
+}
+
+function SidebarActionRow({
+  badge,
+  destructive,
+  disabled,
+  icon,
+  label,
+  onPress,
+}: {
+  badge?: string;
+  destructive?: boolean;
+  disabled?: boolean;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  onPress: () => void;
+}) {
+  const iconColor = destructive ? '#DC2626' : disabled ? '#94A3B8' : '#64748B';
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.sidebarActionRow,
+        destructive && styles.sidebarActionRowDestructive,
+        disabled && styles.sidebarActionRowDisabled,
+        pressed && !disabled && styles.sidebarActionRowPressed,
+      ]}>
+      <Ionicons name={icon} size={17} color={iconColor} />
+      <Text
+        numberOfLines={1}
+        style={[
+          styles.sidebarActionText,
+          destructive && styles.sidebarActionTextDestructive,
+          disabled && styles.sidebarActionTextDisabled,
+        ]}>
+        {label}
+      </Text>
+      {badge ? <Text style={styles.sidebarActionBadge} numberOfLines={1}>{badge}</Text> : null}
+    </Pressable>
+  );
+}
+
+function NotificationPreferenceRow({
+  description,
+  label,
+  onValueChange,
+  value,
+}: {
+  description: string;
+  label: string;
+  onValueChange: (value: boolean) => void;
+  value: boolean;
+}) {
+  return (
+    <View style={styles.notificationRow}>
+      <View style={styles.securityCopy}>
+        <Text style={styles.securityTitle} numberOfLines={1}>{label}</Text>
+        <Text style={styles.securityText} numberOfLines={2}>{description}</Text>
+      </View>
+      <Switch
+        onValueChange={onValueChange}
+        thumbColor="#FFFFFF"
+        trackColor={{ false: '#CBD5E1', true: '#2563EB' }}
+        value={value}
+      />
     </View>
   );
 }
@@ -734,7 +880,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 8,
     top: 0,
-    width: '78%',
+    width: '88%',
   },
   sidebarHeader: {
     alignItems: 'center',
@@ -758,36 +904,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
   },
-  sidebarNavRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  sidebarNavChip: {
+  sidebarProfileCard: {
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
     borderColor: '#E2E8F0',
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 5,
-    paddingHorizontal: 11,
-    paddingVertical: 8,
+    gap: 10,
+    marginBottom: 12,
+    padding: 10,
   },
-  sidebarNavChipActive: {
+  sidebarProfileAvatar: {
+    borderRadius: 20,
+    height: 40,
+    width: 40,
+  },
+  sidebarProfileCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  sidebarProfileName: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  sidebarProfileMeta: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  sidebarGroupLabel: {
+    color: '#94A3B8',
+    fontSize: 10,
+    fontWeight: '900',
+    marginBottom: 7,
+    textTransform: 'uppercase',
+  },
+  sidebarNavList: {
+    gap: 6,
+    marginBottom: 12,
+  },
+  sidebarNavItem: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    minHeight: 42,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  sidebarNavItemActive: {
     backgroundColor: '#EFF6FF',
     borderColor: '#BFDBFE',
   },
-  sidebarNavChipPressed: {
+  sidebarNavItemPressed: {
     opacity: 0.88,
   },
-  sidebarNavChipText: {
+  sidebarNavItemText: {
     color: '#64748B',
-    fontSize: 12,
+    flex: 1,
+    fontSize: 13,
     fontWeight: '900',
+    minWidth: 0,
   },
-  sidebarNavChipTextActive: {
+  sidebarNavItemTextActive: {
     color: '#2563EB',
   },
   sidebarContent: {
@@ -832,7 +1017,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 12,
   },
-  sidebarSecondaryAction: {
+  sidebarActionRow: {
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
     borderColor: '#E2E8F0',
@@ -841,36 +1026,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 8,
+    minHeight: 42,
     paddingHorizontal: 12,
-    paddingVertical: 11,
+    paddingVertical: 10,
   },
-  sidebarSecondaryActionText: {
+  sidebarActionRowPressed: {
+    backgroundColor: '#F1F5F9',
+  },
+  sidebarActionRowDestructive: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  sidebarActionRowDisabled: {
+    backgroundColor: '#F8FAFC',
+    opacity: 0.82,
+  },
+  sidebarActionText: {
     color: '#334155',
     flex: 1,
     fontSize: 13,
     fontWeight: '800',
+    minWidth: 0,
   },
-  sidebarComingSoon: {
+  sidebarActionTextDestructive: {
+    color: '#DC2626',
+    fontWeight: '900',
+  },
+  sidebarActionTextDisabled: {
+    color: '#94A3B8',
+  },
+  sidebarActionBadge: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 999,
     color: '#94A3B8',
     fontSize: 11,
     fontWeight: '900',
-  },
-  sidebarDestructiveAction: {
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-  },
-  sidebarDestructiveText: {
-    color: '#DC2626',
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '900',
+    maxWidth: 74,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   sidebarLegalFooter: {
     borderTopColor: '#E2E8F0',
@@ -895,6 +1088,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     fontWeight: '800',
+    minWidth: 0,
   },
   profileInputDisabled: {
     backgroundColor: '#F1F5F9',
@@ -918,6 +1112,7 @@ const styles = StyleSheet.create({
   },
   saveProfileText: {
     color: '#2563EB',
+    flexShrink: 1,
     fontSize: 13,
     fontWeight: '900',
   },
@@ -1088,6 +1283,50 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 3,
   },
+  notificationPanel: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+    marginTop: 8,
+    padding: 10,
+  },
+  notificationRow: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    minHeight: 56,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  notificationTimeRow: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 10,
+  },
+  notificationTimeInput: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    textAlign: 'center',
+    width: 76,
+  },
   dataGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1127,6 +1366,7 @@ const styles = StyleSheet.create({
   },
   clearDataText: {
     color: '#DC2626',
+    flexShrink: 1,
     fontSize: 13,
     fontWeight: '900',
   },

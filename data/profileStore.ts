@@ -5,6 +5,12 @@ const STORAGE_KEY = 'dictionary-mobile.profile.v1';
 
 export type ProficiencyLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type LoginMethod = 'local' | 'email' | 'apple' | 'google';
+export type NotificationPreferences = {
+  dailyReminderEnabled: boolean;
+  reviewReminderEnabled: boolean;
+  weeklySummaryEnabled: boolean;
+  reminderTime: string;
+};
 
 export type UserProfile = {
   displayName: string;
@@ -20,6 +26,7 @@ export type UserProfile = {
   timezone: string;
   dailyGoal: string;
   appLockEnabled: boolean;
+  notificationPreferences: NotificationPreferences;
   updatedAt: string;
 };
 
@@ -47,6 +54,7 @@ export function getDefaultProfile(): UserProfile {
     timezone: getDefaultTimezone(),
     dailyGoal: '15 từ/ngày',
     appLockEnabled: false,
+    notificationPreferences: getDefaultNotificationPreferences(),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -92,7 +100,34 @@ function normalizeProfile(profile: Partial<UserProfile>): UserProfile {
     learningGoal: profile.learningGoal?.trim() || defaultProfile.learningGoal,
     timezone: profile.timezone?.trim() || defaultProfile.timezone,
     dailyGoal: profile.dailyGoal?.trim() || defaultProfile.dailyGoal,
+    notificationPreferences: normalizeNotificationPreferences(profile.notificationPreferences),
   };
+}
+
+function normalizeNotificationPreferences(preferences?: Partial<NotificationPreferences>): NotificationPreferences {
+  const defaultPreferences = getDefaultNotificationPreferences();
+
+  return {
+    dailyReminderEnabled: preferences?.dailyReminderEnabled ?? defaultPreferences.dailyReminderEnabled,
+    reviewReminderEnabled: preferences?.reviewReminderEnabled ?? defaultPreferences.reviewReminderEnabled,
+    weeklySummaryEnabled: preferences?.weeklySummaryEnabled ?? defaultPreferences.weeklySummaryEnabled,
+    reminderTime: normalizeReminderTime(preferences?.reminderTime, defaultPreferences.reminderTime),
+  };
+}
+
+function getDefaultNotificationPreferences(): NotificationPreferences {
+  return {
+    dailyReminderEnabled: true,
+    reviewReminderEnabled: true,
+    weeklySummaryEnabled: false,
+    reminderTime: '20:00',
+  };
+}
+
+function normalizeReminderTime(value: string | undefined, fallback: string) {
+  const trimmedValue = value?.trim();
+
+  return trimmedValue && /^\d{2}:\d{2}$/.test(trimmedValue) ? trimmedValue : fallback;
 }
 
 function getDefaultTimezone() {

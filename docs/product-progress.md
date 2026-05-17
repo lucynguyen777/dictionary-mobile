@@ -14,9 +14,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: profile settings sidebar entry points and small UI copy polish.
-- Medium next tasks: folder favorite metadata, duplicate folder, folder color picker, color rule notes, rename/menu polish.
-- Hard next tasks: auth/cloud sync, Google Sheets OAuth, speech scoring, production multilingual translation, AI features.
+- Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
+- Medium next tasks: language selector/bilingual flow stabilization and adapter-first language build planning.
+- Hard next tasks: Reader parser selection for EPUB/PDF/DOCX, source selection for etymology/conjugation, and voice/OCR exploration.
 
 ## Current Baseline
 - Latest completed commits:
@@ -156,7 +156,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Build AI hội thoại frontend tab: chat list, realtime chat surface, voice recording state, transcript area, correction/feedback panel, empty/loading/error states.
 - [x] DONE [MEDIUM]: Build Dịch chuyên ngành frontend tab: domain/topic selector, glossary import/paste surface, source text editor, translated output panel, terminology highlights, blocked backend notice.
 - [x] DONE [MEDIUM]: Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
-- [ ] TODO [MEDIUM]: Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
+- [x] DONE [MEDIUM]: Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
 
 ### Flashcards
 - [x] DONE: Flashcard MVP from saved words.
@@ -196,13 +196,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
 - [x] DONE [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
 - [ ] TODO [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
-- [ ] TODO [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
+- [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
 - [ ] TODO [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected.
 - [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [x] DONE [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
-- [ ] TODO [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
+- [x] DONE [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
 
 ### Basic Profile
 - [x] DONE [EASY]: Profile tab UI exists and now uses local editable data.
@@ -288,9 +288,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
-2. `[ ] [MEDIUM]` Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
-3. `[ ] [MEDIUM]` Persist notification preferences locally until cloud sync/auth is selected.
+1. `[~] [HARD]` Continue Reader EPUB/PDF/DOCX import work: choose parser/library strategy and keep unsupported format handling safe.
+2. `[~] [MEDIUM]` Continue Language selector and bilingual English-Vietnamese dictionary flow: audit remaining UI/adapter gaps and blocked-pair states.
+3. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Spanish monolingual baseline with source/licensing notes before implementation.
+4. `[ ] [MEDIUM]` Plan Austronesian next-build candidate: Malay monolingual baseline with morphology/source implications.
+5. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
 
 ## Rule
 
@@ -306,7 +308,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 9. Sau khi checklist trên GitHub khớp với code thực tế, mới bắt đầu task tiếp theo trong `Next Work Queue`.
 
 ### Progress Queue Rules
-1. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất.
+1. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất trong queue và trước mỗi lần commit code phải có ít nhất 3 task trong queue.
 2. Các task chưa vào queue vẫn phải giữ ở section checklist tương ứng, không xóa khỏi roadmap.
 3. Ưu tiên task theo thứ tự dễ đến khó, trừ khi user chọn rõ một ưu tiên khác.
 4. Khi nhiều hơn 3 task được mark [x] DONE, cập nhật Next Work Queue theo trạng thái thực tế của code: `[~]`, `[ ]`, hoặc `[!]`.
