@@ -8,6 +8,7 @@ Current decision docs are all `Proposed` unless edited:
 - `.docs/decisions/backend-architecture.md`
 - `.docs/decisions/cloud-sync.md`
 - `.docs/decisions/dictionary-source-licensing.md`
+- `.docs/decisions/etymology-conjugation-source.md`
 - `.docs/decisions/speech-scoring-engine.md`
 - `.docs/decisions/ai-chat-cost-control.md`
 - `.docs/decisions/translation-api.md`
@@ -98,3 +99,14 @@ Allowed:
 - Source research
 - Adapter planning
 - Decision document
+
+### Etymology And Conjugation Sources
+Blocked:
+- Production etymology source integration
+- Production conjugation/paradigm data integration
+- Offline etymology or conjugation bundles
+
+Allowed:
+- Source decision brief
+- Typed contracts
+- Placeholder UI with explicit blocked copy

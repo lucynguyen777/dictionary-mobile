@@ -298,6 +298,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized translation with user glossary/database needs backend, auth, and cost controls.
 
 ### Etymology And Conjugation
+- [x] DONE [HARD]: Draft etymology/conjugation source decision brief with legal structured source candidates and keep production integration blocked while decision remains Proposed.
 - [ ] TODO [HARD]: Choose legal structured resource for etymology.
 - [ ] TODO [HARD]: Choose reliable resource for conjugation.
 - [!] BLOCKED [HARD]: Production etymology and conjugation should not be mocked without a real resource.
@@ -307,9 +308,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Draft etymology/conjugation source decision brief: list candidate legal structured resources and keep production etymology/conjugation blocked until a source is accepted.
-2. [ ] [HARD] Plan Japanese/Korean lookup track: document script, segmentation, romanization/pronunciation, and source strategy before any adapter implementation.
-3. [ ] [HARD] Prepare Reader PDF extraction implementation: collect acceptable digital PDF fixtures and select dev-client/web parser path before enabling PDF text extraction.
+1. [ ] [HARD] Plan Japanese/Korean lookup track: document script, segmentation, romanization/pronunciation, and source strategy before any adapter implementation.
+2. [ ] [HARD] Prepare Reader PDF extraction implementation: collect acceptable digital PDF fixtures and select dev-client/web parser path before enabling PDF text extraction.
+3. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
 
 ## Rule
 
