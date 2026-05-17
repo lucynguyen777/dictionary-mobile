@@ -192,6 +192,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; DOCX Mammoth-to-HTML and EPUB spine/chapter prototypes are enabled, PDF extraction path is evaluated but implementation remains disabled/pending (commit `1651d83`).
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
+- [x] DONE [HARD]: Harden Reader structured imports: add file-size (10MB limit) and empty-text limits.
+- [ ] TODO [HARD]: Reader PDF extraction. Wait for dev-client or web test fixture before implementing PDF text extraction.
 
 ## User Profile And Privacy
 
@@ -293,9 +295,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
-2. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
-3. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
+1. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
+2. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
 
 ## Rule
 

@@ -23,6 +23,9 @@ export type ReaderImportResult = {
 type MammothConvertToHtml = typeof mammoth.convertToHtml;
 type XmlNode = Record<string, unknown>;
 
+export const MAX_READER_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
+
 export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
   txt: {
     label: 'TXT',
@@ -70,6 +73,10 @@ export function extractReaderText(fileName: string, rawContent: string): ReaderI
   const title = getReaderImportTitle(fileName);
   const content = sourceFormat === 'html' ? htmlToPlainText(rawContent) : rawContent.trim();
 
+  if (!content) {
+    throw new Error('Tài liệu trống hoặc không thể trích xuất văn bản hợp lệ.');
+  }
+
   return {
     title,
     content,
@@ -82,6 +89,11 @@ export async function extractReaderDocument(
   rawContent: string | ArrayBuffer,
   mimeType = ''
 ): Promise<ReaderImportResult> {
+  const size = typeof rawContent === 'string' ? rawContent.length : rawContent.byteLength;
+  if (size > MAX_READER_FILE_SIZE_BYTES) {
+    throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 10MB.');
+  }
+
   const sourceFormat = getReaderImportFormat(fileName, mimeType);
 
   if (sourceFormat === 'docx') {
@@ -91,6 +103,10 @@ export async function extractReaderDocument(
 
     const title = getReaderImportTitle(fileName);
     const content = await extractDocxReaderText(rawContent);
+
+    if (!content) {
+      throw new Error('Tài liệu trống hoặc không thể trích xuất văn bản hợp lệ.');
+    }
 
     return {
       title,
@@ -106,6 +122,10 @@ export async function extractReaderDocument(
 
     const title = getReaderImportTitle(fileName);
     const content = await extractEpubReaderText(rawContent);
+
+    if (!content) {
+      throw new Error('Tài liệu trống hoặc không thể trích xuất văn bản hợp lệ.');
+    }
 
     return {
       title,

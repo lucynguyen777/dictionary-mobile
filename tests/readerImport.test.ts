@@ -102,4 +102,12 @@ describe('readerImport', () => {
     expect(result.content).toBe('Reader EPUB import.');
     expect(isEnabledReaderImportFormat('epub')).toBe(true);
   });
+  it('rejects files exceeding the size limit', async () => {
+    const largeContent = 'a'.repeat(10 * 1024 * 1024 + 1); // > 10MB
+    await expect(extractReaderDocument('large.txt', largeContent)).rejects.toThrow('Kích thước file quá lớn');
+  });
+
+  it('rejects files resulting in empty content', () => {
+    expect(() => extractReaderText('empty.html', '<p>   </p>')).toThrow('Tài liệu trống');
+  });
 });
