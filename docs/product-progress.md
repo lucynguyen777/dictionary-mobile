@@ -186,7 +186,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Reader settings: font size, font family, background color.
 - [x] DONE: Tap word to lookup.
 - [x] DONE: Tap word to save and quick note in reading flow.
-- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; unsupported format picker guard is done, parser libraries still need selection (commit `1651d83`).
+- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; unsupported format picker guard is done and parser strategy is selected, parser implementation still pending (commit `1651d83`).
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 
@@ -289,7 +289,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [HARD]` Continue Reader EPUB/PDF/DOCX import work: choose parser/library strategy and keep unsupported format handling safe.
+1. `[~] [HARD]` Prototype DOCX Reader import with Mammoth-to-HTML strategy while keeping EPUB/PDF disabled.
 2. `[~] [MEDIUM]` Continue Language selector and bilingual English-Vietnamese dictionary flow: audit remaining UI/adapter gaps and blocked-pair states.
 3. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Spanish monolingual baseline with source/licensing notes before implementation.
 4. `[ ] [MEDIUM]` Plan Austronesian next-build candidate: Malay monolingual baseline with morphology/source implications.

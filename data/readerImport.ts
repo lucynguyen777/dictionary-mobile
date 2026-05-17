@@ -1,6 +1,13 @@
 export type SupportedReaderImportFormat = 'txt' | 'html';
 export type UnsupportedReaderImportFormat = 'pdf' | 'docx' | 'epub';
 export type ReaderImportFormat = SupportedReaderImportFormat | UnsupportedReaderImportFormat;
+export type ReaderImportPlan = {
+  label: string;
+  status: 'supported' | 'planned';
+  parser: string;
+  note: string;
+  nextStep: string;
+};
 
 export type ReaderImportResult = {
   title: string;
@@ -8,10 +15,42 @@ export type ReaderImportResult = {
   sourceFormat: SupportedReaderImportFormat;
 };
 
-const unsupportedFormatLabels: Record<UnsupportedReaderImportFormat, string> = {
-  docx: 'DOCX',
-  epub: 'EPUB',
-  pdf: 'PDF',
+export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
+  txt: {
+    label: 'TXT',
+    status: 'supported',
+    parser: 'Plain text',
+    note: 'Đọc trực tiếp nội dung text local.',
+    nextStep: 'Đã hỗ trợ import.',
+  },
+  html: {
+    label: 'HTML',
+    status: 'supported',
+    parser: 'HTML to plain text sanitizer',
+    note: 'Loại script/style/svg rồi chuyển cấu trúc HTML sang text an toàn.',
+    nextStep: 'Đã hỗ trợ import.',
+  },
+  docx: {
+    label: 'DOCX',
+    status: 'planned',
+    parser: 'Mammoth DOCX -> HTML -> Reader text',
+    note: 'Ưu tiên semantic text thay vì cố giữ layout văn bản Word.',
+    nextStep: 'Prototype parser DOCX bằng ArrayBuffer và tái dùng htmlToPlainText.',
+  },
+  epub: {
+    label: 'EPUB',
+    status: 'planned',
+    parser: 'epub.js / ZIP spine text extraction',
+    note: 'Đọc spine theo thứ tự sách, gom HTML chapter rồi sanitize sang text.',
+    nextStep: 'Prototype EPUB sample nhỏ và giới hạn kích thước/chapter lỗi.',
+  },
+  pdf: {
+    label: 'PDF',
+    status: 'planned',
+    parser: 'Staged PDF extractor for Expo native/web',
+    note: 'PDF text extraction phụ thuộc nền tảng; cần kiểm tra native module và web fallback trước khi bật.',
+    nextStep: 'Đánh giá extractor trên Expo web và dev client, giữ PDF disabled trong Expo Go.',
+  },
 };
 
 export function extractReaderText(fileName: string, rawContent: string): ReaderImportResult {
@@ -53,7 +92,9 @@ export function isSupportedReaderImportFormat(format: ReaderImportFormat): forma
 }
 
 export function getUnsupportedReaderImportMessage(format: UnsupportedReaderImportFormat) {
-  return `${unsupportedFormatLabels[format]} cần parser riêng trước khi import vào Reader. Hiện app mới hỗ trợ TXT và HTML an toàn.`;
+  const plan = readerImportPlans[format];
+
+  return `${plan.label} cần parser riêng trước khi import vào Reader. Chiến lược: ${plan.parser}. ${plan.nextStep} Hiện app mới hỗ trợ TXT và HTML an toàn.`;
 }
 
 function htmlToPlainText(html: string) {

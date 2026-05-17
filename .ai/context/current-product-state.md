@@ -20,7 +20,7 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Current Queue Notes
 `docs/product-progress.md` currently includes `Next Work Queue` items for:
-- Reader EPUB/PDF/DOCX parser/library strategy.
+- DOCX Reader import prototype with Mammoth-to-HTML strategy while EPUB/PDF remain disabled.
 - Language selector and bilingual English-Vietnamese flow stabilization.
 - Spanish monolingual baseline planning.
 - Malay monolingual baseline planning.
@@ -30,7 +30,7 @@ If DONE items appear in `Next Work Queue`, use `product-progress-manager` to cle
 
 ## In Progress Or Partial
 - Advanced frontend tabs exist as shells/polish targets.
-- EPUB/PDF/DOCX reader import is guarded but parser-library selection is not complete.
+- EPUB/PDF/DOCX reader import is guarded; parser strategy is selected, but structured parser implementation is not complete.
 - Future language expansion is planned but must be adapter-first and source/licensing aware.
 
 ## Blocked

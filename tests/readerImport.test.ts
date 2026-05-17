@@ -5,6 +5,7 @@ import {
   getReaderImportFormat,
   getUnsupportedReaderImportMessage,
   isSupportedReaderImportFormat,
+  readerImportPlans,
 } from '../data/readerImport';
 
 describe('readerImport', () => {
@@ -25,5 +26,12 @@ describe('readerImport', () => {
 
     expect(formats.every((format) => !isSupportedReaderImportFormat(format))).toBe(true);
     expect(getUnsupportedReaderImportMessage('pdf')).toContain('PDF cần parser riêng');
+    expect(getUnsupportedReaderImportMessage('pdf')).toContain(readerImportPlans.pdf.parser);
+  });
+
+  it('keeps parser strategy explicit for structured reader formats', () => {
+    expect(readerImportPlans.docx.parser).toContain('Mammoth');
+    expect(readerImportPlans.epub.parser).toContain('epub.js');
+    expect(readerImportPlans.pdf.nextStep).toContain('Expo web');
   });
 });
