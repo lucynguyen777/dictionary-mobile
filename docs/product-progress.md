@@ -284,7 +284,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
   - Case-rich morphology and lemmatization are required before production lookup.
-- [ ] TODO [HARD]: Japanese/Korean build track.
+- [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
+  - [ ] TODO [HARD]: Japanese/Korean source smoke tests and adapter implementation slices, one language at a time.
   - Japanese: kana/kanji, romaji, tokenizer, pitch accent if source supports it.
   - Korean: Hangul, romanization, particles, verb/adjective endings; treat as Korean-specific, not dependent on disputed Altaic grouping.
 - [!] BLOCKED [HARD]: Amerind/proposed-family candidates: Quechua, Nahuatl, Guarani.
@@ -308,9 +309,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Plan Japanese/Korean lookup track: document script, segmentation, romanization/pronunciation, and source strategy before any adapter implementation.
-2. [ ] [HARD] Prepare Reader PDF extraction implementation: collect acceptable digital PDF fixtures and select dev-client/web parser path before enabling PDF text extraction.
-3. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
+1. [ ] [HARD] Prepare Reader PDF extraction implementation: collect acceptable digital PDF fixtures and select dev-client/web parser path before enabling PDF text extraction.
+2. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
+3. [ ] [HARD] Japanese/Korean source smoke tests: verify one monolingual source path before adding any adapter implementation.
 
 ## Rule
 
