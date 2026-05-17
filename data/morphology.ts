@@ -48,6 +48,7 @@ const irregularEnglishBaseForms: Record<string, string[]> = {
 export function getMorphologyCandidates(languageCode: string, input: string): MorphologyCandidate[] {
   if (languageCode === 'en') return getEnglishMorphologyCandidates(input);
   if (languageCode === 'es') return getSpanishMorphologyCandidates(input);
+  if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
 
   return [];
 }
@@ -215,6 +216,59 @@ function getSpanishMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
   if (word.endsWith('imos') && word.length > 5) {
     candidates.push(createCandidate(`${word.slice(0, -4)}ir`, 'conjugación -ir'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getMalayMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = normalizeMorphologyInput(input);
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // Reduplication (kata ganda) - e.g., buku-buku -> buku
+  if (word.includes('-')) {
+    const parts = word.split('-');
+    if (parts.length === 2 && parts[0] === parts[1]) {
+      candidates.push(createCandidate(parts[0], 'kata ganda'));
+    }
+  }
+
+  // Safe Suffixes (akhiran)
+  if (word.endsWith('kan') && word.length > 6) {
+    candidates.push(createCandidate(word.slice(0, -3), 'akhiran -kan'));
+  }
+  if (word.endsWith('an') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -2), 'akhiran -an'));
+  }
+  if (word.endsWith('i') && word.length > 4 && !word.endsWith('ai')) { // avoid matching raw 'ai' endings
+    candidates.push(createCandidate(word.slice(0, -1), 'akhiran -i'));
+  }
+
+  // Safe Prefixes (awalan) - skipping meN-/peN- allomorphs as they modify the root
+  if (word.startsWith('ber') && word.length > 6) {
+    candidates.push(createCandidate(word.slice(3), 'awalan ber-'));
+  }
+  if (word.startsWith('ter') && word.length > 6) {
+    candidates.push(createCandidate(word.slice(3), 'awalan ter-'));
+  }
+  if (word.startsWith('di') && word.length > 4) {
+    candidates.push(createCandidate(word.slice(2), 'awalan di-'));
+  }
+  if (word.startsWith('ke') && word.length > 4) {
+    candidates.push(createCandidate(word.slice(2), 'awalan ke-'));
+  }
+  if (word.startsWith('se') && word.length > 4) {
+    candidates.push(createCandidate(word.slice(2), 'awalan se-'));
+  }
+
+  // Simple circumfixes (apitan)
+  if (word.startsWith('di') && word.endsWith('kan') && word.length > 8) {
+    candidates.push(createCandidate(word.slice(2, -3), 'apitan di-...-kan'));
+  }
+  if (word.startsWith('ke') && word.endsWith('an') && word.length > 7) {
+    candidates.push(createCandidate(word.slice(2, -2), 'apitan ke-...-an'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

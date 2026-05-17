@@ -58,6 +58,13 @@ const adapters: Record<string, LanguageAdapter> = {
     fetchMonolingualMeaning: (word: string) => fetchWiktApiMonolingualMeaning(word, 'es'),
     fetchRelatedWords: (word: string) => fetchWiktApiRelatedWords(word, 'es'),
   },
+  ms: {
+    key: 'ms',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchWiktApiMonolingualMeaning(word, 'ms'),
+    fetchRelatedWords: (word: string) => fetchWiktApiRelatedWords(word, 'ms'),
+  },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {
     key: 'minhqnd',

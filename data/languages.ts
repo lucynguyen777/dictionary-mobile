@@ -41,6 +41,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'ms',
+    label: 'Bahasa Melayu',
+    hint: 'Wiktionary preview',
+    family: 'austronesian',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'ms',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'ja',
     label: '日本語',
     hint: 'Sắp hỗ trợ',

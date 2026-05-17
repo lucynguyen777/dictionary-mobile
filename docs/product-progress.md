@@ -258,8 +258,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Swahili, Yoruba, Zulu, Igbo.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
-- [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Malay, Hawaiian.
-  - Malay: easiest candidate, Latin script, relatively light inflection.
+- [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
+  - [x] DONE [MEDIUM]: Malay monolingual baseline: WiktAPI adapter, simple affix/reduplication morphology candidates.
   - Tagalog: focus/voice system and affix-heavy morphology.
   - Javanese/Hawaiian: register or diacritic-sensitive search.
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
@@ -292,11 +292,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Plan Austronesian next-build candidate: Malay monolingual baseline with morphology/source implications.
-2. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
-3. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
-4. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
-5. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
+1. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
+2. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
+3. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
+4. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
 
 ## Rule
 

@@ -156,7 +156,7 @@ const MINH_QND_SUGGEST_API_BASE = 'https://dict.minhqnd.com/api/v1/suggest';
 const WIKTAPI_BASE = 'https://api.wiktapi.dev/v1';
 
 export function canUseMonolingualDictionaryApi(languageCode: string) {
-  return ['en', 'vi', 'fr', 'es'].includes(languageCode);
+  return ['en', 'vi', 'fr', 'es', 'ms'].includes(languageCode);
 }
 
 export function canUseBilingualDictionaryApi(sourceLang: string, targetLang: string) {
@@ -172,6 +172,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'vi') return fetchMinhQndMonolingualMeaning(word, 'vi');
   if (languageCode === 'fr') return fetchWiktApiMonolingualMeaning(word, 'fr');
   if (languageCode === 'es') return fetchWiktApiMonolingualMeaning(word, 'es');
+  if (languageCode === 'ms') return fetchWiktApiMonolingualMeaning(word, 'ms');
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -181,6 +182,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'vi') return fetchMinhQndRelatedWords(word, 'vi');
   if (languageCode === 'fr') return fetchWiktApiRelatedWords(word, 'fr');
   if (languageCode === 'es') return fetchWiktApiRelatedWords(word, 'es');
+  if (languageCode === 'ms') return fetchWiktApiRelatedWords(word, 'ms');
 
   return { synonyms: [], antonyms: [] };
 }

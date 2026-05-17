@@ -11,6 +11,7 @@ Current languages:
 - `vi`: Tiếng Việt, Austroasiatic, Latin, LTR, adapter `vi`, monolingual.
 - `fr`: Français, Indo-European, Latin, LTR, adapter `fr`, monolingual.
 - `es`: Español, Indo-European, Latin, LTR, adapter `es`, monolingual.
+- `ms`: Bahasa Melayu, Austronesian, Latin, LTR, adapter `ms`, monolingual.
 - `ja`: 日本語, Japonic, kanji-kana, LTR in current metadata, adapter `ja`, coming soon.
 - `ko`: 한국어, Koreanic, Hangul, LTR, adapter `ko`, coming soon.
 
@@ -22,6 +23,7 @@ Registered adapters:
 - `vi`
 - `fr`
 - `es`
+- `ms`
 - `minhqnd`
 - `wiktapi`
 

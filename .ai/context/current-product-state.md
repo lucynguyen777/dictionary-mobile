@@ -4,8 +4,8 @@
 Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Completed Or Existing Areas
-- Dictionary lookup for English, Vietnamese, French, and Spanish baselines.
-- Adapter registry with `en`, `vi`, `fr`, `es`, `minhqnd`, and `wiktapi` adapters.
+- Dictionary lookup for English, Vietnamese, French, Spanish, and Malay baselines.
+- Adapter registry with `en`, `vi`, `fr`, `es`, `ms`, `minhqnd`, and `wiktapi` adapters.
 - Local library with folders, saved words, notes, tags, favorites, folder colors, color notes, duplicate folder, folder sorting/view modes, and folder share/export actions.
 - Flashcards with card types, review states, and SM-2 scheduling fields.
 - CSV/TSV import with row/column orientation, custom field mapping, primary field, preview, validation, tags, and duplicate handling.
@@ -20,7 +20,6 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Current Queue Notes
 `docs/product-progress.md` currently includes `Next Work Queue` items for:
-- Malay monolingual baseline planning.
 - Swahili monolingual baseline planning.
 - Reader structured import hardening before PDF implementation.
 - Hindi monolingual baseline planning.
