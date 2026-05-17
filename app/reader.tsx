@@ -104,7 +104,7 @@ export default function ReaderScreen() {
 
       const pickedFile = asset.file ?? new File(asset.uri);
       const importedDocument =
-        importFormat === 'docx'
+        importFormat === 'docx' || importFormat === 'epub'
           ? await extractReaderDocument(asset.name, await pickedFile.arrayBuffer(), asset.mimeType)
           : extractReaderText(asset.name, await pickedFile.text());
 

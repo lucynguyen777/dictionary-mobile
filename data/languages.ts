@@ -73,6 +73,12 @@ export function isEnglishDictionaryPair(sourceCode: string, targetCode: string) 
   return ['en->en', 'en->vi', 'vi->en'].includes(pair);
 }
 
+export function isSupportedBilingualDictionaryPair(sourceCode: string, targetCode: string) {
+  const pair = `${sourceCode}->${targetCode}`;
+
+  return ['en->vi', 'vi->en', 'fr->vi'].includes(pair);
+}
+
 export function isSameLanguagePair(sourceCode: string, targetCode: string) {
   return sourceCode === targetCode;
 }
@@ -80,5 +86,5 @@ export function isSameLanguagePair(sourceCode: string, targetCode: string) {
 export function isTranslationComingSoonPair(sourceCode: string, targetCode: string) {
   if (isSameLanguagePair(sourceCode, targetCode)) return false;
 
-  return !isEnglishDictionaryPair(sourceCode, targetCode);
+  return !isSupportedBilingualDictionaryPair(sourceCode, targetCode);
 }

@@ -1,9 +1,11 @@
+import { XMLParser } from 'fast-xml-parser';
+import JSZip from 'jszip';
 import mammoth from 'mammoth';
 
 export type SupportedReaderImportFormat = 'txt' | 'html';
 export type UnsupportedReaderImportFormat = 'pdf' | 'docx' | 'epub';
 export type ReaderImportFormat = SupportedReaderImportFormat | UnsupportedReaderImportFormat;
-export type EnabledReaderImportFormat = SupportedReaderImportFormat | 'docx';
+export type EnabledReaderImportFormat = SupportedReaderImportFormat | 'docx' | 'epub';
 export type ReaderImportPlan = {
   label: string;
   status: 'supported' | 'planned';
@@ -19,6 +21,7 @@ export type ReaderImportResult = {
 };
 
 type MammothConvertToHtml = typeof mammoth.convertToHtml;
+type XmlNode = Record<string, unknown>;
 
 export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
   txt: {
@@ -44,17 +47,17 @@ export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
   },
   epub: {
     label: 'EPUB',
-    status: 'planned',
-    parser: 'epub.js / ZIP spine text extraction',
+    status: 'supported',
+    parser: 'ZIP spine text extraction',
     note: 'Đọc spine theo thứ tự sách, gom HTML chapter rồi sanitize sang text.',
-    nextStep: 'Prototype EPUB sample nhỏ và giới hạn kích thước/chapter lỗi.',
+    nextStep: 'Đã có prototype local; tiếp theo cần kiểm thử file thật và thêm giới hạn kích thước.',
   },
   pdf: {
     label: 'PDF',
     status: 'planned',
-    parser: 'Staged PDF extractor for Expo native/web',
-    note: 'PDF text extraction phụ thuộc nền tảng; cần kiểm tra native module và web fallback trước khi bật.',
-    nextStep: 'Đánh giá extractor trên Expo web và dev client, giữ PDF disabled trong Expo Go.',
+    parser: 'expo-pdf-text-extract for dev-client/native, PDF.js-style fallback for web',
+    note: 'PDF text extraction phụ thuộc nền tảng; digital PDFs khác scanned PDFs và Expo Go không phù hợp cho native module.',
+    nextStep: 'Giữ PDF disabled, chỉ prototype sau khi có dev-client/web test fixture cho digital PDF.',
   },
 };
 
@@ -96,11 +99,44 @@ export async function extractReaderDocument(
     };
   }
 
+  if (sourceFormat === 'epub') {
+    if (typeof rawContent === 'string') {
+      throw new Error('EPUB cần đọc ở dạng ArrayBuffer trước khi chuyển sang Reader text.');
+    }
+
+    const title = getReaderImportTitle(fileName);
+    const content = await extractEpubReaderText(rawContent);
+
+    return {
+      title,
+      content,
+      sourceFormat,
+    };
+  }
+
   if (!isSupportedReaderImportFormat(sourceFormat)) {
     throw new Error(getUnsupportedReaderImportMessage(sourceFormat));
   }
 
   return extractReaderText(fileName, typeof rawContent === 'string' ? rawContent : decodeUtf8(rawContent));
+}
+
+export async function extractEpubReaderText(arrayBuffer: ArrayBuffer) {
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const containerXml = await readZipText(zip, 'META-INF/container.xml');
+  const opfPath = getEpubRootfilePath(containerXml);
+  const opfXml = await readZipText(zip, opfPath);
+  const chapterPaths = getEpubSpineChapterPaths(opfXml, opfPath);
+  const chapterTexts: string[] = [];
+
+  for (const chapterPath of chapterPaths) {
+    const chapterHtml = await readZipText(zip, chapterPath);
+    const chapterText = htmlToPlainText(chapterHtml);
+
+    if (chapterText) chapterTexts.push(chapterText);
+  }
+
+  return chapterTexts.join('\n\n').trim();
 }
 
 export async function extractDocxReaderText(
@@ -141,7 +177,7 @@ export function isSupportedReaderImportFormat(format: ReaderImportFormat): forma
 }
 
 export function isEnabledReaderImportFormat(format: ReaderImportFormat): format is EnabledReaderImportFormat {
-  return isSupportedReaderImportFormat(format) || format === 'docx';
+  return isSupportedReaderImportFormat(format) || format === 'docx' || format === 'epub';
 }
 
 export function getUnsupportedReaderImportMessage(format: UnsupportedReaderImportFormat) {
@@ -156,6 +192,101 @@ function getReaderImportTitle(fileName: string) {
 
 function decodeUtf8(arrayBuffer: ArrayBuffer) {
   return new TextDecoder().decode(arrayBuffer);
+}
+
+async function readZipText(zip: JSZip, path: string) {
+  const file = zip.file(path);
+  if (!file) throw new Error(`EPUB thiếu file bắt buộc: ${path}`);
+
+  return file.async('text');
+}
+
+function getEpubRootfilePath(containerXml: string) {
+  const container = parseXml(containerXml);
+  const rootfiles = asArray(getObject(container.container)?.rootfiles && getObject(getObject(container.container)?.rootfiles)?.rootfile);
+  const rootfilePath = getString(rootfiles[0]?.['full-path']);
+
+  if (!rootfilePath) throw new Error('EPUB thiếu rootfile OPF trong META-INF/container.xml.');
+
+  return normalizeZipPath(rootfilePath);
+}
+
+function getEpubSpineChapterPaths(opfXml: string, opfPath: string) {
+  const opf = parseXml(opfXml);
+  const packageNode = getObject(opf.package);
+  const manifestItems = asArray(getObject(packageNode.manifest)?.item);
+  const spineItems = asArray(getObject(packageNode.spine)?.itemref);
+  const manifestById = new Map<string, XmlNode>();
+
+  for (const item of manifestItems) {
+    const id = getString(item.id);
+    if (id) manifestById.set(id, item);
+  }
+
+  const opfBasePath = getZipBasePath(opfPath);
+  const chapterPaths = spineItems
+    .map((item) => manifestById.get(getString(item.idref)))
+    .filter((item): item is XmlNode => Boolean(item))
+    .filter((item) => {
+      const mediaType = getString(item['media-type']);
+      return mediaType.includes('html') || mediaType.includes('xhtml');
+    })
+    .map((item) => normalizeZipPath(opfBasePath + getString(item.href)))
+    .filter(Boolean);
+
+  if (!chapterPaths.length) throw new Error('EPUB không có chapter HTML trong spine.');
+
+  return chapterPaths;
+}
+
+function parseXml(xml: string) {
+  const parser = new XMLParser({
+    attributeNamePrefix: '',
+    ignoreAttributes: false,
+    trimValues: true,
+  });
+
+  return parser.parse(xml) as XmlNode;
+}
+
+function asArray(value: unknown): XmlNode[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(isObject);
+
+  return isObject(value) ? [value] : [];
+}
+
+function getObject(value: unknown): XmlNode {
+  return isObject(value) ? value : {};
+}
+
+function isObject(value: unknown): value is XmlNode {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function getString(value: unknown) {
+  return typeof value === 'string' ? value : '';
+}
+
+function getZipBasePath(path: string) {
+  const lastSlashIndex = path.lastIndexOf('/');
+
+  return lastSlashIndex >= 0 ? `${path.slice(0, lastSlashIndex)}/` : '';
+}
+
+function normalizeZipPath(path: string) {
+  const parts: string[] = [];
+
+  for (const part of path.replace(/^\/+/, '').split('/')) {
+    if (!part || part === '.') continue;
+    if (part === '..') {
+      parts.pop();
+      continue;
+    }
+    parts.push(part);
+  }
+
+  return parts.join('/');
 }
 
 function htmlToPlainText(html: string) {

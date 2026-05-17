@@ -188,7 +188,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Reader settings: font size, font family, background color.
 - [x] DONE: Tap word to lookup.
 - [x] DONE: Tap word to save and quick note in reading flow.
-- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; DOCX Mammoth-to-HTML prototype is enabled, EPUB/PDF parser implementation still pending (commit `1651d83`).
+- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; DOCX Mammoth-to-HTML and EPUB spine/chapter prototypes are enabled, PDF extraction path is evaluated but implementation remains disabled/pending (commit `1651d83`).
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 
@@ -277,7 +277,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Basque can be researched after Indo-European Latin-script pipeline; Ainu is blocked until source availability is proven.
 
 ### Translation
-- [~] IN PROGRESS [MEDIUM]: Language selector and bilingual English-Vietnamese dictionary flow.
+- [~] IN PROGRESS [MEDIUM]: Language selector and bilingual English-Vietnamese dictionary flow; unsupported bilingual pair routing is guarded, broader UI polish still pending.
 - [!] BLOCKED [HARD]: Production multilingual translation for many language pairs needs selected API/backend.
 - [!] BLOCKED [HARD]: Specialized translation with user glossary/database needs backend, auth, and cost controls.
 
@@ -291,11 +291,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[~] [HARD]` Prototype EPUB Reader import with spine/chapter HTML extraction while keeping PDF disabled.
-2. `[~] [MEDIUM]` Continue Language selector and bilingual English-Vietnamese dictionary flow: audit remaining UI/adapter gaps and blocked-pair states.
-3. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Spanish monolingual baseline with source/licensing notes before implementation.
-4. `[ ] [MEDIUM]` Plan Austronesian next-build candidate: Malay monolingual baseline with morphology/source implications.
-5. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
+1. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Spanish monolingual baseline with source/licensing notes before implementation.
+2. `[ ] [MEDIUM]` Plan Austronesian next-build candidate: Malay monolingual baseline with morphology/source implications.
+3. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
+4. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
 
 ## Rule
 

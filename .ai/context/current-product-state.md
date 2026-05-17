@@ -20,17 +20,17 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Current Queue Notes
 `docs/product-progress.md` currently includes `Next Work Queue` items for:
-- EPUB Reader import prototype with spine/chapter HTML extraction while PDF remains disabled.
-- Language selector and bilingual English-Vietnamese flow stabilization.
 - Spanish monolingual baseline planning.
 - Malay monolingual baseline planning.
 - Swahili monolingual baseline planning.
+- Reader structured import hardening before PDF implementation.
 
 If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.
 
 ## In Progress Or Partial
 - Advanced frontend tabs exist as shells/polish targets.
-- Reader DOCX import has a Mammoth-to-HTML prototype; EPUB/PDF parser implementation remains incomplete.
+- Reader DOCX and EPUB import prototypes are enabled; PDF extraction path is evaluated but remains disabled pending dev-client/web fixture validation.
+- Language selector and bilingual lookup flow now guards unsupported bilingual pairs before hitting the bilingual API.
 - Future language expansion is planned but must be adapter-first and source/licensing aware.
 
 ## Blocked

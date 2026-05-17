@@ -11,6 +11,7 @@ import {
   ApiBilingualMeaningResult,
   ApiMeaningResult,
   ApiRelatedWords,
+  canUseBilingualDictionaryApi,
   canUseMonolingualDictionaryApi,
   fetchBilingualMeaning,
   fetchMonolingualMeaning,
@@ -66,9 +67,14 @@ export default function WordScreen() {
   const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
   const shouldUseBilingualDictionary = sourceLanguage.code !== targetLanguage.code;
   const isBilingualSourceBlocked = isBlockedBilingualDictionaryPair(sourceLanguage.code, targetLanguage.code);
+  const canUseBilingualDictionaryApiForPair = canUseBilingualDictionaryApi(sourceLanguage.code, targetLanguage.code);
   const canUseSourceDictionaryApi = canUseMonolingualDictionaryApi(sourceLanguage.code);
   const hasLocalDictionarySource = supportsLocalDictionary(sourceLanguage.code);
   const isTranslationComingSoon = isTranslationComingSoonPair(sourceLanguage.code, targetLanguage.code);
+  const bilingualDictionaryUnavailableMessage = useMemo(
+    () => getBilingualDictionaryUnavailableMessage(sourceLanguage, targetLanguage),
+    [sourceLanguage, targetLanguage]
+  );
   const sourceEntries = useMemo(() => getLocalDictionaryEntries(sourceLanguage.code), [sourceLanguage.code]);
 
   const localEntry = findLocalDictionaryEntry(sourceLanguage.code, selectedWord);
@@ -133,7 +139,7 @@ export default function WordScreen() {
 
   const normalizedQuery = normalizeLookupTerm(query);
   const hasExactLocalResult = results.some((entry) => normalizeLookupTerm(entry.word) === normalizedQuery);
-  const canSearchRemoteSource = canUseSourceDictionaryApi || shouldUseBilingualDictionary;
+  const canSearchRemoteSource = canUseSourceDictionaryApi || canUseBilingualDictionaryApiForPair;
   const shouldShowApiLookup = Boolean(normalizedQuery) && canSearchRemoteSource && !hasExactLocalResult;
   const savedWord = getSavedWord(libraryState, selectedEntry.word);
   const favoriteFolderId = getFavoriteFolderId();
@@ -170,10 +176,10 @@ export default function WordScreen() {
     let isCancelled = false;
 
     async function lookupWord() {
-      if (isBilingualSourceBlocked) {
+      if (isBilingualSourceBlocked && !canUseSourceDictionaryApi) {
         setLookupStatus('error');
-        setLookupError('Vietnamese → French dictionary source has not been selected yet.');
-        setBilingualLookupError('Vietnamese → French dictionary source has not been selected yet.');
+        setLookupError(bilingualDictionaryUnavailableMessage);
+        setBilingualLookupError(bilingualDictionaryUnavailableMessage);
         setApiMeaning(null);
         setApiBilingualMeaning(null);
         setApiRelatedWords(null);
@@ -192,7 +198,11 @@ export default function WordScreen() {
 
       setLookupStatus('loading');
       setLookupError('');
-      setBilingualLookupError('');
+      setBilingualLookupError(
+        shouldUseBilingualDictionary && !canUseBilingualDictionaryApiForPair
+          ? bilingualDictionaryUnavailableMessage
+          : ''
+      );
       setApiMeaning(null);
       setApiBilingualMeaning(null);
       setApiRelatedWords(null);
@@ -200,7 +210,7 @@ export default function WordScreen() {
       const lookupTasks = [
         canUseSourceDictionaryApi ? fetchMonolingualMeaning(selectedWord, sourceLanguage.code) : Promise.resolve(null),
         canUseSourceDictionaryApi ? fetchRelatedWords(selectedWord, sourceLanguage.code) : Promise.resolve(null),
-        shouldUseBilingualDictionary
+        canUseBilingualDictionaryApiForPair
           ? fetchBilingualMeaning(selectedWord, sourceLanguage.code, targetLanguage.code)
           : Promise.resolve(null),
       ] as const;
@@ -247,6 +257,8 @@ export default function WordScreen() {
     };
   }, [
     canUseSourceDictionaryApi,
+    canUseBilingualDictionaryApiForPair,
+    bilingualDictionaryUnavailableMessage,
     isBilingualSourceBlocked,
     selectedWord,
     shouldUseBilingualDictionary,
@@ -642,6 +654,14 @@ function mergeLookupEntry(
 
 function getRouteParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function getBilingualDictionaryUnavailableMessage(sourceLanguage: LanguageOption, targetLanguage: LanguageOption) {
+  if (isBlockedBilingualDictionaryPair(sourceLanguage.code, targetLanguage.code)) {
+    return `${sourceLanguage.label} → ${targetLanguage.label} dictionary source has not been selected yet.`;
+  }
+
+  return `Chưa có nguồn dữ liệu từ điển ${sourceLanguage.label} sang ${targetLanguage.label} đủ tin cậy.`;
 }
 
 function createDictionaryUnavailableEntry(
