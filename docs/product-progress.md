@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `acc5df1` docs(reader): select structured import strategy
   - `f8d4b7c` feat(profile): polish export and settings flows
   - `5e2ea50` docs: mark privacy, support, and sign-out sidebar items done
   - `c97f011` feat(profile): add privacy and support sections in settings sidebar
