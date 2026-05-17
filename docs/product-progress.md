@@ -313,7 +313,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Reader PDF import enablement gate: manually smoke the PDF.js prototype on Expo web, confirm unsupported native/Expo Go copy, then wire PDF into Reader import.
+1. [~] [HARD] Reader PDF import enablement gate: Expo web export smoke passed with a separate PDF.js chunk; manual browser fixture smoke and unsupported native/Expo Go copy still required before wiring PDF into Reader import.
 2. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
 3. [ ] [HARD] Find verified Japanese/Korean monolingual source: identify JA->JA or KO->KO structured data before adapter implementation.
 
