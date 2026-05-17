@@ -1,9 +1,9 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-import type { VocabularyImportRow } from '@/data/csvImport';
-import { DictionaryEntry, savedFolders } from '@/data/dictionary';
-import { getStoredItem, removeStoredItem, setStoredItem } from '@/data/storageAdapter';
+import type { VocabularyImportRow } from './csvImport';
+import { DictionaryEntry, savedFolders } from './dictionary';
+import { getStoredItem, removeStoredItem, setStoredItem } from './storageAdapter';
 
 const STORAGE_KEY = 'dictionary-mobile.library.v1';
 const FAVORITES_FOLDER_ID = 'favorites';
@@ -50,6 +50,10 @@ export type Flashcard = {
   repetition: number;
   efactor: number;
   dueDate: string;
+  // Sync state management
+  syncStatus?: 'synced' | 'pending_create' | 'pending_update' | 'pending_delete';
+  lastSyncedAt?: string | null;
+  version?: number;
 };
 
 export type FlashcardType = Flashcard['type'];
@@ -365,7 +369,16 @@ export async function createFlashcardsFromWordIds(state: LibraryState, wordIds: 
 export async function updateFlashcardReviewState(state: LibraryState, cardId: string, reviewState: FlashcardReviewState) {
   const nextState = {
     ...state,
-    flashcards: state.flashcards.map((card) => (card.id === cardId ? { ...card, reviewState } : card)),
+    flashcards: state.flashcards.map((card) =>
+      card.id === cardId
+        ? {
+            ...card,
+            reviewState,
+            syncStatus: card.syncStatus === 'pending_create' ? 'pending_create' : 'pending_update',
+            version: (card.version || 1) + 1,
+          }
+        : card
+    ),
   };
 
   await saveLibraryState(nextState);
@@ -417,6 +430,8 @@ export async function reviewFlashcard(state: LibraryState, cardId: string, quali
         efactor,
         dueDate: nextDue.toISOString(),
         reviewState,
+        syncStatus: card.syncStatus === 'pending_create' ? 'pending_create' : 'pending_update',
+        version: (card.version || 1) + 1,
       };
     }),
   };
@@ -616,6 +631,54 @@ function escapeTsvCell(value: string) {
   return (value ?? '').replace(/\t/g, ' ').trim();
 }
 
+export function getPendingFlashcards(state: LibraryState) {
+  return state.flashcards.filter((card) => card.syncStatus && card.syncStatus !== 'synced');
+}
+
+export async function markFlashcardSynced(state: LibraryState, cardId: string, timestamp: string) {
+  const nextState = {
+    ...state,
+    flashcards: state.flashcards.flatMap((card) => {
+      if (card.id !== cardId) return [card];
+      if (card.syncStatus === 'pending_delete') return []; // Physically delete when synced
+
+      return [
+        {
+          ...card,
+          syncStatus: 'synced' as const,
+          lastSyncedAt: timestamp,
+        },
+      ];
+    }),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function deleteFlashcard(state: LibraryState, cardId: string) {
+  const card = state.flashcards.find((c) => c.id === cardId);
+  if (!card) return state;
+
+  const nextState = {
+    ...state,
+    flashcards: state.flashcards.map((c) =>
+      c.id === cardId
+        ? {
+            ...c,
+            syncStatus: 'pending_delete' as const,
+            version: (c.version || 1) + 1,
+          }
+        : c
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
 export function getDefaultLibraryState(): LibraryState {
   const timestamp = now();
 
@@ -800,6 +863,9 @@ function buildFlashcard(word: SavedWord, type: FlashcardType, id: string, create
     repetition: 0,
     efactor: 2.5,
     dueDate: createdAt,
+    syncStatus: 'pending_create',
+    lastSyncedAt: null,
+    version: 1,
   };
 }
 

@@ -19,8 +19,7 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 - Local notification preferences persisted in the profile store with privacy sidebar controls for daily reminders, review reminders, weekly summaries, and reminder time.
 
 ## Current Queue Notes
-`docs/product-progress.md` currently includes `Next Work Queue` items for:
-- Offline sync state management for Flashcards.
+`docs/product-progress.md` currently has an empty `Next Work Queue` (all queued tasks are completed).
 
 If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.
 

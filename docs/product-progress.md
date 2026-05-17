@@ -171,6 +171,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Polish flashcard creation from imported datasets.
 - [x] DONE: Prepare Anki text-only export from flashcards.
 - [x] DONE [MEDIUM]: Add richer review scheduling after local MVP is stable (commit `66c5dd0`).
+- [x] DONE [HARD]: Implement offline sync state management for Flashcards: track version, syncStatus (pending_create, pending_update, pending_delete), and lastSyncedAt for background sync.
 
 ### Import Dataset
 - [x] DONE: CSV import MVP.
@@ -295,7 +296,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [HARD]` Implement offline sync state management for Flashcards (prepare for background sync).
+*(Queue is currently empty. Ready for next phase specifications.)*
 
 ## Rule
 
