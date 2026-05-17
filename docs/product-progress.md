@@ -286,7 +286,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
-  - [ ] TODO [HARD]: Japanese/Korean source smoke tests and adapter implementation slices, one language at a time.
+  - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
+  - [!] BLOCKED [HARD]: Japanese/Korean adapter implementation slices require a verified JA->JA or KO->KO structured source before code changes.
   - Japanese: kana/kanji, romaji, tokenizer, pitch accent if source supports it.
   - Korean: Hangul, romanization, particles, verb/adjective endings; treat as Korean-specific, not dependent on disputed Altaic grouping.
 - [!] BLOCKED [HARD]: Amerind/proposed-family candidates: Quechua, Nahuatl, Guarani.
@@ -303,6 +304,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Draft etymology/conjugation source decision brief with legal structured source candidates and keep production integration blocked while decision remains Proposed.
 - [ ] TODO [HARD]: Choose legal structured resource for etymology.
 - [ ] TODO [HARD]: Choose reliable resource for conjugation.
+- [!] BLOCKED [HARD]: Etymology/conjugation source option selection requires an accepted `.docs/decisions/etymology-conjugation-source.md` option from the product owner.
 - [!] BLOCKED [HARD]: Production etymology and conjugation should not be mocked without a real resource.
 
 ### AI
@@ -310,9 +312,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
-2. [ ] [HARD] Japanese/Korean source smoke tests: verify one monolingual source path before adding any adapter implementation.
-3. [ ] [HARD] Reader PDF extraction parser prototype: add parser abstraction and web fixture tests before enabling PDF import.
+1. [ ] [HARD] Reader PDF extraction parser prototype: add parser abstraction and web fixture tests before enabling PDF import.
+2. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
+3. [ ] [HARD] Find verified Japanese/Korean monolingual source: identify JA->JA or KO->KO structured data before adapter implementation.
 
 ## Rule
 

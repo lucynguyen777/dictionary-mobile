@@ -83,6 +83,8 @@ Before adding `ja` or `ko` adapter code:
 5. Keep unsupported bilingual pairs guarded in `data/languages.ts` and `data/dictionaryApi.ts`.
 6. Add tests for adapter registration, dispatch, unsupported bilingual routing, and source-missing behavior.
 
+Current smoke evidence is tracked in `docs/japanese-korean-source-smoke.md`. WiktAPI returned 404 for tested Japanese/Korean common words, and Kaikki's indexed Japanese/Korean pages are based on English Wiktionary extraction, so no monolingual adapter is currently unblocked.
+
 ## First Safe Implementation Slice
 After source smoke tests pass for one language:
 - add only that language's metadata/adapter dispatch;
