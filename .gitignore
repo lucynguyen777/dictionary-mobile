@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# runtime wiktionary caches and bulk run logs
+data/wiktionary-cache/
+data/wiktionary-bulk-runs/
