@@ -204,7 +204,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Create flashcards directly from Reader highlights.
 - [x] DONE [HARD]: Harden Reader structured imports: add file-size (10MB limit) and empty-text limits.
 - [x] DONE [HARD]: Reader PDF extraction fixture gate: dev-client/web fixture expectations are documented and PDF remains disabled until a digital PDF test path is verified.
-- [ ] TODO [HARD]: Reader PDF extraction implementation. Requires fixture evidence and platform parser selection before enabling PDF text extraction.
+- [x] DONE [HARD]: Reader PDF extraction implementation preparation: repo-owned digital/empty/image-only fixtures are committed, parser path is selected as web-first PDF.js-style prototype before native dev-client evaluation, and PDF remains disabled.
+- [ ] TODO [HARD]: Reader PDF extraction parser prototype. Add parser abstraction and web fixture tests before enabling PDF import.
 
 ## User Profile And Privacy
 
@@ -309,9 +310,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Prepare Reader PDF extraction implementation: collect acceptable digital PDF fixtures and select dev-client/web parser path before enabling PDF text extraction.
-2. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
-3. [ ] [HARD] Japanese/Korean source smoke tests: verify one monolingual source path before adding any adapter implementation.
+1. [ ] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
+2. [ ] [HARD] Japanese/Korean source smoke tests: verify one monolingual source path before adding any adapter implementation.
+3. [ ] [HARD] Reader PDF extraction parser prototype: add parser abstraction and web fixture tests before enabling PDF import.
 
 ## Rule
 

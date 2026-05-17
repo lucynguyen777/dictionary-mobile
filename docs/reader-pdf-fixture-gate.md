@@ -3,6 +3,8 @@
 ## Status
 PDF remains disabled. This gate defines the minimum fixture and platform evidence required before adding a PDF parser to `data/readerImport.ts`.
 
+Implementation preparation now lives in `docs/reader-pdf-implementation-prep.md`.
+
 ## Current Reader Import State
 - TXT, HTML, DOCX, and EPUB are enabled through local parsing paths.
 - PDF is detected by `getReaderImportFormat()` but still routes to the unsupported-format message.
@@ -20,6 +22,8 @@ Use small local files committed only if licensing and file size are acceptable. 
 | `scanned-image.pdf` | Image-only scanned PDF | Must remain unsupported with OCR-required messaging. |
 | `empty.pdf` | Valid PDF with no extractable text | Throws the existing empty-text error path. |
 | `oversize.pdf` | Larger than 10MB | Throws the existing 10MB size-limit error before parsing. |
+
+The small fixtures except `oversize.pdf` are committed in `tests/fixtures/reader-pdf/` and can be regenerated with `node scripts/create-reader-pdf-fixtures.mjs`.
 
 ## Platform Matrix
 | Platform | Parser candidate | Required result before enabling |
