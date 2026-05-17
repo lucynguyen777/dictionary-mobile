@@ -20,7 +20,6 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Current Queue Notes
 `docs/product-progress.md` currently includes `Next Work Queue` items for:
-- Swahili monolingual baseline planning.
 - Reader structured import hardening before PDF implementation.
 - Hindi monolingual baseline planning.
 - Mandarin monolingual baseline planning.

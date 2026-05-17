@@ -255,7 +255,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
   - Amharic: Ge'ez script and transliteration.
   - Somali: Latin script but needs morphology/source research.
-- [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Swahili, Yoruba, Zulu, Igbo.
+- [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
+  - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: Implementation BLOCKED (WiktAPI 'sw' returns 404).
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
@@ -292,10 +293,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
-2. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
-3. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
-4. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
+1. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
+2. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
+3. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
 
 ## Rule
 

@@ -51,6 +51,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'sw',
+    label: 'Kiswahili',
+    hint: 'Sắp hỗ trợ',
+    family: 'niger-congo',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: undefined,
+    dictionaryStatus: 'unavailable',
+  },
+  {
     code: 'ja',
     label: '日本語',
     hint: 'Sắp hỗ trợ',
