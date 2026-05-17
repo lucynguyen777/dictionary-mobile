@@ -15,11 +15,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
-- Medium next tasks: adapter-first Russian language build planning and local UI/data consistency polish.
+- Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
 - Hard next tasks: Reader PDF extraction fixture/prototype gating, source selection for etymology/conjugation, and voice/OCR exploration.
 
 ## Current Baseline
 - Latest completed commits:
+  - `772ad60` feat(lang): stabilize bilingual dictionary routing
   - `e9c6e82` feat(flashcards): implement offline sync state management
   - `6f40044` docs(lang): plan Mandarin monolingual baseline and document blocked status
   - `cdf245b` docs(lang): plan Hindi monolingual baseline and document blocked status
@@ -255,7 +256,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Add language-family metadata to language config before adding more languages: `family`, `script`, `writingDirection`, `adapterKey`, `dictionaryStatus` (commit `083addb`).
 - [x] DONE [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states (commits `1c4a0aa`, `cc9020f`, `667e897`, `536b4ad`).
 - [x] DONE [MEDIUM]: Spanish monolingual baseline: WiktAPI adapter, language metadata, morphology candidates, gender labels.
-- [ ] TODO [MEDIUM]: Indo-European next-build candidates: Russian.
+- [x] DONE [MEDIUM]: Russian monolingual baseline planning: compare against English/French/Spanish Indo-European adapters, document Cyrillic/case/aspect morphology implications, and select WiktAPI/Russian Wiktionary as the live API candidate pending endpoint smoke test.
+  - [ ] TODO [MEDIUM]: Russian monolingual baseline implementation: run endpoint smoke test, add metadata/adapter dispatch, and keep bilingual RU pairs unsupported until a lexical source is selected.
   - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: Implementation BLOCKED (WiktAPI 'hi' returns 404).
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
@@ -304,7 +306,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [MEDIUM] Plan Russian monolingual baseline: compare against existing Indo-European adapters (English/French/Spanish), document Cyrillic/case/aspect morphology implications, and confirm a legal source candidate before implementation.
+1. [ ] [MEDIUM] Russian monolingual baseline implementation: run WiktAPI endpoint smoke test, add `ru` metadata/adapter dispatch, and keep bilingual RU pairs unsupported until a lexical source is selected.
 2. [ ] [HARD] Prepare Reader PDF extraction fixture gate: define dev-client/web fixture expectations and keep PDF disabled until a digital PDF test path is verified.
 3. [ ] [HARD] Draft etymology/conjugation source decision brief: list candidate legal structured resources and keep production etymology/conjugation blocked until a source is accepted.
 4. [ ] [HARD] Plan Japanese/Korean lookup track: document script, segmentation, romanization/pronunciation, and source strategy before any adapter implementation.
