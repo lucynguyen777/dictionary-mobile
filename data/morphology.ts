@@ -46,9 +46,10 @@ const irregularEnglishBaseForms: Record<string, string[]> = {
 };
 
 export function getMorphologyCandidates(languageCode: string, input: string): MorphologyCandidate[] {
-  if (languageCode !== 'en') return [];
+  if (languageCode === 'en') return getEnglishMorphologyCandidates(input);
+  if (languageCode === 'es') return getSpanishMorphologyCandidates(input);
 
-  return getEnglishMorphologyCandidates(input);
+  return [];
 }
 
 function getEnglishMorphologyCandidates(input: string): MorphologyCandidate[] {
@@ -143,4 +144,78 @@ function uniqueCandidates(candidates: MorphologyCandidate[], originalWord: strin
 
 function normalizeMorphologyInput(input: string) {
   return input.trim().toLocaleLowerCase();
+}
+
+function getSpanishMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = normalizeMorphologyInput(input);
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // Plural → singular: -ces → -z (e.g. lápices → lápiz, voces → voz)
+  if (word.endsWith('ces') && word.length > 4) {
+    candidates.push(createCandidate(`${word.slice(0, -3)}z`, 'forma plural'));
+  }
+
+  // Plural → singular: -es (e.g. ciudades → ciudad, canciones → canción)
+  if (word.endsWith('es') && word.length > 4) {
+    candidates.push(createCandidate(word.slice(0, -2), 'forma plural'));
+    // words ending in consonant + es, add accent on last vowel for -ión pattern
+    if (word.endsWith('iones')) {
+      candidates.push(createCandidate(`${word.slice(0, -4)}ón`, 'forma plural'));
+    }
+  }
+
+  // Plural → singular: -s (e.g. casas → casa, libros → libro)
+  if (word.endsWith('s') && !word.endsWith('ss') && word.length > 3) {
+    candidates.push(createCandidate(word.slice(0, -1), 'forma plural'));
+  }
+
+  // Feminine → masculine: -a → -o (e.g. pequeña → pequeño, bonita → bonito)
+  if (word.endsWith('a') && word.length > 3) {
+    candidates.push(createCandidate(`${word.slice(0, -1)}o`, 'forma femenina'));
+  }
+
+  // Diminutive: -ito/-ita → base (e.g. casita → casa, librito → libro)
+  if (word.endsWith('ito') && word.length > 5) {
+    candidates.push(createCandidate(`${word.slice(0, -3)}o`, 'diminutivo'));
+    candidates.push(createCandidate(word.slice(0, -3), 'diminutivo'));
+  }
+  if (word.endsWith('ita') && word.length > 5) {
+    candidates.push(createCandidate(`${word.slice(0, -3)}a`, 'diminutivo'));
+    candidates.push(createCandidate(word.slice(0, -3), 'diminutivo'));
+  }
+
+  // Regular -ar verb conjugation: present indicative stems
+  // canto, cantas, canta, cantamos, cantáis, cantan → cantar
+  if (word.endsWith('ando') && word.length > 5) {
+    candidates.push(createCandidate(`${word.slice(0, -4)}ar`, 'gerundio -ar'));
+  }
+  if (word.endsWith('ado') && word.length > 4) {
+    candidates.push(createCandidate(`${word.slice(0, -3)}ar`, 'participio -ar'));
+  }
+  if (word.endsWith('amos') && word.length > 5) {
+    candidates.push(createCandidate(`${word.slice(0, -4)}ar`, 'conjugación -ar'));
+  }
+  if (word.endsWith('an') && word.length > 4) {
+    candidates.push(createCandidate(`${word.slice(0, -2)}ar`, 'conjugación -ar'));
+  }
+
+  // Regular -er verb conjugation
+  if (word.endsWith('iendo') && word.length > 6) {
+    candidates.push(createCandidate(`${word.slice(0, -5)}er`, 'gerundio -er'));
+    candidates.push(createCandidate(`${word.slice(0, -5)}ir`, 'gerundio -ir'));
+  }
+  if (word.endsWith('ido') && word.length > 4) {
+    candidates.push(createCandidate(`${word.slice(0, -3)}er`, 'participio -er'));
+    candidates.push(createCandidate(`${word.slice(0, -3)}ir`, 'participio -ir'));
+  }
+  if (word.endsWith('emos') && word.length > 5) {
+    candidates.push(createCandidate(`${word.slice(0, -4)}er`, 'conjugación -er'));
+  }
+  if (word.endsWith('imos') && word.length > 5) {
+    candidates.push(createCandidate(`${word.slice(0, -4)}ir`, 'conjugación -ir'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
 }

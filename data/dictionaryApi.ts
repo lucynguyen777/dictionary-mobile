@@ -156,7 +156,7 @@ const MINH_QND_SUGGEST_API_BASE = 'https://dict.minhqnd.com/api/v1/suggest';
 const WIKTAPI_BASE = 'https://api.wiktapi.dev/v1';
 
 export function canUseMonolingualDictionaryApi(languageCode: string) {
-  return ['en', 'vi', 'fr'].includes(languageCode);
+  return ['en', 'vi', 'fr', 'es'].includes(languageCode);
 }
 
 export function canUseBilingualDictionaryApi(sourceLang: string, targetLang: string) {
@@ -171,6 +171,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'en') return fetchEnglishMeaning(word);
   if (languageCode === 'vi') return fetchMinhQndMonolingualMeaning(word, 'vi');
   if (languageCode === 'fr') return fetchWiktApiMonolingualMeaning(word, 'fr');
+  if (languageCode === 'es') return fetchWiktApiMonolingualMeaning(word, 'es');
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -179,6 +180,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'en') return fetchEnglishRelatedWords(word);
   if (languageCode === 'vi') return fetchMinhQndRelatedWords(word, 'vi');
   if (languageCode === 'fr') return fetchWiktApiRelatedWords(word, 'fr');
+  if (languageCode === 'es') return fetchWiktApiRelatedWords(word, 'es');
 
   return { synonyms: [], antonyms: [] };
 }
@@ -374,7 +376,7 @@ export async function fetchWiktApiMonolingualMeaning(word: string, languageCode:
   const normalizedWord = normalizeWord(word);
   const result = await fetchWiktApiWord(normalizedWord, languageCode);
   const entries = getWiktApiEntries(result, languageCode);
-  const definitions = entries.flatMap((entry) => mapWiktApiDefinitions(entry));
+  const definitions = entries.flatMap((entry) => mapWiktApiDefinitions(entry, languageCode));
 
   if (!definitions.length) {
     throw new Error(`No ${languageCode} Wiktionary meanings found for "${normalizedWord}".`);
@@ -510,7 +512,7 @@ function getWiktApiEntries(payload: WiktApiWordResponse, languageCode: string) {
   return (payload.entries ?? []).filter((entry) => !entry.lang_code || entry.lang_code === languageCode);
 }
 
-function mapWiktApiDefinitions(entry: WiktApiEntry): ApiDefinition[] {
+function mapWiktApiDefinitions(entry: WiktApiEntry, languageCode: string): ApiDefinition[] {
   return (entry.senses ?? [])
     .slice(0, 12)
     .flatMap((sense) =>
@@ -521,7 +523,7 @@ function mapWiktApiDefinitions(entry: WiktApiEntry): ApiDefinition[] {
         synonyms: uniqueWords(mapWiktApiLinkages(entry.synonyms ?? [])),
         antonyms: uniqueWords(mapWiktApiLinkages(entry.antonyms ?? [])),
         domain: normalizeDefinitionDomain(sense.topics?.[0]),
-        gender: getWiktApiGender([...(entry.tags ?? []), ...(entry.raw_tags ?? []), ...(sense.tags ?? [])]),
+        gender: getWiktApiGender([...(entry.tags ?? []), ...(entry.raw_tags ?? []), ...(sense.tags ?? [])], languageCode),
         level: undefined,
         source: 'Wiktionary',
       }))
@@ -548,11 +550,21 @@ function mapWiktApiLinkages(linkages: WiktApiLinkage[]) {
     .filter(Boolean) as string[];
 }
 
-function getWiktApiGender(tags: string[]) {
+function getWiktApiGender(tags: string[], languageCode: string) {
   const normalizedTags = tags.map((tag) => tag.toLocaleLowerCase());
+  const isMasculine = normalizedTags.some((tag) => tag.includes('masculine'));
+  const isFeminine = normalizedTags.some((tag) => tag.includes('feminine'));
 
-  if (normalizedTags.some((tag) => tag.includes('masculine'))) return 'masculin';
-  if (normalizedTags.some((tag) => tag.includes('feminine'))) return 'féminin';
+  if (!isMasculine && !isFeminine) return undefined;
+
+  if (languageCode === 'es') {
+    if (isMasculine) return 'masculino';
+    if (isFeminine) return 'femenino';
+  }
+
+  // Default: French labels (also used as fallback)
+  if (isMasculine) return 'masculin';
+  if (isFeminine) return 'féminin';
 
   return undefined;
 }

@@ -243,8 +243,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Indo-European baseline: English and French with monolingual lookup, IPA/audio when available, gender for French when source provides it.
 - [x] DONE [MEDIUM]: Add language-family metadata to language config before adding more languages: `family`, `script`, `writingDirection`, `adapterKey`, `dictionaryStatus` (commit `083addb`).
 - [x] DONE [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states (commits `1c4a0aa`, `cc9020f`, `667e897`, `536b4ad`).
-- [ ] TODO [MEDIUM]: Indo-European next-build candidates: Spanish, Hindi, Russian.
-  - Spanish: Latin script, gender, conjugation, easier after French.
+- [x] DONE [MEDIUM]: Spanish monolingual baseline: WiktAPI adapter, language metadata, morphology candidates, gender labels.
+- [ ] TODO [MEDIUM]: Indo-European next-build candidates: Hindi, Russian.
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
   - Hindi: Devanagari, gender, transliteration, postpositions.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Mandarin, Cantonese, Burmese, Tibetan.
@@ -292,10 +292,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Spanish monolingual baseline with source/licensing notes before implementation.
-2. `[ ] [MEDIUM]` Plan Austronesian next-build candidate: Malay monolingual baseline with morphology/source implications.
-3. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
-4. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
+1. `[ ] [MEDIUM]` Plan Austronesian next-build candidate: Malay monolingual baseline with morphology/source implications.
+2. `[ ] [MEDIUM]` Plan Niger-Congo next-build candidate: Swahili monolingual baseline with noun-class/source implications.
+3. `[ ] [HARD]` Harden Reader structured imports: add file-size/empty-text limits and real sample fixtures before PDF implementation.
+4. `[ ] [MEDIUM]` Plan Indo-European next-build candidate: Hindi monolingual baseline with Devanagari/transliteration strategy.
+5. `[ ] [HARD]` Plan Sino-Tibetan next-build candidate: Mandarin monolingual baseline with segmentation/pinyin strategy.
 
 ## Rule
 

@@ -31,6 +31,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'es',
+    label: 'Español',
+    hint: 'Wiktionary preview',
+    family: 'indo-european',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'es',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'ja',
     label: '日本語',
     hint: 'Sắp hỗ trợ',
