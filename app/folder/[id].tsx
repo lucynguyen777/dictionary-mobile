@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, Stack, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import {
@@ -26,6 +26,7 @@ export default function FolderDetailScreen() {
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
   const [nameDraft, setNameDraft] = useState('');
+  const [folderMenuOpen, setFolderMenuOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,6 +66,7 @@ export default function FolderDetailScreen() {
 
   const handleExport = async (format: 'csv' | 'excel') => {
     if (!folderId) return;
+    setFolderMenuOpen(false);
 
     try {
       const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
@@ -82,7 +84,10 @@ export default function FolderDetailScreen() {
   const handleRenameFolder = () => {
     if (!folderId || !folder) return;
 
-    renameFolder(libraryState, folderId, nameDraft).then(setLibraryState);
+    renameFolder(libraryState, folderId, nameDraft).then((nextState) => {
+      setLibraryState(nextState);
+      setFolderMenuOpen(false);
+    });
   };
 
   const handleDeleteFolder = () => {
@@ -123,29 +128,28 @@ export default function FolderDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={22} color="#0F172A" />
           </TouchableOpacity>
-          <View style={styles.exportGroup}>
-            <TouchableOpacity onPress={() => handleExport('csv')} style={styles.exportButton}>
-              <Ionicons name="download-outline" size={18} color="#2563EB" />
-              <Text style={styles.exportText}>CSV</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleExport('excel')} style={styles.exportButton}>
-              <Ionicons name="grid-outline" size={18} color="#2563EB" />
-              <Text style={styles.exportText}>XLS</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            accessibilityLabel="Mở menu bộ từ"
+            activeOpacity={0.82}
+            onPress={() => setFolderMenuOpen((isOpen) => !isOpen)}
+            style={styles.iconButton}>
+            <Ionicons name="ellipsis-horizontal" size={22} color="#0F172A" />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.hero}>
-          <View style={[styles.folderIcon, { backgroundColor: folder?.color ?? '#EAF1FF' }]}>
-            <Ionicons name="folder-open-outline" size={34} color="#0F172A" />
-          </View>
-          <Text style={styles.kicker}>Bộ từ</Text>
-          <Text style={styles.title}>{folder?.name ?? 'Không tìm thấy bộ từ'}</Text>
-          <Text style={styles.subtitle}>{folderWords.length} từ đã lưu</Text>
-        </View>
-
-        {folder ? (
-          <View style={styles.manageCard}>
+        {folderMenuOpen && folder ? (
+          <View style={styles.folderMenuPanel}>
+            <Text style={styles.folderMenuLabel}>Xuất bộ từ</Text>
+            <View style={styles.exportGroup}>
+              <TouchableOpacity onPress={() => handleExport('csv')} style={styles.exportButton}>
+                <Ionicons name="download-outline" size={18} color="#2563EB" />
+                <Text style={styles.exportText}>CSV</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleExport('excel')} style={styles.exportButton}>
+                <Ionicons name="grid-outline" size={18} color="#2563EB" />
+                <Text style={styles.exportText}>XLS</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.manageHeader}>
               <Text style={styles.manageTitle}>Cài đặt bộ từ</Text>
               {isFavoriteFolder ? <Text style={styles.lockedPill}>Được bảo vệ</Text> : null}
@@ -171,6 +175,22 @@ export default function FolderDetailScreen() {
             </View>
           </View>
         ) : null}
+
+        <View style={styles.hero}>
+          <View style={[styles.folderIcon, { backgroundColor: folder?.color ?? '#EAF1FF' }]}>
+            {folder?.avatarUri ? (
+              <Image source={{ uri: folder.avatarUri }} style={styles.folderAvatarImage} />
+            ) : (
+              <Ionicons name="folder-open-outline" size={34} color="#0F172A" />
+            )}
+          </View>
+          <View style={styles.heroCopy}>
+            <Text style={styles.kicker}>Bộ từ</Text>
+            <Text style={styles.title}>{folder?.name ?? 'Không tìm thấy bộ từ'}</Text>
+            <Text style={styles.subtitle}>{folderWords.length} từ đã lưu</Text>
+            {folder?.tags.length ? <Text numberOfLines={1} style={styles.folderTags}>{folder.tags.join(', ')}</Text> : null}
+          </View>
+        </View>
 
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color="#2563EB" />
@@ -276,6 +296,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  folderMenuPanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 10,
+    marginTop: 12,
+    padding: 12,
+  },
+  folderMenuLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
   exportButton: {
     alignItems: 'center',
     backgroundColor: '#EAF1FF',
@@ -291,6 +326,9 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   hero: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 14,
     marginTop: 18,
   },
   folderIcon: {
@@ -298,8 +336,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     height: 74,
     justifyContent: 'center',
-    marginBottom: 14,
+    overflow: 'hidden',
     width: 74,
+  },
+  folderAvatarImage: {
+    height: '100%',
+    width: '100%',
+  },
+  heroCopy: {
+    flex: 1,
+    minWidth: 0,
   },
   kicker: {
     color: '#64748B',
@@ -309,13 +355,19 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#0F172A',
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: '900',
     marginTop: 4,
   },
   subtitle: {
     color: '#64748B',
     fontSize: 14,
+    fontWeight: '800',
+    marginTop: 6,
+  },
+  folderTags: {
+    color: '#2563EB',
+    fontSize: 12,
     fontWeight: '800',
     marginTop: 6,
   },

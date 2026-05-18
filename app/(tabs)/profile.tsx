@@ -55,10 +55,12 @@ const legalLinks = [
     title: 'Ghi nhận',
   },
 ];
-const sidebarNavItems = [
-  { key: 'account' as const, label: 'Tài khoản', icon: 'person-outline' as const },
-  { key: 'privacy' as const, label: 'Riêng tư', icon: 'shield-outline' as const },
-  { key: 'support' as const, label: 'Hỗ trợ', icon: 'help-circle-outline' as const },
+type SidebarSectionKey = 'account' | 'privacy' | 'support';
+
+const sidebarNavItems: { key: SidebarSectionKey; label: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [
+  { key: 'account', label: 'Tài khoản', icon: 'person-outline' },
+  { key: 'privacy', label: 'Riêng tư', icon: 'shield-outline' },
+  { key: 'support', label: 'Hỗ trợ', icon: 'help-circle-outline' },
 ];
 
 export default function ProfileScreen() {
@@ -68,7 +70,7 @@ export default function ProfileScreen() {
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [saveMessage, setSaveMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarSection, setSidebarSection] = useState<'account' | 'privacy' | 'support'>('account');
+  const [sidebarSection, setSidebarSection] = useState<SidebarSectionKey | null>(null);
   const [editingAvatar, setEditingAvatar] = useState(false);
 
   useFocusEffect(
@@ -197,6 +199,7 @@ export default function ProfileScreen() {
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
   const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
   const avatarUri = profile.avatarUrl || defaultAvatarUri;
+  const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
 
   const handleDeleteLocalProfile = () => {
     Alert.alert('Xóa hồ sơ local', 'Hành động này sẽ xóa hồ sơ local trên thiết bị. Bạn có muốn tiếp tục?', [
@@ -223,7 +226,7 @@ export default function ProfileScreen() {
             accessibilityLabel="Mở cài đặt"
             accessibilityRole="button"
             onPress={() => {
-              setSidebarSection('account');
+              setSidebarSection(null);
               setSidebarOpen(true);
             }}
             style={({ pressed }) => [styles.settingsButton, pressed && styles.settingsButtonPressed]}>
@@ -239,7 +242,7 @@ export default function ProfileScreen() {
         <Image source={{ uri: avatarUri }} style={styles.avatar} />
         <Text style={styles.userName}>{profile.displayName}</Text>
         <Text style={styles.userMeta}>
-          {nativeLanguage?.label ?? profile.nativeLanguage} {'->'} {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel} ·{' '}
+          {nativeLanguage?.label ?? profile.nativeLanguage} → {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel} ·{' '}
           {profile.dailyGoal}
         </Text>
         {saveMessage ? <Text style={styles.saveMessage}>{saveMessage}</Text> : null}
@@ -471,31 +474,39 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            <Text style={styles.sidebarGroupLabel}>Mục cài đặt</Text>
-            <View style={styles.sidebarNavList}>
-              {sidebarNavItems.map((item) => {
-                const isActive = sidebarSection === item.key;
-
-                return (
-                  <Pressable
-                    key={item.key}
-                    onPress={() => setSidebarSection(item.key)}
-                    style={({ pressed }) => [
-                      styles.sidebarNavItem,
-                      isActive && styles.sidebarNavItemActive,
-                      pressed && styles.sidebarNavItemPressed,
-                    ]}>
-                    <Ionicons name={item.icon} size={15} color={isActive ? '#2563EB' : '#64748B'} />
-                    <Text
-                      numberOfLines={1}
-                      style={[styles.sidebarNavItemText, isActive && styles.sidebarNavItemTextActive]}>
-                      {item.label}
-                    </Text>
-                    <Ionicons name="chevron-forward" size={14} color={isActive ? '#2563EB' : '#CBD5E1'} />
-                  </Pressable>
-                );
-              })}
-            </View>
+            {activeSidebarItem ? (
+              <View style={styles.sidebarDetailHeader}>
+                <Pressable
+                  accessibilityLabel="Quay lại danh sách cài đặt"
+                  accessibilityRole="button"
+                  onPress={() => setSidebarSection(null)}
+                  style={({ pressed }) => [styles.sidebarBackButton, pressed && styles.sidebarBackButtonPressed]}>
+                  <Ionicons name="chevron-back" size={18} color="#2563EB" />
+                </Pressable>
+                <Text style={styles.sidebarDetailTitle} numberOfLines={1}>{activeSidebarItem.label}</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.sidebarGroupLabel}>Mục cài đặt</Text>
+                <View style={styles.sidebarNavList}>
+                  {sidebarNavItems.map((item) => (
+                    <Pressable
+                      key={item.key}
+                      onPress={() => setSidebarSection(item.key)}
+                      style={({ pressed }) => [
+                        styles.sidebarNavItem,
+                        pressed && styles.sidebarNavItemPressed,
+                      ]}>
+                      <Ionicons name={item.icon} size={15} color="#64748B" />
+                      <Text numberOfLines={1} style={styles.sidebarNavItemText}>
+                        {item.label}
+                      </Text>
+                      <Ionicons name="chevron-forward" size={14} color="#CBD5E1" />
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            )}
 
             <ScrollView
               contentContainerStyle={styles.sidebarContent}
@@ -974,6 +985,32 @@ const styles = StyleSheet.create({
   },
   sidebarNavItemTextActive: {
     color: '#2563EB',
+  },
+  sidebarDetailHeader: {
+    alignItems: 'center',
+    borderBottomColor: '#E2E8F0',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+    paddingBottom: 10,
+  },
+  sidebarBackButton: {
+    alignItems: 'center',
+    borderRadius: 999,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  sidebarBackButtonPressed: {
+    backgroundColor: '#EFF6FF',
+  },
+  sidebarDetailTitle: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '900',
+    minWidth: 0,
   },
   sidebarContent: {
     paddingBottom: 24,

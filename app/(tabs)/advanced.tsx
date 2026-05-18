@@ -23,9 +23,9 @@ import {
 
 const flashcardOptions: { type: FlashcardType; label: string; description: string }[] = [
   { type: 'bilingual', label: 'Song ngữ', description: 'Từ + nghĩa + ghi chú' },
-  { type: 'word-definition', label: 'Từ -> nghĩa', description: 'Nhìn từ, nhớ định nghĩa' },
-  { type: 'definition-word', label: 'Nghĩa -> từ', description: 'Nhìn định nghĩa, nhớ từ' },
-  { type: 'word-pronunciation', label: 'Từ -> phát âm', description: 'Nhìn từ, nhớ IPA' },
+  { type: 'word-definition', label: 'Từ → nghĩa', description: 'Nhìn từ, nhớ định nghĩa' },
+  { type: 'definition-word', label: 'Nghĩa → từ', description: 'Nhìn định nghĩa, nhớ từ' },
+  { type: 'word-pronunciation', label: 'Từ → phát âm', description: 'Nhìn từ, nhớ IPA' },
 ];
 
 const reviewFilterOptions: { value: FlashcardReviewState | 'all'; label: string }[] = [
@@ -173,7 +173,7 @@ export default function AdvancedScreen() {
   const [folderFilterId, setFolderFilterId] = useState('all');
   const [typeFilter, setTypeFilter] = useState<FlashcardType | 'all'>('all');
   const [reviewFilter, setReviewFilter] = useState<FlashcardReviewState | 'all'>('all');
-  const [activeToolId, setActiveToolId] = useState<LearningToolId>('flashcards');
+  const [activeToolId, setActiveToolId] = useState<LearningToolId | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -223,7 +223,7 @@ export default function AdvancedScreen() {
   }, [libraryState.flashcards]);
 
   const activeCard = filteredFlashcards[activeCardIndex];
-  const activeTool = learningTools.find((tool) => tool.id === activeToolId) ?? learningTools[0];
+  const activeTool = activeToolId ? learningTools.find((tool) => tool.id === activeToolId) ?? null : null;
 
   useEffect(() => {
     setActiveCardIndex((index) => {
@@ -291,16 +291,31 @@ export default function AdvancedScreen() {
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.toolTabs}>
-          {learningTools.map((tool) => (
-            <ToolTab
-              key={tool.id}
-              isSelected={activeToolId === tool.id}
-              tool={tool}
-              onPress={() => setActiveToolId(tool.id)}
-            />
-          ))}
-        </ScrollView>
+        {activeTool ? (
+          <View style={styles.toolDetailHeader}>
+            <TouchableOpacity
+              activeOpacity={0.78}
+              accessibilityLabel="Quay lại danh sách luyện tập"
+              onPress={() => setActiveToolId(null)}
+              style={styles.toolBackButton}>
+              <Ionicons name="chevron-back" size={18} color="#2563EB" />
+            </TouchableOpacity>
+            <View style={[styles.toolDetailHeaderIcon, { backgroundColor: activeTool.accent }]}>
+              <Ionicons name={activeTool.icon} size={18} color="#0F172A" />
+            </View>
+            <Text style={styles.toolDetailTitle} numberOfLines={1}>{activeTool.title}</Text>
+          </View>
+        ) : (
+          <View style={styles.toolList}>
+            {learningTools.map((tool) => (
+              <ToolTab
+                key={tool.id}
+                tool={tool}
+                onPress={() => setActiveToolId(tool.id)}
+              />
+            ))}
+          </View>
+        )}
 
         {activeToolId === 'flashcards' ? (
           <View style={styles.flashcardPanel}>
@@ -441,31 +456,31 @@ export default function AdvancedScreen() {
           <ImportToolPanel libraryState={libraryState} />
         ) : activeToolId === 'export' ? (
           <ExportToolPanel libraryState={libraryState} />
-        ) : (
+        ) : activeTool ? (
           <LearningToolPanel tool={activeTool} />
-        )}
+        ) : null}
       </ScrollView>
     </Screen>
   );
 }
 
 function ToolTab({
-  isSelected,
   onPress,
   tool,
 }: {
-  isSelected: boolean;
   onPress: () => void;
   tool: (typeof learningTools)[number];
 }) {
   return (
-    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={[styles.toolTab, isSelected && styles.toolTabActive]}>
+    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.toolTab}>
       <View style={[styles.toolTabIcon, { backgroundColor: tool.accent }]}>
         <Ionicons name={tool.icon} size={18} color="#0F172A" />
       </View>
-      <Text style={[styles.toolTabText, isSelected && styles.toolTabTextActive]} numberOfLines={1}>
-        {tool.title}
-      </Text>
+      <View style={styles.toolTabCopy}>
+        <Text style={styles.toolTabText} numberOfLines={1}>{tool.title}</Text>
+        <Text style={styles.toolTabDescription} numberOfLines={2}>{tool.description}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
     </TouchableOpacity>
   );
 }
@@ -656,7 +671,7 @@ function AiConversationToolPanel() {
 
 function SpecializedTranslationToolPanel() {
   const [domainId, setDomainId] = useState('general');
-  const [glossaryText, setGlossaryText] = useState('MRI -> cộng hưởng từ\nCT scan -> chụp cắt lớp');
+  const [glossaryText, setGlossaryText] = useState('MRI → cộng hưởng từ\nCT scan → chụp cắt lớp');
   const [sourceText, setSourceText] = useState('The patient underwent an MRI after the initial screening.');
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -665,7 +680,7 @@ function SpecializedTranslationToolPanel() {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [source, target] = line.split('->').map((part) => part.trim());
+      const [source, target] = line.split(/->|→/).map((part) => part.trim());
       return { source: source ?? line, target: target ?? '' };
     });
 
@@ -705,11 +720,11 @@ function SpecializedTranslationToolPanel() {
         ))}
       </ScrollView>
 
-      <Text style={styles.toolSectionLabel}>Glossary (mỗi dòng: thuật ngữ -&gt; bản dịch)</Text>
+      <Text style={styles.toolSectionLabel}>Glossary (mỗi dòng: thuật ngữ → bản dịch)</Text>
       <TextInput
         multiline
         onChangeText={setGlossaryText}
-        placeholder="term -> bản dịch"
+        placeholder="term → bản dịch"
         placeholderTextColor="#94A3B8"
         style={styles.toolTextArea}
         value={glossaryText}
@@ -1624,9 +1639,9 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginTop: 5,
   },
-  toolTabs: {
+  toolList: {
     gap: 10,
-    paddingBottom: 14,
+    marginBottom: 16,
   },
   toolTab: {
     alignItems: 'center',
@@ -1636,13 +1651,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     gap: 8,
-    minWidth: 154,
-    paddingHorizontal: 11,
-    paddingVertical: 10,
-  },
-  toolTabActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    minHeight: 62,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
   },
   toolTabIcon: {
     alignItems: 'center',
@@ -1651,14 +1662,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 34,
   },
-  toolTabText: {
-    color: '#64748B',
+  toolTabCopy: {
     flex: 1,
+    minWidth: 0,
+  },
+  toolTabText: {
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: '900',
   },
-  toolTabTextActive: {
-    color: '#2563EB',
+  toolTabDescription: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 16,
+    marginTop: 3,
+  },
+  toolDetailHeader: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+    padding: 10,
+  },
+  toolBackButton: {
+    alignItems: 'center',
+    borderRadius: 999,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  toolDetailHeaderIcon: {
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  toolDetailTitle: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '900',
+    minWidth: 0,
   },
   toolPanel: {
     backgroundColor: '#FFFFFF',

@@ -5,6 +5,7 @@ import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
+  Image,
   Linking,
   Platform,
   ScrollView,
@@ -45,13 +46,14 @@ import {
   loadLibraryState,
   renameFolder,
   toggleFavoriteFolder,
-  updateFolderColorAndNote
+  updateFolderColorAndNote,
 } from '@/data/libraryStore';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
 type ImportTargetMode = 'new' | 'existing';
+type AddPanelMode = 'choice' | 'create' | 'import';
 type FolderSortOption = 'recent' | 'oldest' | 'az' | 'za' | 'mostWords' | 'leastWords' | 'favoritesFirst';
-type FolderViewMode = 'grid' | 'list' | 'compact';
+type FolderViewMode = 'grid' | 'list';
 
 const defaultImportOptions: VocabularyImportOptions = {
   orientation: 'rows',
@@ -90,12 +92,12 @@ const sortOptions: { value: FolderSortOption; label: string }[] = [
 const viewModeOptions: { value: FolderViewMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { value: 'grid', label: 'Lưới', icon: 'grid-outline' },
   { value: 'list', label: 'Danh sách', icon: 'list-outline' },
-  { value: 'compact', label: 'Gọn', icon: 'albums-outline' },
 ];
 
 const FAB_SIZE = 48;
 const FAB_BOTTOM_GAP = 16;
 const SCROLL_BOTTOM_PADDING = 148;
+const folderColorOptions = ['#E8F0FF', '#EAF8F0', '#FFF1E8', '#F1ECFF', '#FFEFF3', '#EAF7FA'];
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
@@ -103,8 +105,13 @@ export default function LibraryScreen() {
   const [query, setQuery] = useState('');
   const [activeSegment, setActiveSegment] = useState<LibrarySegment>('folders');
   const [createPanelOpen, setCreatePanelOpen] = useState(false);
+  const [addPanelMode, setAddPanelMode] = useState<AddPanelMode>('choice');
   const [folderNameDraft, setFolderNameDraft] = useState('');
   const [createFolderError, setCreateFolderError] = useState('');
+  const [folderColorDraft, setFolderColorDraft] = useState('#E8F0FF');
+  const [folderColorNoteDraft, setFolderColorNoteDraft] = useState('');
+  const [folderTagsDraft, setFolderTagsDraft] = useState('');
+  const [folderAvatarDraft, setFolderAvatarDraft] = useState('');
   const [importCsvContent, setImportCsvContent] = useState('');
   const [importRows, setImportRows] = useState<VocabularyImportRow[]>([]);
   const [importErrors, setImportErrors] = useState<string[]>([]);
@@ -127,11 +134,9 @@ export default function LibraryScreen() {
   const [renameDraft, setRenameDraft] = useState('');
   const [renameError, setRenameError] = useState('');
   const [sortPanelOpen, setSortPanelOpen] = useState(false);
-  const [viewPanelOpen, setViewPanelOpen] = useState(false);
 
   const closeFolderControls = useCallback(() => {
     setSortPanelOpen(false);
-    setViewPanelOpen(false);
     setActiveFolderMenuId('');
   }, []);
 
@@ -172,6 +177,28 @@ export default function LibraryScreen() {
 
   const recentWords = libraryState.savedWords.slice(0, 6);
   const importTargetFolders = libraryState.folders.filter((folder) => folder.id !== getFavoriteFolderId());
+  const folderMetadataReady = addPanelMode === 'create' ? Boolean(folderNameDraft.trim()) : Boolean(importFileName);
+  const folderMetadata = {
+    color: folderColorDraft,
+    colorNote: folderColorNoteDraft,
+    tags: parseTagDraft(folderTagsDraft),
+    avatarUri: folderAvatarDraft,
+  };
+
+  const resetAddFolderDrafts = () => {
+    setFolderNameDraft('');
+    setCreateFolderError('');
+    setFolderColorDraft('#E8F0FF');
+    setFolderColorNoteDraft('');
+    setFolderTagsDraft('');
+    setFolderAvatarDraft('');
+  };
+
+  const closeAddPanel = () => {
+    setCreatePanelOpen(false);
+    setAddPanelMode('choice');
+    resetAddFolderDrafts();
+  };
 
   const updateImportOptions = (nextOptions: VocabularyImportOptions) => {
     setImportOptions(nextOptions);
@@ -196,8 +223,14 @@ export default function LibraryScreen() {
   };
 
   const handleOpenCreateFolder = () => {
-    setCreatePanelOpen((isOpen) => !isOpen);
-    setCreateFolderError('');
+    setCreatePanelOpen((isOpen) => {
+      if (!isOpen) {
+        setAddPanelMode('choice');
+        setCreateFolderError('');
+      }
+
+      return !isOpen;
+    });
   };
 
   const handleCreateFolder = () => {
@@ -213,11 +246,9 @@ export default function LibraryScreen() {
       return;
     }
 
-    createFolder(libraryState, trimmedName).then((nextState) => {
+    createFolder(libraryState, trimmedName, folderMetadata).then((nextState) => {
       setLibraryState(nextState);
-      setFolderNameDraft('');
-      setCreateFolderError('');
-      setCreatePanelOpen(false);
+      closeAddPanel();
       setActiveSegment('folders');
       setQuery('');
     });
@@ -272,7 +303,6 @@ export default function LibraryScreen() {
 
   const handleToggleFolderMenu = (folderId: string) => {
     setSortPanelOpen(false);
-    setViewPanelOpen(false);
     setActiveFolderMenuId((current) => (current === folderId ? '' : folderId));
   };
 
@@ -340,6 +370,12 @@ export default function LibraryScreen() {
       setSelectedImportFolderId(importTargetFolders[0]?.id ?? '');
       setShouldCreateImportFlashcards(false);
       setImportMessage('');
+      setAddPanelMode('import');
+      setCreatePanelOpen(true);
+      setFolderColorDraft('#E8F0FF');
+      setFolderColorNoteDraft('');
+      setFolderTagsDraft('');
+      setFolderAvatarDraft('');
     } catch (error) {
       Alert.alert('Import thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file CSV/TSV này.');
     }
@@ -354,8 +390,8 @@ export default function LibraryScreen() {
     const targetFolder = libraryState.folders.find((folder) => folder.id === selectedImportFolderId);
     const importTarget =
       importTargetMode === 'existing' && targetFolder
-        ? { folderId: targetFolder.id, folderName: targetFolder.name }
-        : { folderName: importFolderName };
+        ? { folderId: targetFolder.id, folderName: targetFolder.name, ...folderMetadata }
+        : { folderName: importFolderName, ...folderMetadata };
     const importedWordIds = importRows.map((row) => `word-${row.word.toLowerCase()}`);
 
     importVocabularyRowsToFolder(libraryState, importRows, importTarget).then((nextState) => {
@@ -393,6 +429,7 @@ export default function LibraryScreen() {
       setImportTargetMode('new');
       setSelectedImportFolderId('');
       setShouldCreateImportFlashcards(false);
+      closeAddPanel();
       setActiveSegment('folders');
       setQuery('');
     });
@@ -416,38 +453,91 @@ export default function LibraryScreen() {
 
         {createPanelOpen ? (
           <View style={styles.createPanel}>
-            <Text style={styles.createTitle}>Tạo bộ từ mới</Text>
-            <View style={styles.createInputBox}>
-              <Ionicons name="folder-outline" size={19} color="#2563EB" />
-              <TextInput
-                autoCorrect={false}
-                onChangeText={(value) => {
-                  setFolderNameDraft(value);
-                  setCreateFolderError('');
-                }}
-                onSubmitEditing={handleCreateFolder}
-                placeholder="Ví dụ: Academic writing"
-                placeholderTextColor="#94A3B8"
-                returnKeyType="done"
-                style={styles.createInput}
-                value={folderNameDraft}
-              />
-            </View>
-            {createFolderError ? <Text style={styles.createError}>{createFolderError}</Text> : null}
-            <View style={styles.createActions}>
-              <TouchableOpacity
-                activeOpacity={0.82}
-                onPress={() => {
-                  setCreatePanelOpen(false);
-                  setCreateFolderError('');
-                }}
-                style={styles.cancelCreateButton}>
-                <Text style={styles.cancelCreateText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFolder} style={styles.submitCreateButton}>
-                <Text style={styles.submitCreateText}>Tạo bộ từ</Text>
-              </TouchableOpacity>
-            </View>
+            {addPanelMode === 'choice' ? (
+              <>
+                <Text style={styles.createTitle}>Thêm vào Tủ từ</Text>
+                <View style={styles.addChoiceGrid}>
+                  <TouchableOpacity
+                    activeOpacity={0.82}
+                    onPress={() => {
+                      resetAddFolderDrafts();
+                      setAddPanelMode('create');
+                    }}
+                    style={styles.addChoiceCard}>
+                    <Ionicons name="folder-outline" size={22} color="#2563EB" />
+                    <Text style={styles.addChoiceTitle}>Tạo mới</Text>
+                    <Text style={styles.addChoiceText}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.addChoiceCard}>
+                    <Ionicons name="cloud-upload-outline" size={22} color="#2563EB" />
+                    <Text style={styles.addChoiceTitle}>Tải lên file</Text>
+                    <Text style={styles.addChoiceText}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.cancelCreateButton}>
+                  <Text style={styles.cancelCreateText}>Đóng</Text>
+                </TouchableOpacity>
+              </>
+            ) : addPanelMode === 'create' ? (
+              <>
+                <Text style={styles.createTitle}>Tạo bộ từ mới</Text>
+                <View style={styles.createInputBox}>
+                  <Ionicons name="folder-outline" size={19} color="#2563EB" />
+                  <TextInput
+                    autoCorrect={false}
+                    onChangeText={(value) => {
+                      setFolderNameDraft(value);
+                      setCreateFolderError('');
+                    }}
+                    onSubmitEditing={handleCreateFolder}
+                    placeholder="Ví dụ: Academic writing"
+                    placeholderTextColor="#94A3B8"
+                    returnKeyType="done"
+                    style={styles.createInput}
+                    value={folderNameDraft}
+                  />
+                </View>
+                {folderMetadataReady ? (
+                  <FolderMetadataEditor
+                    avatarUri={folderAvatarDraft}
+                    color={folderColorDraft}
+                    colorNote={folderColorNoteDraft}
+                    onAvatarUriChange={setFolderAvatarDraft}
+                    onColorChange={setFolderColorDraft}
+                    onColorNoteChange={setFolderColorNoteDraft}
+                    onTagsChange={setFolderTagsDraft}
+                    tags={folderTagsDraft}
+                  />
+                ) : null}
+                {createFolderError ? <Text style={styles.createError}>{createFolderError}</Text> : null}
+                <View style={styles.createActions}>
+                  <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.cancelCreateButton}>
+                    <Text style={styles.cancelCreateText}>Hủy</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFolder} style={styles.submitCreateButton}>
+                    <Text style={styles.submitCreateText}>Tạo bộ từ</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={styles.importHeader}>
+                  <View>
+                    <Text style={styles.importKicker}>Import CSV/TSV</Text>
+                    <Text style={styles.importTitle}>Thêm bộ từ từ file</Text>
+                  </View>
+                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
+                    <Ionicons name="cloud-upload-outline" size={18} color="#2563EB" />
+                    <Text style={styles.importPickText}>{importFileName ? 'Đổi file' : 'Chọn file'}</Text>
+                  </TouchableOpacity>
+                </View>
+                {!importFileName ? (
+                  <Text style={styles.importHint}>
+                    CSV/TSV có thể đọc theo hàng hoặc theo cột. Sau khi chọn file, bạn có thể đổi tên, chọn màu, tag và ảnh đại diện.
+                  </Text>
+                ) : null}
+              </>
+            )}
           </View>
         ) : null}
 
@@ -467,6 +557,7 @@ export default function LibraryScreen() {
           })}
         </View>
 
+        {createPanelOpen && addPanelMode === 'import' ? (
         <View style={styles.importPanel}>
           <View style={styles.importHeader}>
             <View>
@@ -481,6 +572,16 @@ export default function LibraryScreen() {
           {importFileName ? (
             <>
               <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
+              <FolderMetadataEditor
+                avatarUri={folderAvatarDraft}
+                color={folderColorDraft}
+                colorNote={folderColorNoteDraft}
+                onAvatarUriChange={setFolderAvatarDraft}
+                onColorChange={setFolderColorDraft}
+                onColorNoteChange={setFolderColorNoteDraft}
+                onTagsChange={setFolderTagsDraft}
+                tags={folderTagsDraft}
+              />
               <View style={styles.importConfigPanel}>
                 <Text style={styles.importConfigLabel}>Cách đọc dữ liệu</Text>
                 <View style={styles.importOptionGrid}>
@@ -673,6 +774,7 @@ export default function LibraryScreen() {
           )}
           {importMessage ? <Text style={styles.importMessage}>{importMessage}</Text> : null}
         </View>
+        ) : null}
 
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color="#2563EB" />
@@ -693,7 +795,6 @@ export default function LibraryScreen() {
             onPress={() => {
               setActiveFolderMenuId('');
               setSortPanelOpen((isOpen) => !isOpen);
-              setViewPanelOpen(false);
             }}
             style={styles.toolbarLeft}>
             <Ionicons name="swap-vertical" size={18} color="#64748B" />
@@ -702,27 +803,30 @@ export default function LibraryScreen() {
             </Text>
             <Ionicons name="chevron-down" size={15} color="#94A3B8" />
           </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.82}
-            onPress={() => {
-              setActiveFolderMenuId('');
-              setViewPanelOpen((isOpen) => !isOpen);
-              setSortPanelOpen(false);
-            }}
-            style={styles.viewToggle}>
+          <View style={styles.viewToggle}>
             {viewModeOptions.map((option) => {
               const isActive = folderViewMode === option.value;
 
               return (
-                <Ionicons
+                <TouchableOpacity
                   key={option.value}
-                  name={option.icon}
-                  size={18}
-                  color={isActive ? '#2563EB' : '#94A3B8'}
-                />
+                  accessibilityLabel={`Đổi sang dạng ${option.label}`}
+                  activeOpacity={0.78}
+                  onPress={() => {
+                    setActiveFolderMenuId('');
+                    setSortPanelOpen(false);
+                    setFolderViewMode(option.value);
+                  }}
+                  style={[styles.viewIconButton, isActive && styles.viewIconButtonActive]}>
+                  <Ionicons
+                    name={option.icon}
+                    size={18}
+                    color={isActive ? '#2563EB' : '#94A3B8'}
+                  />
+                </TouchableOpacity>
               );
             })}
-          </TouchableOpacity>
+          </View>
         </View>
         {sortPanelOpen ? (
           <ScrollView
@@ -749,32 +853,9 @@ export default function LibraryScreen() {
             })}
           </ScrollView>
         ) : null}
-        {viewPanelOpen ? (
-          <View style={[styles.viewModePanel, styles.folderControlsDropdown]}>
-            {viewModeOptions.map((option) => {
-              const isActive = folderViewMode === option.value;
-
-              return (
-                <TouchableOpacity
-                  key={option.value}
-                  activeOpacity={0.82}
-                  onPress={() => {
-                    setFolderViewMode(option.value);
-                    setViewPanelOpen(false);
-                  }}
-                  style={[styles.viewModeButton, isActive && styles.viewModeButtonActive]}>
-                  <Ionicons name={option.icon} size={18} color={isActive ? '#2563EB' : '#64748B'} />
-                  <Text style={[styles.viewModeText, isActive && styles.viewModeTextActive]}>{option.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ) : null}
-
         <View style={[styles.grid, folderViewMode !== 'grid' && styles.gridList]}>
           {filteredFolders.map((folder) => {
             const wordCount = getFolderWords(libraryState, folder.id).length;
-            const isCompact = folderViewMode === 'compact';
             const isList = folderViewMode === 'list';
 
             return (
@@ -783,7 +864,6 @@ export default function LibraryScreen() {
               style={[
                 styles.folderCard,
                 isList && styles.folderCardList,
-                isCompact && styles.folderCardCompact,
                 activeFolderMenuId === folder.id && styles.folderCardMenuOpen,
               ]}
               activeOpacity={0.85}
@@ -795,11 +875,15 @@ export default function LibraryScreen() {
 
                 router.push(`/folder/${folder.id}` as never);
               }}>
-              <View style={[(isList || isCompact) && styles.folderContentList]}>
-                <View style={[styles.cover, isList && styles.coverList, isCompact && styles.coverCompact, { backgroundColor: folder.color }]}>
-                  <Ionicons name="folder-open-outline" size={isCompact ? 21 : 28} color="#0F172A" />
+              <View style={isList && styles.folderContentList}>
+                <View style={[styles.cover, isList && styles.coverList, { backgroundColor: folder.color }]}>
+                  {folder.avatarUri ? (
+                    <Image source={{ uri: folder.avatarUri }} style={styles.folderAvatarImage} />
+                  ) : (
+                    <Ionicons name="folder-open-outline" size={28} color="#0F172A" />
+                  )}
                 </View>
-                <View style={[styles.folderInfo, (isList || isCompact) && styles.folderInfoList]}>
+                <View style={[styles.folderInfo, isList && styles.folderInfoList]}>
                   <View style={styles.folderCopy}>
                     <View style={styles.folderNameRow}>
                       <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
@@ -811,6 +895,9 @@ export default function LibraryScreen() {
                       ) : null}
                     </View>
                     <Text style={styles.wordNumber}>{wordCount} từ</Text>
+                    {folder.tags.length ? (
+                      <Text numberOfLines={1} style={styles.folderTagText}>{folder.tags.join(', ')}</Text>
+                    ) : null}
                   </View>
                   <TouchableOpacity
                     activeOpacity={0.78}
@@ -1037,6 +1124,71 @@ export default function LibraryScreen() {
   );
 }
 
+function FolderMetadataEditor({
+  avatarUri,
+  color,
+  colorNote,
+  onAvatarUriChange,
+  onColorChange,
+  onColorNoteChange,
+  onTagsChange,
+  tags,
+}: {
+  avatarUri: string;
+  color: string;
+  colorNote: string;
+  onAvatarUriChange: (value: string) => void;
+  onColorChange: (value: string) => void;
+  onColorNoteChange: (value: string) => void;
+  onTagsChange: (value: string) => void;
+  tags: string;
+}) {
+  return (
+    <View style={styles.metadataPanel}>
+      <Text style={styles.metadataTitle}>Tùy chỉnh bộ từ</Text>
+      <View style={styles.colorSwatchRow}>
+        {folderColorOptions.map((option) => (
+          <TouchableOpacity
+            key={option}
+            activeOpacity={0.85}
+            onPress={() => onColorChange(option)}
+            style={[styles.colorSwatch, { backgroundColor: option }, color === option && styles.colorSwatchSelected]}
+          />
+        ))}
+      </View>
+      <TextInput
+        onChangeText={onColorNoteChange}
+        placeholder="Ghi chú màu sắc"
+        placeholderTextColor="#94A3B8"
+        style={styles.metadataInput}
+        value={colorNote}
+      />
+      <TextInput
+        onChangeText={onTagsChange}
+        placeholder="Tag, phân tách bằng dấu phẩy"
+        placeholderTextColor="#94A3B8"
+        style={styles.metadataInput}
+        value={tags}
+      />
+      <TextInput
+        autoCapitalize="none"
+        onChangeText={onAvatarUriChange}
+        placeholder="Ảnh đại diện URL"
+        placeholderTextColor="#94A3B8"
+        style={styles.metadataInput}
+        value={avatarUri}
+      />
+    </View>
+  );
+}
+
+function parseTagDraft(value: string) {
+  return value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
 const styles = StyleSheet.create({
   screenBody: {
     flex: 1,
@@ -1097,6 +1249,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
   },
+  addChoiceGrid: {
+    gap: 10,
+    marginTop: 12,
+  },
+  addChoiceCard: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 12,
+  },
+  addChoiceTitle: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+    minWidth: 76,
+  },
+  addChoiceText: {
+    color: '#64748B',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+  },
   createInputBox: {
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
@@ -1125,6 +1304,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     marginTop: 12,
+  },
+  metadataPanel: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 9,
+    marginTop: 12,
+    padding: 11,
+  },
+  metadataTitle: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  metadataInput: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '800',
+    paddingHorizontal: 11,
+    paddingVertical: 9,
   },
   cancelCreateButton: {
     alignItems: 'center',
@@ -1522,9 +1727,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: 'row',
     flexShrink: 0,
-    gap: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    gap: 4,
+    padding: 4,
+  },
+  viewIconButton: {
+    alignItems: 'center',
+    borderRadius: 7,
+    height: 34,
+    justifyContent: 'center',
+    width: 38,
+  },
+  viewIconButtonActive: {
+    backgroundColor: '#EFF6FF',
   },
   folderControlsDropdown: {
     elevation: 25,
@@ -1744,6 +1958,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     height: 86,
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  folderAvatarImage: {
+    height: '100%',
+    width: '100%',
   },
   coverList: {
     height: 58,
@@ -1875,6 +2094,12 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontSize: 12,
     fontWeight: '700',
+    marginTop: 4,
+  },
+  folderTagText: {
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '800',
     marginTop: 4,
   },
   sectionTitle: {

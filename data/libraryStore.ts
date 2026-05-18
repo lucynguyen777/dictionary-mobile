@@ -13,6 +13,8 @@ export type Folder = {
   name: string;
   color: string;
   colorNote?: string;
+  tags: string[];
+  avatarUri?: string;
   isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
@@ -85,6 +87,10 @@ const folderShareMimeTypes: Record<FolderExportFormat, { mimeType: string; UTI: 
 export type ImportVocabularyTarget = {
   folderId?: string;
   folderName: string;
+  color?: string;
+  colorNote?: string;
+  tags?: string[];
+  avatarUri?: string;
 };
 
 const now = () => new Date().toISOString();
@@ -110,12 +116,19 @@ export async function clearLibraryState() {
 }
 
 
-export async function createFolder(state: LibraryState, name?: string) {
+export async function createFolder(
+  state: LibraryState,
+  name?: string,
+  options?: { color?: string; colorNote?: string; tags?: string[]; avatarUri?: string }
+) {
   const createdAt = now();
   const folder: Folder = {
     id: `folder-${Date.now()}`,
     name: name?.trim() || `New folder ${state.folders.length + 1}`,
-    color: pickFolderColor(state.folders.length),
+    color: options?.color || pickFolderColor(state.folders.length),
+    colorNote: options?.colorNote?.trim() || '',
+    tags: normalizeFolderTags(options?.tags),
+    avatarUri: options?.avatarUri?.trim() || '',
     isFavorite: false,
     createdAt,
     updatedAt: createdAt,
@@ -459,11 +472,21 @@ export async function importVocabularyRowsToFolder(
     ? state.folders.find((folder) => folder.id === targetConfig.folderId)
     : undefined;
   const folder: Folder = existingFolder
-    ? { ...existingFolder, updatedAt: timestamp }
+    ? {
+        ...existingFolder,
+        color: targetConfig.color || existingFolder.color,
+        colorNote: targetConfig.colorNote ?? existingFolder.colorNote ?? '',
+        tags: targetConfig.tags ? normalizeFolderTags(targetConfig.tags) : existingFolder.tags,
+        avatarUri: targetConfig.avatarUri?.trim() ?? existingFolder.avatarUri ?? '',
+        updatedAt: timestamp,
+      }
     : {
         id: `folder-${Date.now()}`,
         name: targetConfig.folderName.trim() || `Imported ${state.folders.length + 1}`,
-        color: pickFolderColor(state.folders.length),
+        color: targetConfig.color || pickFolderColor(state.folders.length),
+        colorNote: targetConfig.colorNote?.trim() || '',
+        tags: normalizeFolderTags(targetConfig.tags),
+        avatarUri: targetConfig.avatarUri?.trim() || '',
         isFavorite: false,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -695,7 +718,9 @@ export function getDefaultLibraryState(): LibraryState {
       id: slugify(folder.name) || `folder-${folder.name.length}`,
       name: folder.name,
       color: folder.color,
-        colorNote: (folder as any).colorNote ?? '',
+      colorNote: (folder as any).colorNote ?? '',
+      tags: [],
+      avatarUri: '',
       isFavorite: false,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -756,6 +781,8 @@ function normalizeFolder(folder: Partial<Folder>): Folder {
     name: folder.name?.trim() || 'Untitled folder',
     color: folder.color || pickFolderColor(0),
     colorNote: folder.colorNote || '',
+    tags: normalizeFolderTags(folder.tags),
+    avatarUri: folder.avatarUri?.trim() || '',
     isFavorite: Boolean(folder.isFavorite),
     createdAt: folder.createdAt ?? timestamp,
     updatedAt: folder.updatedAt ?? folder.createdAt ?? timestamp,
@@ -772,6 +799,33 @@ export async function updateFolderColorAndNote(state: LibraryState, folderId: st
             ...folder,
             color,
             colorNote: colorNote ?? folder.colorNote ?? '',
+            updatedAt: timestamp,
+          }
+        : folder
+    ),
+  };
+
+  await saveLibraryState(nextState);
+
+  return nextState;
+}
+
+export async function updateFolderMetadata(
+  state: LibraryState,
+  folderId: string,
+  metadata: { color?: string; colorNote?: string; tags?: string[]; avatarUri?: string }
+) {
+  const timestamp = now();
+  const nextState = {
+    ...state,
+    folders: state.folders.map((folder) =>
+      folder.id === folderId
+        ? {
+            ...folder,
+            color: metadata.color || folder.color,
+            colorNote: metadata.colorNote ?? folder.colorNote ?? '',
+            tags: metadata.tags ? normalizeFolderTags(metadata.tags) : folder.tags,
+            avatarUri: metadata.avatarUri?.trim() ?? folder.avatarUri ?? '',
             updatedAt: timestamp,
           }
         : folder
@@ -971,6 +1025,10 @@ function pickFolderColor(index: number) {
   const colors = ['#E8F0FF', '#EAF8F0', '#FFF1E8', '#F1ECFF', '#FFEFF3', '#EAF7FA'];
 
   return colors[index % colors.length];
+}
+
+function normalizeFolderTags(tags?: string[]) {
+  return Array.from(new Set((tags ?? []).map((tag) => tag.trim()).filter(Boolean))).slice(0, 8);
 }
 
 function slugify(value: string) {

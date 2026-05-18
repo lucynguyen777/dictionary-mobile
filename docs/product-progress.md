@@ -154,6 +154,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Reuse or polish rename flow from the kebab menu.
 - [x] DONE [MEDIUM]: Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
 - [x] DONE [MEDIUM]: Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
+- [x] DONE [MEDIUM]: Move create-folder and CSV/TSV import entry points behind the fixed plus button with create/upload choices, rename support, and folder metadata editing for color, tags, and avatar URL.
+- [x] DONE [MEDIUM]: Simplify folder view modes to direct grid/list icon toggles and remove the compact text button.
+- [x] DONE [MEDIUM]: Move folder detail export and settings actions into a top-right kebab menu, and align the folder image/avatar beside the folder name.
 
 ### Pronunciation
 - [x] DONE: Audio-only pronunciation in lookup.
@@ -171,6 +174,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Build Dịch chuyên ngành frontend tab: domain/topic selector, glossary import/paste surface, source text editor, translated output panel, terminology highlights, blocked backend notice.
 - [x] DONE [MEDIUM]: Build Import frontend tab polish: dataset source chooser, mapping preview, validation summary, destination folder chooser, flashcard generation checklist.
 - [x] DONE [MEDIUM]: Build Export frontend tab polish: CSV/Excel/Anki text actions, blocked Google Sheets state, export history/status feedback.
+- [x] DONE [MEDIUM]: Move each Training/Luyện tập tool into a list-to-detail flow so tool content opens on its own page with a back affordance.
 
 ### Flashcards
 - [x] DONE: Flashcard MVP from saved words.
