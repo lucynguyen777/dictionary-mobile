@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `e3bf6ce` feat(ui): keep add actions and scroll top controls accessible
   - `7135233` feat(library): refine folder creation and detail menus
   - `f4ad9e4` feat: gate pdf reader import and sync language plans
   - `772ad60` feat(lang): stabilize bilingual dictionary routing
