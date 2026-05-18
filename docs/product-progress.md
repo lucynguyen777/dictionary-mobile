@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `f4ad9e4` feat: gate pdf reader import and sync language plans
   - `772ad60` feat(lang): stabilize bilingual dictionary routing
   - `e9c6e82` feat(flashcards): implement offline sync state management
   - `6f40044` docs(lang): plan Mandarin monolingual baseline and document blocked status
@@ -271,6 +272,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
+  - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
+  - [!] BLOCKED [HARD]: Arabic/Hebrew adapter implementation: WiktAPI does not list `ar`/`he` editions, direct English-edition word probes returned 404, and Kaikki Arabic/Hebrew indexes are English-Wiktionary-derived rather than AR->AR or HE->HE definitions.
   - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
   - Amharic: Ge'ez script and transliteration.
   - Somali: Latin script but needs morphology/source research.
@@ -324,8 +327,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 1. [~] [HARD] Reader PDF import enablement gate: PDF is wired into Reader import only behind `READER_ENABLE_PDF=true` on Expo web; native/Expo Go copy stays unsupported, and manual browser fixture smoke is still required before enabling it by default.
   - Implementation: added a runtime gate `isPdfImportEnabled()` controlled by environment variable `READER_ENABLE_PDF=true` and limited to web (`EXPO_OS=web`); `extractReaderDocument()` now routes gated PDFs through the PDF.js-style parser, and Reader UI reads PDF as `ArrayBuffer` only after the gate passes.
   - Verification (node): `npm test -- --run tests/readerImport.test.ts tests/nativePdfGate.test.ts` passed with gated PDF import, default-disabled PDF import, and native-disabled behavior covered. Manual browser smoke still required.
-2. [ ] [HARD] Arabic/Hebrew RTL baseline planning: document source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates before code.
-3. [ ] [HARD] Hungarian monolingual baseline planning: document source candidates, Latin-script search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates before any Hungarian adapter code.
+2. [ ] [HARD] Hungarian monolingual baseline planning: document source candidates, Latin-script search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates before any Hungarian adapter code.
+3. [ ] [MEDIUM] RTL UI smoke coverage: add static Arabic/Hebrew sample strings to verify dictionary cards, search input direction, saved-word rows, and Reader token display before adapter code.
 
 ## Rule
 

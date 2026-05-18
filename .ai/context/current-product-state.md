@@ -23,8 +23,8 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 `docs/product-progress.md` is the canonical Next Work Queue. The repository currently lists these active queue items (kept to five or fewer):
 
 1. [~] Reader PDF import enablement gate — PDF is wired into Reader import only behind `READER_ENABLE_PDF=true` on Expo web; manual browser fixture smoke remains before enabling it by default.
-2. [ ] Arabic/Hebrew RTL baseline planning — document source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates before code.
-3. [ ] Hungarian monolingual baseline planning — document source candidates, Latin-script search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates before any Hungarian adapter code.
+2. [ ] Hungarian monolingual baseline planning — document source candidates, Latin-script search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates before any Hungarian adapter code.
+3. [ ] RTL UI smoke coverage — add static Arabic/Hebrew sample strings to verify dictionary cards, search input direction, saved-word rows, and Reader token display before adapter code.
 
 If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.
 
@@ -49,3 +49,4 @@ If DONE items appear in `Next Work Queue`, use `product-progress-manager` to cle
 - Etymology/conjugation data sources.
 - Offline dictionary bundles.
 - Finnish monolingual adapter until a true Finnish-definition source and licensing path are accepted.
+- Arabic/Hebrew adapters until true AR->AR and HE->HE definition sources plus RTL UI smoke coverage are accepted.

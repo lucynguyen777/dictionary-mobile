@@ -70,4 +70,5 @@ Before building a new language, analyze:
 - Chinese: segmentation, tones, pinyin, simplified/traditional handling.
 - Japanese: kana/kanji, tokenizer, romaji, possible pitch accent.
 - Arabic: RTL, abjad script handling, root-pattern morphology, diacritics.
+- Hebrew: RTL, abjad script handling, root-pattern morphology, niqqud, final letters.
 - Korean: Hangul, particles, verb/adjective endings, romanization.
