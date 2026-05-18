@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, Stack, router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
@@ -23,6 +23,7 @@ import {
 export default function FolderDetailScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const folderId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const scrollRef = useRef<ScrollView | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
   const [nameDraft, setNameDraft] = useState('');
@@ -123,7 +124,8 @@ export default function FolderDetailScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.screenBody}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={22} color="#0F172A" />
@@ -219,6 +221,14 @@ export default function FolderDetailScreen() {
           </View>
         ) : null}
       </ScrollView>
+      <TouchableOpacity
+        accessibilityLabel="Lên đầu trang"
+        activeOpacity={0.84}
+        onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
+        style={styles.scrollTopButton}>
+        <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
+      </TouchableOpacity>
+      </View>
     </Screen>
   );
 }
@@ -274,10 +284,30 @@ function FolderWordCard({
 }
 
 const styles = StyleSheet.create({
+  screenBody: {
+    flex: 1,
+  },
   content: {
-    paddingBottom: 30,
+    paddingBottom: 96,
     paddingHorizontal: 18,
     paddingTop: 14,
+  },
+  scrollTopButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 22,
+    bottom: 18,
+    elevation: 24,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 18,
+    shadowColor: '#0F172A',
+    shadowOffset: { height: 6, width: 0 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    width: 44,
+    zIndex: 30,
   },
   header: {
     alignItems: 'center',

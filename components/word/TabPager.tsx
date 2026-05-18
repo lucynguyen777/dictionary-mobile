@@ -54,13 +54,20 @@ export default function TabPager({
 }: Props) {
   const { width } = useWindowDimensions();
   const activeIndexRef = useRef(0);
+  const pageScrollRefs = useRef<(ScrollView | null)[]>([]);
+  const [visibleIndex, setVisibleIndex] = useState(0);
 
   const handleIndexChange = (index: number) => {
     const nextIndex = Math.max(0, Math.min(index, tabs.length - 1));
     if (activeIndexRef.current === nextIndex) return;
 
     activeIndexRef.current = nextIndex;
+    setVisibleIndex(nextIndex);
     onIndexChange(nextIndex);
+  };
+
+  const handleScrollActivePageToTop = () => {
+    pageScrollRefs.current[visibleIndex]?.scrollTo({ y: 0, animated: true });
   };
 
   const renderTab = (tab: string) => {
@@ -104,6 +111,7 @@ export default function TabPager({
   };
 
   return (
+    <View style={styles.pagerWrap}>
     <ScrollView
       ref={scrollRef}
       directionalLockEnabled
@@ -121,9 +129,12 @@ export default function TabPager({
         const index = Math.round(e.nativeEvent.contentOffset.x / width);
         handleIndexChange(index);
       }}>
-      {tabs.map((tab) => (
+      {tabs.map((tab, index) => (
         <View key={tab} style={[styles.page, { width }]}>
           <ScrollView
+            ref={(node) => {
+              pageScrollRefs.current[index] = node;
+            }}
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
             contentContainerStyle={styles.pageContent}
@@ -134,6 +145,14 @@ export default function TabPager({
         </View>
       ))}
     </ScrollView>
+    <TouchableOpacity
+      accessibilityLabel="Lên đầu trang"
+      activeOpacity={0.84}
+      onPress={handleScrollActivePageToTop}
+      style={styles.scrollTopButton}>
+      <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
+    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -805,8 +824,28 @@ function getStateToneStyle(tone: StateTone) {
 }
 
 const styles = StyleSheet.create({
+  pagerWrap: {
+    flex: 1,
+  },
   pager: {
     flex: 1,
+  },
+  scrollTopButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 22,
+    bottom: 18,
+    elevation: 24,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 18,
+    shadowColor: '#0F172A',
+    shadowOffset: { height: 6, width: 0 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    width: 44,
+    zIndex: 30,
   },
   page: {
     flex: 1,

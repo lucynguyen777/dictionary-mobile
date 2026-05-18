@@ -123,7 +123,6 @@ export default function LibraryScreen() {
   const [importTargetMode, setImportTargetMode] = useState<ImportTargetMode>('new');
   const [selectedImportFolderId, setSelectedImportFolderId] = useState('');
   const [shouldCreateImportFlashcards, setShouldCreateImportFlashcards] = useState(false);
-  const [importMessage, setImportMessage] = useState('');
   const [folderSort, setFolderSort] = useState<FolderSortOption>('recent');
   const [folderViewMode, setFolderViewMode] = useState<FolderViewMode>('grid');
   const [activeFolderMenuId, setActiveFolderMenuId] = useState('');
@@ -209,7 +208,6 @@ export default function LibraryScreen() {
     setImportRows(parsed.rows);
     setImportErrors(parsed.errors);
     setImportHeaders(parsed.headers ?? []);
-    setImportMessage('');
   };
 
   const handleCycleImportFieldMapping = (index: number) => {
@@ -369,7 +367,6 @@ export default function LibraryScreen() {
       setImportTargetMode('new');
       setSelectedImportFolderId(importTargetFolders[0]?.id ?? '');
       setShouldCreateImportFlashcards(false);
-      setImportMessage('');
       setAddPanelMode('import');
       setCreatePanelOpen(true);
       setFolderColorDraft('#E8F0FF');
@@ -413,7 +410,8 @@ export default function LibraryScreen() {
       const folderLabel = importTarget.folderName || 'Từ đã nhập';
 
       setLibraryState(nextState);
-      setImportMessage(
+      Alert.alert(
+        'Import xong',
         `Đã import ${importRows.length} từ vào "${folderLabel}"${
           shouldCreateImportFlashcards ? ' và tạo flashcard.' : '.'
         }`
@@ -451,96 +449,6 @@ export default function LibraryScreen() {
           </View>
         </View>
 
-        {createPanelOpen ? (
-          <View style={styles.createPanel}>
-            {addPanelMode === 'choice' ? (
-              <>
-                <Text style={styles.createTitle}>Thêm vào Tủ từ</Text>
-                <View style={styles.addChoiceGrid}>
-                  <TouchableOpacity
-                    activeOpacity={0.82}
-                    onPress={() => {
-                      resetAddFolderDrafts();
-                      setAddPanelMode('create');
-                    }}
-                    style={styles.addChoiceCard}>
-                    <Ionicons name="folder-outline" size={22} color="#2563EB" />
-                    <Text style={styles.addChoiceTitle}>Tạo mới</Text>
-                    <Text style={styles.addChoiceText}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.addChoiceCard}>
-                    <Ionicons name="cloud-upload-outline" size={22} color="#2563EB" />
-                    <Text style={styles.addChoiceTitle}>Tải lên file</Text>
-                    <Text style={styles.addChoiceText}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.cancelCreateButton}>
-                  <Text style={styles.cancelCreateText}>Đóng</Text>
-                </TouchableOpacity>
-              </>
-            ) : addPanelMode === 'create' ? (
-              <>
-                <Text style={styles.createTitle}>Tạo bộ từ mới</Text>
-                <View style={styles.createInputBox}>
-                  <Ionicons name="folder-outline" size={19} color="#2563EB" />
-                  <TextInput
-                    autoCorrect={false}
-                    onChangeText={(value) => {
-                      setFolderNameDraft(value);
-                      setCreateFolderError('');
-                    }}
-                    onSubmitEditing={handleCreateFolder}
-                    placeholder="Ví dụ: Academic writing"
-                    placeholderTextColor="#94A3B8"
-                    returnKeyType="done"
-                    style={styles.createInput}
-                    value={folderNameDraft}
-                  />
-                </View>
-                {folderMetadataReady ? (
-                  <FolderMetadataEditor
-                    avatarUri={folderAvatarDraft}
-                    color={folderColorDraft}
-                    colorNote={folderColorNoteDraft}
-                    onAvatarUriChange={setFolderAvatarDraft}
-                    onColorChange={setFolderColorDraft}
-                    onColorNoteChange={setFolderColorNoteDraft}
-                    onTagsChange={setFolderTagsDraft}
-                    tags={folderTagsDraft}
-                  />
-                ) : null}
-                {createFolderError ? <Text style={styles.createError}>{createFolderError}</Text> : null}
-                <View style={styles.createActions}>
-                  <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.cancelCreateButton}>
-                    <Text style={styles.cancelCreateText}>Hủy</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFolder} style={styles.submitCreateButton}>
-                    <Text style={styles.submitCreateText}>Tạo bộ từ</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={styles.importHeader}>
-                  <View>
-                    <Text style={styles.importKicker}>Import CSV/TSV</Text>
-                    <Text style={styles.importTitle}>Thêm bộ từ từ file</Text>
-                  </View>
-                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
-                    <Ionicons name="cloud-upload-outline" size={18} color="#2563EB" />
-                    <Text style={styles.importPickText}>{importFileName ? 'Đổi file' : 'Chọn file'}</Text>
-                  </TouchableOpacity>
-                </View>
-                {!importFileName ? (
-                  <Text style={styles.importHint}>
-                    CSV/TSV có thể đọc theo hàng hoặc theo cột. Sau khi chọn file, bạn có thể đổi tên, chọn màu, tag và ảnh đại diện.
-                  </Text>
-                ) : null}
-              </>
-            )}
-          </View>
-        ) : null}
-
         <View style={styles.segment}>
           {segments.map((segment) => {
             const isActive = activeSegment === segment.key;
@@ -556,225 +464,6 @@ export default function LibraryScreen() {
             );
           })}
         </View>
-
-        {createPanelOpen && addPanelMode === 'import' ? (
-        <View style={styles.importPanel}>
-          <View style={styles.importHeader}>
-            <View>
-              <Text style={styles.importKicker}>Import CSV/TSV</Text>
-              <Text style={styles.importTitle}>Thêm bộ từ từ file</Text>
-            </View>
-            <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
-              <Ionicons name="cloud-upload-outline" size={18} color="#2563EB" />
-              <Text style={styles.importPickText}>Chọn CSV</Text>
-            </TouchableOpacity>
-          </View>
-          {importFileName ? (
-            <>
-              <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
-              <FolderMetadataEditor
-                avatarUri={folderAvatarDraft}
-                color={folderColorDraft}
-                colorNote={folderColorNoteDraft}
-                onAvatarUriChange={setFolderAvatarDraft}
-                onColorChange={setFolderColorDraft}
-                onColorNoteChange={setFolderColorNoteDraft}
-                onTagsChange={setFolderTagsDraft}
-                tags={folderTagsDraft}
-              />
-              <View style={styles.importConfigPanel}>
-                <Text style={styles.importConfigLabel}>Cách đọc dữ liệu</Text>
-                <View style={styles.importOptionGrid}>
-                  {importOrientationOptions.map((option) => {
-                    const isSelected = importOptions.orientation === option.value;
-
-                    return (
-                      <TouchableOpacity
-                        key={option.value}
-                        activeOpacity={0.82}
-                        onPress={() => {
-                          const nextOptions = { ...importOptions, orientation: option.value, fieldMapping: {} };
-                          setImportFieldMapping({});
-                          updateImportOptions(nextOptions);
-                        }}
-                        style={[styles.importOptionCard, isSelected && styles.activeImportOptionCard]}>
-                        <Ionicons
-                          name={isSelected ? 'radio-button-on' : 'radio-button-off'}
-                          size={17}
-                          color={isSelected ? '#2563EB' : '#94A3B8'}
-                        />
-                        <View style={styles.importOptionCopy}>
-                          <Text style={[styles.importOptionTitle, isSelected && styles.activeImportOptionTitle]}>
-                            {option.label}
-                          </Text>
-                          <Text style={styles.importOptionText}>{option.description}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.82}
-                  onPress={() => {
-                    const nextOptions = { ...importOptions, hasHeader: !importOptions.hasHeader, fieldMapping: {} };
-                    setImportFieldMapping({});
-                    updateImportOptions(nextOptions);
-                  }}
-                  style={styles.importHeaderToggle}>
-                  <Ionicons
-                    name={importOptions.hasHeader ? 'checkbox' : 'square-outline'}
-                    size={20}
-                    color={importOptions.hasHeader ? '#2563EB' : '#94A3B8'}
-                  />
-                  <View style={styles.importFlashcardCopy}>
-                    <Text style={styles.importFlashcardTitle}>Dùng hàng/cột đầu làm tên trường</Text>
-                    <Text style={styles.importFlashcardText}>
-                      Bật khi file có nhãn như word, definition, ipa, note, tags.
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                {importHeaders.length ? (
-                  <>
-                    <Text style={styles.importConfigLabel}>Mapping trường</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.mappingRow}>
-                      {importHeaders.map((header, index) => {
-                        const mapped = importFieldMapping[index] ?? 'ignore';
-
-                        return (
-                          <View key={`${header}-${index}`} style={styles.mappingCard}>
-                            <Text style={styles.mappingHeader} numberOfLines={1}>{header || `Trường ${index + 1}`}</Text>
-                            <TouchableOpacity
-                              activeOpacity={0.82}
-                              onPress={() => handleCycleImportFieldMapping(index)}
-                              style={[styles.mappingButton, mapped !== 'ignore' && styles.mappingButtonActive]}>
-                              <Text style={[styles.mappingButtonText, mapped !== 'ignore' && styles.mappingButtonTextActive]}>
-                                {mapped === 'ignore' ? 'Bỏ qua' : mapped}
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                        );
-                      })}
-                    </ScrollView>
-                  </>
-                ) : null}
-                <Text style={styles.importConfigLabel}>Khóa chính</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importPrimaryRow}>
-                  {primaryFieldOptions.map((option) => {
-                    const isSelected = importOptions.primaryField === option.value;
-
-                    return (
-                      <TouchableOpacity
-                        key={option.value}
-                        activeOpacity={0.82}
-                        onPress={() => updateImportOptions({ ...importOptions, primaryField: option.value })}
-                        style={[styles.importPrimaryChip, isSelected && styles.activeImportPrimaryChip]}>
-                        <Text style={[styles.importPrimaryText, isSelected && styles.activeImportPrimaryText]}>
-                          {option.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-              <View style={styles.importModeRow}>
-                <TouchableOpacity
-                  activeOpacity={0.82}
-                  onPress={() => setImportTargetMode('new')}
-                  style={[styles.importModeButton, importTargetMode === 'new' && styles.activeImportModeButton]}>
-                  <Ionicons
-                    name={importTargetMode === 'new' ? 'radio-button-on' : 'radio-button-off'}
-                    size={17}
-                    color={importTargetMode === 'new' ? '#2563EB' : '#94A3B8'}
-                  />
-                  <Text style={[styles.importModeText, importTargetMode === 'new' && styles.activeImportModeText]}>
-                    Bộ từ mới
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.82}
-                  onPress={() => {
-                    setImportTargetMode('existing');
-                    setSelectedImportFolderId((current) => current || importTargetFolders[0]?.id || '');
-                  }}
-                  style={[styles.importModeButton, importTargetMode === 'existing' && styles.activeImportModeButton]}>
-                  <Ionicons
-                    name={importTargetMode === 'existing' ? 'radio-button-on' : 'radio-button-off'}
-                    size={17}
-                    color={importTargetMode === 'existing' ? '#2563EB' : '#94A3B8'}
-                  />
-                  <Text style={[styles.importModeText, importTargetMode === 'existing' && styles.activeImportModeText]}>
-                    Bộ từ có sẵn
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              {importTargetMode === 'new' ? (
-                <View style={styles.createInputBox}>
-                  <Ionicons name="folder-outline" size={19} color="#2563EB" />
-                  <TextInput
-                    autoCorrect={false}
-                    onChangeText={setImportFolderName}
-                    placeholder="Tên bộ từ sau khi import"
-                    placeholderTextColor="#94A3B8"
-                    style={styles.createInput}
-                    value={importFolderName}
-                  />
-                </View>
-              ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importFolderRow}>
-                  {importTargetFolders.map((folder) => {
-                    const isSelected = selectedImportFolderId === folder.id;
-
-                    return (
-                      <TouchableOpacity
-                        key={folder.id}
-                        activeOpacity={0.82}
-                        onPress={() => setSelectedImportFolderId(folder.id)}
-                        style={[styles.importFolderChip, isSelected && styles.activeImportFolderChip]}>
-                        <Text
-                          numberOfLines={1}
-                          style={[styles.importFolderChipText, isSelected && styles.activeImportFolderChipText]}>
-                          {folder.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              )}
-              <TouchableOpacity
-                activeOpacity={0.82}
-                onPress={() => setShouldCreateImportFlashcards((value) => !value)}
-                style={styles.importFlashcardToggle}>
-                <Ionicons
-                  name={shouldCreateImportFlashcards ? 'checkbox' : 'square-outline'}
-                  size={20}
-                  color={shouldCreateImportFlashcards ? '#2563EB' : '#94A3B8'}
-                />
-                <View style={styles.importFlashcardCopy}>
-                  <Text style={styles.importFlashcardTitle}>Tạo flashcard sau import</Text>
-                  <Text style={styles.importFlashcardText}>Tạo thẻ bilingual và từ-nghĩa cho các từ vừa nhập.</Text>
-                </View>
-              </TouchableOpacity>
-              {importRows.slice(0, 3).map((row) => (
-                <View key={row.word} style={styles.importPreviewRow}>
-                  <Text style={styles.importPreviewWord}>{row.word}</Text>
-                  <Text numberOfLines={1} style={styles.importPreviewDefinition}>{row.definition || row.ipa || 'Chưa có định nghĩa'}</Text>
-                </View>
-              ))}
-              {importErrors.slice(0, 4).map((error) => (
-                <Text key={error} style={styles.importError}>{error}</Text>
-              ))}
-              <TouchableOpacity activeOpacity={0.82} onPress={handleImportCsv} style={styles.importSubmitButton}>
-                <Text style={styles.importSubmitText}>Import vào bộ từ</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <Text style={styles.importHint}>
-              CSV/TSV có thể đọc theo hàng hoặc theo cột. Các trường hỗ trợ: word, definition, ipa, note, tags.
-            </Text>
-          )}
-          {importMessage ? <Text style={styles.importMessage}>{importMessage}</Text> : null}
-        </View>
-        ) : null}
 
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color="#2563EB" />
@@ -1025,6 +714,303 @@ export default function LibraryScreen() {
           </View>
         ) : null}
       </ScrollView>
+      {createPanelOpen ? (
+        <View style={styles.addSheetOverlay} pointerEvents="box-none">
+          <TouchableOpacity activeOpacity={1} onPress={closeAddPanel} style={styles.addSheetBackdrop} />
+          <View style={[styles.addSheet, { paddingBottom: 16 + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0) }]}>
+            <ScrollView
+              contentContainerStyle={styles.addSheetContent}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}>
+              {addPanelMode === 'choice' ? (
+                <>
+                  <Text style={styles.addSheetTitle}>Thêm vào Tủ từ</Text>
+                  <TouchableOpacity activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={styles.addChoiceCard}>
+                    <Ionicons name="folder-outline" size={23} color="#2563EB" />
+                    <View style={styles.addChoiceCopy}>
+                      <Text style={styles.addChoiceTitle}>Tạo mới</Text>
+                      <Text style={styles.addChoiceText}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity activeOpacity={0.84} onPress={handlePickCsv} style={styles.addChoiceCard}>
+                    <Ionicons name="cloud-upload-outline" size={23} color="#2563EB" />
+                    <View style={styles.addChoiceCopy}>
+                      <Text style={styles.addChoiceTitle}>Tải lên file</Text>
+                      <Text style={styles.addChoiceText}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.addSheetClose}>
+                    <Text style={styles.addSheetCloseText}>Đóng</Text>
+                  </TouchableOpacity>
+                </>
+              ) : null}
+              {addPanelMode === 'create' ? (
+                <>
+                  <View style={styles.addSheetHeaderRow}>
+                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
+                      <Ionicons name="chevron-back" size={18} color="#2563EB" />
+                    </TouchableOpacity>
+                    <Text style={styles.addSheetTitle}>Tạo bộ từ mới</Text>
+                  </View>
+                  <View style={styles.createInputBox}>
+                    <Ionicons name="folder-outline" size={19} color="#2563EB" />
+                    <TextInput
+                      autoCorrect={false}
+                      onChangeText={(text) => {
+                        setFolderNameDraft(text);
+                        setCreateFolderError('');
+                      }}
+                      placeholder="Tên bộ từ"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.createInput}
+                      value={folderNameDraft}
+                    />
+                  </View>
+                  {createFolderError ? <Text style={styles.createError}>{createFolderError}</Text> : null}
+                  {folderMetadataReady ? (
+                    <FolderMetadataEditor
+                      avatarUri={folderAvatarDraft}
+                      color={folderColorDraft}
+                      colorNote={folderColorNoteDraft}
+                      onAvatarUriChange={setFolderAvatarDraft}
+                      onColorChange={setFolderColorDraft}
+                      onColorNoteChange={setFolderColorNoteDraft}
+                      onTagsChange={setFolderTagsDraft}
+                      tags={folderTagsDraft}
+                    />
+                  ) : null}
+                  <View style={styles.addSheetActions}>
+                    <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.addSheetSecondary}>
+                      <Text style={styles.addSheetSecondaryText}>Hủy</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.84} onPress={handleCreateFolder} style={styles.addSheetPrimary}>
+                      <Text style={styles.addSheetPrimaryText}>Tạo bộ từ</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : null}
+              {addPanelMode === 'import' ? (
+                <>
+                  <View style={styles.addSheetHeaderRow}>
+                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
+                      <Ionicons name="chevron-back" size={18} color="#2563EB" />
+                    </TouchableOpacity>
+                    <Text style={styles.addSheetTitle}>Tải lên file</Text>
+                  </View>
+                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
+                    <Ionicons name="cloud-upload-outline" size={18} color="#2563EB" />
+                    <Text style={styles.importPickText}>{importFileName ? 'Đổi file' : 'Chọn CSV/TSV'}</Text>
+                  </TouchableOpacity>
+                  {importFileName ? (
+                    <>
+                      <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
+                      <FolderMetadataEditor
+                        avatarUri={folderAvatarDraft}
+                        color={folderColorDraft}
+                        colorNote={folderColorNoteDraft}
+                        onAvatarUriChange={setFolderAvatarDraft}
+                        onColorChange={setFolderColorDraft}
+                        onColorNoteChange={setFolderColorNoteDraft}
+                        onTagsChange={setFolderTagsDraft}
+                        tags={folderTagsDraft}
+                      />
+                      <View style={styles.importConfigPanel}>
+                        <Text style={styles.importConfigLabel}>Cách đọc dữ liệu</Text>
+                        <View style={styles.importOptionGrid}>
+                          {importOrientationOptions.map((option) => {
+                            const isSelected = importOptions.orientation === option.value;
+
+                            return (
+                              <TouchableOpacity
+                                key={option.value}
+                                activeOpacity={0.82}
+                                onPress={() => {
+                                  const nextOptions = { ...importOptions, orientation: option.value, fieldMapping: {} };
+                                  setImportFieldMapping({});
+                                  updateImportOptions(nextOptions);
+                                }}
+                                style={[styles.importOptionCard, isSelected && styles.activeImportOptionCard]}>
+                                <Ionicons
+                                  name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                                  size={17}
+                                  color={isSelected ? '#2563EB' : '#94A3B8'}
+                                />
+                                <View style={styles.importOptionCopy}>
+                                  <Text style={[styles.importOptionTitle, isSelected && styles.activeImportOptionTitle]}>
+                                    {option.label}
+                                  </Text>
+                                  <Text style={styles.importOptionText}>{option.description}</Text>
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                        <TouchableOpacity
+                          activeOpacity={0.82}
+                          onPress={() => {
+                            const nextOptions = { ...importOptions, hasHeader: !importOptions.hasHeader, fieldMapping: {} };
+                            setImportFieldMapping({});
+                            updateImportOptions(nextOptions);
+                          }}
+                          style={styles.importHeaderToggle}>
+                          <Ionicons
+                            name={importOptions.hasHeader ? 'checkbox' : 'square-outline'}
+                            size={20}
+                            color={importOptions.hasHeader ? '#2563EB' : '#94A3B8'}
+                          />
+                          <View style={styles.importFlashcardCopy}>
+                            <Text style={styles.importFlashcardTitle}>Dùng hàng/cột đầu làm tên trường</Text>
+                            <Text style={styles.importFlashcardText}>
+                              Bật khi file có nhãn như word, definition, ipa, note, tags.
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                        {importHeaders.length ? (
+                          <>
+                            <Text style={styles.importConfigLabel}>Mapping trường</Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.mappingRow}>
+                              {importHeaders.map((header, index) => {
+                                const mapped = importFieldMapping[index] ?? 'ignore';
+
+                                return (
+                                  <View key={`${header}-${index}`} style={styles.mappingCard}>
+                                    <Text style={styles.mappingHeader} numberOfLines={1}>{header || `Trường ${index + 1}`}</Text>
+                                    <TouchableOpacity
+                                      activeOpacity={0.82}
+                                      onPress={() => handleCycleImportFieldMapping(index)}
+                                      style={[styles.mappingButton, mapped !== 'ignore' && styles.mappingButtonActive]}>
+                                      <Text style={[styles.mappingButtonText, mapped !== 'ignore' && styles.mappingButtonTextActive]}>
+                                        {mapped === 'ignore' ? 'Bỏ qua' : mapped}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                );
+                              })}
+                            </ScrollView>
+                          </>
+                        ) : null}
+                        <Text style={styles.importConfigLabel}>Khóa chính</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importPrimaryRow}>
+                          {primaryFieldOptions.map((option) => {
+                            const isSelected = importOptions.primaryField === option.value;
+
+                            return (
+                              <TouchableOpacity
+                                key={option.value}
+                                activeOpacity={0.82}
+                                onPress={() => updateImportOptions({ ...importOptions, primaryField: option.value })}
+                                style={[styles.importPrimaryChip, isSelected && styles.activeImportPrimaryChip]}>
+                                <Text style={[styles.importPrimaryText, isSelected && styles.activeImportPrimaryText]}>
+                                  {option.label}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </ScrollView>
+                      </View>
+                      <View style={styles.importModeRow}>
+                        <TouchableOpacity
+                          activeOpacity={0.82}
+                          onPress={() => setImportTargetMode('new')}
+                          style={[styles.importModeButton, importTargetMode === 'new' && styles.activeImportModeButton]}>
+                          <Ionicons
+                            name={importTargetMode === 'new' ? 'radio-button-on' : 'radio-button-off'}
+                            size={17}
+                            color={importTargetMode === 'new' ? '#2563EB' : '#94A3B8'}
+                          />
+                          <Text style={[styles.importModeText, importTargetMode === 'new' && styles.activeImportModeText]}>
+                            Bộ từ mới
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          activeOpacity={0.82}
+                          onPress={() => {
+                            setImportTargetMode('existing');
+                            setSelectedImportFolderId((current) => current || importTargetFolders[0]?.id || '');
+                          }}
+                          style={[styles.importModeButton, importTargetMode === 'existing' && styles.activeImportModeButton]}>
+                          <Ionicons
+                            name={importTargetMode === 'existing' ? 'radio-button-on' : 'radio-button-off'}
+                            size={17}
+                            color={importTargetMode === 'existing' ? '#2563EB' : '#94A3B8'}
+                          />
+                          <Text style={[styles.importModeText, importTargetMode === 'existing' && styles.activeImportModeText]}>
+                            Bộ từ có sẵn
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      {importTargetMode === 'new' ? (
+                        <View style={styles.createInputBox}>
+                          <Ionicons name="folder-outline" size={19} color="#2563EB" />
+                          <TextInput
+                            autoCorrect={false}
+                            onChangeText={setImportFolderName}
+                            placeholder="Tên bộ từ sau khi import"
+                            placeholderTextColor="#94A3B8"
+                            style={styles.createInput}
+                            value={importFolderName}
+                          />
+                        </View>
+                      ) : (
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.importFolderRow}>
+                          {importTargetFolders.map((folder) => {
+                            const isSelected = selectedImportFolderId === folder.id;
+
+                            return (
+                              <TouchableOpacity
+                                key={folder.id}
+                                activeOpacity={0.82}
+                                onPress={() => setSelectedImportFolderId(folder.id)}
+                                style={[styles.importFolderChip, isSelected && styles.activeImportFolderChip]}>
+                                <Text
+                                  numberOfLines={1}
+                                  style={[styles.importFolderChipText, isSelected && styles.activeImportFolderChipText]}>
+                                  {folder.name}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </ScrollView>
+                      )}
+                      <TouchableOpacity
+                        activeOpacity={0.82}
+                        onPress={() => setShouldCreateImportFlashcards((value) => !value)}
+                        style={styles.importFlashcardToggle}>
+                        <Ionicons
+                          name={shouldCreateImportFlashcards ? 'checkbox' : 'square-outline'}
+                          size={20}
+                          color={shouldCreateImportFlashcards ? '#2563EB' : '#94A3B8'}
+                        />
+                        <View style={styles.importFlashcardCopy}>
+                          <Text style={styles.importFlashcardTitle}>Tạo flashcard sau import</Text>
+                          <Text style={styles.importFlashcardText}>Tạo thẻ bilingual và từ-nghĩa cho các từ vừa nhập.</Text>
+                        </View>
+                      </TouchableOpacity>
+                      {importRows.slice(0, 3).map((row) => (
+                        <View key={row.word} style={styles.importPreviewRow}>
+                          <Text style={styles.importPreviewWord}>{row.word}</Text>
+                          <Text numberOfLines={1} style={styles.importPreviewDefinition}>{row.definition || row.ipa || 'Chưa có định nghĩa'}</Text>
+                        </View>
+                      ))}
+                      {importErrors.slice(0, 4).map((error) => (
+                        <Text key={error} style={styles.importError}>{error}</Text>
+                      ))}
+                      <TouchableOpacity activeOpacity={0.82} onPress={handleImportCsv} style={styles.importSubmitButton}>
+                        <Text style={styles.importSubmitText}>Import vào bộ từ</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <Text style={styles.importHint}>
+                      CSV/TSV có thể đọc theo hàng hoặc theo cột. Các trường hỗ trợ: word, definition, ipa, note, tags.
+                    </Text>
+                  )}
+                </>
+              ) : null}
+            </ScrollView>
+          </View>
+        </View>
+      ) : null}
       {colorPickerFolderId ? (
         <View style={styles.colorPickerOverlay} pointerEvents="box-none">
           <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => setColorPickerFolderId('')} />
@@ -1228,6 +1214,125 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     zIndex: 45,
   },
+  addSheetOverlay: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 70,
+  },
+  addSheetBackdrop: {
+    backgroundColor: 'rgba(15, 23, 42, 0.24)',
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  addSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    bottom: 0,
+    left: 0,
+    maxHeight: '82%',
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    position: 'absolute',
+    right: 0,
+    shadowColor: '#0F172A',
+    shadowOffset: { height: -8, width: 0 },
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
+  },
+  addSheetContent: {
+    gap: 10,
+    paddingBottom: 4,
+  },
+  addSheetTitle: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  addSheetHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  addBackButton: {
+    alignItems: 'center',
+    backgroundColor: '#EAF1FF',
+    borderRadius: 999,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  addChoiceCard: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#DCE6F5',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    padding: 14,
+  },
+  addChoiceCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  addChoiceTitle: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  addChoiceText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+  },
+  addSheetClose: {
+    alignItems: 'center',
+    backgroundColor: '#EEF2F7',
+    borderRadius: 8,
+    paddingVertical: 13,
+  },
+  addSheetCloseText: {
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  addSheetActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  addSheetPrimary: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 13,
+  },
+  addSheetPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  addSheetSecondary: {
+    alignItems: 'center',
+    backgroundColor: '#EEF2F7',
+    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 13,
+  },
+  addSheetSecondaryText: {
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: '900',
+  },
   segment: {
     backgroundColor: '#EAF1FF',
     borderRadius: 8,
@@ -1235,46 +1340,6 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 18,
     padding: 5,
-  },
-  createPanel: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DBEAFE',
-    borderRadius: 8,
-    borderWidth: 1,
-    marginTop: 16,
-    padding: 14,
-  },
-  createTitle: {
-    color: '#0F172A',
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  addChoiceGrid: {
-    gap: 10,
-    marginTop: 12,
-  },
-  addChoiceCard: {
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    padding: 12,
-  },
-  addChoiceTitle: {
-    color: '#0F172A',
-    fontSize: 14,
-    fontWeight: '900',
-    minWidth: 76,
-  },
-  addChoiceText: {
-    color: '#64748B',
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 17,
   },
   createInputBox: {
     alignItems: 'center',

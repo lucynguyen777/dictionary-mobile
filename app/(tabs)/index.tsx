@@ -22,6 +22,7 @@ type LanguageField = 'source' | 'target';
 export default function HomeScreen() {
   const router = useRouter();
   const lookupInputRef = useRef<TextInput | null>(null);
+  const scrollRef = useRef<ScrollView | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [lookupQuery, setLookupQuery] = useState('');
@@ -97,7 +98,8 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.screenBody}>
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
           <View>
             <Text style={styles.greeting}>Chào buổi học mới</Text>
@@ -265,6 +267,14 @@ export default function HomeScreen() {
           </Link>
         ) : null}
       </ScrollView>
+      <TouchableOpacity
+        accessibilityLabel="Lên đầu trang"
+        activeOpacity={0.84}
+        onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
+        style={styles.scrollTopButton}>
+        <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
+      </TouchableOpacity>
+      </View>
     </Screen>
   );
 }
@@ -324,10 +334,30 @@ function LanguageSelect({
 }
 
 const styles = StyleSheet.create({
+  screenBody: {
+    flex: 1,
+  },
   content: {
-    paddingBottom: 28,
+    paddingBottom: 96,
     paddingHorizontal: 18,
     paddingTop: 14,
+  },
+  scrollTopButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 22,
+    bottom: 18,
+    elevation: 24,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 18,
+    shadowColor: '#0F172A',
+    shadowOffset: { height: 6, width: 0 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    width: 44,
+    zIndex: 30,
   },
   topBar: {
     alignItems: 'center',

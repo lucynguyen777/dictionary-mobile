@@ -99,6 +99,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### UI & Copy Polish
 - [x] DONE [EASY]: Localized small UI strings and polished lookup error presentation (commit `a6f1c79`).
+- [x] DONE [EASY]: Add bottom-right scroll-to-top controls on long lookup and folder pages.
 
 
 ### Dictionary Lookup
@@ -155,7 +156,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Reuse or polish rename flow from the kebab menu.
 - [x] DONE [MEDIUM]: Add share action for folders using available local share/export paths; keep unsupported platforms graceful.
 - [x] DONE [MEDIUM]: Ensure search, sort, view mode, kebab menu, and fixed plus button work on mobile and Expo web without overlap.
-- [x] DONE [MEDIUM]: Move create-folder and CSV/TSV import entry points behind the fixed plus button with create/upload choices, rename support, and folder metadata editing for color, tags, and avatar URL.
+- [x] DONE [MEDIUM]: Move create-folder and CSV/TSV import entry points into the fixed plus button sheet with create/upload choices, rename support, and folder metadata editing for color, tags, and avatar URL, without keeping the form at the top of the folder list.
 - [x] DONE [MEDIUM]: Simplify folder view modes to direct grid/list icon toggles and remove the compact text button.
 - [x] DONE [MEDIUM]: Move folder detail export and settings actions into a top-right kebab menu, and align the folder image/avatar beside the folder name.
 
