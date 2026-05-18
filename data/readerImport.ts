@@ -5,7 +5,7 @@ import mammoth from 'mammoth';
 export type SupportedReaderImportFormat = 'txt' | 'html';
 export type UnsupportedReaderImportFormat = 'pdf' | 'docx' | 'epub';
 export type ReaderImportFormat = SupportedReaderImportFormat | UnsupportedReaderImportFormat;
-export type EnabledReaderImportFormat = SupportedReaderImportFormat | 'docx' | 'epub';
+export type EnabledReaderImportFormat = SupportedReaderImportFormat | 'docx' | 'epub' | 'pdf';
 export type ReaderImportPlan = {
   label: string;
   status: 'supported' | 'planned';
@@ -89,7 +89,7 @@ export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
     status: 'planned',
     parser: 'expo-pdf-text-extract for dev-client/native, PDF.js-style fallback for web',
     note: 'PDF text extraction phụ thuộc nền tảng; digital PDFs khác scanned PDFs và Expo Go không phù hợp cho native module.',
-    nextStep: 'Giữ PDF disabled, chỉ prototype sau khi có dev-client/web test fixture cho digital PDF.',
+    nextStep: 'PDF chỉ bật sau gate: READER_ENABLE_PDF=true trên Expo web; native/Expo Go vẫn hiển thị trạng thái chưa hỗ trợ.',
   },
 };
 
@@ -161,6 +161,18 @@ export async function extractReaderDocument(
       content,
       sourceFormat,
     };
+  }
+
+  if (sourceFormat === 'pdf') {
+    if (!isPdfImportEnabled()) {
+      throw new Error(getUnsupportedReaderImportMessage(sourceFormat));
+    }
+
+    if (typeof rawContent === 'string') {
+      throw new Error('PDF cần đọc ở dạng ArrayBuffer trước khi chuyển sang Reader text.');
+    }
+
+    return extractPdfReaderDocument(fileName, rawContent);
   }
 
   if (!isSupportedReaderImportFormat(sourceFormat)) {
@@ -294,6 +306,10 @@ export function isPdfImportEnabled(): boolean {
 
 export function getUnsupportedReaderImportMessage(format: UnsupportedReaderImportFormat) {
   const plan = readerImportPlans[format];
+
+  if (format === 'pdf') {
+    return `${plan.label} cần parser riêng trước khi import vào Reader. Chiến lược: ${plan.parser}. ${plan.nextStep} Scanned PDF cần OCR riêng nên vẫn chưa hỗ trợ.`;
+  }
 
   return `${plan.label} cần parser riêng trước khi import vào Reader. Chiến lược: ${plan.parser}. ${plan.nextStep} Hiện app mới hỗ trợ TXT và HTML an toàn.`;
 }

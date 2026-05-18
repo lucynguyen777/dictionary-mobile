@@ -1,9 +1,10 @@
 # Reader PDF Implementation Preparation
 
 ## Status
-PDF extraction is still disabled in the Reader import route. The parser prototype now has:
+PDF extraction is disabled by default in the Reader import route. The parser prototype now has:
 - a `pdfjs-dist` dependency for PDF.js-style extraction;
 - `extractPdfReaderText()` and `extractPdfReaderDocument()` in `data/readerImport.ts`;
+- gated `extractReaderDocument()` routing when `READER_ENABLE_PDF=true` and `EXPO_OS=web`;
 - fixture tests for digital, empty, and image-only PDFs.
 
 Expo web export smoke passed with the PDF.js dynamic chunk emitted separately:
@@ -48,7 +49,7 @@ Why this path:
 - Expo Go behavior is explicit if any native parser is selected.
 
 ## Next Implementation Slice
-Keep `isEnabledReaderImportFormat('pdf')` false until manual smoke passes on Expo web and the UI copy clearly explains unsupported native/Expo Go behavior. The next implementation slice should wire PDF into `extractReaderDocument()` behind that gate, not before.
+Keep `isEnabledReaderImportFormat('pdf')` false by default until manual smoke passes on Expo web. The next implementation slice is manual browser fixture smoke plus any UI/error copy adjustment discovered there; production/native enablement remains blocked until platform behavior is explicitly accepted.
 
 ## Sources Checked
 - PDF.js-style extraction is the selected web prototype path.

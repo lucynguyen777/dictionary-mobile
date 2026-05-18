@@ -1,6 +1,6 @@
 # Dictionary Mobile Product Progress
 
-File này là checklist tiến độ chính của dự án. Sau mỗi bước triển khai, cập nhật trạng thái ở đây sau khi commit.
+File này là checklist tiến độ chính của dự án. Sau mỗi bước triển khai, cập nhật trạng thái ở đây trước commit; nếu cần ghi commit hash mới vào `Current Baseline`, cập nhật bằng commit checklist kế tiếp ngay sau commit code.
 
 ## Status Legend
 - `[x] DONE`: đã triển khai và đã kiểm tra cơ bản.
@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Reader PDF extraction fixture/prototype gating, source selection for etymology/conjugation, and voice/OCR exploration.
+- Hard next tasks: Reader PDF import enablement gating, source selection for etymology/conjugation, verified monolingual source research, RTL planning, and voice/OCR exploration.
 
 ## Current Baseline
 - Latest completed commits:
@@ -247,6 +247,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Advanced Features
 
+### Dictionary Data Tooling
+- [x] DONE [MEDIUM]: Schedule bulk crawl and import for headword batches: `scripts/wiktionary-bulk.mjs`, `scripts/wiktionary-client.mjs`, sample headword list, `.gitignore`, and `docs/cache-and-fixtures.md` support resumable crawls with ignored cache/log output. Verification: `node scripts/wiktionary-bulk.mjs --file data/headword-lists/sample-headwords.txt --batch-size 3 --concurrency 2 --delay-between-batches 1 --delay-ms 1 --resume` skipped 6 existing cached sample entries with 0 errors.
+
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
 - [x] DONE [MEDIUM]: FR-FR dictionary via hybrid local/Wiktapi source (commit `3ec1975`).
@@ -282,13 +285,18 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
 - [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
+  - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
+  - [x] DONE [HARD]: Finnish monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/finnish-language-plan.md`.
+  - [!] BLOCKED [HARD]: Finnish monolingual baseline implementation: WiktAPI does not list a `fi` edition and `fi` probes for `talo`/`syödä` returned 404; English-edition Finnish entries provide forms and EN glosses but are not a FI-FI definition source, so no adapter should be registered until a true Finnish-definition source and licensing path are accepted.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
-  - [!] BLOCKED [HARD]: Japanese/Korean adapter implementation slices require a verified JA->JA or KO->KO structured source before code changes.
+  - [x] DONE [HARD]: Japanese/Korean monolingual source candidates identified: Kaikki/Wiktextract raw data from `jawiktionary` and `kowiktionary` provide Japanese/Korean-edition gloss metadata; adapter implementation still requires tiny fixture smoke first.
+  - [x] DONE [HARD]: Japanese/Korean raw dump noun/verb smoke: `猫`, `たべる`, `사랑`, and `먹다` confirm target-language glosses and useful metadata in raw dumps; hosted WiktAPI direct word endpoints still return 404 for sampled JA/KO words.
+  - [!] BLOCKED [HARD]: Japanese/Korean adapter implementation slices and committed Wiktionary-derived fixtures require accepted source licensing/attribution policy before code changes.
   - Japanese: kana/kanji, romaji, tokenizer, pitch accent if source supports it.
   - Korean: Hangul, romanization, particles, verb/adjective endings; treat as Korean-specific, not dependent on disputed Altaic grouping.
 - [!] BLOCKED [HARD]: Amerind/proposed-family candidates: Quechua, Nahuatl, Guarani.
@@ -313,17 +321,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Reader PDF import enablement gate: Expo web export smoke passed with a separate PDF.js chunk; manual browser fixture smoke and unsupported native/Expo Go copy still required before wiring PDF into Reader import.
-  - Implementation: added a runtime gate `isPdfImportEnabled()` controlled by environment variable `READER_ENABLE_PDF=true` and limited to web (`EXPO_OS=web`). Manual browser fixture smoke and native/Expo Go verification remain required before fully wiring PDF into Reader import.
-  - Verification (node): ran targeted unit tests against `tests/readerImport.test.ts` with `READER_ENABLE_PDF=true` and `EXPO_OS=web` — PDF extraction functions passed against digital fixtures; manual browser smoke still required.
-2. [~] [HARD] Choose etymology/conjugation source option: accept a source decision or keep production integration blocked.
-  - Started: prepared `docs/decisions/etymology-conjugation-source.md` with candidate sources, evaluation criteria, and recommended next steps. Product owner decision required to continue implementation.
-  - Acceptance criteria: product owner accepts a legal structured source in `docs/decisions/etymology-conjugation-source.md`; chosen source has documented license/terms and a plan for smoke-testing integration before enabling production.
-3. [ ] [HARD] Find verified Japanese/Korean monolingual source: identify JA->JA or KO->KO structured data before adapter implementation.
-
-4. [~] [MEDIUM] Schedule bulk crawl and import for headword batches: implement a batch runner to crawl Wiktionary headwords, cache parse results, and produce importable JSONL artifacts.
-  - Implementation: add `scripts/wiktionary-bulk.mjs` (batch scheduler), `scripts/wiktionary-client.mjs` (shared client utilities), and sample headword lists under `data/headword-lists/`.
-  - Acceptance criteria: the bulk runner can process a list file, skip existing cached entries when `--resume` is used, write per-run JSONL logs to `data/wiktionary-bulk-runs/`, and produce cached parse JSON under `data/wiktionary-cache/<lang>/` for each headword. A sample run is in repo and documented in README or this product-progress entry.
+1. [~] [HARD] Reader PDF import enablement gate: PDF is wired into Reader import only behind `READER_ENABLE_PDF=true` on Expo web; native/Expo Go copy stays unsupported, and manual browser fixture smoke is still required before enabling it by default.
+  - Implementation: added a runtime gate `isPdfImportEnabled()` controlled by environment variable `READER_ENABLE_PDF=true` and limited to web (`EXPO_OS=web`); `extractReaderDocument()` now routes gated PDFs through the PDF.js-style parser, and Reader UI reads PDF as `ArrayBuffer` only after the gate passes.
+  - Verification (node): `npm test -- --run tests/readerImport.test.ts tests/nativePdfGate.test.ts` passed with gated PDF import, default-disabled PDF import, and native-disabled behavior covered. Manual browser smoke still required.
+2. [ ] [HARD] Arabic/Hebrew RTL baseline planning: document source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates before code.
+3. [ ] [HARD] Hungarian monolingual baseline planning: document source candidates, Latin-script search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates before any Hungarian adapter code.
 
 ## Rule
 
@@ -342,7 +344,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 1. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất trong queue và trước mỗi lần commit code phải có ít nhất 3 task trong queue.
 2. Các task chưa vào queue vẫn phải giữ ở section checklist tương ứng, không xóa khỏi roadmap.
 3. Ưu tiên task theo thứ tự dễ đến khó, trừ khi user chọn rõ một ưu tiên khác.
-4. Khi nhiều hơn 3 task được mark [x] DONE, cập nhật Next Work Queue theo trạng thái thực tế của code: `[~]`, `[ ]`, hoặc `[!]`.
+4. Sau khi task trong queue chuyển sang `[x] DONE`, xóa task đó khỏi `Next Work Queue` và thêm task kế tiếp nếu còn dưới 3 mục ưu tiên hợp lệ; không kéo task `[!] BLOCKED` vào queue như việc có thể làm ngay.
 
 ### Language Build Rules
 1. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó và ghi vào `Language Family Roadmap`.

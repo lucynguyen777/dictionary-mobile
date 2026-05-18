@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   extractDocxReaderText,
@@ -19,6 +19,13 @@ import {
 
 const pdfFixtureDir = join(process.cwd(), 'tests', 'fixtures', 'reader-pdf');
 const standardFontDataUrl = join(process.cwd(), 'node_modules', 'pdfjs-dist', 'standard_fonts') + '/';
+const originalReaderEnablePdf = process.env.READER_ENABLE_PDF;
+const originalExpoOs = process.env.EXPO_OS;
+
+afterEach(() => {
+  restoreEnv('READER_ENABLE_PDF', originalReaderEnablePdf);
+  restoreEnv('EXPO_OS', originalExpoOs);
+});
 
 describe('readerImport', () => {
   it('extracts readable text from HTML', () => {
@@ -45,7 +52,7 @@ describe('readerImport', () => {
     expect(readerImportPlans.docx.parser).toContain('Mammoth');
     expect(readerImportPlans.epub.parser).toContain('ZIP spine');
     expect(readerImportPlans.pdf.parser).toContain('expo-pdf-text-extract');
-    expect(readerImportPlans.pdf.nextStep).toContain('PDF disabled');
+    expect(readerImportPlans.pdf.nextStep).toContain('READER_ENABLE_PDF=true');
   });
 
   it('converts DOCX HTML output into Reader text', async () => {
@@ -119,6 +126,19 @@ describe('readerImport', () => {
     expect(isEnabledReaderImportFormat('pdf')).toBe(false);
   });
 
+  it('imports PDF documents through the async Reader document path only when the web gate is enabled', async () => {
+    process.env.READER_ENABLE_PDF = 'true';
+    process.env.EXPO_OS = 'web';
+
+    const buffer = await readFixtureArrayBuffer('digital-simple.pdf');
+    const result = await extractReaderDocument('digital-simple.pdf', buffer, 'application/pdf');
+
+    expect(result.title).toBe('digital-simple');
+    expect(result.sourceFormat).toBe('pdf');
+    expect(result.content).toContain('Reader PDF Simple Fixture');
+    expect(isEnabledReaderImportFormat('pdf')).toBe(true);
+  });
+
   it('wraps PDF extraction in the Reader import result shape', async () => {
     const buffer = await readFixtureArrayBuffer('digital-multiline.pdf');
     const result = await extractPdfReaderDocument('digital-multiline.pdf', buffer, (rawContent) =>
@@ -157,4 +177,13 @@ async function readFixtureArrayBuffer(fileName: string) {
   const buffer = await readFile(join(pdfFixtureDir, fileName));
 
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+}
+
+function restoreEnv(key: string, value: string | undefined) {
+  if (value === undefined) {
+    delete process.env[key];
+    return;
+  }
+
+  process.env[key] = value;
 }

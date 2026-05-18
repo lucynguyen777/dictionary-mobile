@@ -88,7 +88,7 @@ Reader document fields:
 - `id`
 - `title`
 - `content`
-- `sourceFormat`: `txt` or `html`
+- `sourceFormat`: `txt`, `html`, `docx`, or `epub` in normal import flows; `pdf` may appear only when the web PDF gate is explicitly enabled.
 - `createdAt`
 - `updatedAt`
 

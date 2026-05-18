@@ -48,6 +48,7 @@
 - `tests/adapterRegistry.test.ts`
 - `tests/dictionaryApi.test.ts`
 - `tests/readerImport.test.ts`
+- `tests/nativePdfGate.test.ts`
 
 ## Backend-Sensitive Areas
 These require accepted decision docs before production implementation:

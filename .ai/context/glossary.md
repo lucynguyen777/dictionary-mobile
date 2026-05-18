@@ -23,7 +23,7 @@
 
 ## Reader Terms
 - Reader document: local text document stored in reader state.
-- Source format: currently `txt` or `html`.
+- Source format: Reader store value produced by import helpers; currently `txt`, `html`, `docx`, or `epub` in normal import flows. `pdf` is allowed only when the web PDF gate is explicitly enabled.
 - Highlight: selected reader text used for lookup/save/flashcard creation.
 
 ## Decision Terms

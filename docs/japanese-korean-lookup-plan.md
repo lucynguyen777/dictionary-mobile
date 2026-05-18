@@ -37,6 +37,7 @@ Both languages are already visible as future options but must stay coming-soon u
 ### Source Strategy
 Candidate sources:
 - Kaikki/Wiktextract Japanese data for machine-readable entries.
+- Kaikki/Wiktextract `jawiktionary` raw data is the preferred first JA->JA candidate because the raw dump page states glosses and metadata are in Japanese.
 - WiktAPI if the target endpoint returns usable Japanese entries from a suitable Wiktionary edition.
 - Japanese Wiktionary edition extracts for monolingual Japanese definitions, if coverage and extraction quality are acceptable.
 
@@ -68,6 +69,7 @@ Do not use English Wiktionary Japanese entries as the monolingual baseline if de
 ### Source Strategy
 Candidate sources:
 - Kaikki/Wiktextract Korean data for machine-readable entries.
+- Kaikki/Wiktextract `kowiktionary` raw data is the preferred first KO->KO candidate because the raw dump page states glosses and metadata are in Korean.
 - WiktAPI if the target endpoint returns usable Korean entries from a suitable Wiktionary edition.
 - Korean Wiktionary edition extracts for monolingual Korean definitions, if extraction quality is acceptable.
 - UniMorph or Korean-specific morphology datasets only for inflection/paradigm support, not definitions.
@@ -83,7 +85,7 @@ Before adding `ja` or `ko` adapter code:
 5. Keep unsupported bilingual pairs guarded in `data/languages.ts` and `data/dictionaryApi.ts`.
 6. Add tests for adapter registration, dispatch, unsupported bilingual routing, and source-missing behavior.
 
-Current smoke evidence is tracked in `docs/japanese-korean-source-smoke.md`. WiktAPI returned 404 for tested Japanese/Korean common words, and Kaikki's indexed Japanese/Korean pages are based on English Wiktionary extraction, so no monolingual adapter is currently unblocked.
+Current smoke evidence is tracked in `docs/japanese-korean-source-smoke.md`. WiktAPI returned 404 for tested Japanese/Korean common words, and Kaikki's indexed Japanese/Korean pages are based on English Wiktionary extraction. The newly identified `jawiktionary` and `kowiktionary` raw dumps are valid monolingual source candidates, but no adapter is unblocked until tiny fixture smoke proves the needed app fields.
 
 ## First Safe Implementation Slice
 After source smoke tests pass for one language:
@@ -103,4 +105,6 @@ After source smoke tests pass for one language:
 - WiktAPI overview: https://wiktapi.dev/
 - Kaikki Japanese machine-readable dictionary: https://kaikki.org/dictionary/Japanese/index.html
 - Kaikki Korean machine-readable dictionary: https://kaikki.org/dictionary/Korean/index.html
+- Kaikki Japanese Wiktionary raw data: https://kaikki.org/jawiktionary/rawdata.html
+- Kaikki Korean Wiktionary raw data: https://kaikki.org/kowiktionary/rawdata.html
 - `Intl.Segmenter` reference: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter
