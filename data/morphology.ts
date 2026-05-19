@@ -62,6 +62,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ru') return getRussianMorphologyCandidates(input);
   if (languageCode === 'zh') return getMandarinMorphologyCandidates(input);
   if (languageCode === 'jv') return getJavaneseMorphologyCandidates(input);
+  if (languageCode === 'so') return getSomaliMorphologyCandidates(input);
 
   return [];
 }
@@ -1133,6 +1134,64 @@ function getJavaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
 
   if (stem !== word) {
     analyzePrefixes(stem, suffixStripped);
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getSomaliMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = normalizeMorphologyInput(input);
+  if (word.length < 2) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  const addCandidate = (w: string, desc: string) => {
+    if (w.length >= 2 && w !== word) {
+      candidates.push(createCandidate(w, desc));
+    }
+  };
+
+  const longSuffixes = ['kaas', 'taas', 'kiis', 'tiis', 'keed', 'teed', 'kiina', 'tiina'];
+  let stem = word;
+  for (const suff of longSuffixes) {
+    if (word.endsWith(suff) && word.length > suff.length + 2) {
+      stem = word.slice(0, -suff.length);
+      addCandidate(stem, `demonstrative/possessive suffix -${suff} stripped`);
+      break;
+    }
+  }
+
+  const definiteSuffixes = [
+    'ga', 'gi', 'gu',
+    'ka', 'ki', 'ku',
+    'xa', 'xi', 'xu',
+    'da', 'di', 'du',
+    'ta', 'ti', 'tu',
+    'sha', 'shi', 'shu'
+  ];
+  for (const suff of definiteSuffixes) {
+    if (stem.endsWith(suff) && stem.length > suff.length + 2) {
+      const nextStem = stem.slice(0, -suff.length);
+      addCandidate(nextStem, `definite article -${suff} stripped`);
+      
+      if (nextStem.length > 2 && nextStem[nextStem.length - 1] === nextStem[nextStem.length - 2]) {
+        addCandidate(nextStem.slice(0, -1), `definite article -${suff} stripped and letter dedoubled`);
+      }
+      break;
+    }
+  }
+
+  const pluralSuffixes = ['yaal', 'oyin', 'o'];
+  for (const suff of pluralSuffixes) {
+    if (word.endsWith(suff) && word.length > suff.length + 2) {
+      const nextStem = word.slice(0, -suff.length);
+      addCandidate(nextStem, `plural suffix -${suff} stripped`);
+      
+      if (suff === 'o' && nextStem.endsWith('y') && nextStem.length > 2) {
+        addCandidate(nextStem.slice(0, -1) + 'i', `plural -yo stripped and replaced with -i`);
+      }
+      break;
+    }
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

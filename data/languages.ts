@@ -141,6 +141,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'so',
+    label: 'Af-Soomaali (Somali)',
+    hint: 'Wiktionary preview',
+    family: 'afroasiatic',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'so',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'ru',
     label: 'Русский (Russian)',
     hint: 'Wiktionary preview',

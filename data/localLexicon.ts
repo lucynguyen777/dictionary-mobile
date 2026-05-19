@@ -1336,6 +1336,87 @@ const javaneseDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const somaliDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'buug',
+    ipa: '/buːɡ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'buug, xaashiyaal isku xiran oo wax ku qoran yihiin (book)',
+    definitions: [
+      {
+        partOfSpeech: 'noun (masculine)',
+        meaning: 'Xaashiyaal isku xiran oo wax ku qoran yihiin ama ku daabacan yihiin (A bound set of sheets of paper with writing or printing).',
+        vietnamese: 'Sách. Tập hợp các trang giấy được đóng gáy có chữ viết hoặc hình in.',
+        examples: [
+          { source: 'Kani waa buuggaas.', translation: 'Đây là cuốn sách kia.' }
+        ],
+      }
+    ],
+    synonyms: ['dhigaal'],
+    antonyms: [],
+    collocations: ['buug akhris'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Borrowed from Arabic.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'guri',
+    ipa: '/ɡʉrɪ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'guri, meel dadku ku nool yihiin (house / home)',
+    definitions: [
+      {
+        partOfSpeech: 'noun (masculine)',
+        meaning: 'Meel ama dhismo dadku degaan (A building or place where people live).',
+        vietnamese: 'Nhà. Nơi hoặc tòa nhà con người sinh sống.',
+        examples: [
+          { source: 'Guriga waa weyn yahay.', translation: 'Ngôi nhà thì lớn.' }
+        ],
+      }
+    ],
+    synonyms: ['aqal', 'hooy'],
+    antonyms: [],
+    collocations: ['guri cusub'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Cushitic root.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'bisad',
+    ipa: '/bisad/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Hayop (Animals)',
+    vietnamese: 'con mèo',
+    shortDefinition: 'bisad, xayawaan gurijoog ah (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun (feminine)',
+        meaning: 'Xayawaan yar oo gurijoog ah oo hilibka cuna (A small domestic carnivorous animal).',
+        vietnamese: 'Con mèo. Một loài động vật ăn thịt nhỏ nuôi trong nhà.',
+        examples: [
+          { source: 'Bisaddu waa yar tahay.', translation: 'Con mèo thì nhỏ.' }
+        ],
+      }
+    ],
+    synonyms: ['yaanyur', 'mukulaal'],
+    antonyms: [],
+    collocations: ['bisad madow'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Afroasiatic.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1353,6 +1434,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   ru: russianDictionaryEntries,
   zh: mandarinDictionaryEntries,
   jv: javaneseDictionaryEntries,
+  so: somaliDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

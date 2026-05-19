@@ -636,3 +636,44 @@ describe('Javanese monolingual baseline and morphology', () => {
     expect(tumbasRelated.synonyms).toContain('tuku');
   });
 });
+
+describe('Somali monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const buug = await fetchMonolingualMeaning('buug', 'so');
+    expect(buug.word).toBe('buug');
+    expect(buug.ipa).toBe('/buːɡ/');
+    expect(buug.definitions[0].meaning).toContain('Xaashiyaal isku xiran');
+
+    const guri = await fetchMonolingualMeaning('guri', 'so');
+    expect(guri.word).toBe('guri');
+  });
+
+  it('resolves definite articles with consonant harmony (double consonant restoration)', async () => {
+    // buugga -> buug
+    const buugga = await fetchMonolingualMeaning('buugga', 'so');
+    expect(buugga.word).toBe('buug');
+    expect(buugga.source).toContain('base form of buugga');
+
+    // bisadda -> bisad
+    const bisadda = await fetchMonolingualMeaning('bisadda', 'so');
+    expect(bisadda.word).toBe('bisad');
+  });
+
+  it('resolves definite articles without double consonant', async () => {
+    // guriga -> guri
+    const guriga = await fetchMonolingualMeaning('guriga', 'so');
+    expect(guriga.word).toBe('guri');
+  });
+
+  it('resolves plural suffix forms (-o / -yo)', async () => {
+    // guryo -> guri
+    const guryo = await fetchMonolingualMeaning('guryo', 'so');
+    expect(guryo.word).toBe('guri');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('guri', 'so');
+    expect(related.synonyms).toContain('aqal');
+    expect(related.synonyms).toContain('hooy');
+  });
+});

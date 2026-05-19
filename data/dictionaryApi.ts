@@ -192,6 +192,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'ru') return fetchRussianMeaning(word);
   if (languageCode === 'zh') return fetchMandarinMeaning(word);
   if (languageCode === 'jv') return fetchJavaneseMeaning(word);
+  if (languageCode === 'so') return fetchSomaliMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -215,6 +216,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'ru') return fetchRussianRelatedWords(word);
   if (languageCode === 'zh') return fetchMandarinRelatedWords(word);
   if (languageCode === 'jv') return fetchJavaneseRelatedWords(word);
+  if (languageCode === 'so') return fetchSomaliRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1419,6 +1421,57 @@ export async function fetchJavaneseMeaning(word: string): Promise<ApiMeaningResu
 export async function fetchJavaneseRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('jv', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchSomaliMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('so', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('so', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'sowiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'sowiktionary' : `sowiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Somali Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchSomaliRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('so', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],
