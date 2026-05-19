@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { canUseBilingualDictionaryApi, isBlockedBilingualDictionaryPair } from '../data/dictionaryApi';
+import {
+  canUseBilingualDictionaryApi,
+  isBlockedBilingualDictionaryPair,
+  fetchMonolingualMeaning,
+  fetchRelatedWords,
+} from '../data/dictionaryApi';
 import { isSupportedBilingualDictionaryPair, isTranslationComingSoonPair } from '../data/languages';
 
 describe('dictionaryApi bilingual source selection', () => {
@@ -23,5 +28,50 @@ describe('dictionaryApi bilingual source selection', () => {
     expect(canUseBilingualDictionaryApi('ja', 'vi')).toBe(false);
     expect(isSupportedBilingualDictionaryPair('en', 'ja')).toBe(false);
     expect(isTranslationComingSoonPair('ja', 'vi')).toBe(true);
+  });
+});
+
+describe('Finnish monolingual baseline and morphology', () => {
+
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const talo = await fetchMonolingualMeaning('talo', 'fi');
+    expect(talo.word).toBe('talo');
+    expect(talo.ipa).toBe('/ˈtɑlo/');
+    expect(talo.definitions[0].meaning).toContain('Asumiseen tarkoitettu rakennus');
+    expect(talo.definitions[0].vietnamese).toBe('Nhà, công trình xây dựng để ở.');
+
+    const syoda = await fetchMonolingualMeaning('syödä', 'fi');
+    expect(syoda.word).toBe('syödä');
+    expect(syoda.ipa).toBe('/ˈsyø̯dæ/');
+    expect(syoda.definitions[0].meaning).toContain('Pureskella ja niellä ruokaa');
+  });
+
+  it('resolves inflected forms using local morphology fallback', async () => {
+    // Inessive (talossa -> talo)
+    const talossa = await fetchMonolingualMeaning('talossa', 'fi');
+    expect(talossa.word).toBe('talo');
+    expect(talossa.source).toContain('base form of talossa');
+
+    // 1sg verb (syön -> syödä)
+    const syon = await fetchMonolingualMeaning('syön', 'fi');
+    expect(syon.word).toBe('syödä');
+    expect(syon.source).toContain('base form of syön');
+  });
+
+  it('preserves native letters and gradation (kädessä -> käsi, yötä -> yö)', async () => {
+    const kasi = await fetchMonolingualMeaning('käsi', 'fi');
+    expect(kasi.word).toBe('käsi');
+
+    const kadessa = await fetchMonolingualMeaning('kädessä', 'fi');
+    expect(kadessa.word).toBe('käsi');
+
+    const yota = await fetchMonolingualMeaning('yötä', 'fi');
+    expect(yota.word).toBe('yö');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('talo', 'fi');
+    expect(related.synonyms).toContain('koti');
+    expect(related.synonyms).toContain('rakennus');
   });
 });

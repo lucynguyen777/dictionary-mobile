@@ -140,6 +140,16 @@ export const languageOptions = [
     adapterKey: undefined,
     dictionaryStatus: 'monolingual',
   },
+  {
+    code: 'fi',
+    label: 'Suomi (Finnish)',
+    hint: 'Wiktionary preview',
+    family: 'uralic',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'fi',
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

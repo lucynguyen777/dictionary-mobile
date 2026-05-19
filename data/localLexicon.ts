@@ -1,4 +1,4 @@
-import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
+import { DictionaryEntry, dictionaryEntries } from './dictionary';
 
 const vietnameseDictionaryEntries: DictionaryEntry[] = [
   {
@@ -211,12 +211,143 @@ const hebrewDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const finnishDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'talo',
+    ipa: '/ˈtɑlo/',
+    audio: '',
+    level: 'A1',
+    topic: 'Koti (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'rakennus, joka on tarkoitettu asunnoksi (a building intended as a dwelling)',
+    definitions: [
+      {
+        partOfSpeech: 'dani (noun)',
+        meaning: 'Asumiseen tarkoitettu rakennus (A building meant for living in).',
+        vietnamese: 'Nhà, công trình xây dựng để ở.',
+        examples: [
+          { source: 'Asun isossa talossa.', translation: 'Tôi sống trong một ngôi nhà lớn.' },
+          { source: 'Talo on rakennettu puusta.', translation: 'Ngôi nhà được xây dựng bằng gỗ.' }
+        ],
+      }
+    ],
+    synonyms: ['rakennus', 'asunto', 'koti'],
+    antonyms: [],
+    collocations: ['omakotitalo', 'kerrostalo'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Genitive', form: 'talon' },
+      { tense: 'Partitive', form: 'taloa' },
+      { tense: 'Inessive', form: 'talossa' },
+      { tense: 'Elative', form: 'talosta' },
+      { tense: 'Illative', form: 'taloon' }
+    ],
+    etymology: 'Vanha uralilainen sana (Old Uralic word).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'syödä',
+    ipa: '/ˈsyø̯dæ/',
+    audio: '',
+    level: 'A1',
+    topic: 'Ruoka (Food)',
+    vietnamese: 'ăn',
+    shortDefinition: 'ottaa ravintoa suun kautta (to ingest food through the mouth)',
+    definitions: [
+      {
+        partOfSpeech: 'verbi (verb)',
+        meaning: 'Pureskella ja niellä ruokaa (To chew and swallow food).',
+        vietnamese: 'Ăn nhai và nuốt thức ăn.',
+        examples: [
+          { source: 'Tyttö syö omenaa.', translation: 'Cô bé đang ăn một quả táo.' },
+          { source: 'Haluatko syödä jotain?', translation: 'Bạn có muốn ăn gì đó không?' }
+        ],
+      }
+    ],
+    synonyms: ['nauttia', 'ateriaa'],
+    antonyms: [],
+    collocations: ['syödä aamupalaa', 'syödä ulkona'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Present 1sg', form: 'syön' },
+      { tense: 'Present 2sg', form: 'syöt' },
+      { tense: 'Present 3sg', form: 'syö' },
+      { tense: 'Present 1pl', form: 'syömme' },
+      { tense: 'Present 2pl', form: 'syötte' },
+      { tense: 'Present 3pl', form: 'syövät' }
+    ],
+    etymology: 'Suomalais-ugrilainen vartalo (Finno-Ugric stem).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'käsi',
+    ipa: '/ˈkæsi/',
+    audio: '',
+    level: 'A1',
+    topic: 'Keho (Body)',
+    vietnamese: 'tay',
+    shortDefinition: 'ihmisen yläraaja (human upper limb / hand)',
+    definitions: [
+      {
+        partOfSpeech: 'dani (noun)',
+        meaning: 'Ihmisen yläraajan osa ranteesta sormenpäihin (Part of the human upper limb from wrist to fingertips).',
+        vietnamese: 'Bàn tay, bộ phận cơ thể từ cổ tay đến đầu ngón tay.',
+        examples: [
+          { source: 'Pese kätesi ennen ruokailua.', translation: 'Hãy rửa tay trước khi ăn.' }
+        ],
+      }
+    ],
+    synonyms: ['kämmen'],
+    antonyms: [],
+    collocations: ['käsivarsi', 'vasen käsi'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Genitive', form: 'käden' },
+      { tense: 'Partitive', form: 'kättä' },
+      { tense: 'Inessive', form: 'kädessä' }
+    ],
+    etymology: 'Vanha ugrilainen sana (Old Ugric word).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'yö',
+    ipa: '/ˈyø/',
+    audio: '',
+    level: 'A1',
+    topic: 'Aika (Time)',
+    vietnamese: 'đêm',
+    shortDefinition: 'vuorokauden pimeä aika (dark time of the day / night)',
+    definitions: [
+      {
+        partOfSpeech: 'dani (noun)',
+        meaning: 'Auringonlaskun ja auringonnousun välinen pimeä aika (Dark time between sunset and sunrise).',
+        vietnamese: 'Ban đêm, khoảng thời gian tối giữa hoàng hôn và bình minh.',
+        examples: [
+          { source: 'Nuku hyvin yöllä.', translation: 'Ngủ ngon vào ban đêm nhé.' }
+        ],
+      }
+    ],
+    synonyms: ['pimeys'],
+    antonyms: ['päivä'],
+    collocations: ['hyvää yötä', 'keskiyö'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Genitive', form: 'yön' },
+      { tense: 'Partitive', form: 'yötä' },
+      { tense: 'Inessive', form: 'yössä' }
+    ],
+    etymology: 'Uralilainen perussana (Uralic word).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
   fr: frenchDictionaryEntries,
   ar: arabicDictionaryEntries,
   he: hebrewDictionaryEntries,
+  fi: finnishDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

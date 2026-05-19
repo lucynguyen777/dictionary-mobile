@@ -49,6 +49,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'en') return getEnglishMorphologyCandidates(input);
   if (languageCode === 'es') return getSpanishMorphologyCandidates(input);
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
+  if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
 
   return [];
 }
@@ -269,6 +270,122 @@ function getMalayMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
   if (word.startsWith('ke') && word.endsWith('an') && word.length > 7) {
     candidates.push(createCandidate(word.slice(2, -2), 'apitan ke-...-an'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getFinnishMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = normalizeMorphologyInput(input);
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // Inessive (-ssa/-ssä)
+  if (word.endsWith('ssa') && word.length > 5) {
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(stem, 'inessiivi (in)'));
+    if (stem.endsWith('de')) {
+      candidates.push(createCandidate(`${stem.slice(0, -2)}si`, 'inessiivi (gradation)'));
+    }
+  }
+  if (word.endsWith('ssä') && word.length > 5) {
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(stem, 'inessiivi (in)'));
+    if (stem.endsWith('de')) {
+      candidates.push(createCandidate(`${stem.slice(0, -2)}si`, 'inessiivi (gradation)'));
+    }
+  }
+
+  // Elative (-sta/-stä)
+  if (word.endsWith('sta') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'elatiivi (out of)'));
+  }
+  if (word.endsWith('stä') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'elatiivi (out of)'));
+  }
+
+  // Illative (-oon)
+  if (word.endsWith('oon') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -2), 'illatiivi (into)'));
+  }
+
+  // Adessive (-lla/-llä)
+  if (word.endsWith('lla') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'adessiivi (on/at)'));
+  }
+  if (word.endsWith('llä') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'adessiivi (on/at)'));
+  }
+
+  // Ablative (-lta/-ltä)
+  if (word.endsWith('lta') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'ablatiivi (from)'));
+  }
+  if (word.endsWith('ltä') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'ablatiivi (from)'));
+  }
+
+  // Allative (-lle)
+  if (word.endsWith('lle') && word.length > 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'allatiivi (to)'));
+  }
+
+  // Genitive (-n) / 1st Person Verb (-n)
+  if (word.endsWith('n') && !word.endsWith('an') && !word.endsWith('en') && word.length > 3) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(stem, 'genetiivi / 1sg verbi'));
+    if (stem.endsWith('de')) {
+      candidates.push(createCandidate(`${stem.slice(0, -2)}si`, 'genetiivi (gradation)'));
+    }
+    if (stem === 'syö') {
+      candidates.push(createCandidate('syödä', 'verbin perusmuoto'));
+    }
+  }
+
+  // Partitive (-ta/-tä/-a/-ä)
+  if (word.endsWith('ta') && word.length >= 3) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(stem, 'partitiivi'));
+    if (stem === 'yö') {
+      candidates.push(createCandidate('yö', 'partitiivi'));
+    }
+  }
+  if (word.endsWith('tä') && word.length >= 3) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(stem, 'partitiivi'));
+    if (stem === 'kät') {
+      candidates.push(createCandidate('käsi', 'partitiivi (gradation)'));
+    }
+    if (stem === 'yö') {
+      candidates.push(createCandidate('yö', 'partitiivi'));
+    }
+  }
+  if (word.endsWith('a') && !word.endsWith('ssa') && !word.endsWith('sta') && !word.endsWith('lla') && word.length >= 3) {
+    candidates.push(createCandidate(word.slice(0, -1), 'partitiivi'));
+  }
+  if (word.endsWith('ä') && !word.endsWith('ssä') && !word.endsWith('stä') && !word.endsWith('llä') && word.length >= 3) {
+    candidates.push(createCandidate(word.slice(0, -1), 'partitiivi'));
+  }
+
+  // Verb Plurals
+  if (word.endsWith('mme') && word.length > 5) {
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(`${stem}dä`, 'verbin 1pl'));
+    candidates.push(createCandidate(`${stem}ta`, 'verbin 1pl'));
+  }
+  if (word.endsWith('tte') && word.length > 5) {
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(`${stem}dä`, 'verbin 2pl'));
+    candidates.push(createCandidate(`${stem}ta`, 'verbin 2pl'));
+  }
+  if (word.endsWith('vät') && word.length > 5) {
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(`${stem}dä`, 'verbin 3pl'));
+  }
+  if (word.endsWith('vat') && word.length > 5) {
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(`${stem}da`, 'verbin 3pl'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
