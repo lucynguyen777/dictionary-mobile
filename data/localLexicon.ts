@@ -954,6 +954,95 @@ const tagalogDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const amharicDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'ቤት',
+    ipa: '/bet/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Koti (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'ሰዎች የሚኖሩበት ወይም የሚጠለሉበት ሕንጻ (house)',
+    definitions: [
+      {
+        partOfSpeech: 'ስም (noun)',
+        meaning: 'ለሰው መኖሪያ ወይም ለሌላ አገልግሎት የሚውል ሕንጻ (A building meant for human habitation or other uses).',
+        vietnamese: 'Nhà. Công trình xây dựng dùng để ở hoặc cho các mục đích khác.',
+        examples: [
+          { source: 'ይህ ትልቅ ቤት ነው።', translation: 'Đây là một ngôi nhà lớn.' }
+        ],
+      }
+    ],
+    synonyms: ['መኖሪያ', 'ህንጻ'],
+    antonyms: [],
+    collocations: ['የትምህርት ቤት', 'የእንግዳ ቤት'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'ቤቶች' },
+      { tense: 'Definite Masculine', form: 'ቤቱ' }
+    ],
+    etymology: 'Proto-Semitic: *bayt-.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ውሻ',
+    ipa: '/wuʃʃa/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Hayop (Animals)',
+    vietnamese: 'con chó',
+    shortDefinition: 'አራት እግር ያለው ለማዳ እንስሳ (dog)',
+    definitions: [
+      {
+        partOfSpeech: 'ስም (noun)',
+        meaning: 'ለመጠበቂያ ወይም ለጓደኝነት የሚያገለግል ለማዳ እንስሳ (A domesticated animal used for guarding or companionship).',
+        vietnamese: 'Con chó. Loài động vật thuần hóa dùng để giữ nhà hoặc làm bạn.',
+        examples: [
+          { source: 'ውሻው ይጮኻል።', translation: 'Con chó đang sủa.' }
+        ],
+      }
+    ],
+    synonyms: [],
+    antonyms: [],
+    collocations: ['የቤት ውሻ'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'ውሻዎች' }
+    ],
+    etymology: 'Proto-Ethiopic *wəšša.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ሰበረ',
+    ipa: '/säbbärä/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Actions',
+    vietnamese: 'làm vỡ',
+    shortDefinition: 'ነገርን ወደ ቁርጥራጭ መለወጥ (to break)',
+    definitions: [
+      {
+        partOfSpeech: 'ግብር (verb)',
+        meaning: 'ጠንካራ ነገርን መምታት ወይም ማጠፍ ወደ ሁለት ወይም ከዚያ በላይ ክፍሎች (To split a hard object into two or more pieces).',
+        vietnamese: 'Làm vỡ, làm gãy. Tách một vật cứng thành hai hay nhiều phần.',
+        examples: [
+          { source: 'እሱ ብርጭቆውን ሰበረ።', translation: 'Anh ấy đã làm vỡ chiếc cốc.' }
+        ],
+      }
+    ],
+    synonyms: ['ቀጠቀጠ'],
+    antonyms: ['ጠገነ'],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Past Masculine 3rd Sg', form: 'ሰበረ' },
+      { tense: 'Past Feminine 3rd Sg', form: 'ሰበረች' }
+    ],
+    etymology: 'Proto-Semitic *ṯabar-.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -967,6 +1056,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   sw: swahiliDictionaryEntries,
   hu: hungarianDictionaryEntries,
   tl: tagalogDictionaryEntries,
+  am: amharicDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

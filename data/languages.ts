@@ -141,6 +141,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'am',
+    label: 'አማርኛ (Amharic)',
+    hint: 'Wiktionary preview',
+    family: 'afroasiatic',
+    script: 'geez',
+    writingDirection: 'ltr',
+    adapterKey: 'am',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'fi',
     label: 'Suomi (Finnish)',
     hint: 'Wiktionary preview',

@@ -58,6 +58,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ar') return getArabicMorphologyCandidates(input);
   if (languageCode === 'he') return getHebrewMorphologyCandidates(input);
   if (languageCode === 'tl') return getTagalogMorphologyCandidates(input);
+  if (languageCode === 'am') return getAmharicMorphologyCandidates(input);
 
   return [];
 }
@@ -929,6 +930,68 @@ function getTagalogMorphologyCandidates(input: string): MorphologyCandidate[] {
   // 4. Standalone CV reduplication (e.g. babasa -> basa, kakain -> kain, susulat -> sulat)
   if (word.length >= 4 && word.slice(0, 2) === word.slice(2, 4)) {
     candidates.push(createCandidate(word.slice(2), 'reduplication stripped (CV-)'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getAmharicMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim();
+  if (word.length < 2) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // Ge'ez script abugida vowel/order shift mapping back to 6th order (consonant base)
+  const order6Map: Record<string, string> = {
+    // 2nd order (-u) -> 6th order
+    'ቱ': 'ት', 'ቡ': 'ብ', 'ሙ': 'ም', 'ሩ': 'ር', 'ሱ': 'ስ', 'ሹ': 'ሽ', 'ቁ': 'ቅ',
+    'ኑ': 'ን', 'ኙ': 'ኝ', 'ኩ': 'ክ', 'ዉ': 'ው', 'ዙ': 'ዝ', 'ጁ': 'ጅ', 'ዱ': 'ድ',
+    'ጉ': 'ግ', 'ጡ': 'ጥ', 'ጩ': 'ጭ', 'ጹ': 'ጽ', 'ፉ': 'ፍ', 'ፑ': 'ፕ',
+    // 4th order (-a) -> 6th order
+    'ታ': 'ት', 'ባ': 'ብ', 'ማ': 'ም', 'ራ': 'ር', 'ሳ': 'ስ', 'ሻ': 'ሽ', 'ቃ': 'ቅ',
+    'ና': 'ን', 'ኛ': 'ኝ', 'ካ': 'ክ', 'ዋ': 'ው', 'ዛ': 'ዝ', 'ጃ': 'ጅ', 'ዳ': 'ድ',
+    'ጋ': 'ግ', 'ጣ': 'ጥ', 'ጫ': 'ጭ', 'ጻ': 'ጽ', 'ፋ': 'ፍ', 'ፓ': 'ፕ',
+  };
+
+  const processWordForm = (w: string) => {
+    // Exact form
+    candidates.push(createCandidate(w, 'stem'));
+
+    // Check second-order endings (e.g. ቤቱ -> ቤት)
+    const lastChar = w.slice(-1);
+    if (order6Map[lastChar]) {
+      candidates.push(createCandidate(w.slice(0, -1) + order6Map[lastChar], 'definite/possessive restored'));
+    }
+
+    // Check plural ending ዎች (e.g. ቤቶች -> ቤት)
+    if (w.endsWith('ዎች') && w.length > 3) {
+      candidates.push(createCandidate(w.slice(0, -2), 'plural stripped (-očč)'));
+    }
+
+    // Check possessive suffixes (e.g. ቤታችን -> strip ችን -> ቤታ -> restore to ቤት)
+    const suffixes = ['አችን', 'ችን', 'ዋ', 'ዬ', 'ህ', 'ሽ'];
+    for (const suffix of suffixes) {
+      if (w.endsWith(suffix) && w.length > suffix.length + 1) {
+        const remaining = w.slice(0, -suffix.length);
+        candidates.push(createCandidate(remaining, `suffix stripped (-${suffix})`));
+        const remLast = remaining.slice(-1);
+        if (order6Map[remLast]) {
+          candidates.push(createCandidate(remaining.slice(0, -1) + order6Map[remLast], `suffix stripped and restored`));
+        }
+      }
+    }
+  };
+
+  // 1. Process exact word first
+  processWordForm(word);
+
+  // 2. Preposition / Conjunction prefixes: የ- (yä-), በ- (bä-), ለ- (lä-), ከ- (kä-), እንደ- (əndä-)
+  const amharicPrefixes = ['የ', 'በ', 'ለ', 'ከ', 'እንደ'];
+  for (const prefix of amharicPrefixes) {
+    if (word.startsWith(prefix) && word.length > prefix.length + 1) {
+      const remaining = word.slice(prefix.length);
+      processWordForm(remaining);
+    }
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

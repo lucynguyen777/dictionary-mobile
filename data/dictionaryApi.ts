@@ -188,6 +188,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'ar') return fetchArabicMeaning(word);
   if (languageCode === 'he') return fetchHebrewMeaning(word);
   if (languageCode === 'tl') return fetchTagalogMeaning(word);
+  if (languageCode === 'am') return fetchAmharicMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -207,6 +208,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'ar') return fetchArabicRelatedWords(word);
   if (languageCode === 'he') return fetchHebrewRelatedWords(word);
   if (languageCode === 'tl') return fetchTagalogRelatedWords(word);
+  if (languageCode === 'am') return fetchAmharicRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1206,6 +1208,57 @@ export async function fetchTagalogMeaning(word: string): Promise<ApiMeaningResul
 export async function fetchTagalogRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('tl', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchAmharicMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('am', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('am', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'amwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'amwiktionary' : `amwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Amharic Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchAmharicRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('am', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],

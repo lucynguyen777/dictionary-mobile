@@ -292,7 +292,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
   - [x] DONE [MEDIUM]: RTL UI smoke coverage: support RTL alignment for dictionary results, search input direction, saved-word lists, and Reader tokenization/RTL paragraph wrapping.
-  - [~] IN PROGRESS [HARD]: Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (`arwiktionary` and `hewiktionary`) as monolingual sources.
+  - [x] DONE [HARD]: Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (`arwiktionary` and `hewiktionary`) as monolingual sources.
   - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
   - Amharic: Ge'ez script and transliteration.
   - Somali: Latin script but needs morphology/source research.
@@ -303,7 +303,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
   - [x] DONE [MEDIUM]: Malay monolingual baseline: WiktAPI adapter, simple affix/reduplication morphology candidates.
-  - [~] IN PROGRESS [HARD]: Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
+  - [x] DONE [HARD]: Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
+  - [x] DONE [HARD]: Tagalog monolingual baseline implementation: Register Tagalog adapter, write focus trigger and reduplication/infixation fallbacks, using CC BY-SA `tlwiktionary` data.
   - Tagalog: focus/voice system and affix-heavy morphology.
   - Javanese/Hawaiian: register or diacritic-sensitive search.
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
@@ -350,9 +351,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (arwiktionary and hewiktionary) as monolingual sources.
-2. [ ] [HARD] Tagalog monolingual baseline implementation: Register the Tagalog adapter, write focus system and affix fallbacks, using the CC BY-SA tl-wiktionary data.
-3. [ ] [HARD] Amharic monolingual baseline planning: Research Ge'ez script characteristics, transliteration, and morphology source candidates.
+1. [~] [HARD] Amharic monolingual baseline planning: Research Ge'ez script characteristics, transliteration, and morphology source candidates.
+2. [ ] [HARD] Russian monolingual baseline implementation: Register Russian adapter, write case/aspect morphology fallbacks.
+3. [ ] [HARD] Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate word segmentation.
 
 
 

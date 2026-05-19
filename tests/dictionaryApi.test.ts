@@ -453,3 +453,48 @@ describe('Tagalog monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('tuta');
   });
 });
+
+describe('Amharic monolingual baseline and morphology', () => {
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const bet = await fetchMonolingualMeaning('ቤት', 'am');
+    expect(bet.word).toBe('ቤት');
+    expect(bet.ipa).toBe('/bet/');
+    expect(bet.definitions[0].meaning).toContain('ለሰው መኖሪያ ወይም ለሌላ አገልግሎት');
+
+    const wusha = await fetchMonolingualMeaning('ውሻ', 'am');
+    expect(wusha.word).toBe('ውሻ');
+  });
+
+  it('resolves prefix forms using local morphology fallback', async () => {
+    // Prefix የ- (የቤት -> ቤት)
+    const yabet = await fetchMonolingualMeaning('የቤት', 'am');
+    expect(yabet.word).toBe('ቤት');
+
+    // Prefix ከ- (ከቤት -> ቤት)
+    const kabet = await fetchMonolingualMeaning('ከቤት', 'am');
+    expect(kabet.word).toBe('ቤት');
+  });
+
+  it('resolves suffix forms using local morphology fallback', async () => {
+    // Suffix -ው (ቤቱ -> ቤት)
+    const betu = await fetchMonolingualMeaning('ቤቱ', 'am');
+    expect(betu.word).toBe('ቤት');
+
+    // Plural suffix -ዎች (ውሻዎች -> ውሻ)
+    const wushawoch = await fetchMonolingualMeaning('ውሻዎች', 'am');
+    expect(wushawoch.word).toBe('ውሻ');
+  });
+
+  it('resolves prefix and suffix stacked forms using local morphology fallback', async () => {
+    // Prefix የ- + Suffix -አችን (የቤታችን -> ቤት)
+    // Wait, the word starts with የ (prefix) and remaining "ቤታችን" ends with "አችን" (suffix)
+    const yabetachen = await fetchMonolingualMeaning('የቤታችን', 'am');
+    expect(yabetachen.word).toBe('ቤት');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('ቤት', 'am');
+    expect(related.synonyms).toContain('መኖሪያ');
+    expect(related.synonyms).toContain('ህንጻ');
+  });
+});
