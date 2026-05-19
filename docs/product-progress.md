@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `abfff92` docs(lang): add Cantonese monolingual planning and language option metadata
   - `d1f75e9` feat(lang): integrate Arabic and Hebrew RTL support across lookup, library, and reader
   - `e3bf6ce` feat(ui): keep add actions and scroll top controls accessible
   - `7135233` feat(library): refine folder creation and detail menus
