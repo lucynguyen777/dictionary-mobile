@@ -101,6 +101,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'bo',
+    label: 'བོད་སྐད་ (Tibetan)',
+    hint: 'Wiktionary preview',
+    family: 'sino-tibetan',
+    script: 'tibetan',
+    writingDirection: 'ltr',
+    adapterKey: 'bo',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'ja',
     label: '日本語',
     hint: 'Wiktionary preview',

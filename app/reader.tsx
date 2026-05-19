@@ -305,7 +305,7 @@ export default function ReaderScreen() {
             <Text style={[styles.readerTitle, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>{selectedDocument.title}</Text>
             <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
               {readerTokens.slice(0, 900).map((token, index) => {
-                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F]/.test(token);
+                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF]/.test(token);
                 const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
 
                 return isWord ? (
@@ -381,12 +381,17 @@ export default function ReaderScreen() {
 function tokenizeReaderText(text: string) {
   if (!text) return [];
 
-  // Use Intl.Segmenter if available for CJK/Burmese or general advanced segmentation
+  // Use Intl.Segmenter if available for CJK/Burmese/Tibetan or general advanced segmentation
   if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
     try {
-      const hasCjkOrBurmese = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]/.test(text);
-      if (hasCjkOrBurmese) {
-        const locale = /[\u1000-\u109F]/.test(text) ? 'my' : 'zh';
+      const hasCjkOrBurmeseOrTibetan = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF]/.test(text);
+      if (hasCjkOrBurmeseOrTibetan) {
+        let locale = 'zh';
+        if (/[\u1000-\u109F]/.test(text)) {
+          locale = 'my';
+        } else if (/[\u0F00-\u0FFF]/.test(text)) {
+          locale = 'bo';
+        }
         const segmenter = new Intl.Segmenter(locale, { granularity: 'word' });
         return Array.from(segmenter.segment(text), (s) => s.segment);
       }
@@ -395,8 +400,8 @@ function tokenizeReaderText(text: string) {
     }
   }
 
-  // Fallback regex supporting CJK and Burmese characters individually and other alphabetic/abjad scripts grouped
-  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]+/g;
+  // Fallback regex supporting CJK/Burmese characters individually, Tibetan syllables (ending with optional tsheg \u0F0B), and other alphabetic/abjad scripts grouped
+  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[\u0F00-\u0F0A\u0F0C-\u0FFF]+\u0F0B?|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF]+/g;
   return text.replace(/\s+/g, ' ').match(regex) ?? [];
 }
 

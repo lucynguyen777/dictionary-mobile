@@ -64,6 +64,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'jv') return getJavaneseMorphologyCandidates(input);
   if (languageCode === 'so') return getSomaliMorphologyCandidates(input);
   if (languageCode === 'my') return getBurmeseMorphologyCandidates(input);
+  if (languageCode === 'bo') return getTibetanMorphologyCandidates(input);
 
   return [];
 }
@@ -1201,4 +1202,31 @@ function getSomaliMorphologyCandidates(input: string): MorphologyCandidate[] {
 function getBurmeseMorphologyCandidates(input: string): MorphologyCandidate[] {
   // Burmese is an isolating language, no morphology candidates are needed.
   return [];
+}
+
+function getTibetanMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+
+  // Common Tibetan case particles/clitics:
+  // ཀྱིས་ (kyis), གྱིས་ (gyis), ཀྱི་ (kyi), གྱི་ (gyi), ཡིས་ (yis), ཡི་ (yi), ལས་ (las), ནས་ (nas), ལ (la), ན (na)
+  const particles = ['ཀྱིས་', 'གྱིས་', 'ཀྱི་', 'གྱི་', 'ཡིས་', 'ཡི་', 'ལས་', 'ནས་', 'ལ', 'ན'];
+
+  for (const part of particles) {
+    if (word.endsWith(part) && word.length > part.length) {
+      let stem = word.slice(0, -part.length);
+      if (stem.endsWith('་')) {
+        stem = stem.slice(0, -1);
+      }
+      if (stem.length > 0) {
+        candidates.push({
+          word: stem,
+          label: stem,
+          reason: `stripped particle ${part}`,
+        });
+      }
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
 }

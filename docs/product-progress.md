@@ -291,7 +291,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Burmese monolingual baseline planning: Research script-specific Burmese segmentation and dictionary source.
   - [x] DONE [HARD]: Burmese monolingual baseline implementation: Register Burmese adapter and configure tokenization fallback, using CC BY-SA data.
   - [x] DONE [HARD]: Tibetan monolingual baseline planning: Research script-specific Tibetan segmentation and dictionary source.
-  - [~] IN PROGRESS [HARD]: Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
+  - [x] DONE [HARD]: Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
@@ -305,6 +305,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: source candidates, Latin-script search implications, and adapter fixture gates documented in `docs/swahili-language-plan.md`.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (`swwiktionary`) CC BY-SA data.
+  - [~] IN PROGRESS [MEDIUM]: Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
@@ -359,8 +360,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
-2. [ ] [MEDIUM] Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
+1. [~] [MEDIUM] Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
+2. [ ] [MEDIUM] Yoruba monolingual baseline implementation: Register Yoruba adapter and write morphology lookup logic, using CC BY-SA data.
 3. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
 
 

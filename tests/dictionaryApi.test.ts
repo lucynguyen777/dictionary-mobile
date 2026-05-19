@@ -695,3 +695,38 @@ describe('Burmese monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('စာပေ');
   });
 });
+
+describe('Tibetan monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const book = await fetchMonolingualMeaning('དེབ་', 'bo');
+    expect(book.word).toBe('དེབ་');
+    expect(book.ipa).toBe('/tep/');
+    expect(book.definitions[0].meaning).toContain('ཤོག་བུ་མང་པོ་ལྷན་དུ་བསྡམས་པའི་');
+
+    const house = await fetchMonolingualMeaning('ཁང་པ་', 'bo');
+    expect(house.word).toBe('ཁང་པ་');
+  });
+
+  it('normalizes lookups with trailing tsheg', async () => {
+    // དེབ་་ (with tsheg) should normalize and find དེབ་
+    const bookWithTsheg = await fetchMonolingualMeaning('དེབ་་', 'bo');
+    expect(bookWithTsheg.word).toBe('དེབ་');
+  });
+
+  it('resolves case particles/clitics (morphology candidates)', async () => {
+    // དེབ་ཀྱི་ -> དེབ་
+    const bookWithParticle = await fetchMonolingualMeaning('དེབ་ཀྱི་', 'bo');
+    expect(bookWithParticle.word).toBe('དེབ་');
+    expect(bookWithParticle.source).toContain('base form of དེབ་ཀྱི་');
+
+    // དེབ་ཀྱིས་ -> དེབ་
+    const bookWithParticle2 = await fetchMonolingualMeaning('དེབ་ཀྱིས་', 'bo');
+    expect(bookWithParticle2.word).toBe('དེབ་');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('དེབ་', 'bo');
+    expect(related.synonyms).toContain('ཕྱག་དེབ་');
+    expect(related.synonyms).toContain('དཔེ་ཆ་');
+  });
+});

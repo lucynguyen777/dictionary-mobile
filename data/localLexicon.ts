@@ -1497,6 +1497,87 @@ const burmeseDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const tibetanDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'དེབ་',
+    ipa: '/tep/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'དེབ་, ཤོག་བུ་མང་པོ་ལྷན་དུ་བསྡམས་པའི་ཡིག་ཆ་ (book)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ཤོག་བུ་མང་པོ་ལྷན་དུ་བསྡམས་པའི་ཀློག་བྱའམ་འབྲི་བྱའི་ཡིག་ཆ་ (A written or printed work consisting of pages glued or sewn together).',
+        vietnamese: 'Sách. Tài liệu để đọc hoặc viết bao gồm nhiều trang giấy được đóng lại với nhau.',
+        examples: [
+          { source: 'འདི་ནི་དེབ་རེད།', translation: 'Đây là một cuốn sách.' }
+        ],
+      }
+    ],
+    synonyms: ['ཕྱག་དེབ་', 'དཔེ་ཆ་'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Sino-Tibetan.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ཁང་པ་',
+    ipa: '/kʰaŋpa/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'ཁང་པ་, མི་སྡོད་སའི་ (house)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'མི་སྡོད་སའི་འགེབས་ལྡན་གྱི་འཛུགས་སྐྲུན་དངོས་པོ་ (A building where people live).',
+        vietnamese: 'Nhà. Tòa nhà có mái che làm nơi sinh sống cho con người.',
+        examples: [
+          { source: 'ཁང་པ་འདི་ཆེན་པོ་རེད།', translation: 'Ngôi nhà này lớn.' }
+        ],
+      }
+    ],
+    synonyms: ['ཁྱིམ་', 'གནས་ཚང་'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Sino-Tibetan.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ཞི་མི་',
+    ipa: '/ɕimi/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con mèo',
+    shortDefinition: 'ཞི་མི་, ཙི་ཙི་အཛིན་བྱེད་ཀྱི་སྒོ་ཕྱུགས་ཤིག་ (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ཙི་ཙི་འཛིན་བྱེད་ཀྱི་སྒོ་ཕྱུགས་ཤིག་སྟེ་སྤུ་འཇམ་ཞིང་ချစ်စရာကောင်းཔ་ (A small domesticated carnivorous mammal with soft fur, kept as a pet for catching mice).',
+        vietnamese: 'Con mèo. Một loài động vật ăn thịt nhỏ nuôi trong nhà có bộ lông mềm mại, thường được nuôi để bắt chuột.',
+        examples: [
+          { source: 'ཞི་མི་ཆུང་ཆུང་རེད།', translation: 'Con mèo thì nhỏ.' }
+        ],
+      }
+    ],
+    synonyms: ['བྱི་ལ་'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Sino-Tibetan.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1516,6 +1597,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   jv: javaneseDictionaryEntries,
   so: somaliDictionaryEntries,
   my: burmeseDictionaryEntries,
+  bo: tibetanDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {
@@ -1537,7 +1619,7 @@ export function supportsLocalDictionary(languageCode: string) {
 }
 
 export function normalizeLookupTerm(value: string) {
-  return value.trim().toLocaleLowerCase();
+  return value.trim().toLocaleLowerCase().replace(/་+$/, '');
 }
 
 export function normalizeTurkishWord(value: string) {
