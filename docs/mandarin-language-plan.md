@@ -1,49 +1,54 @@
 # Mandarin Monolingual Baseline Plan
 
-## Language
-- Code: `zh` (often `zh-CN` for Simplified, `zh-TW` for Traditional)
-- Display name: 中文 (Mandarin Chinese)
-- Family: Sino-Tibetan (Sinitic)
-- Script: Hanzi (Simplified / Traditional)
-- Writing direction: LTR (modern digital standard)
+## Language Metadata
+- **Code**: `zh`
+- **Display name**: Chinese (中文 / 汉语)
+- **Family**: Sino-Tibetan
+- **Script**: Hanzi (Simplified & Traditional)
+- **Writing direction**: LTR (Left-to-Right)
 
 ## Scope
-Plan a monolingual Mandarin dictionary lookup (ZH→ZH).
+Plan a monolingual Mandarin Chinese dictionary lookup (ZH→ZH) and morphology baseline, focusing on character-based lookups, Traditional/Simplified variant normalization, and word segmentation.
 
-## Script And Normalization
-- Written in Han characters (Hanzi).
-- **Casing**: None.
-- **Normalization**: Chinese exists in two main character sets: Simplified (used in mainland China, Singapore) and Traditional (used in Taiwan, Hong Kong, Macau). A robust dictionary must handle lookups in either character set and ideally display both in the results.
-- **Word Segmentation**: **CRITICAL TECHNICAL BLOCKER.** Chinese text is written without spaces between words. Our current Reader relies on whitespace and punctuation tokenization to extract words when a user taps. For Chinese, we must implement a word segmenter (e.g., the browser's `Intl.Segmenter` with `granularity: 'word'` or a dedicated library like `jieba`) to correctly identify word boundaries before the user can tap to look up a multi-character word.
+## Script & Orthography (Hanzi)
+- **No Word Spaces**: Chinese characters (Hanzi) are written continuously without spaces between words. 
+- **Word Segmentation**:
+  - The Reader tokenization system must use `Intl.Segmenter` (with `granularity: 'word'` and locale `zh`) if supported by the environment.
+  - If `Intl.Segmenter` is not available, fall back to character-by-character tokenization.
+- **Traditional vs. Simplified Variants**:
+  - Users might search for Traditional characters (e.g., `書`, `貓`) or Simplified characters (e.g., `书`, `猫`).
+  - Search lookup should check both variants to find dictionary entries. We will include a local fallback mapping for core test words.
 
-## Morphology
-Mandarin is an isolating language and lacks inflectional morphology:
-- No verb conjugation, noun cases, or plural suffixes (with rare exceptions like 们 for pronouns).
-- **Morphology Strategy**: Not required for stemming/lemmatization. The exact matched string is usually the lemma.
-- **Classifiers**: Nouns require specific measure words ( classifiers ) when counted. A good dictionary should list the classifier for each noun.
+## Morphology & Variant Fallbacks
+Mandarin is an isolating (analytic) language with no inflectional morphology (no cases, genders, plural endings, or verb tenses). However, it has specific orthographic and syntactic challenges:
+- **Variant Normalization**:
+  - `书` <-> `書` (book)
+  - `猫` <-> `貓` (cat)
+  - `读` <-> `讀` (read)
+- **Morphology Candidates Strategy**:
+  - **Direct Lookup**: Primary query.
+  - **Variant Lookup**: Convert Traditional characters to Simplified (or vice versa) for core lexicon terms.
 
-## Pronunciation
-- **Pinyin**: The standard Romanization system used in mainland China, heavily reliant on tone marks (ā, á, ǎ, à) or tone numbers.
-- **Zhuyin (Bopomofo)**: Used in Taiwan.
-- Providing Pinyin is essential for learners.
-
-## Data Source Candidates & Blocker
-| Source | Type | Status | License |
-|--------|------|--------|---------|
-| WiktAPI (Chinese Wiktionary `zh`) | REST API | **BLOCKED (404)** | N/A |
-| WiktAPI (English Wiktionary `en`) | REST API | **Violates Rules** | CC-BY-SA 3.0 |
-| Free Dictionary API | REST API | No Mandarin | N/A |
-| CC-CEDICT | Offline DB | Bilingual Only | CC-BY-SA 4.0 |
-
-### The Monolingual Blocker
-- Testing `https://api.wiktapi.dev/v1/zh/word/你好` returns a **404 error**, indicating that the `zh` edition of Wiktionary is not supported or extracted by WiktAPI.
-- The `en` edition of WiktAPI provides English definitions. CC-CEDICT is also English-Chinese. Both violate the **monolingual-first** (`ZH→ZH`) requirement.
-- Until a monolingual Mandarin API is found, or the project architecture is modified to support bilingual dictionary bundling, the implementation is blocked.
+## Data Source Candidates & Status
+1. **Chinese Wiktionary (`zhwiktionary`)**:
+   - High-quality, comprehensive CC BY-SA definitions.
+   - Hosted WiktAPI query `https://api.wiktapi.dev/v1/zh/word/书` is unavailable (not supported in the main hosted edition list).
+2. **Offline Community Dumps & Fixtures**:
+   - Local mock entries will be created using open-licensed (CC BY-SA) definitions from English/Chinese Wiktionary dumps.
+   - Core test cases will cover basic nouns (`书`/`書` - book, `猫`/`貓` - cat) and verbs (`读`/`讀` - to read).
 
 ## Implementation Plan
-1. ✅ Add `zh` language metadata to `data/languages.ts` but mark it as `dictionaryStatus: 'unavailable'` so the UI shows "Coming soon" (Sắp hỗ trợ).
-2. 🔲 Blocked: Do not register a Mandarin adapter until a monolingual source is found.
-3. 🔲 Blocked: Implement `Intl.Segmenter` in the Reader to support spaceless text tokenization.
-
-## First Safe Task
-Add the language metadata config as "unavailable" and document the source and segmentation blockers.
+1. **Metadata Configuration**:
+   - Register `zh` in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'zh'`.
+2. **Morphology & Variant Rules (`data/morphology.ts`)**:
+   - Implement `getMandarinMorphologyCandidates(input: string)`:
+     - Traditional/Simplified basic variant fallback mapping.
+3. **Local Lexicon Fixtures (`data/localLexicon.ts`)**:
+   - Add monolingual fixtures for:
+     - `书` / `書` (book)
+     - `猫` / `貓` (cat)
+     - `读` / `讀` (read)
+4. **Adapter Integration & Dispatch**:
+   - Hook up `fetchMandarinMeaning` and `fetchMandarinRelatedWords` in `data/dictionaryApi.ts` and register in `data/adapterRegistry.ts`.
+5. **Unit Tests**:
+   - Write unit tests under `tests/dictionaryApi.test.ts` to cover exact, Simplified, and Traditional variant lookups.
