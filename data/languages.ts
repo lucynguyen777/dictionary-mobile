@@ -51,6 +51,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'tl',
+    label: 'Tagalog',
+    hint: 'Sắp hỗ trợ',
+    family: 'austronesian',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: undefined,
+    dictionaryStatus: 'unavailable',
+  },
+  {
     code: 'sw',
     label: 'Kiswahili',
     hint: 'Sắp hỗ trợ',

@@ -278,7 +278,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
   - [x] DONE [HARD]: Mandarin monolingual baseline planning: Implementation BLOCKED (WiktAPI 'zh' returns 404), requires Intl.Segmenter.
-  - [~] IN PROGRESS [HARD]: Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
+  - [x] DONE [HARD]: Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
@@ -294,6 +294,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
   - [x] DONE [MEDIUM]: Malay monolingual baseline: WiktAPI adapter, simple affix/reduplication morphology candidates.
+  - [~] IN PROGRESS [HARD]: Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
   - Tagalog: focus/voice system and affix-heavy morphology.
   - Javanese/Hawaiian: register or diacritic-sensitive search.
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
@@ -337,9 +338,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
-2. [ ] [HARD] Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
-3. [ ] [HARD] Finnish monolingual baseline implementation: Select a valid monolingual Finnish source, register the Finnish adapter, and write morphology fallback rules for noun/verb cases.
+1. [~] [HARD] Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
+2. [ ] [HARD] Finnish monolingual baseline implementation: Select a valid monolingual Finnish source, register the Finnish adapter, and write morphology fallback rules for noun/verb cases.
+3. [ ] [HARD] Turkish monolingual baseline implementation: select or construct a Turkish dictionary adapter, parse suffix chains, and add a test fixture for common words.
 
 
 
