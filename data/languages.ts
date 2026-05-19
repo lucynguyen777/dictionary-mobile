@@ -81,16 +81,6 @@ export const languageOptions = [
     dictionaryStatus: 'unavailable',
   },
   {
-    code: 'zh',
-    label: '中文',
-    hint: 'Sắp hỗ trợ',
-    family: 'sino-tibetan',
-    script: 'han',
-    writingDirection: 'ltr',
-    adapterKey: undefined,
-    dictionaryStatus: 'unavailable',
-  },
-  {
     code: 'yue',
     label: '廣東話 (Cantonese)',
     hint: 'Sắp hỗ trợ',
