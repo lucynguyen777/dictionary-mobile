@@ -863,6 +863,97 @@ const hungarianDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const tagalogDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'aso',
+    ipa: '/ˈʔa.so/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Hayop (Animals)',
+    vietnamese: 'con chó',
+    shortDefinition: 'isang uri ng hayop na apat ang paa at tinaguriang matalik na kaibigan ng tao (dog)',
+    definitions: [
+      {
+        partOfSpeech: 'Pangngalan (noun)',
+        meaning: 'Isang pinaamong hayop na mamalya na kabilang sa pamilya Canidae (A domesticated mammalian animal belonging to the family Canidae).',
+        vietnamese: 'Con chó. Loài động vật có vú được thuần hóa thuộc họ Chó.',
+        examples: [
+          { source: 'Tahol nang tahol ang aso.', translation: 'Con chó đang sủa liên hồi.' }
+        ],
+      }
+    ],
+    synonyms: ['tuta'],
+    antonyms: [],
+    collocations: ['asong gubat'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'mga aso' }
+    ],
+    etymology: 'Proto-Malayo-Polynesian: *asu.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'kain',
+    ipa: '/ˈka.ʔin/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Pagkain (Food)',
+    vietnamese: 'ăn',
+    shortDefinition: 'pagsubo at paglunok ng pagkain sa bibig (to eat)',
+    definitions: [
+      {
+        partOfSpeech: 'Pandiwa (verb)',
+        meaning: 'Ang proseso ng pagkuha, pagnguya, at paglunok ng pagkain (The process of taking, chewing, and swallowing food).',
+        vietnamese: 'Ăn. Quá trình lấy, nhai và nuốt thức ăn.',
+        examples: [
+          { source: 'Gusto kong kumain ng mangga.', translation: 'Tôi muốn ăn xoài.' }
+        ],
+      }
+    ],
+    synonyms: ['kainin', 'kumain'],
+    antonyms: [],
+    collocations: ['kainan', 'pagkain'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Infinitive/Actor Focus', form: 'kumain' },
+      { tense: 'Contemplated/Future', form: 'kakain' },
+      { tense: 'Imperfective/Present', form: 'kumakain' }
+    ],
+    etymology: 'Proto-Austronesian: *kaen.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'basa',
+    ipa: '/ˈba.sa/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Edukasyon (Education)',
+    vietnamese: 'đọc',
+    shortDefinition: 'pag-unawa sa mga nakasulat na titik o sagisag (to read)',
+    definitions: [
+      {
+        partOfSpeech: 'Pandiwa (verb)',
+        meaning: 'Pagtingin at pag-unawa sa kahulugan ng mga nakasulat o nakaprint na mga simbolo (To look at and understand the meaning of written or printed symbols).',
+        vietnamese: 'Đọc. Nhìn và hiểu ý nghĩa của các ký hiệu được viết hoặc in.',
+        examples: [
+          { source: 'Nagbabasa ako ng libro.', translation: 'Tôi đang đọc một cuốn sách.' }
+        ],
+      }
+    ],
+    synonyms: ['bumasa'],
+    antonyms: [],
+    collocations: ['basahin', 'tagabasa'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Infinitive/Actor Focus', form: 'bumasa' },
+      { tense: 'Contemplated/Future', form: 'babasa' },
+      { tense: 'Imperfective/Present', form: 'nagbabasa' }
+    ],
+    etymology: 'Sanskrit: bhasha (speech/language).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -875,6 +966,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   ko: koreanDictionaryEntries,
   sw: swahiliDictionaryEntries,
   hu: hungarianDictionaryEntries,
+  tl: tagalogDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

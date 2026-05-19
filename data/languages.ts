@@ -53,12 +53,12 @@ export const languageOptions = [
   {
     code: 'tl',
     label: 'Tagalog',
-    hint: 'Sắp hỗ trợ',
+    hint: 'Wiktionary preview',
     family: 'austronesian',
     script: 'latin',
     writingDirection: 'ltr',
-    adapterKey: undefined,
-    dictionaryStatus: 'unavailable',
+    adapterKey: 'tl',
+    dictionaryStatus: 'monolingual',
   },
   {
     code: 'sw',

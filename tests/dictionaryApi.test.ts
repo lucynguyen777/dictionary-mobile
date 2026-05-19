@@ -410,3 +410,46 @@ describe('Hebrew monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('כרך');
   });
 });
+
+describe('Tagalog monolingual baseline and morphology', () => {
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const aso = await fetchMonolingualMeaning('aso', 'tl');
+    expect(aso.word).toBe('aso');
+    expect(aso.ipa).toBe('/ˈʔa.so/');
+    expect(aso.definitions[0].meaning).toContain('Isang pinaamong hayop');
+
+    const kain = await fetchMonolingualMeaning('kain', 'tl');
+    expect(kain.word).toBe('kain');
+  });
+
+  it('resolves prefix and reduplication forms using local morphology fallback', async () => {
+    // Prefix (magbasa -> basa)
+    const magbasa = await fetchMonolingualMeaning('magbasa', 'tl');
+    expect(magbasa.word).toBe('basa');
+
+    // Prefix and CV reduplication (nagbabasa -> basa)
+    const nagbabasa = await fetchMonolingualMeaning('nagbabasa', 'tl');
+    expect(nagbabasa.word).toBe('basa');
+  });
+
+  it('resolves infix and reduplication forms using local morphology fallback', async () => {
+    // Infix (kumain -> kain)
+    const kumain = await fetchMonolingualMeaning('kumain', 'tl');
+    expect(kumain.word).toBe('kain');
+
+    // Infix and CV reduplication (kumakain -> kain)
+    const kumakain = await fetchMonolingualMeaning('kumakain', 'tl');
+    expect(kumakain.word).toBe('kain');
+  });
+
+  it('resolves suffix forms using local morphology fallback', async () => {
+    // Suffix (basahin -> basa)
+    const basahin = await fetchMonolingualMeaning('basahin', 'tl');
+    expect(basahin.word).toBe('basa');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('aso', 'tl');
+    expect(related.synonyms).toContain('tuta');
+  });
+});

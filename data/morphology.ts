@@ -57,6 +57,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'hu') return getHungarianMorphologyCandidates(input);
   if (languageCode === 'ar') return getArabicMorphologyCandidates(input);
   if (languageCode === 'he') return getHebrewMorphologyCandidates(input);
+  if (languageCode === 'tl') return getTagalogMorphologyCandidates(input);
 
   return [];
 }
@@ -875,6 +876,59 @@ function getHebrewMorphologyCandidates(input: string): MorphologyCandidate[] {
   // 4. Specific plural-to-singular mappings
   if (word === 'ספרים' || word === 'הספרים' || word === 'ובספרים' || word === 'בספרים') {
     candidates.push(createCandidate('ספר', 'plural to singular'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getTagalogMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim().toLowerCase();
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // 1. Strip common prefixes (nag-, mag-, pag-, na-, ma-, ipag-, mang-, nang-)
+  const prefixes = ['ipag', 'mang', 'nang', 'mag', 'nag', 'pag', 'ma', 'na'];
+  for (const prefix of prefixes) {
+    if (word.startsWith(prefix) && word.length > prefix.length + 2) {
+      const remaining = word.slice(prefix.length);
+      candidates.push(createCandidate(remaining, `prefix stripped (${prefix}-)`));
+      
+      // Handle reduplication after prefix (e.g. nagbabasa -> babasa -> basa)
+      if (remaining.length >= 4 && remaining.slice(0, 2) === remaining.slice(2, 4)) {
+        candidates.push(createCandidate(remaining.slice(2), `prefix and reduplication stripped (${prefix} + CV-)`));
+      }
+    }
+  }
+
+  // 2. Strip suffixes (-in, -an, -hin, -han, -ng)
+  const suffixes = ['hin', 'han', 'in', 'an', 'ng'];
+  for (const suffix of suffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 2) {
+      const remaining = word.slice(0, -suffix.length);
+      candidates.push(createCandidate(remaining, `suffix stripped (-${suffix})`));
+    }
+  }
+
+  // 3. Remove infixes (-um-, -in-)
+  const infixes = ['um', 'in'];
+  for (const infix of infixes) {
+    if (word.slice(1, 3) === infix && word.length > 4) {
+      const firstChar = word[0];
+      const remaining = word.slice(3);
+      const restored = firstChar + remaining;
+      candidates.push(createCandidate(restored, `infix stripped (-${infix}-)`));
+      
+      // Handle reduplication + infix: e.g. kumakain -> kakain -> kain
+      if (restored.length >= 4 && restored.slice(0, 2) === restored.slice(2, 4)) {
+        candidates.push(createCandidate(restored.slice(2), `infix and reduplication stripped (-${infix}- + CV-)`));
+      }
+    }
+  }
+
+  // 4. Standalone CV reduplication (e.g. babasa -> basa, kakain -> kain, susulat -> sulat)
+  if (word.length >= 4 && word.slice(0, 2) === word.slice(2, 4)) {
+    candidates.push(createCandidate(word.slice(2), 'reduplication stripped (CV-)'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

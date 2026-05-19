@@ -187,6 +187,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'hu') return fetchHungarianMeaning(word);
   if (languageCode === 'ar') return fetchArabicMeaning(word);
   if (languageCode === 'he') return fetchHebrewMeaning(word);
+  if (languageCode === 'tl') return fetchTagalogMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -205,6 +206,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'hu') return fetchHungarianRelatedWords(word);
   if (languageCode === 'ar') return fetchArabicRelatedWords(word);
   if (languageCode === 'he') return fetchHebrewRelatedWords(word);
+  if (languageCode === 'tl') return fetchTagalogRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1153,6 +1155,57 @@ export async function fetchHebrewMeaning(word: string): Promise<ApiMeaningResult
 export async function fetchHebrewRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('he', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchTagalogMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('tl', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('tl', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'tlwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'tlwiktionary' : `tlwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Tagalog Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchTagalogRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('tl', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],
