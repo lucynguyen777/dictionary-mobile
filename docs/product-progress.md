@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `a16cb11` feat(lang): implement Swahili monolingual baseline adapter, exact Latin search, noun class plural-to-singular fallback, verb prefix stripping, and local test fixtures
   - `26423c8` feat(lang): implement Korean monolingual baseline adapter, exact Hangul search, particle stripping, verb inflection fallback, and local test fixtures
   - `f7c0e90` feat(lang): implement Japanese monolingual baseline adapter, exact kana/kanji search, Group 1/2 verb inflection suffix fallback, and local test fixtures
   - `3c74956` feat(lang): implement Turkish monolingual baseline adapter, custom dotless/dotted I casing normalization, case-suffix stripping morphology, and local test fixtures
@@ -315,7 +316,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Finnish monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/finnish-language-plan.md`.
   - [x] DONE [HARD]: Finnish monolingual baseline implementation: Register the Finnish adapter, add tiny test fixtures under the CC BY-SA license from the community Finnish Wiktionary (`fiwiktionary`), and write morphology fallback rules for noun/verb case endings.
   - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
-  - [ ] TODO [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
+  - [~] IN PROGRESS [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
@@ -348,9 +349,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [MEDIUM] Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (swwiktionary) CC BY-SA data.
-2. [ ] [HARD] Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from huwiktionary, and write morphology fallback rules.
-3. [ ] [HARD] Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (arwiktionary and hewiktionary) as monolingual sources.
+1. [~] [HARD] Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from huwiktionary, and write morphology fallback rules.
+2. [ ] [HARD] Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (arwiktionary and hewiktionary) as monolingual sources.
+3. [ ] [HARD] Tagalog monolingual baseline implementation: Register the Tagalog adapter, write focus system and affix fallbacks, using the CC BY-SA tl-wiktionary data.
 
 
 
