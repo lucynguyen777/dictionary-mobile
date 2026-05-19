@@ -208,14 +208,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Reader settings: font size, font family, background color.
 - [x] DONE: Tap word to lookup.
 - [x] DONE: Tap word to save and quick note in reading flow.
-- [~] IN PROGRESS [HARD]: Import EPUB/PDF/DOCX after HTML; DOCX Mammoth-to-HTML and EPUB spine/chapter prototypes are enabled, PDF extraction path is evaluated but implementation remains disabled/pending (commit `1651d83`).
+- [x] DONE [HARD]: Import EPUB/PDF/DOCX after HTML; DOCX Mammoth-to-HTML, EPUB spine/chapter, and PDF.js-style extraction are fully integrated and verified via unit tests and browser smoke tests.
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
 - [x] DONE [HARD]: Harden Reader structured imports: add file-size (10MB limit) and empty-text limits.
 - [x] DONE [HARD]: Reader PDF extraction fixture gate: dev-client/web fixture expectations are documented and PDF remains disabled until a digital PDF test path is verified.
 - [x] DONE [HARD]: Reader PDF extraction implementation preparation: repo-owned digital/empty/image-only fixtures are committed, parser path is selected as web-first PDF.js-style prototype before native dev-client evaluation, and PDF remains disabled.
 - [x] DONE [HARD]: Reader PDF extraction parser prototype: PDF.js-style parser abstraction and fixture tests cover digital, empty, and image-only PDFs while app PDF import remains disabled.
-- [ ] TODO [HARD]: Reader PDF import enablement gate. Wire PDF into Reader import only after Expo web manual smoke and unsupported native/Expo Go copy are verified.
+- [x] DONE [HARD]: Reader PDF import enablement gate. Wire PDF into Reader import under the `READER_ENABLE_PDF=true` gate for Expo web, verify unsupported native/Expo Go alerts, and execute manual browser smoke testing.
 
 ## User Profile And Privacy
 
@@ -277,6 +277,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
   - [x] DONE [HARD]: Mandarin monolingual baseline planning: Implementation BLOCKED (WiktAPI 'zh' returns 404), requires Intl.Segmenter.
+  - [~] IN PROGRESS [HARD]: Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
@@ -335,11 +336,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Reader PDF import enablement gate: PDF is wired into Reader import only behind `READER_ENABLE_PDF=true` on Expo web; native/Expo Go copy stays unsupported, and manual browser fixture smoke is still required before enabling it by default.
-  - Implementation: added a runtime gate `isPdfImportEnabled()` controlled by environment variable `READER_ENABLE_PDF=true` and limited to web (`EXPO_OS=web`); `extractReaderDocument()` now routes gated PDFs through the PDF.js-style parser, and Reader UI reads PDF as `ArrayBuffer` only after the gate passes.
-  - Verification (node): `npm test -- --run tests/readerImport.test.ts tests/nativePdfGate.test.ts` passed with gated PDF import, default-disabled PDF import, and native-disabled behavior covered. Manual browser smoke still required.
-2. [ ] [HARD] Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
-3. [ ] [HARD] Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
+1. [~] [HARD] Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
+2. [ ] [HARD] Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
+3. [ ] [HARD] Finnish monolingual baseline implementation: Select a valid monolingual Finnish source, register the Finnish adapter, and write morphology fallback rules for noun/verb cases.
+
 
 
 ## Rule
