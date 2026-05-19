@@ -305,7 +305,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: source candidates, Latin-script search implications, and adapter fixture gates documented in `docs/swahili-language-plan.md`.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (`swwiktionary`) CC BY-SA data.
-  - [~] IN PROGRESS [MEDIUM]: Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
+  - [x] DONE [MEDIUM]: Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
+  - [~] IN PROGRESS [MEDIUM]: Yoruba monolingual baseline implementation: Register Yoruba adapter and write morphology lookup logic, using CC BY-SA data.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
@@ -360,8 +361,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [MEDIUM] Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
-2. [ ] [MEDIUM] Yoruba monolingual baseline implementation: Register Yoruba adapter and write morphology lookup logic, using CC BY-SA data.
+1. [~] [MEDIUM] Yoruba monolingual baseline implementation: Register Yoruba adapter and write morphology lookup logic, using CC BY-SA data.
+2. [ ] [MEDIUM] Zulu monolingual baseline planning: Research noun class prefixes and morphological markers.
 3. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
 
 
