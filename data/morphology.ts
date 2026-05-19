@@ -61,6 +61,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'am') return getAmharicMorphologyCandidates(input);
   if (languageCode === 'ru') return getRussianMorphologyCandidates(input);
   if (languageCode === 'zh') return getMandarinMorphologyCandidates(input);
+  if (languageCode === 'jv') return getJavaneseMorphologyCandidates(input);
 
   return [];
 }
@@ -1073,6 +1074,65 @@ function getMandarinMorphologyCandidates(input: string): MorphologyCandidate[] {
 
   if (alternativeWord !== word) {
     candidates.push(createCandidate(alternativeWord, 'variant (simplified/traditional)'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getJavaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = normalizeMorphologyInput(input);
+  if (word.length < 2) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  const addCandidate = (w: string, desc: string) => {
+    if (w.length >= 2 && w !== word) {
+      candidates.push(createCandidate(w, desc));
+    }
+  };
+
+  const suffixList = ['ake', 'i'];
+  let stem = word;
+  let suffixStripped = '';
+  for (const suff of suffixList) {
+    if (word.endsWith(suff) && word.length > suff.length + 2) {
+      stem = word.slice(0, -suff.length);
+      suffixStripped = suff;
+      addCandidate(stem, `suffix stripped (-${suff})`);
+      break;
+    }
+  }
+
+  const analyzePrefixes = (s: string, contextSuffix: string) => {
+    const labelSuffix = contextSuffix ? ` and suffix -${contextSuffix} stripped` : '';
+
+    if (s.startsWith('ny') && s.length > 2) {
+      const rest = s.slice(2);
+      addCandidate('s' + rest, `active nasal ny- restored to s${labelSuffix}`);
+      addCandidate('c' + rest, `active nasal ny- restored to c${labelSuffix}`);
+    } else if (s.startsWith('ng') && s.length > 2) {
+      const rest = s.slice(2);
+      addCandidate('k' + rest, `active nasal ng- restored to k${labelSuffix}`);
+      addCandidate(rest, `active nasal ng- stripped (vowel root)${labelSuffix}`);
+    } else if (s.startsWith('n') && s.length > 1 && !s.startsWith('ny') && !s.startsWith('ng')) {
+      const rest = s.slice(1);
+      addCandidate('t' + rest, `active nasal n- restored to t${labelSuffix}`);
+    } else if (s.startsWith('m') && s.length > 1) {
+      const rest = s.slice(1);
+      addCandidate('p' + rest, `active nasal m- restored to p${labelSuffix}`);
+      addCandidate('w' + rest, `active nasal m- restored to w${labelSuffix}`);
+    }
+
+    if (s.startsWith('di') && s.length > 2) {
+      const rest = s.slice(2);
+      addCandidate(rest, `passive prefix di- stripped${labelSuffix}`);
+    }
+  };
+
+  analyzePrefixes(word, '');
+
+  if (stem !== word) {
+    analyzePrefixes(stem, suffixStripped);
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

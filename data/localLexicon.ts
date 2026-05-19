@@ -1217,6 +1217,125 @@ const mandarinDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const javaneseDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'waca',
+    ipa: '/watʃa/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Actions',
+    vietnamese: 'đọc (Ngoko)',
+    shortDefinition: 'maca, maca buku utawa tulisan (to read)',
+    definitions: [
+      {
+        partOfSpeech: 'verb (Ngoko)',
+        meaning: 'Maca buku utawa tulisan (to read books or text).',
+        vietnamese: 'Đọc sách hoặc chữ (thân mật).',
+        examples: [
+          { source: 'Aku maca buku.', translation: 'Tôi đọc sách.' }
+        ],
+      }
+    ],
+    synonyms: ['maos'],
+    antonyms: ['nulis'],
+    collocations: ['maca buku'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Active Nasal', form: 'maca' },
+      { tense: 'Passive', form: 'diwaca' }
+    ],
+    etymology: 'Austronesian *baca.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'tulis',
+    ipa: '/tʊlɪs/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Actions',
+    vietnamese: 'viết (Ngoko)',
+    shortDefinition: 'nulis nggunakake potlot utawa pulpen (to write)',
+    definitions: [
+      {
+        partOfSpeech: 'verb (Ngoko)',
+        meaning: 'Nulis aksara utawa angka ing kertas (to write letters or numbers on paper).',
+        vietnamese: 'Viết chữ hoặc số lên giấy (thân mật).',
+        examples: [
+          { source: 'Dheweke nulis layang.', translation: 'Anh ấy viết thư.' }
+        ],
+      }
+    ],
+    synonyms: ['serat'],
+    antonyms: ['waca'],
+    collocations: ['nulis layang'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Active Nasal', form: 'nulis' },
+      { tense: 'Passive', form: 'ditulis' }
+    ],
+    etymology: 'Austronesian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'tuku',
+    ipa: '/tuku/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Shopping',
+    vietnamese: 'mua (Ngoko)',
+    shortDefinition: 'nuku barang nggunakake dhuwit (to buy - informal)',
+    definitions: [
+      {
+        partOfSpeech: 'verb (Ngoko)',
+        meaning: 'Nuku barang nggunakake dhuwit minangka ijol (to buy goods using money).',
+        vietnamese: 'Mua hàng hóa bằng tiền (thân mật).',
+        examples: [
+          { source: 'Aku tuku sega.', translation: 'Tôi mua cơm.' }
+        ],
+      }
+    ],
+    synonyms: ['tumbas'],
+    antonyms: ['adol'],
+    collocations: ['tuku panganan'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Active Nasal', form: 'nuku' },
+      { tense: 'Passive', form: 'dituku' }
+    ],
+    etymology: 'Austronesian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'tumbas',
+    ipa: '/tumbas/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Shopping',
+    vietnamese: 'mua (Krama)',
+    shortDefinition: 'tumbas barang nggunakake dhuwit (to buy - polite)',
+    definitions: [
+      {
+        partOfSpeech: 'verb (Krama)',
+        meaning: 'Tumbas barang nggunakake dhuwit (to buy goods, polite form).',
+        vietnamese: 'Mua hàng hóa bằng tiền (trang trọng/lịch sự).',
+        examples: [
+          { source: 'Kula tumbas sekul.', translation: 'Tôi mua cơm (lịch sự).' }
+        ],
+      }
+    ],
+    synonyms: ['tuku'],
+    antonyms: ['sade'],
+    collocations: ['tumbas griya'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Active Nasal', form: 'numbas' },
+      { tense: 'Passive', form: 'ditumbas' }
+    ],
+    etymology: 'Austronesian.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1233,6 +1352,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   am: amharicDictionaryEntries,
   ru: russianDictionaryEntries,
   zh: mandarinDictionaryEntries,
+  jv: javaneseDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

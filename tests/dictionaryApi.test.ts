@@ -587,3 +587,52 @@ describe('Mandarin monolingual baseline and variant morphology', () => {
     expect(related.antonyms).toContain('写');
   });
 });
+
+describe('Javanese monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const waca = await fetchMonolingualMeaning('waca', 'jv');
+    expect(waca.word).toBe('waca');
+    expect(waca.ipa).toBe('/watʃa/');
+    expect(waca.definitions[0].meaning).toContain('Maca buku utawa tulisan');
+
+    const tulis = await fetchMonolingualMeaning('tulis', 'jv');
+    expect(tulis.word).toBe('tulis');
+  });
+
+  it('resolves active nasal verb prefixes to their dictionary root form', async () => {
+    // maca -> waca
+    const maca = await fetchMonolingualMeaning('maca', 'jv');
+    expect(maca.word).toBe('waca');
+    expect(maca.source).toContain('base form of maca');
+
+    // nulis -> tulis
+    const nulis = await fetchMonolingualMeaning('nulis', 'jv');
+    expect(nulis.word).toBe('tulis');
+  });
+
+  it('resolves passive verb prefix di- to its dictionary root form', async () => {
+    // diwaca -> waca
+    const diwaca = await fetchMonolingualMeaning('diwaca', 'jv');
+    expect(diwaca.word).toBe('waca');
+
+    // ditulis -> tulis
+    const ditulis = await fetchMonolingualMeaning('ditulis', 'jv');
+    expect(ditulis.word).toBe('tulis');
+  });
+
+  it('resolves suffixes (-ake, -i) stacked with prefixes', async () => {
+    // nulisake -> tulis
+    const nulisake = await fetchMonolingualMeaning('nulisake', 'jv');
+    expect(nulisake.word).toBe('tulis');
+  });
+
+  it('handles Javanese speech registers Ngoko and Krama synonyms', async () => {
+    // tuku (Ngoko) has Krama synonym tumbas
+    const tukuRelated = await fetchRelatedWords('tuku', 'jv');
+    expect(tukuRelated.synonyms).toContain('tumbas');
+
+    // tumbas (Krama) has Ngoko synonym tuku
+    const tumbasRelated = await fetchRelatedWords('tumbas', 'jv');
+    expect(tumbasRelated.synonyms).toContain('tuku');
+  });
+});

@@ -161,6 +161,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'jv',
+    label: 'Basa Jawa (Javanese)',
+    hint: 'Wiktionary preview',
+    family: 'austronesian',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'jv',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'fi',
     label: 'Suomi (Finnish)',
     hint: 'Wiktionary preview',

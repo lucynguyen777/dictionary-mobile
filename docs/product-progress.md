@@ -296,6 +296,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
   - [x] DONE [HARD]: Amharic monolingual baseline planning: Research Ge'ez script characteristics, transliteration, and morphology source candidates.
   - [x] DONE [HARD]: Amharic monolingual baseline implementation: Register Amharic adapter, write abugida vowel/order shift mapping morphology fallbacks, using CC BY-SA `amwiktionary` data.
+  - [x] DONE [HARD]: Somali monolingual baseline planning: Research Latin-script Somali morphology, noun declension/gender, and source options.
+  - [~] IN PROGRESS [HARD]: Somali monolingual baseline implementation: Register Somali adapter, write definite article morphology fallbacks, using CC BY-SA data.
   - Somali: Latin script but needs morphology/source research.
 - [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: source candidates, Latin-script search implications, and adapter fixture gates documented in `docs/swahili-language-plan.md`.
@@ -306,6 +308,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Malay monolingual baseline: WiktAPI adapter, simple affix/reduplication morphology candidates.
   - [x] DONE [HARD]: Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
   - [x] DONE [HARD]: Tagalog monolingual baseline implementation: Register Tagalog adapter, write focus trigger and reduplication/infixation fallbacks, using CC BY-SA `tlwiktionary` data.
+  - [x] DONE [HARD]: Javanese monolingual baseline planning: Research Javanese script, speech registers (Ngoko/Krama), and morphology.
+  - [x] DONE [HARD]: Javanese monolingual baseline implementation: Register Javanese adapter, write active/passive morphology fallbacks, using CC BY-SA data.
   - Tagalog: focus/voice system and affix-heavy morphology.
   - Javanese/Hawaiian: register or diacritic-sensitive search.
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
@@ -352,10 +356,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Javanese monolingual baseline planning: Research Javanese script, registers (Ngoko/Krama), and morphology.
-2. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
-3. [ ] [HARD] Burmese monolingual baseline planning: Research script-specific segmentation and dictionary source.
-4. [ ] [HARD] Tibetan monolingual baseline planning: Research script-specific segmentation and dictionary source.
+1. [~] [HARD] Somali monolingual baseline implementation: Register Somali adapter, write definite article morphology fallbacks, using CC BY-SA data.
+2. [ ] [HARD] Burmese monolingual baseline planning: Research script-specific segmentation and dictionary source.
+3. [ ] [HARD] Tibetan monolingual baseline planning: Research script-specific segmentation and dictionary source.
+4. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
 
 
 

@@ -36,6 +36,8 @@ import {
     fetchRussianRelatedWords,
     fetchMandarinMeaning,
     fetchMandarinRelatedWords,
+    fetchJavaneseMeaning,
+    fetchJavaneseRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -172,6 +174,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchMandarinMeaning(word),
     fetchRelatedWords: (word: string) => fetchMandarinRelatedWords(word),
+  },
+  jv: {
+    key: 'jv',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchJavaneseMeaning(word),
+    fetchRelatedWords: (word: string) => fetchJavaneseRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {
