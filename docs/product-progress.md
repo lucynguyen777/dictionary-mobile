@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `26423c8` feat(lang): implement Korean monolingual baseline adapter, exact Hangul search, particle stripping, verb inflection fallback, and local test fixtures
   - `f7c0e90` feat(lang): implement Japanese monolingual baseline adapter, exact kana/kanji search, Group 1/2 verb inflection suffix fallback, and local test fixtures
   - `3c74956` feat(lang): implement Turkish monolingual baseline adapter, custom dotless/dotted I casing normalization, case-suffix stripping morphology, and local test fixtures
   - `21875d0` feat(lang): implement Finnish monolingual baseline adapter, local dictionary fixtures, and case-gradation morphology fallback rules
@@ -295,7 +296,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Somali: Latin script but needs morphology/source research.
 - [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: source candidates, Latin-script search implications, and adapter fixture gates documented in `docs/swahili-language-plan.md`.
-  - [ ] TODO [MEDIUM]: Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (`swwiktionary`) CC BY-SA data.
+  - [~] IN PROGRESS [MEDIUM]: Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (`swwiktionary`) CC BY-SA data.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
@@ -347,9 +348,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Korean monolingual baseline implementation: register Korean adapter, construct local lookup fixtures, and write particles/adjective ending fallback rules.
-2. [ ] [MEDIUM] Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (swwiktionary) CC BY-SA data.
-3. [ ] [HARD] Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from huwiktionary, and write morphology fallback rules.
+1. [~] [MEDIUM] Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (swwiktionary) CC BY-SA data.
+2. [ ] [HARD] Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from huwiktionary, and write morphology fallback rules.
+3. [ ] [HARD] Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (arwiktionary and hewiktionary) as monolingual sources.
 
 
 
