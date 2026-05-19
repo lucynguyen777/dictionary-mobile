@@ -352,9 +352,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Russian monolingual baseline planning: Research Cyrillic script characteristics, noun case systems, verb aspect morphology, and local fixture mockups.
-2. [ ] [HARD] Russian monolingual baseline implementation: Register Russian adapter, write case/aspect morphology fallbacks.
-3. [ ] [HARD] Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate word segmentation.
+1. [~] [HARD] Javanese monolingual baseline planning: Research Javanese script, registers (Ngoko/Krama), and morphology.
+2. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
+3. [ ] [HARD] Burmese monolingual baseline planning: Research script-specific segmentation and dictionary source.
+4. [ ] [HARD] Tibetan monolingual baseline planning: Research script-specific segmentation and dictionary source.
 
 
 
