@@ -182,6 +182,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'fi') return fetchFinnishMeaning(word);
   if (languageCode === 'tr') return fetchTurkishMeaning(word);
   if (languageCode === 'ja') return fetchJapaneseMeaning(word);
+  if (languageCode === 'ko') return fetchKoreanMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -195,6 +196,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'fi') return fetchFinnishRelatedWords(word);
   if (languageCode === 'tr') return fetchTurkishRelatedWords(word);
   if (languageCode === 'ja') return fetchJapaneseRelatedWords(word);
+  if (languageCode === 'ko') return fetchKoreanRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -888,6 +890,57 @@ export async function fetchJapaneseMeaning(word: string): Promise<ApiMeaningResu
 export async function fetchJapaneseRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('ja', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchKoreanMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('ko', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('ko', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'kowiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'kowiktionary' : `kowiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Korean Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchKoreanRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('ko', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],

@@ -569,6 +569,67 @@ const japaneseDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const koreanDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: '사랑',
+    ipa: '/saːraŋ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Gamjeong (Emotion)',
+    vietnamese: 'tình yêu',
+    shortDefinition: '아끼고 위하는 따뜻한 마음 (warm feeling of caring / love)',
+    definitions: [
+      {
+        partOfSpeech: '명사 (noun)',
+        meaning: '어떤 사람이나 대상을 몹시 아끼고 귀중히 여기는 마음 (A feeling of deeply caring for and valuing someone or something).',
+        vietnamese: 'Tình yêu, lòng yêu thương. Cảm xúc trân trọng, nâng niu một người hoặc đối tượng nào đó.',
+        examples: [
+          { source: '어머니의 사랑은 가없이 깊다.', translation: 'Tình yêu của mẹ sâu đậm bao la.' }
+        ],
+      }
+    ],
+    synonyms: ['애정', '연애'],
+    antonyms: ['미움', '증오'],
+    collocations: ['사랑에 빠지다', '첫사랑'],
+    idioms: [],
+    conjugation: [],
+    etymology: '고유어: 사랑 (Native Korean: sarang).',
+    pronunciationTips: [],
+  },
+  {
+    word: '먹다',
+    ipa: '/mʌk̚t͈a/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Siksal (Meal)',
+    vietnamese: 'ăn',
+    shortDefinition: '음식을 입을 통해 배 속에 들여보내다 (to eat)',
+    definitions: [
+      {
+        partOfSpeech: '동사 (verb)',
+        meaning: '음식 따위를 입을 통해 위로 들여보내다 (To send food or similar substances through the mouth to the stomach).',
+        vietnamese: 'Ăn. Đưa thức ăn qua miệng vào dạ dày.',
+        examples: [
+          { source: '밥을 먹다.', translation: 'Ăn cơm.' }
+        ],
+      }
+    ],
+    synonyms: ['섭취하다', '식사하다'],
+    antonyms: [],
+    collocations: ['마음을 먹다'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Polite Present', form: '먹어요' },
+      { tense: 'Formal Polite Present', form: '먹습니다' },
+      { tense: 'Past', form: '먹었다' },
+      { tense: 'Formal Polite Past', form: '먹었습니다' },
+      { tense: 'Connective', form: '먹고' }
+    ],
+    etymology: '고유어: 먹다 (Native Korean: meokda).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -578,6 +639,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   fi: finnishDictionaryEntries,
   tr: turkishDictionaryEntries,
   ja: japaneseDictionaryEntries,
+  ko: koreanDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

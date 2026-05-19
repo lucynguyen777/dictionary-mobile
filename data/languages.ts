@@ -113,12 +113,12 @@ export const languageOptions = [
   {
     code: 'ko',
     label: '한국어',
-    hint: 'Sắp hỗ trợ',
+    hint: 'Wiktionary preview',
     family: 'koreanic',
     script: 'hangul',
     writingDirection: 'ltr',
     adapterKey: 'ko',
-    dictionaryStatus: 'coming-soon',
+    dictionaryStatus: 'monolingual',
   },
   {
     code: 'ar',

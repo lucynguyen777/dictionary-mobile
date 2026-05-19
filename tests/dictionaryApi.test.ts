@@ -189,3 +189,63 @@ describe('Japanese monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('キャット');
   });
 });
+
+describe('Korean monolingual baseline and morphology', () => {
+
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const sarang = await fetchMonolingualMeaning('사랑', 'ko');
+    expect(sarang.word).toBe('사랑');
+    expect(sarang.ipa).toBe('/saːraŋ/');
+    expect(sarang.definitions[0].meaning).toContain('아끼고 귀중히 여기는 마음');
+    expect(sarang.definitions[0].vietnamese).toBe('Tình yêu, lòng yêu thương. Cảm xúc trân trọng, nâng niu một người hoặc đối tượng nào đó.');
+
+    const meokda = await fetchMonolingualMeaning('먹다', 'ko');
+    expect(meokda.word).toBe('먹다');
+    expect(meokda.definitions[0].meaning).toContain('음식 따위를 입을 통해 위로 들여보내다');
+  });
+
+  it('resolves inflected nouns (particles) using local morphology fallback', async () => {
+    // Topic particle (사랑은 -> 사랑)
+    const sarangEun = await fetchMonolingualMeaning('사랑은', 'ko');
+    expect(sarangEun.word).toBe('사랑');
+    expect(sarangEun.source).toContain('base form of 사랑은');
+
+    // Subject particle (사랑이 -> 사랑)
+    const sarangI = await fetchMonolingualMeaning('사랑이', 'ko');
+    expect(sarangI.word).toBe('사랑');
+
+    // Genitive particle (사랑의 -> 사랑)
+    const sarangUi = await fetchMonolingualMeaning('사랑의', 'ko');
+    expect(sarangUi.word).toBe('사랑');
+  });
+
+  it('resolves inflected verbs using local morphology fallback', async () => {
+    // Informal present (먹어 -> 먹다)
+    const meogeo = await fetchMonolingualMeaning('먹어', 'ko');
+    expect(meogeo.word).toBe('먹다');
+
+    // Polite present (먹어요 -> 먹다)
+    const meogeoyo = await fetchMonolingualMeaning('먹어요', 'ko');
+    expect(meogeoyo.word).toBe('먹다');
+
+    // Formal present (먹습니다 -> 먹다)
+    const meokseumnida = await fetchMonolingualMeaning('먹습니다', 'ko');
+    expect(meokseumnida.word).toBe('먹다');
+
+    // Past (먹었다 -> 먹다)
+    const meogeotda = await fetchMonolingualMeaning('먹었다', 'ko');
+    expect(meogeotda.word).toBe('먹다');
+
+    // Connective (먹고 -> 먹다)
+    const meokgo = await fetchMonolingualMeaning('먹고', 'ko');
+    expect(meokgo.word).toBe('먹다');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('사랑', 'ko');
+    expect(related.synonyms).toContain('애정');
+    expect(related.synonyms).toContain('연애');
+    expect(related.antonyms).toContain('미움');
+    expect(related.antonyms).toContain('증오');
+  });
+});

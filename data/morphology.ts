@@ -52,6 +52,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
   if (languageCode === 'tr') return getTurkishMorphologyCandidates(input);
   if (languageCode === 'ja') return getJapaneseMorphologyCandidates(input);
+  if (languageCode === 'ko') return getKoreanMorphologyCandidates(input);
 
   return [];
 }
@@ -556,6 +557,96 @@ function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
       candidates.push(createCandidate(`${word.slice(0, -2)}む`, 'む-動詞 (te-form)'));
       candidates.push(createCandidate(`${word.slice(0, -2)}ぶ`, 'ぶ-動詞 (te-form)'));
     }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim();
+  if (word.length < 2) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // 1. Particle stripping for nouns (은/는, 이/가, 을/를, 에, 에서, 의, 에게, 한테)
+  const particles = ['은', '는', '이', '가', '을', '를', '에', '에서', '의', '에게', '한테', '으로', '로'];
+  for (const particle of particles) {
+    if (word.endsWith(particle) && word.length > particle.length) {
+      candidates.push(createCandidate(word.slice(0, -particle.length), `조사 (-${particle})`));
+    }
+  }
+
+  // 2. Verb/Adjective suffix resolution to lemma form ending in -다
+  // -었습니다 / -았습니다 / -였습니다 / -했습니다 (past formal polite)
+  if ((word.endsWith('었습니다') || word.endsWith('았습니다') || word.endsWith('였습니다')) && word.length > 4) {
+    const stem = word.slice(0, -4);
+    candidates.push(createCandidate(`${stem}다`, '동사/형용사 (past formal)'));
+  }
+  if (word.endsWith('했습니다') && word.length > 4) {
+    candidates.push(createCandidate(`${word.slice(0, -4)}하다`, '하다-동사/형용사 (past formal)'));
+  }
+
+  // -었다 / -았다 / -였다 / -했다 (past)
+  if ((word.endsWith('었다') || word.endsWith('았다') || word.endsWith('였다')) && word.length > 2) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(`${stem}다`, '동사/형용사 (past)'));
+  }
+  if (word.endsWith('했다') && word.length > 2) {
+    candidates.push(createCandidate(`${word.slice(0, -2)}하다`, '하다-동사/형용사 (past)'));
+  }
+
+  // -습니다 / -ㅂ니다 (formal polite present)
+  if (word.endsWith('습니다') && word.length > 3) {
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(`${stem}다`, '동사/형용사 (present formal)'));
+  }
+  if (word.endsWith('합니다') && word.length > 3) {
+    candidates.push(createCandidate(`${word.slice(0, -3)}하다`, '하다-동사/형용사 (present formal)'));
+  }
+  if (word.endsWith('니다') && word.length > 2) {
+    const stem = word.slice(0, -2);
+    if (stem.endsWith('합')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}하다`, '하다-동사/형용사'));
+    }
+  }
+
+  // -어요 / -아요 / -여요 / -해요 (polite present)
+  if ((word.endsWith('어요') || word.endsWith('아요') || word.endsWith('여요')) && word.length > 2) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(`${stem}다`, '동사/형용사 (polite)'));
+  }
+  if (word.endsWith('해요') && word.length > 2) {
+    candidates.push(createCandidate(`${word.slice(0, -2)}하다`, '하다-동사/형용사 (polite)'));
+  }
+
+  // -어 / -아 / -여 / -해 (informal present)
+  if (word.endsWith('해') && word.length > 1) {
+    candidates.push(createCandidate(`${word.slice(0, -1)}하다`, '하다-동사/형용사 (informal)'));
+  }
+  if ((word.endsWith('어') || word.endsWith('아') || word.endsWith('여')) && word.length > 1) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(`${stem}다`, '동사/형용사 (informal)'));
+  }
+
+  // -고 (connective)
+  if (word.endsWith('고') && word.length > 1) {
+    candidates.push(createCandidate(`${word.slice(0, -1)}다`, '동사/형용사 (connective)'));
+  }
+
+  // -면 / -으면 (conditional)
+  if (word.endsWith('으면') && word.length > 2) {
+    candidates.push(createCandidate(`${word.slice(0, -2)}다`, '동사/형용사 (conditional)'));
+  }
+  if (word.endsWith('면') && word.length > 1) {
+    candidates.push(createCandidate(`${word.slice(0, -1)}다`, '동사/형용사 (conditional)'));
+  }
+
+  // -는 / -은 (modifier)
+  if (word.endsWith('는') && word.length > 1) {
+    candidates.push(createCandidate(`${word.slice(0, -1)}다`, '동사/형용사 (modifier)'));
+  }
+  if (word.endsWith('은') && word.length > 1) {
+    candidates.push(createCandidate(`${word.slice(0, -1)}다`, '동사/형용사 (modifier)'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
