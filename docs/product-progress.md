@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `f12afe0` docs(licensing): accept dictionary source licensing policy and unblock monolingual implementations
   - `cd2cb4b` docs(lang): add Tagalog monolingual planning and language option metadata
   - `abfff92` docs(lang): add Cantonese monolingual planning and language option metadata
   - `d1f75e9` feat(lang): integrate Arabic and Hebrew RTL support across lookup, library, and reader
