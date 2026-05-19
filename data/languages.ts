@@ -160,6 +160,16 @@ export const languageOptions = [
     adapterKey: 'tr',
     dictionaryStatus: 'monolingual',
   },
+  {
+    code: 'hu',
+    label: 'Magyar (Hungarian)',
+    hint: 'Wiktionary preview',
+    family: 'uralic',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'hu',
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

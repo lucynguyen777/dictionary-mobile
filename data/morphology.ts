@@ -54,6 +54,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ja') return getJapaneseMorphologyCandidates(input);
   if (languageCode === 'ko') return getKoreanMorphologyCandidates(input);
   if (languageCode === 'sw') return getSwahiliMorphologyCandidates(input);
+  if (languageCode === 'hu') return getHungarianMorphologyCandidates(input);
 
   return [];
 }
@@ -705,6 +706,89 @@ function getSwahiliMorphologyCandidates(input: string): MorphologyCandidate[] {
         }
       }
     }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getHungarianMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim();
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // 1. Accusative (-t, -at, -et, -ot, -öt)
+  if (word.endsWith('t') && word.length > 3) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(stem, 'accusative (-t)'));
+    if (stem.endsWith('a') || stem.endsWith('e') || stem.endsWith('o') || stem.endsWith('ö')) {
+      candidates.push(createCandidate(stem.slice(0, -1), 'accusative with linking vowel'));
+    }
+    if (stem.endsWith('á')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}a`, 'accusative with vowel lengthening root'));
+    }
+    if (stem.endsWith('é')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}e`, 'accusative with vowel lengthening root'));
+    }
+  }
+
+  // 2. Plural (-k, -ak, -ek, -ok, -ök)
+  if (word.endsWith('k') && word.length > 3) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(stem, 'plural (-k)'));
+    if (stem.endsWith('a') || stem.endsWith('e') || stem.endsWith('o') || stem.endsWith('ö')) {
+      candidates.push(createCandidate(stem.slice(0, -1), 'plural with linking vowel'));
+    }
+    if (stem.endsWith('á')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}a`, 'plural with vowel lengthening root'));
+    }
+    if (stem.endsWith('é')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}e`, 'plural with vowel lengthening root'));
+    }
+  }
+
+  // 3. Case suffixes (essive, illative, elative, dative, sublative, superessive, delative, adessive, allative, ablative, terminus, instrumental)
+  const caseSuffixes = [
+    { suffix: 'ban', desc: 'inessive (-ban)' },
+    { suffix: 'ben', desc: 'inessive (-ben)' },
+    { suffix: 'ba', desc: 'illative (-ba)' },
+    { suffix: 'be', desc: 'illative (-be)' },
+    { suffix: 'ból', desc: 'elative (-ból)' },
+    { suffix: 'ből', desc: 'elative (-ből)' },
+    { suffix: 'nak', desc: 'dative (-nak)' },
+    { suffix: 'nek', desc: 'dative (-nek)' },
+    { suffix: 'ra', desc: 'sublative (-ra)' },
+    { suffix: 're', desc: 'sublative (-re)' },
+    { suffix: 'ról', desc: 'delative (-ról)' },
+    { suffix: 'ről', desc: 'delative (-ről)' },
+    { suffix: 'nál', desc: 'adessive (-nál)' },
+    { suffix: 'nél', desc: 'adessive (-nél)' },
+    { suffix: 'hoz', desc: 'allative (-hoz)' },
+    { suffix: 'hez', desc: 'allative (-hez)' },
+    { suffix: 'höz', desc: 'allative (-höz)' },
+    { suffix: 'tól', desc: 'ablative (-tól)' },
+    { suffix: 'től', desc: 'ablative (-től)' },
+    { suffix: 'ig', desc: 'terminative (-ig)' },
+    { suffix: 'val', desc: 'instrumental (-val)' },
+    { suffix: 'vel', desc: 'instrumental (-vel)' },
+  ];
+
+  for (const { suffix, desc } of caseSuffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 1) {
+      const stem = word.slice(0, -suffix.length);
+      candidates.push(createCandidate(stem, desc));
+      if (stem.endsWith('á')) {
+        candidates.push(createCandidate(`${stem.slice(0, -1)}a`, `${desc} (vowel harmony root)`));
+      }
+      if (stem.endsWith('é')) {
+        candidates.push(createCandidate(`${stem.slice(0, -1)}e`, `${desc} (vowel harmony root)`));
+      }
+    }
+  }
+
+  // 4. Verb conjugation fallbacks for "enni" (to eat)
+  if (word === 'eszem' || word === 'eszik' || word === 'esznek' || word === 'eszünk' || word === 'esztek' || word === 'eszel') {
+    candidates.push(createCandidate('enni', 'verb root'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

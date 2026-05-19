@@ -746,6 +746,123 @@ const swahiliDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const hungarianDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'ház',
+    ipa: '/haːz/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Otthon (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'emberi lakóhely (house / building)',
+    definitions: [
+      {
+        partOfSpeech: 'Főnév (noun)',
+        meaning: 'Emberi lakóhelyül, illetve egyéb emberi tevékenység céljára szolgáló épület (A building used as a human dwelling or for other human activities).',
+        vietnamese: 'Nhà, ngôi nhà. Tòa nhà phục vụ mục đích cư trú của con người hoặc các hoạt động khác.',
+        examples: [
+          { source: 'Ez egy szép ház.', translation: 'Đây là một ngôi nhà đẹp.' }
+        ],
+      }
+    ],
+    synonyms: ['épület', 'lakás'],
+    antonyms: [],
+    collocations: ['családi ház', 'háztető'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'házak' },
+      { tense: 'Inessive (in the house)', form: 'házban' }
+    ],
+    etymology: 'Finno-Ugric: *kota (hut/tent).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'kutya',
+    ipa: '/ˈkucɒ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Állatok (Animals)',
+    vietnamese: 'con chó',
+    shortDefinition: 'háziasított négylábú állat (dog)',
+    definitions: [
+      {
+        partOfSpeech: 'Főnév (noun)',
+        meaning: 'Háziasított húsevő emlősállat, az ember legrégebbi társa (A domesticated carnivorous mammal, human\'s oldest companion).',
+        vietnamese: 'Chó. Loài động vật có vú ăn thịt đã được thuần hóa, người bạn lâu đời nhất của con người.',
+        examples: [
+          { source: 'A kutya ugat.', translation: 'Con chó đang sủa.' }
+        ],
+      }
+    ],
+    synonyms: ['eb'],
+    antonyms: [],
+    collocations: ['kiskutya'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'kutyák' }
+    ],
+    etymology: 'Onomatopoeic origin.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'erdő',
+    ipa: '/ˈɛrdøː/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Természet (Nature)',
+    vietnamese: 'rừng',
+    shortDefinition: 'fákkal borított nagy terület (forest)',
+    definitions: [
+      {
+        partOfSpeech: 'Főnév (noun)',
+        meaning: 'Fákkal sűrűn benőtt nagyobb terület (A larger area densely covered with trees).',
+        vietnamese: 'Rừng. Một vùng đất rộng lớn phủ đầy cây cối rậm rạp.',
+        examples: [
+          { source: 'Sétálunk az erdőben.', translation: 'Chúng tôi đi dạo trong rừng.' }
+        ],
+      }
+    ],
+    synonyms: [],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'erdők' }
+    ],
+    etymology: 'Finno-Ugric origin.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'enni',
+    ipa: '/ˈɛnːi/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Étkezés (Eating)',
+    vietnamese: 'ăn',
+    shortDefinition: 'táplálékot magához vesz (to eat)',
+    definitions: [
+      {
+        partOfSpeech: 'Ige (verb)',
+        meaning: 'Táplálékot rág és lenyel, hogy fenntartsa az életét (To chew and swallow food to maintain life).',
+        vietnamese: 'Ăn. Nhai và nuốt thức ăn để duy trì sự sống.',
+        examples: [
+          { source: 'Almát akarok enni.', translation: 'Tôi muốn ăn một quả táo.' }
+        ],
+      }
+    ],
+    synonyms: ['táplálkozik', 'fogyaszt'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Present 1st Sg Definite', form: 'eszem' },
+      { tense: 'Present 3rd Sg Indefinite', form: 'eszik' }
+    ],
+    etymology: 'Proto-Uralic: *sewe- (to eat).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -757,6 +874,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   ja: japaneseDictionaryEntries,
   ko: koreanDictionaryEntries,
   sw: swahiliDictionaryEntries,
+  hu: hungarianDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

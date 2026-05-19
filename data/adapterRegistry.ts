@@ -22,6 +22,8 @@ import {
     fetchKoreanRelatedWords,
     fetchSwahiliMeaning,
     fetchSwahiliRelatedWords,
+    fetchHungarianMeaning,
+    fetchHungarianRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -109,6 +111,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchSwahiliMeaning(word),
     fetchRelatedWords: (word: string) => fetchSwahiliRelatedWords(word),
+  },
+  hu: {
+    key: 'hu',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchHungarianMeaning(word),
+    fetchRelatedWords: (word: string) => fetchHungarianRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

@@ -292,3 +292,55 @@ describe('Swahili monolingual baseline and morphology', () => {
     expect(related.antonyms).toContain('mnyama');
   });
 });
+
+describe('Hungarian monolingual baseline and morphology', () => {
+
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const haz = await fetchMonolingualMeaning('ház', 'hu');
+    expect(haz.word).toBe('ház');
+    expect(haz.ipa).toBe('/haːz/');
+    expect(haz.definitions[0].meaning).toContain('Emberi lakóhelyül');
+    expect(haz.definitions[0].vietnamese).toBe('Nhà, ngôi nhà. Tòa nhà phục vụ mục đích cư trú của con người hoặc các hoạt động khác.');
+
+    const enni = await fetchMonolingualMeaning('enni', 'hu');
+    expect(enni.word).toBe('enni');
+    expect(enni.definitions[0].meaning).toContain('Táplálékot rág és lenyel');
+  });
+
+  it('resolves plural and accusative forms using local morphology fallback', async () => {
+    // Plural (házak -> ház)
+    const hazak = await fetchMonolingualMeaning('házak', 'hu');
+    expect(hazak.word).toBe('ház');
+
+    // Plural with vowel harmony lengthening (kutyák -> kutya)
+    const kutyak = await fetchMonolingualMeaning('kutyák', 'hu');
+    expect(kutyak.word).toBe('kutya');
+  });
+
+  it('resolves case endings with vowel harmony vowel lengthening/shortening', async () => {
+    // Inessive (házban -> ház)
+    const hazban = await fetchMonolingualMeaning('házban', 'hu');
+    expect(hazban.word).toBe('ház');
+    expect(hazban.source).toContain('base form of házban');
+
+    // Inessive with vowel harmony lengthening (erdőben -> erdő)
+    const erdőben = await fetchMonolingualMeaning('erdőben', 'hu');
+    expect(erdőben.word).toBe('erdő');
+  });
+
+  it('resolves conjugated verb forms using local morphology fallback', async () => {
+    // Definite 1st Sg Present (eszem -> enni)
+    const eszem = await fetchMonolingualMeaning('eszem', 'hu');
+    expect(eszem.word).toBe('enni');
+
+    // Indefinite 3rd Sg Present (eszik -> enni)
+    const eszik = await fetchMonolingualMeaning('eszik', 'hu');
+    expect(eszik.word).toBe('enni');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('ház', 'hu');
+    expect(related.synonyms).toContain('épület');
+    expect(related.synonyms).toContain('lakás');
+  });
+});
