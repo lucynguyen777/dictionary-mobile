@@ -50,6 +50,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'es') return getSpanishMorphologyCandidates(input);
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
+  if (languageCode === 'tr') return getTurkishMorphologyCandidates(input);
 
   return [];
 }
@@ -386,6 +387,110 @@ function getFinnishMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (word.endsWith('vat') && word.length > 5) {
     const stem = word.slice(0, -3);
     candidates.push(createCandidate(`${stem}da`, 'verbin 3pl'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
+  // Suffix strip proper noun apostrophes first
+  let word = input.trim();
+  if (word.includes("'")) {
+    const base = word.split("'")[0];
+    return [createCandidate(base, 'özel isim kökü')];
+  }
+
+  // Normalize Turkish characters
+  word = word.replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr');
+  if (word.length < 2) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // Agglutinative plural suffix: -ler, -lar
+  if (word.endsWith('ler') && word.length >= 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'çoğul (-ler)'));
+  }
+  if (word.endsWith('lar') && word.length >= 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'çoğul (-lar)'));
+  }
+
+  // Locative / Inessive: -de, -da, -te, -ta
+  if ((word.endsWith('de') || word.endsWith('da')) && word.length >= 4) {
+    candidates.push(createCandidate(word.slice(0, -2), 'bulunma (-de/-da)'));
+  }
+  if ((word.endsWith('te') || word.endsWith('ta')) && word.length >= 4) {
+    candidates.push(createCandidate(word.slice(0, -2), 'bulunma (-te/-ta)'));
+  }
+
+  // Ablative: -den, -dan, -ten, -tan
+  if ((word.endsWith('den') || word.endsWith('dan')) && word.length >= 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'ayrılma (-den/-dan)'));
+  }
+  if ((word.endsWith('ten') || word.endsWith('tan')) && word.length >= 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'ayrılma (-ten/-tan)'));
+  }
+
+  // Genitive: -in, -ın, -ün, -un, -nin, -nın, -nün, -nun
+  if ((word.endsWith('nin') || word.endsWith('nın') || word.endsWith('nün') || word.endsWith('nun')) && word.length >= 5) {
+    candidates.push(createCandidate(word.slice(0, -3), 'tamlayan (-nin)'));
+  }
+  if ((word.endsWith('in') || word.endsWith('ın') || word.endsWith('ün') || word.endsWith('un')) && word.length >= 3) {
+    candidates.push(createCandidate(word.slice(0, -2), 'tamlayan (-in)'));
+  }
+
+  // Consonant gradation for Dative and Accusative: e.g. yemeğe -> yemek, ışığa -> ışık
+  // Dative: -e, -a, -ye, -ya
+  if ((word.endsWith('ye') || word.endsWith('ya')) && word.length >= 4) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(stem, 'yönelme (-ye/-ya)'));
+    if (stem.endsWith('ğ')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}k`, 'yönelme (gradation)'));
+    }
+  }
+  if ((word.endsWith('e') || word.endsWith('a')) && word.length >= 3) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(stem, 'yönelme (-e/-a)'));
+    if (stem.endsWith('ğ')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}k`, 'yönelme (gradation)'));
+    }
+  }
+
+  // Accusative: -i, -ı, -ü, -u, -yi, -yı, -yü, -yu
+  if ((word.endsWith('yi') || word.endsWith('yı') || word.endsWith('yü') || word.endsWith('yu')) && word.length >= 4) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(stem, 'belirtme (-yi)'));
+    if (stem.endsWith('ğ')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}k`, 'belirtme (gradation)'));
+    }
+  }
+  if ((word.endsWith('i') || word.endsWith('ı') || word.endsWith('ü') || word.endsWith('u')) && word.length >= 3) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(stem, 'belirtme (-i)'));
+    if (stem.endsWith('ğ')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}k`, 'belirtme (gradation)'));
+    }
+  }
+
+  // Verb past 3sg: -di, -dı, -dü, -du, -ti, -tı, -tü, -tu
+  if ((word.endsWith('di') || word.endsWith('dı') || word.endsWith('dü') || word.endsWith('du') ||
+       word.endsWith('ti') || word.endsWith('tı') || word.endsWith('tü') || word.endsWith('tu')) && word.length >= 3) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(stem, 'geçmiş zaman (-di)'));
+    candidates.push(createCandidate(`${stem}mek`, 'geçmiş zaman (fiil)'));
+    candidates.push(createCandidate(`${stem}mak`, 'geçmiş zaman (fiil)'));
+    if (word === 'yedi') {
+      candidates.push(createCandidate('yemek', 'geçmiş zaman (yemek)'));
+    }
+  }
+
+  // Verb 1sg present/aorist: yerim -> yemek
+  if ((word.endsWith('erim') || word.endsWith('arım') || word.endsWith('irim') || word.endsWith('ırım')) && word.length >= 4) {
+    candidates.push(createCandidate(word.slice(0, -4), 'geniş zaman 1sg'));
+    candidates.push(createCandidate(`${word.slice(0, -4)}mek`, 'geniş zaman (fiil)'));
+    candidates.push(createCandidate(`${word.slice(0, -4)}mak`, 'geniş zaman (fiil)'));
+    if (word === 'yerim') {
+      candidates.push(createCandidate('yemek', 'geniş zaman (yemek)'));
+    }
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

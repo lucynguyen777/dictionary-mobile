@@ -14,6 +14,8 @@ import {
     fetchWiktApiRelatedWords,
     fetchFinnishMeaning,
     fetchFinnishRelatedWords,
+    fetchTurkishMeaning,
+    fetchTurkishRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -73,6 +75,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchFinnishMeaning(word),
     fetchRelatedWords: (word: string) => fetchFinnishRelatedWords(word),
+  },
+  tr: {
+    key: 'tr',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchTurkishMeaning(word),
+    fetchRelatedWords: (word: string) => fetchTurkishRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

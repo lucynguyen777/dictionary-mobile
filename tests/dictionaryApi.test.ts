@@ -75,3 +75,74 @@ describe('Finnish monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('rakennus');
   });
 });
+
+describe('Turkish monolingual baseline and morphology', () => {
+
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const ev = await fetchMonolingualMeaning('ev', 'tr');
+    expect(ev.word).toBe('ev');
+    expect(ev.ipa).toBe('/ev/');
+    expect(ev.definitions[0].meaning).toContain('İçinde yaşamak için yapılmış bina');
+    expect(ev.definitions[0].vietnamese).toBe('Nhà, công trình xây dựng để ở.');
+
+    const yemek = await fetchMonolingualMeaning('yemek', 'tr');
+    expect(yemek.word).toBe('yemek');
+    expect(yemek.ipa).toBe('/jeˈmec/');
+    expect(yemek.definitions[0].meaning).toContain('Yenmek için hazırlanmış yiyecek');
+  });
+
+  it('resolves inflected forms using local morphology fallback', async () => {
+    // Locative (evde -> ev)
+    const evde = await fetchMonolingualMeaning('evde', 'tr');
+    expect(evde.word).toBe('ev');
+    expect(evde.source).toContain('base form of evde');
+
+    // Plural (yemekler -> yemek)
+    const yemekler = await fetchMonolingualMeaning('yemekler', 'tr');
+    expect(yemekler.word).toBe('yemek');
+    expect(yemekler.source).toContain('base form of yemekler');
+
+    // Verb 1sg (yerim -> yemek)
+    const yerim = await fetchMonolingualMeaning('yerim', 'tr');
+    expect(yerim.word).toBe('yemek');
+    expect(yerim.source).toContain('base form of yerim');
+
+    // Verb past 3sg (yedi -> yemek)
+    const yedi = await fetchMonolingualMeaning('yedi', 'tr');
+    expect(yedi.word).toBe('yemek');
+    expect(yedi.source).toContain('base form of yedi');
+  });
+
+  it('resolves dative/accusative with consonant gradation (yemeğe -> yemek, ışığa -> ışık)', async () => {
+    const yemege = await fetchMonolingualMeaning('yemeğe', 'tr');
+    expect(yemege.word).toBe('yemek');
+
+    const isiga = await fetchMonolingualMeaning('ışığa', 'tr');
+    expect(isiga.word).toBe('ışık');
+  });
+
+  it('preserves and normalizes dotted and dotless I correctly', async () => {
+    const isikLower = await fetchMonolingualMeaning('ışık', 'tr');
+    expect(isikLower.word).toBe('ışık');
+
+    const isikUpper = await fetchMonolingualMeaning('IŞIK', 'tr');
+    expect(isikUpper.word).toBe('ışık');
+
+    const istanbulDotted = await fetchMonolingualMeaning('İstanbul', 'tr');
+    expect(istanbulDotted.word).toBe('İstanbul');
+  });
+
+  it('strips proper noun apostrophes and case suffixes', async () => {
+    const istanbulDa = await fetchMonolingualMeaning("İstanbul'da", 'tr');
+    expect(istanbulDa.word).toBe('İstanbul');
+
+    const istanbulA = await fetchMonolingualMeaning("İstanbul'a", 'tr');
+    expect(istanbulA.word).toBe('İstanbul');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('ev', 'tr');
+    expect(related.synonyms).toContain('konut');
+    expect(related.synonyms).toContain('hane');
+  });
+});

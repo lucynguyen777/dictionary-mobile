@@ -180,6 +180,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'es') return fetchWiktApiMonolingualMeaning(word, 'es');
   if (languageCode === 'ms') return fetchWiktApiMonolingualMeaning(word, 'ms');
   if (languageCode === 'fi') return fetchFinnishMeaning(word);
+  if (languageCode === 'tr') return fetchTurkishMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -191,6 +192,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'es') return fetchWiktApiRelatedWords(word, 'es');
   if (languageCode === 'ms') return fetchWiktApiRelatedWords(word, 'ms');
   if (languageCode === 'fi') return fetchFinnishRelatedWords(word);
+  if (languageCode === 'tr') return fetchTurkishRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -782,6 +784,57 @@ export async function fetchFinnishMeaning(word: string): Promise<ApiMeaningResul
 export async function fetchFinnishRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().toLocaleLowerCase();
   const localEntry = findLocalDictionaryEntry('fi', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchTurkishMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('tr', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('tr', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'trwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'trwiktionary' : `trwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Turkish Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchTurkishRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr');
+  const localEntry = findLocalDictionaryEntry('tr', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],

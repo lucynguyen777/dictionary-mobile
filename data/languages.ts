@@ -150,6 +150,16 @@ export const languageOptions = [
     adapterKey: 'fi',
     dictionaryStatus: 'monolingual',
   },
+  {
+    code: 'tr',
+    label: 'Türkçe (Turkish)',
+    hint: 'Wiktionary preview',
+    family: 'turkic',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'tr',
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

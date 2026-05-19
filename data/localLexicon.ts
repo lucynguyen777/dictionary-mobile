@@ -341,6 +341,143 @@ const finnishDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const turkishDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'ev',
+    ipa: '/ev/',
+    audio: '',
+    level: 'A1',
+    topic: 'Koti (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'insanların barındığı yapı (a structure in which people live / house)',
+    definitions: [
+      {
+        partOfSpeech: 'isim (noun)',
+        meaning: 'İçinde yaşamak için yapılmış bina (A building built for living in).',
+        vietnamese: 'Nhà, công trình xây dựng để ở.',
+        examples: [
+          { source: 'Büyük bir evde yaşıyorum.', translation: 'Tôi sống trong một ngôi nhà lớn.' },
+          { source: 'Eve gidiyorum.', translation: 'Tôi đang đi về nhà.' }
+        ],
+      }
+    ],
+    synonyms: ['konut', 'hane'],
+    antonyms: [],
+    collocations: ['ev sahibi', 'kira evi'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'evler' },
+      { tense: 'Locative', form: 'evde' },
+      { tense: 'Ablative', form: 'evden' },
+      { tense: 'Dative', form: 'eve' },
+      { tense: 'Accusative', form: 'evi' },
+      { tense: 'Genitive', form: 'evin' }
+    ],
+    etymology: 'Eski Türkçe: eb (Old Turkic: eb).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'yemek',
+    ipa: '/jeˈmec/',
+    audio: '',
+    level: 'A1',
+    topic: 'Ruoka (Food)',
+    vietnamese: 'ăn / món ăn',
+    shortDefinition: 'beslenmek için yenen şeyler (food) veya beslenmek (to eat)',
+    definitions: [
+      {
+        partOfSpeech: 'isim (noun)',
+        meaning: 'Yenmek için hazırlanmış yiyecek (Prepared food to be eaten).',
+        vietnamese: 'Món ăn, thức ăn được chuẩn bị.',
+        examples: [
+          { source: 'Yemek çok lezzetli.', translation: 'Món ăn rất ngon.' }
+        ],
+      },
+      {
+        partOfSpeech: 'fiil (verb)',
+        meaning: 'Besini çiğneyip yutmak (To chew and swallow food).',
+        vietnamese: 'Ăn nhai và nuốt thức ăn.',
+        examples: [
+          { source: 'Elma yemek istiyorum.', translation: 'Tôi muốn ăn táo.' }
+        ],
+      }
+    ],
+    synonyms: ['yiyecek', 'gıda', 'beslenmek'],
+    antonyms: [],
+    collocations: ['akşam yemeği', 'yemek pişirmek'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural Noun', form: 'yemekler' },
+      { tense: 'Dative Noun', form: 'yemeğe' },
+      { tense: 'Locative Noun', form: 'yemekte' },
+      { tense: 'Present 1sg Verb', form: 'yerim' },
+      { tense: 'Past 3sg Verb', form: 'yedi' },
+      { tense: 'Participle Verb', form: 'yiyen' }
+    ],
+    etymology: 'Eski Türkçe: yeme (Old Turkic: yeme).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ışık',
+    ipa: '/ɯˈʃɯc/',
+    audio: '',
+    level: 'A1',
+    topic: 'Doğa (Nature)',
+    vietnamese: 'ánh sáng',
+    shortDefinition: 'cisimleri görmeyi sağlayan fiziksel etki (light)',
+    definitions: [
+      {
+        partOfSpeech: 'isim (noun)',
+        meaning: 'Cisimleri görmemizi sağlayan fiziksel aydınlık (Physical brightness that enables seeing objects).',
+        vietnamese: 'Ánh sáng, hiện tượng vật lý giúp nhìn thấy vật thể.',
+        examples: [
+          { source: 'Güneş ışığı odayı doldurdu.', translation: 'Ánh sáng mặt trời lấp đầy căn phòng.' }
+        ],
+      }
+    ],
+    synonyms: ['aydınlık', 'nur'],
+    antonyms: ['karanlık'],
+    collocations: ['ışık yılı', 'yeşil ışık'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'ışıklar' },
+      { tense: 'Dative', form: 'ışığa' },
+      { tense: 'Locative', form: 'ışıkta' }
+    ],
+    etymology: 'Eski Türkçe: yaruk / yışık (Old Turkic: yaruk / yışık).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'İstanbul',
+    ipa: '/isˈtɑnbul/',
+    audio: '',
+    level: 'A1',
+    topic: 'Coğrafya (Geography)',
+    vietnamese: 'Istanbul',
+    shortDefinition: 'Türkiye\'nin en büyük şehri (largest city in Turkey)',
+    definitions: [
+      {
+        partOfSpeech: 'özel isim (proper noun)',
+        meaning: 'Türkiye\'nin kuzeybatısında yer alan tarihi ve en büyük şehri (The historical and largest city located in northwest Turkey).',
+        vietnamese: 'Istanbul, thành phố lớn nhất và mang tính lịch sử ở tây bắc Thổ Nhĩ Kỳ.',
+        examples: [
+          { source: 'İstanbul\'da yaşıyorum.', translation: 'Tôi đang sống ở Istanbul.' }
+        ],
+      }
+    ],
+    synonyms: [],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Locative', form: "İstanbul'da" },
+      { tense: 'Dative', form: "İstanbul'a" }
+    ],
+    etymology: 'Yunanca: Eis ten polin (Greek: Eis ten polin - to the city).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -348,6 +485,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   ar: arabicDictionaryEntries,
   he: hebrewDictionaryEntries,
   fi: finnishDictionaryEntries,
+  tr: turkishDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {
@@ -355,6 +493,10 @@ export function getLocalDictionaryEntries(languageCode: string) {
 }
 
 export function findLocalDictionaryEntry(languageCode: string, word: string) {
+  if (languageCode === 'tr') {
+    const normalizedWord = normalizeTurkishWord(word);
+    return getLocalDictionaryEntries('tr').find((entry) => normalizeTurkishWord(entry.word) === normalizedWord);
+  }
   const normalizedWord = normalizeLookupTerm(word);
 
   return getLocalDictionaryEntries(languageCode).find((entry) => normalizeLookupTerm(entry.word) === normalizedWord);
@@ -366,6 +508,12 @@ export function supportsLocalDictionary(languageCode: string) {
 
 export function normalizeLookupTerm(value: string) {
   return value.trim().toLocaleLowerCase();
+}
+
+export function normalizeTurkishWord(value: string) {
+  let res = value.trim();
+  res = res.replace(/I/g, 'ı').replace(/İ/g, 'i');
+  return res.toLocaleLowerCase('tr');
 }
 
 /**
@@ -406,13 +554,14 @@ function levenshteinDistance(a: string, b: string): number {
  * It uses Levenshtein distance and filters out words that are too different.
  */
 export function getSpellingSuggestions(languageCode: string, word: string, limit = 3): string[] {
-  const normalizedWord = normalizeLookupTerm(word);
+  const isTr = languageCode === 'tr';
+  const normalizedWord = isTr ? normalizeTurkishWord(word) : normalizeLookupTerm(word);
   if (!normalizedWord) return [];
 
   const entries = getLocalDictionaryEntries(languageCode);
   const scoredEntries = entries
     .map((entry) => {
-      const entryWord = normalizeLookupTerm(entry.word);
+      const entryWord = isTr ? normalizeTurkishWord(entry.word) : normalizeLookupTerm(entry.word);
       const distance = levenshteinDistance(normalizedWord, entryWord);
       return { word: entry.word, distance };
     })
