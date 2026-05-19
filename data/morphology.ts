@@ -51,6 +51,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
   if (languageCode === 'tr') return getTurkishMorphologyCandidates(input);
+  if (languageCode === 'ja') return getJapaneseMorphologyCandidates(input);
 
   return [];
 }
@@ -490,6 +491,70 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
     candidates.push(createCandidate(`${word.slice(0, -4)}mak`, 'geniş zaman (fiil)'));
     if (word === 'yerim') {
       candidates.push(createCandidate('yemek', 'geniş zaman (yemek)'));
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim();
+  if (word.length < 2) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // Group 2 (Ichidan) verb inflections (e.g. 食べた, 食べない, 食べます, 食べて)
+  // These end in -た, -ない, -ます, -て, -る
+  if (word.endsWith('た') && word.length > 2) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(`${stem}る`, 'る-動詞 (past)'));
+    // Godan past fallbacks:
+    if (word.endsWith('った') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}う`, 'う-動詞 (past)'));
+      candidates.push(createCandidate(`${word.slice(0, -2)}る`, 'る-動詞 (past)'));
+      candidates.push(createCandidate(`${word.slice(0, -2)}つ`, 'つ-動詞 (past)'));
+    }
+    if (word.endsWith('いた') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}く`, 'く-動詞 (past)'));
+    }
+    if (word.endsWith('いだ') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}ぐ`, 'ぐ-動詞 (past)'));
+    }
+    if (word.endsWith('んだ') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}む`, 'む-動詞 (past)'));
+      candidates.push(createCandidate(`${word.slice(0, -2)}ぶ`, 'ぶ-動詞 (past)'));
+      candidates.push(createCandidate(`${word.slice(0, -2)}ぬ`, 'ぬ-動詞 (past)'));
+    }
+  }
+
+  if (word.endsWith('ない') && word.length > 2) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(`${stem}る`, 'る-動詞 (negative)'));
+    candidates.push(createCandidate(`${stem}う`, 'う-動詞 (negative)'));
+  }
+
+  if (word.endsWith('ます') && word.length > 2) {
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(`${stem}る`, 'る-動詞 (polite)'));
+  }
+
+  if (word.endsWith('て') && word.length > 2) {
+    const stem = word.slice(0, -1);
+    candidates.push(createCandidate(`${stem}る`, 'る-動詞 (te-form)'));
+    if (word.endsWith('って') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}う`, 'う-動詞 (te-form)'));
+      candidates.push(createCandidate(`${word.slice(0, -2)}る`, 'る-動詞 (te-form)'));
+      candidates.push(createCandidate(`${word.slice(0, -2)}つ`, 'つ-動詞 (te-form)'));
+    }
+    if (word.endsWith('いて') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}く`, 'く-動詞 (te-form)'));
+    }
+    if (word.endsWith('いで') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}ぐ`, 'ぐ-動詞 (te-form)'));
+    }
+    if (word.endsWith('んで') && word.length > 2) {
+      candidates.push(createCandidate(`${word.slice(0, -2)}む`, 'む-動詞 (te-form)'));
+      candidates.push(createCandidate(`${word.slice(0, -2)}ぶ`, 'ぶ-動詞 (te-form)'));
     }
   }
 

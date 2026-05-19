@@ -478,6 +478,97 @@ const turkishDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const japaneseDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: '猫',
+    ipa: '/neko/',
+    audio: '',
+    level: 'N5',
+    topic: 'Dōbutsu (Animals)',
+    vietnamese: 'con mèo',
+    shortDefinition: 'ネコ科の小型哺乳類 (small feline mammal / cat)',
+    definitions: [
+      {
+        partOfSpeech: '名詞 (noun)',
+        meaning: 'ネコ科の小型哺乳類。愛玩用に広く飼育されている (A small mammal of the cat family. Widely kept as a pet).',
+        vietnamese: 'Con mèo. Động vật có vú nhỏ thuộc họ mèo, được nuôi rộng rãi làm thú cưng.',
+        examples: [
+          { source: '猫が鳴いている。', translation: 'Con mèo đang kêu.' }
+        ],
+      }
+    ],
+    synonyms: ['キャット', 'ねこ'],
+    antonyms: ['犬'],
+    collocations: ['野良猫', '飼い猫'],
+    idioms: [],
+    conjugation: [],
+    etymology: '古環境語: ねこ (Old Japanese: neko).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'たべる',
+    ipa: '/taberu/',
+    audio: '',
+    level: 'N5',
+    topic: 'Shokuji (Meal)',
+    vietnamese: 'ăn',
+    shortDefinition: '食物を口に入れて咀嚼し、飲み込むこと (to eat)',
+    definitions: [
+      {
+        partOfSpeech: '動詞 (verb)',
+        meaning: '食物を口に入れ、噛み砕いて胃に送り込む (To put food in the mouth, chew, and send to the stomach).',
+        vietnamese: 'Ăn. Cho thức ăn vào miệng, nhai nát và đưa vào dạ dày.',
+        examples: [
+          { source: 'りんごを食べる。', translation: 'Tôi ăn quả táo.' }
+        ],
+      }
+    ],
+    synonyms: ['食す', '召し上がる'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Polite', form: '食べます' },
+      { tense: 'Past', form: '食べた' },
+      { tense: 'Te-form', form: '食べて' },
+      { tense: 'Negative', form: '食べない' }
+    ],
+    etymology: '古日本語: たぶ (Old Japanese: tabu).',
+    pronunciationTips: [],
+  },
+  {
+    word: '食べる',
+    ipa: '/taberu/',
+    audio: '',
+    level: 'N5',
+    topic: 'Shokuji (Meal)',
+    vietnamese: 'ăn',
+    shortDefinition: 'たべる の漢字表記 (Kanji spelling of taberu / to eat)',
+    definitions: [
+      {
+        partOfSpeech: '動詞 (verb)',
+        meaning: '「たべる」の漢字表記 (Kanji spelling of "taberu").',
+        vietnamese: 'Cách viết chữ Hán của từ "taberu" (ăn).',
+        examples: [
+          { source: '朝ご飯を食べる。', translation: 'Tôi ăn bữa sáng.' }
+        ],
+      }
+    ],
+    synonyms: ['食す'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Polite', form: '食べます' },
+      { tense: 'Past', form: '食べた' },
+      { tense: 'Te-form', form: '食べて' },
+      { tense: 'Negative', form: '食べない' }
+    ],
+    etymology: '「たべる」に漢字を当てたもの。',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -486,6 +577,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   he: hebrewDictionaryEntries,
   fi: finnishDictionaryEntries,
   tr: turkishDictionaryEntries,
+  ja: japaneseDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

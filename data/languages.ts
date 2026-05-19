@@ -103,12 +103,12 @@ export const languageOptions = [
   {
     code: 'ja',
     label: '日本語',
-    hint: 'Sắp hỗ trợ',
+    hint: 'Wiktionary preview',
     family: 'japonic',
     script: 'kanji-kana',
     writingDirection: 'ltr',
     adapterKey: 'ja',
-    dictionaryStatus: 'coming-soon',
+    dictionaryStatus: 'monolingual',
   },
   {
     code: 'ko',

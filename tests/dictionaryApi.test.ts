@@ -146,3 +146,46 @@ describe('Turkish monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('hane');
   });
 });
+
+describe('Japanese monolingual baseline and morphology', () => {
+
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const neko = await fetchMonolingualMeaning('猫', 'ja');
+    expect(neko.word).toBe('猫');
+    expect(neko.ipa).toBe('/neko/');
+    expect(neko.definitions[0].meaning).toContain('ネコ科の小型哺乳類');
+    expect(neko.definitions[0].vietnamese).toBe('Con mèo. Động vật có vú nhỏ thuộc họ mèo, được nuôi rộng rãi làm thú cưng.');
+
+    const taberuKana = await fetchMonolingualMeaning('たべる', 'ja');
+    expect(taberuKana.word).toBe('たべる');
+    expect(taberuKana.definitions[0].meaning).toContain('食物を口に入れ、噛み砕いて胃に送り込む');
+
+    const taberuKanji = await fetchMonolingualMeaning('食べる', 'ja');
+    expect(taberuKanji.word).toBe('食べる');
+  });
+
+  it('resolves inflected forms using local morphology fallback', async () => {
+    // Past (食べた -> 食べる)
+    const tabeta = await fetchMonolingualMeaning('食べた', 'ja');
+    expect(tabeta.word).toBe('食べる');
+    expect(tabeta.source).toContain('base form of 食べた');
+
+    // Negative (食べない -> 食べる)
+    const tabenai = await fetchMonolingualMeaning('食べない', 'ja');
+    expect(tabenai.word).toBe('食べる');
+
+    // Polite (食べます -> 食べる)
+    const tabemasu = await fetchMonolingualMeaning('食べます', 'ja');
+    expect(tabemasu.word).toBe('食べる');
+
+    // Te-form (食べて -> 食べる)
+    const tabete = await fetchMonolingualMeaning('食べて', 'ja');
+    expect(tabete.word).toBe('食べる');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('猫', 'ja');
+    expect(related.synonyms).toContain('ねこ');
+    expect(related.synonyms).toContain('キャット');
+  });
+});
