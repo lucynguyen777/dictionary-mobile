@@ -40,6 +40,8 @@ import {
     fetchJavaneseRelatedWords,
     fetchSomaliMeaning,
     fetchSomaliRelatedWords,
+    fetchBurmeseMeaning,
+    fetchBurmeseRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -190,6 +192,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchSomaliMeaning(word),
     fetchRelatedWords: (word: string) => fetchSomaliRelatedWords(word),
+  },
+  my: {
+    key: 'my',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchBurmeseMeaning(word),
+    fetchRelatedWords: (word: string) => fetchBurmeseRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

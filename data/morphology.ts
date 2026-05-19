@@ -63,6 +63,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'zh') return getMandarinMorphologyCandidates(input);
   if (languageCode === 'jv') return getJavaneseMorphologyCandidates(input);
   if (languageCode === 'so') return getSomaliMorphologyCandidates(input);
+  if (languageCode === 'my') return getBurmeseMorphologyCandidates(input);
 
   return [];
 }
@@ -1195,4 +1196,9 @@ function getSomaliMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getBurmeseMorphologyCandidates(input: string): MorphologyCandidate[] {
+  // Burmese is an isolating language, no morphology candidates are needed.
+  return [];
 }

@@ -1416,6 +1416,86 @@ const somaliDictionaryEntries: DictionaryEntry[] = [
     pronunciationTips: [],
   }
 ];
+const burmeseDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'စာအုပ်',
+    ipa: '/sàʔoʊʔ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'စာအုပ်, ဖတ်ရန် သို့မဟုတ် ရေးရန် စာရွက်များ စုစည်းထားသော အရာ (book)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ဖတ်ရန် သို့မဟုတ် ရေးရန် စာရွက်များကို စုစည်း၍ ချုပ်လုပ်ထားသော အရာ (A set of sheets of paper bound together for reading or writing).',
+        vietnamese: 'Sách. Tập hợp các tờ giấy được khâu/đóng lại với nhau để đọc hoặc viết.',
+        examples: [
+          { source: 'ဒါက စာအုပ် ဖြစ်ပါတယ်။', translation: 'Đây là một cuốn sách.' }
+        ],
+      }
+    ],
+    synonyms: ['ကျမ်း', 'စာပေ'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Tibeto-Burman.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'အိမ်',
+    ipa: '/èɪɴ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'အိမ်, လူများ နေထိုင်ရာ အဆောက်အအုံ (house / home)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'လူများ နေထိုင်ရန် ဆောက်လုပ်ထားသော အဆောက်အအုံ (A building built for people to live in).',
+        vietnamese: 'Nhà. Tòa nhà được xây dựng để con người sinh sống.',
+        examples: [
+          { source: 'ငါ့အိမ်က ကြီးတယ်။', translation: 'Nhà của tôi lớn.' }
+        ],
+      }
+    ],
+    synonyms: ['နေအိမ်', 'တိုက်တာ'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Tibeto-Burman.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ကြောင်',
+    ipa: '/tʃàʊɴ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con mèo',
+    shortDefinition: 'ကြောင်, အိမ်မွေး တိရစ္ဆာန် တစ်မျိုး (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ကြွက်ဖမ်းတတ်သော အိမ်မွေး နို့တိုက် သတ္တဝါ တစ်မျိုး (A type of domestic mammal that catches mice).',
+        vietnamese: 'Con mèo. Một loài động vật có vú nuôi trong nhà có tài bắt chuột.',
+        examples: [
+          { source: 'ကြောင်က ချစ်စရာကောင်းတယ်။', translation: 'Con mèo thật dễ thương.' }
+        ],
+      }
+    ],
+    synonyms: ['ကြောင်မ'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Tibeto-Burman.',
+    pronunciationTips: [],
+  }
+];
 
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
@@ -1435,6 +1515,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   zh: mandarinDictionaryEntries,
   jv: javaneseDictionaryEntries,
   so: somaliDictionaryEntries,
+  my: burmeseDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

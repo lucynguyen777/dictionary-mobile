@@ -305,7 +305,7 @@ export default function ReaderScreen() {
             <Text style={[styles.readerTitle, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>{selectedDocument.title}</Text>
             <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
               {readerTokens.slice(0, 900).map((token, index) => {
-                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF]/.test(token);
+                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F]/.test(token);
                 const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
 
                 return isWord ? (
@@ -381,12 +381,13 @@ export default function ReaderScreen() {
 function tokenizeReaderText(text: string) {
   if (!text) return [];
 
-  // Use Intl.Segmenter if available for CJK or general advanced segmentation
+  // Use Intl.Segmenter if available for CJK/Burmese or general advanced segmentation
   if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
     try {
-      const hasCjk = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af]/.test(text);
-      if (hasCjk) {
-        const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
+      const hasCjkOrBurmese = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]/.test(text);
+      if (hasCjkOrBurmese) {
+        const locale = /[\u1000-\u109F]/.test(text) ? 'my' : 'zh';
+        const segmenter = new Intl.Segmenter(locale, { granularity: 'word' });
         return Array.from(segmenter.segment(text), (s) => s.segment);
       }
     } catch {
@@ -394,8 +395,8 @@ function tokenizeReaderText(text: string) {
     }
   }
 
-  // Fallback regex supporting CJK characters individually and other alphabetic/abjad scripts grouped
-  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af]|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af]+/g;
+  // Fallback regex supporting CJK and Burmese characters individually and other alphabetic/abjad scripts grouped
+  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]+/g;
   return text.replace(/\s+/g, ' ').match(regex) ?? [];
 }
 

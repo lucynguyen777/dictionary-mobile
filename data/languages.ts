@@ -91,6 +91,16 @@ export const languageOptions = [
     dictionaryStatus: 'unavailable',
   },
   {
+    code: 'my',
+    label: 'မြန်မာဘာသာ (Burmese)',
+    hint: 'Wiktionary preview',
+    family: 'sino-tibetan',
+    script: 'burmese',
+    writingDirection: 'ltr',
+    adapterKey: 'my',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'ja',
     label: '日本語',
     hint: 'Wiktionary preview',

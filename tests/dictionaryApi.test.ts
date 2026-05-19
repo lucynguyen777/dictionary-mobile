@@ -677,3 +677,21 @@ describe('Somali monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('hooy');
   });
 });
+
+describe('Burmese monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const book = await fetchMonolingualMeaning('စာအုပ်', 'my');
+    expect(book.word).toBe('စာအုပ်');
+    expect(book.ipa).toBe('/sàʔoʊʔ/');
+    expect(book.definitions[0].meaning).toContain('ဖတ်ရန် သို့မဟုတ် ရေးရန် စာရွက်များ');
+
+    const house = await fetchMonolingualMeaning('အိမ်', 'my');
+    expect(house.word).toBe('အိမ်');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('စာအုပ်', 'my');
+    expect(related.synonyms).toContain('ကျမ်း');
+    expect(related.synonyms).toContain('စာပေ');
+  });
+});
