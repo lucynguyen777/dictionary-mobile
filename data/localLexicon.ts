@@ -1043,6 +1043,99 @@ const amharicDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const russianDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'книга',
+    ipa: '/ˈknʲiɡə/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education (Образование)',
+    vietnamese: 'sách, cuốn sách',
+    shortDefinition: 'сшитые в один переплёт листы бумаги с каким-либо текстом (book)',
+    definitions: [
+      {
+        partOfSpeech: 'Существительное (noun)',
+        meaning: 'Произведение печати в виде переплетённых листов бумаги с каким-либо текстом или рисунками (A printed work in the form of bound sheets of paper with some text or drawings).',
+        vietnamese: 'Sách. Một tác phẩm in dưới dạng các tờ giấy đóng tập có văn bản hoặc hình vẽ.',
+        examples: [
+          { source: 'Я читаю интересную книгу.', translation: 'Tôi đang đọc một cuốn sách hay.' }
+        ],
+      }
+    ],
+    synonyms: ['том', 'издание'],
+    antonyms: [],
+    collocations: ['учебная книга', 'книжный магазин'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Genitive Sg', form: 'книги' },
+      { tense: 'Accusative Sg', form: 'книгу' },
+      { tense: 'Nominative Pl', form: 'книги' }
+    ],
+    etymology: 'Proto-Slavic *kъniga.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'собака',
+    ipa: '/sɐˈbakə/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Hayop (Animals)',
+    vietnamese: 'con chó',
+    shortDefinition: 'домашнее животное семейства псовых (dog)',
+    definitions: [
+      {
+        partOfSpeech: 'Существительное (noun)',
+        meaning: 'Домашнее млекопитающее семейства псовых, используемое для охраны, охоты или как компаньон (A domestic mammal of the dog family, used for guarding, hunting, or as a companion).',
+        vietnamese: 'Con chó. Loài động vật có vú được thuần hóa thuộc họ Chó, dùng để canh gác, săn bắn hoặc làm bạn.',
+        examples: [
+          { source: 'Собака лает на незнакомца.', translation: 'Con chó đang sủa người lạ.' }
+        ],
+      }
+    ],
+    synonyms: ['пёс'],
+    antonyms: [],
+    collocations: ['домашняя собака'],
+    idioms: [{ phrase: 'как собака на сене', meaning: 'dog in the manger / ích kỷ' }],
+    conjugation: [
+      { tense: 'Genitive Sg', form: 'собаки' },
+      { tense: 'Dative Sg', form: 'собаке' }
+    ],
+    etymology: 'Proto-Slavic *sobaka.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'читать',
+    ipa: '/tɕɪˈtatʲ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Actions',
+    vietnamese: 'đọc',
+    shortDefinition: 'воспринимать написанный текст (to read)',
+    definitions: [
+      {
+        partOfSpeech: 'Глагол (verb)',
+        meaning: 'Воспринимать и понимать написанное или напечатанное (To perceive and understand written or printed text).',
+        vietnamese: 'Đọc. Nhận thức và hiểu văn bản được viết hoặc in.',
+        examples: [
+          { source: 'Он любит читать книги.', translation: 'Anh ấy thích đọc sách.' }
+        ],
+      }
+    ],
+    synonyms: ['просматривать'],
+    antonyms: ['писать'],
+    collocations: ['читать вслух'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Present 1st Sg', form: 'читаю' },
+      { tense: 'Present 3rd Sg', form: 'читает' },
+      { tense: 'Past Masculine Sg', form: 'читал' },
+      { tense: 'Past Feminine Sg', form: 'читала' }
+    ],
+    etymology: 'Proto-Slavic *čitati.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1057,6 +1150,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   hu: hungarianDictionaryEntries,
   tl: tagalogDictionaryEntries,
   am: amharicDictionaryEntries,
+  ru: russianDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

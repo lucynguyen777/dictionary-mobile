@@ -189,6 +189,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'he') return fetchHebrewMeaning(word);
   if (languageCode === 'tl') return fetchTagalogMeaning(word);
   if (languageCode === 'am') return fetchAmharicMeaning(word);
+  if (languageCode === 'ru') return fetchRussianMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -209,6 +210,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'he') return fetchHebrewRelatedWords(word);
   if (languageCode === 'tl') return fetchTagalogRelatedWords(word);
   if (languageCode === 'am') return fetchAmharicRelatedWords(word);
+  if (languageCode === 'ru') return fetchRussianRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1259,6 +1261,58 @@ export async function fetchAmharicMeaning(word: string): Promise<ApiMeaningResul
 export async function fetchAmharicRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('am', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchRussianMeaning(word: string): Promise<ApiMeaningResult> {
+  // Strip stress marks (U+0301 combining acute accent)
+  const normalizedWord = word.trim().normalize('NFC').replace(/\u0301/g, '');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('ru', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('ru', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'ruwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'ruwiktionary' : `ruwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Russian Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchRussianRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC').replace(/\u0301/g, '');
+  const localEntry = findLocalDictionaryEntry('ru', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],

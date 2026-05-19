@@ -32,6 +32,8 @@ import {
     fetchTagalogRelatedWords,
     fetchAmharicMeaning,
     fetchAmharicRelatedWords,
+    fetchRussianMeaning,
+    fetchRussianRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -154,6 +156,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchAmharicMeaning(word),
     fetchRelatedWords: (word: string) => fetchAmharicRelatedWords(word),
+  },
+  ru: {
+    key: 'ru',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchRussianMeaning(word),
+    fetchRelatedWords: (word: string) => fetchRussianRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

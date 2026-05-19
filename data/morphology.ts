@@ -59,6 +59,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'he') return getHebrewMorphologyCandidates(input);
   if (languageCode === 'tl') return getTagalogMorphologyCandidates(input);
   if (languageCode === 'am') return getAmharicMorphologyCandidates(input);
+  if (languageCode === 'ru') return getRussianMorphologyCandidates(input);
 
   return [];
 }
@@ -991,6 +992,59 @@ function getAmharicMorphologyCandidates(input: string): MorphologyCandidate[] {
     if (word.startsWith(prefix) && word.length > prefix.length + 1) {
       const remaining = word.slice(prefix.length);
       processWordForm(remaining);
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getRussianMorphologyCandidates(input: string): MorphologyCandidate[] {
+  // Strip stress marks (U+0301 combining acute accent)
+  const word = input.trim().toLowerCase().replace(/\u0301/g, '');
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // 1. Verb past tense: -л, -ла, -ло, -ли -> replace with infinitive ending -ть
+  const pastTenseEndings = ['ла', 'ло', 'ли', 'л'];
+  for (const suffix of pastTenseEndings) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 2) {
+      const stem = word.slice(0, -suffix.length);
+      candidates.push(createCandidate(stem + 'ть', `past verb restored to infinitive (-${suffix} -> -ть)`));
+    }
+  }
+
+  // 2. Verb present/future conjugation endings: -ешь, -ишь, -ете, -ите, -ет, -ит, -ем, -им, -ут, -ют, -ат, -ят, -ю, -у
+  const verbEndings = [
+    'ешь', 'ишь', 'ете', 'ите', 'ет', 'ит', 'ем', 'им', 'ут', 'ют', 'ат', 'ят', 'ю', 'у'
+  ];
+  for (const suffix of verbEndings) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 2) {
+      const stem = word.slice(0, -suffix.length);
+      candidates.push(createCandidate(stem + 'ть', `present verb restored to infinitive (-${suffix} -> -ть)`));
+    }
+  }
+
+  // 3. Noun case endings
+  // Feminine plural/singular restoration: -у, -ю, -е, -ы, -и -> restore to -а / -я
+  const femEndings = ['у', 'ю', 'е', 'ы', 'и'];
+  for (const suffix of femEndings) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 2) {
+      const stem = word.slice(0, -suffix.length);
+      candidates.push(createCandidate(stem + 'а', `declined feminine restored to -а (-${suffix} -> -а)`));
+      candidates.push(createCandidate(stem + 'я', `declined feminine restored to -я (-${suffix} -> -я)`));
+      candidates.push(createCandidate(stem, `declined noun restored to masculine base (-${suffix} -> zero)`));
+    }
+  }
+
+  // Plural/Instrumental/Dative/Prepositional plural endings: -ами, -ями, -ам, -ям, -ах, -ях, -ом, -ем, -ой, -ей
+  const caseEndings = ['ами', 'ями', 'ам', 'ям', 'ах', 'ях', 'ом', 'ем', 'ой', 'ей'];
+  for (const suffix of caseEndings) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 2) {
+      const stem = word.slice(0, -suffix.length);
+      candidates.push(createCandidate(stem, `plural/case ending stripped (-${suffix} -> zero)`));
+      candidates.push(createCandidate(stem + 'а', `plural/case ending restored to -а (-${suffix} -> -а)`));
+      candidates.push(createCandidate(stem + 'я', `plural/case ending restored to -я (-${suffix} -> -я)`));
     }
   }
 

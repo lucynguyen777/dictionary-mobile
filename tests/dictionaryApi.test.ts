@@ -498,3 +498,59 @@ describe('Amharic monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('ህንጻ');
   });
 });
+
+describe('Russian monolingual baseline and morphology', () => {
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const kniga = await fetchMonolingualMeaning('книга', 'ru');
+    expect(kniga.word).toBe('книга');
+    expect(kniga.ipa).toBe('/ˈknʲiɡə/');
+    expect(kniga.definitions[0].meaning).toContain('Произведение печати в виде переплетённых листов');
+
+    const chitat = await fetchMonolingualMeaning('читать', 'ru');
+    expect(chitat.word).toBe('читать');
+  });
+
+  it('strips combining stress marks (accent marks) from search lookup', async () => {
+    // соба́ка (with U+0301) -> собака
+    const sobaka = await fetchMonolingualMeaning('соба́ка', 'ru');
+    expect(sobaka.word).toBe('собака');
+
+    // кни́гу (with U+0301 and Accusative ending) -> книга
+    const knigu = await fetchMonolingualMeaning('кни́гу', 'ru');
+    expect(knigu.word).toBe('книга');
+  });
+
+  it('resolves noun case and plural declensions using local morphology fallback', async () => {
+    // Accusative singular (книгу -> книга)
+    const knigu = await fetchMonolingualMeaning('книгу', 'ru');
+    expect(knigu.word).toBe('книга');
+
+    // Dative singular (собаке -> собака)
+    const sobake = await fetchMonolingualMeaning('собаке', 'ru');
+    expect(sobake.word).toBe('собака');
+
+    // Genitive singular / Nominative plural (книги -> книга)
+    const knigi = await fetchMonolingualMeaning('книги', 'ru');
+    expect(knigi.word).toBe('книга');
+  });
+
+  it('resolves verb present/future and past conjugations using local morphology fallback', async () => {
+    // Present tense 1st singular (читаю -> читать)
+    const chitayu = await fetchMonolingualMeaning('читаю', 'ru');
+    expect(chitayu.word).toBe('читать');
+
+    // Present tense 3rd singular (читает -> читать)
+    const chitaet = await fetchMonolingualMeaning('читает', 'ru');
+    expect(chitaet.word).toBe('читать');
+
+    // Past tense feminine singular (читала -> читать)
+    const chitala = await fetchMonolingualMeaning('читала', 'ru');
+    expect(chitala.word).toBe('читать');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('читать', 'ru');
+    expect(related.synonyms).toContain('просматривать');
+    expect(related.antonyms).toContain('писать');
+  });
+});

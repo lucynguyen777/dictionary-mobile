@@ -151,6 +151,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'ru',
+    label: 'Русский (Russian)',
+    hint: 'Wiktionary preview',
+    family: 'indo-european',
+    script: 'cyrillic',
+    writingDirection: 'ltr',
+    adapterKey: 'ru',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'fi',
     label: 'Suomi (Finnish)',
     hint: 'Wiktionary preview',
