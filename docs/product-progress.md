@@ -274,23 +274,24 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Build adapter registry by language pair/family so each new language declares source, morphology strategy, romanization, and blocked states (commits `1c4a0aa`, `cc9020f`, `667e897`, `536b4ad`).
 - [x] DONE [MEDIUM]: Spanish monolingual baseline: WiktAPI adapter, language metadata, morphology candidates, gender labels.
 - [x] DONE [MEDIUM]: Russian monolingual baseline planning: compare against English/French/Spanish Indo-European adapters, document Cyrillic/case/aspect morphology implications, and select WiktAPI/Russian Wiktionary as the live API candidate pending endpoint smoke test.
-  - [!] BLOCKED [MEDIUM]: Russian monolingual baseline implementation: WiktAPI `ru` endpoint smoke test returned 404 for common words (`дом`, `мир`, `книга`), so no adapter should be registered until a working RU->RU source is selected.
+  - [ ] TODO [MEDIUM]: Russian monolingual baseline implementation: Register Russian adapter, write case/aspect morphology fallbacks, using the community Russian Wiktionary (`ruwiktionary`) CC BY-SA data.
   - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: Implementation BLOCKED (WiktAPI 'hi' returns 404).
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
-  - [x] DONE [HARD]: Mandarin monolingual baseline planning: Implementation BLOCKED (WiktAPI 'zh' returns 404), requires Intl.Segmenter.
+  - [ ] TODO [HARD]: Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate `Intl.Segmenter` for word segmentation, using the community Chinese Wiktionary (`zhwiktionary`) CC BY-SA data.
   - [x] DONE [HARD]: Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
   - [x] DONE [MEDIUM]: RTL UI smoke coverage: support RTL alignment for dictionary results, search input direction, saved-word lists, and Reader tokenization/RTL paragraph wrapping.
-  - [!] BLOCKED [HARD]: Arabic/Hebrew adapter implementation: WiktAPI does not list `ar`/`he` editions, direct English-edition word probes returned 404, and Kaikki Arabic/Hebrew indexes are English-Wiktionary-derived rather than AR->AR or HE->HE definitions.
+  - [ ] TODO [HARD]: Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (`arwiktionary` and `hewiktionary`) as monolingual sources.
   - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
   - Amharic: Ge'ez script and transliteration.
   - Somali: Latin script but needs morphology/source research.
 - [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
-  - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: Implementation BLOCKED (WiktAPI 'sw' returns 404).
+  - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: source candidates, Latin-script search implications, and adapter fixture gates documented in `docs/swahili-language-plan.md`.
+  - [ ] TODO [MEDIUM]: Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (`swwiktionary`) CC BY-SA data.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
@@ -306,15 +307,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
   - [x] DONE [HARD]: Finnish monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/finnish-language-plan.md`.
-  - [!] BLOCKED [HARD]: Finnish monolingual baseline implementation: WiktAPI does not list a `fi` edition and `fi` probes for `talo`/`syödä` returned 404; English-edition Finnish entries provide forms and EN glosses but are not a FI-FI definition source, so no adapter should be registered until a true Finnish-definition source and licensing path are accepted.
+  - [ ] TODO [HARD]: Finnish monolingual baseline implementation: Register the Finnish adapter, add tiny test fixtures under the CC BY-SA license from the community Finnish Wiktionary (`fiwiktionary`), and write morphology fallback rules for noun/verb case endings.
   - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
-  - [!] BLOCKED [HARD]: Hungarian monolingual baseline implementation: WiktAPI does not list a `hu` edition, direct word probes for `ház` returned 404, and English-edition Hungarian entries do not satisfy monolingual-first by themselves, so no adapter should be registered until a true Hungarian-definition source is accepted.
+  - [ ] TODO [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
   - [x] DONE [HARD]: Japanese/Korean monolingual source candidates identified: Kaikki/Wiktextract raw data from `jawiktionary` and `kowiktionary` provide Japanese/Korean-edition gloss metadata; adapter implementation still requires tiny fixture smoke first.
   - [x] DONE [HARD]: Japanese/Korean raw dump noun/verb smoke: `猫`, `たべる`, `사랑`, and `먹다` confirm target-language glosses and useful metadata in raw dumps; hosted WiktAPI direct word endpoints still return 404 for sampled JA/KO words.
-  - [!] BLOCKED [HARD]: Japanese/Korean adapter implementation slices and committed Wiktionary-derived fixtures require accepted source licensing/attribution policy before code changes.
+  - [x] DONE [HARD]: Japanese/Korean adapter implementation unblocked: source licensing/attribution policy accepted; next step is to register the adapters, construct simple lookup fixtures, and query NIKL Open API for Korean.
   - Japanese: kana/kanji, romaji, tokenizer, pitch accent if source supports it.
   - Korean: Hangul, romanization, particles, verb/adjective endings; treat as Korean-specific, not dependent on disputed Altaic grouping.
 - [!] BLOCKED [HARD]: Amerind/proposed-family candidates: Quechua, Nahuatl, Guarani.
@@ -339,9 +340,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
-2. [ ] [HARD] Finnish monolingual baseline implementation: Select a valid monolingual Finnish source, register the Finnish adapter, and write morphology fallback rules for noun/verb cases.
-3. [ ] [HARD] Turkish monolingual baseline implementation: select or construct a Turkish dictionary adapter, parse suffix chains, and add a test fixture for common words.
+1. [~] [HARD] Finnish monolingual baseline implementation: Select community fiwiktionary CC BY-SA source, register the Finnish adapter, and write morphology fallback rules for case endings.
+2. [ ] [HARD] Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
+3. [ ] [HARD] Japanese monolingual baseline implementation: register Japanese adapter, write hiragana/katakana normalization, and add tiny test fixtures under CC BY-SA license.
 
 
 
