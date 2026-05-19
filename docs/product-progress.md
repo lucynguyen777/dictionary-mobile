@@ -280,6 +280,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
+  - [x] DONE [MEDIUM]: RTL UI smoke coverage: support RTL alignment for dictionary results, search input direction, saved-word lists, and Reader tokenization/RTL paragraph wrapping.
   - [!] BLOCKED [HARD]: Arabic/Hebrew adapter implementation: WiktAPI does not list `ar`/`he` editions, direct English-edition word probes returned 404, and Kaikki Arabic/Hebrew indexes are English-Wiktionary-derived rather than AR->AR or HE->HE definitions.
   - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
   - Amharic: Ge'ez script and transliteration.
@@ -301,6 +302,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
   - [x] DONE [HARD]: Finnish monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/finnish-language-plan.md`.
   - [!] BLOCKED [HARD]: Finnish monolingual baseline implementation: WiktAPI does not list a `fi` edition and `fi` probes for `talo`/`syödä` returned 404; English-edition Finnish entries provide forms and EN glosses but are not a FI-FI definition source, so no adapter should be registered until a true Finnish-definition source and licensing path are accepted.
+  - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
+  - [!] BLOCKED [HARD]: Hungarian monolingual baseline implementation: WiktAPI does not list a `hu` edition, direct word probes for `ház` returned 404, and English-edition Hungarian entries do not satisfy monolingual-first by themselves, so no adapter should be registered until a true Hungarian-definition source is accepted.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
@@ -334,8 +337,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 1. [~] [HARD] Reader PDF import enablement gate: PDF is wired into Reader import only behind `READER_ENABLE_PDF=true` on Expo web; native/Expo Go copy stays unsupported, and manual browser fixture smoke is still required before enabling it by default.
   - Implementation: added a runtime gate `isPdfImportEnabled()` controlled by environment variable `READER_ENABLE_PDF=true` and limited to web (`EXPO_OS=web`); `extractReaderDocument()` now routes gated PDFs through the PDF.js-style parser, and Reader UI reads PDF as `ArrayBuffer` only after the gate passes.
   - Verification (node): `npm test -- --run tests/readerImport.test.ts tests/nativePdfGate.test.ts` passed with gated PDF import, default-disabled PDF import, and native-disabled behavior covered. Manual browser smoke still required.
-2. [ ] [HARD] Hungarian monolingual baseline planning: document source candidates, Latin-script search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates before any Hungarian adapter code.
-3. [ ] [MEDIUM] RTL UI smoke coverage: add static Arabic/Hebrew sample strings to verify dictionary cards, search input direction, saved-word rows, and Reader token display before adapter code.
+2. [ ] [HARD] Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
+3. [ ] [HARD] Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
+
 
 ## Rule
 

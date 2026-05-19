@@ -696,7 +696,7 @@ export default function LibraryScreen() {
           <Link key={entry.id} href={{ pathname: '/word', params: { word: entry.word } }} asChild>
             <TouchableOpacity activeOpacity={0.82} style={styles.savedWord}>
               <View style={styles.savedWordCopy}>
-                <Text style={styles.savedWordTitle}>{entry.word}</Text>
+                <Text style={[styles.savedWordTitle, /[\u0600-\u06FF\u0590-\u05FF]/.test(entry.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{entry.word}</Text>
                 <Text style={styles.savedWordMeta}>{entry.definition || 'Từ đã lưu'} · {entry.ipa || 'Đang chờ IPA'}</Text>
                 {entry.note ? <Text numberOfLines={2} style={styles.savedWordNote}>{entry.note}</Text> : null}
               </View>

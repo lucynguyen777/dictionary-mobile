@@ -151,10 +151,72 @@ const frenchDictionaryEntries: DictionaryEntry[] = [
   },
 ];
 
+const arabicDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'كتاب',
+    ipa: '/kiˈtaːb/',
+    audio: '',
+    level: 'A1',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'مجموعة من الورق المكتوب أو المطبوع (A set of written or printed pages)',
+    definitions: [
+      {
+        partOfSpeech: 'اسم (noun)',
+        meaning: 'عمل مكتوب أو مطبوع يتكون من صفحات مجلدة معاً (A written or printed work consisting of pages glued together).',
+        vietnamese: 'Một tác phẩm viết hoặc in gồm các trang gắn liền với nhau.',
+        examples: [
+          { source: 'قرأت كتاباً مفيداً أمس.', translation: 'Tôi đã đọc một cuốn sách hữu ích ngày hôm qua.' },
+          { source: 'هذا الكتاب له غلاف أحمر.', translation: 'Cuốn sách này có bìa màu đỏ.' }
+        ],
+      }
+    ],
+    synonyms: ['مجلد', 'سفر'],
+    antonyms: [],
+    collocations: ['كتاب مدرسي', 'معرض الكتاب'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'من الجذر ك-ت-ب بمعنى الكتابة (From root k-t-b meaning to write).',
+    pronunciationTips: [],
+  }
+];
+
+const hebrewDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'ספר',
+    ipa: '/ˈse.feʁ/',
+    audio: '',
+    level: 'A1',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'חיבור כתוב המודפס על דפים (A written composition printed on pages)',
+    definitions: [
+      {
+        partOfSpeech: 'שם עצם (noun)',
+        meaning: 'קובץ דפים מודפסים أو כתובים הכרוכים יחד (A collection of printed or written sheets bound together).',
+        vietnamese: 'Một tập hợp các tờ giấy được in hoặc viết gắn liền với nhau.',
+        examples: [
+          { source: 'קראתי ספר מעניין מאוד.', translation: 'Tôi đã đọc một cuốn sách rất thú vị.' },
+          { source: 'הספר נמצא על השולחן.', translation: 'Cuốn sách đang ở trên bàn.' }
+        ],
+      }
+    ],
+    synonyms: ['חיבור', 'כרך'],
+    antonyms: [],
+    collocations: ['ספר לימוד', 'חנות ספרים'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'ממשפחת המילים ספר (From the word family of sefer, related to writing/counting).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
   fr: frenchDictionaryEntries,
+  ar: arabicDictionaryEntries,
+  he: hebrewDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

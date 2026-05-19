@@ -253,7 +253,7 @@ function FolderWordCard({
       <View style={styles.wordTopRow}>
         <Link href={{ pathname: '/word', params: { word: word.word } }} asChild>
           <TouchableOpacity activeOpacity={0.82} style={styles.wordLink}>
-            <Text style={styles.wordTitle}>{word.word}</Text>
+            <Text style={[styles.wordTitle, /[\u0600-\u06FF\u0590-\u05FF]/.test(word.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{word.word}</Text>
             <Text style={styles.wordMeta}>{word.ipa || 'Đang chờ IPA'}</Text>
           </TouchableOpacity>
         </Link>

@@ -14,6 +14,7 @@ type Props = {
   languagePairLabel: string;
   note: string;
   savedFolderIds: string[];
+  writingDirection?: 'ltr' | 'rtl';
   onSaveToFolder: (folderId: string, note: string) => void;
   onToggleFavorite: () => void;
 };
@@ -25,6 +26,7 @@ export default function WordHeader({
   isTranslationComingSoon,
   note,
   savedFolderIds,
+  writingDirection = 'ltr',
   onSaveToFolder,
   onToggleFavorite,
 }: Props) {
@@ -86,7 +88,15 @@ export default function WordHeader({
       ) : null}
 
       <View style={styles.wordRow}>
-        <Text adjustsFontSizeToFit numberOfLines={1} style={styles.word}>{entry.word}</Text>
+        <Text
+          adjustsFontSizeToFit
+          numberOfLines={1}
+          style={[
+            styles.word,
+            writingDirection === 'rtl' && { textAlign: 'right', writingDirection: 'rtl' }
+          ]}>
+          {entry.word}
+        </Text>
         <View style={styles.actions}>
           <TouchableOpacity onPress={onToggleFavorite}>
             <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={30} color="#EF476F" />

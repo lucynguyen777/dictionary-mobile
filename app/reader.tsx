@@ -70,6 +70,7 @@ export default function ReaderScreen() {
 
   const selectedDocument = readerState.documents.find((document) => document.id === readerState.selectedDocumentId);
   const readerTokens = useMemo(() => tokenizeReaderText(selectedDocument?.content ?? ''), [selectedDocument?.content]);
+  const isRtl = useMemo(() => /[\u0600-\u06FF\u0590-\u05FF]/.test(selectedDocument?.content ?? ''), [selectedDocument?.content]);
 
   const selectedHighlightText = useMemo(() => {
     if (!selectionRange) return '';
@@ -301,10 +302,10 @@ export default function ReaderScreen() {
 
         {selectedDocument ? (
           <View style={[styles.readerPage, { backgroundColor: readerState.settings.backgroundColor }]}>
-            <Text style={styles.readerTitle}>{selectedDocument.title}</Text>
-            <View style={styles.readerTextWrap}>
+            <Text style={[styles.readerTitle, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>{selectedDocument.title}</Text>
+            <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
               {readerTokens.slice(0, 900).map((token, index) => {
-                const isWord = /[A-Za-z]/.test(token);
+                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF]/.test(token);
                 const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
 
                 return isWord ? (
@@ -378,7 +379,7 @@ export default function ReaderScreen() {
 }
 
 function tokenizeReaderText(text: string) {
-  return text.replace(/\s+/g, ' ').match(/[A-Za-z][A-Za-z'-]*|[^A-Za-z]+/g) ?? [];
+  return text.replace(/\s+/g, ' ').match(/[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF]+/g) ?? [];
 }
 
 function getReaderTextStyle(settings: ReaderSettings) {

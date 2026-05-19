@@ -100,6 +100,26 @@ export const languageOptions = [
     adapterKey: 'ko',
     dictionaryStatus: 'coming-soon',
   },
+  {
+    code: 'ar',
+    label: 'العربية (Arabic)',
+    hint: 'RTL smoke test',
+    family: 'afroasiatic',
+    script: 'arabic',
+    writingDirection: 'rtl',
+    adapterKey: undefined,
+    dictionaryStatus: 'monolingual',
+  },
+  {
+    code: 'he',
+    label: 'עברית (Hebrew)',
+    hint: 'RTL smoke test',
+    family: 'afroasiatic',
+    script: 'hebrew',
+    writingDirection: 'rtl',
+    adapterKey: undefined,
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

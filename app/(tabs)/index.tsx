@@ -147,7 +147,10 @@ export default function HomeScreen() {
                 placeholder="Nhập từ cần tra cứu..."
                 placeholderTextColor="#94A3B8"
                 returnKeyType="search"
-                style={styles.homeLookupInput}
+                style={[
+                  styles.homeLookupInput,
+                  sourceLanguage.writingDirection === 'rtl' && { textAlign: 'right', writingDirection: 'rtl' }
+                ]}
                 value={lookupQuery}
               />
               {lookupQuery ? (
@@ -244,8 +247,8 @@ export default function HomeScreen() {
           <Link key={item.word} href={{ pathname: '/word', params: { word: item.word } }} asChild>
             <TouchableOpacity activeOpacity={0.82} style={styles.wordCard}>
               <View style={styles.wordTop}>
-                <View>
-                  <Text style={styles.word}>{item.word}</Text>
+                <View style={{ flex: 1, marginRight: 12 }}>
+                  <Text style={[styles.word, /[\u0600-\u06FF\u0590-\u05FF]/.test(item.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{item.word}</Text>
                   <Text style={styles.ipa}>{item.ipa}</Text>
                 </View>
                 <View style={styles.topicPill}>

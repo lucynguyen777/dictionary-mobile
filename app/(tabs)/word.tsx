@@ -347,7 +347,10 @@ export default function WordScreen() {
               onChangeText={setQuery}
               onFocus={() => setShowLanguageControls(true)}
               onSubmitEditing={() => selectWord(query)}
-              style={styles.input}
+              style={[
+                styles.input,
+                sourceLanguage.writingDirection === 'rtl' && { textAlign: 'right', writingDirection: 'rtl' }
+              ]}
             />
             {query ? (
               <TouchableOpacity onPress={() => setQuery('')}>
@@ -467,6 +470,7 @@ export default function WordScreen() {
         languagePairLabel={`${sourceLanguage.label} to ${targetLanguage.label}`}
         note={savedWord?.note ?? ''}
         savedFolderIds={savedFolderIds}
+        writingDirection={sourceLanguage.writingDirection as 'ltr' | 'rtl'}
         onSaveToFolder={handleSaveToFolder}
         onToggleFavorite={handleToggleFavorite}
       />

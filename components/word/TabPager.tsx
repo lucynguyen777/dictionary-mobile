@@ -7,6 +7,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensio
 
 import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
+import { getLanguageByCode } from '@/data/languages';
 import { PhrasebookItem, getPhrasebookItems } from '@/data/phrasebook';
 
 type Props = {
@@ -175,8 +176,10 @@ function MeaningTab({
   sourceLang: string;
   targetLang: string;
 }) {
-  const shouldPreferVietnamese = sourceLang === 'en' && targetLang === 'vi';
+  const shouldPreferVietnamese = targetLang === 'vi' && sourceLang !== 'vi';
   const isBilingualLookup = sourceLang !== targetLang;
+  const sourceLanguage = getLanguageByCode(sourceLang, 'en');
+  const isRtl = sourceLanguage.writingDirection === 'rtl';
   const localDefinitions = entry.definitions.map((definition) => ({
     partOfSpeech: definition.partOfSpeech,
     meaning: definition.meaning,
@@ -244,9 +247,21 @@ function MeaningTab({
                 gender={item.gender ?? entry.gender}
                 level={item.level ?? entry.level}
               />
-              <Text style={styles.body}>{getPrimaryDefinitionText(item, shouldPreferVietnamese)}</Text>
+              <Text
+                style={[
+                  styles.body,
+                  (isRtl && !shouldPreferVietnamese) && { textAlign: 'right', writingDirection: 'rtl' }
+                ]}>
+                {getPrimaryDefinitionText(item, shouldPreferVietnamese)}
+              </Text>
               {shouldPreferVietnamese && !apiBilingualMeaning ? (
-                <Text style={styles.secondaryDefinition}>{item.meaning}</Text>
+                <Text
+                  style={[
+                    styles.secondaryDefinition,
+                    (isRtl && shouldPreferVietnamese) && { textAlign: 'right', writingDirection: 'rtl' }
+                  ]}>
+                  {item.meaning}
+                </Text>
               ) : null}
               {item.examples.length ? (
                 <>
@@ -260,7 +275,13 @@ function MeaningTab({
                           style={styles.exampleAudioButton}>
                           <Ionicons name="volume-medium-outline" size={16} color="#2563EB" />
                         </TouchableOpacity>
-                        <Text style={styles.example}>{example.source}</Text>
+                        <Text
+                          style={[
+                            styles.example,
+                            isRtl && { textAlign: 'right', writingDirection: 'rtl', flex: 1 }
+                          ]}>
+                          {example.source}
+                        </Text>
                       </View>
                       {example.translation ? (
                         <Text style={styles.exampleTranslation}>{example.translation}</Text>

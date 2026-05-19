@@ -3,7 +3,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { loadUserProfile } from '@/data/profileStore';
@@ -25,7 +25,7 @@ export default function RootLayout() {
     try {
       const profile = await loadUserProfile();
 
-      if (!profile.appLockEnabled) {
+      if (!profile.appLockEnabled || Platform.OS === 'web') {
         setAppLockState('unlocked');
         return;
       }
