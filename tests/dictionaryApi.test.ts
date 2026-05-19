@@ -554,3 +554,36 @@ describe('Russian monolingual baseline and morphology', () => {
     expect(related.antonyms).toContain('писать');
   });
 });
+
+describe('Mandarin monolingual baseline and variant morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const shu = await fetchMonolingualMeaning('书', 'zh');
+    expect(shu.word).toBe('书');
+    expect(shu.ipa).toBe('/ʂu¹/');
+    expect(shu.definitions[0].meaning).toContain('装订成册的著作');
+
+    const mao = await fetchMonolingualMeaning('猫', 'zh');
+    expect(mao.word).toBe('猫');
+  });
+
+  it('resolves Traditional to Simplified variant forms using variant mapping morphology fallback', async () => {
+    // Traditional 書 -> Simplified 书
+    const shuTrad = await fetchMonolingualMeaning('書', 'zh');
+    expect(shuTrad.word).toBe('书');
+    expect(shuTrad.source).toContain('base form of 書');
+
+    // Traditional 貓 -> Simplified 猫
+    const maoTrad = await fetchMonolingualMeaning('貓', 'zh');
+    expect(maoTrad.word).toBe('猫');
+
+    // Traditional 讀 -> Simplified 读
+    const duTrad = await fetchMonolingualMeaning('讀', 'zh');
+    expect(duTrad.word).toBe('读');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('读', 'zh');
+    expect(related.synonyms).toContain('阅读');
+    expect(related.antonyms).toContain('写');
+  });
+});

@@ -1136,6 +1136,87 @@ const russianDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const mandarinDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: '书',
+    ipa: '/ʂu¹/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education (教育)',
+    vietnamese: 'sách, tác phẩm',
+    shortDefinition: '装订成册的著作 (book)',
+    definitions: [
+      {
+        partOfSpeech: '名词 (noun)',
+        meaning: '装订成册的著作 (A bound work or book).',
+        vietnamese: 'Sách. Tác phẩm được đóng thành tập.',
+        examples: [
+          { source: '我喜欢看书。', translation: 'Tôi thích đọc sách.' }
+        ],
+      }
+    ],
+    synonyms: ['书籍', '图书'],
+    antonyms: [],
+    collocations: ['看书', '书店'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'From Oracle Bone Script.',
+    pronunciationTips: [],
+  },
+  {
+    word: '猫',
+    ipa: '/maʊ²⁴/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Hayop (Animals)',
+    vietnamese: 'con mèo',
+    shortDefinition: '一种家养小哺乳动物 (cat)',
+    definitions: [
+      {
+        partOfSpeech: '名词 (noun)',
+        meaning: '一种家养的捕鼠小哺乳动物 (A domestic feline animal that catches mice).',
+        vietnamese: 'Con mèo. Một loài động vật có vú nhỏ nuôi trong nhà thường dùng để bắt chuột.',
+        examples: [
+          { source: '那只猫很可爱。', translation: 'Con mèo kia rất đáng yêu.' }
+        ],
+      }
+    ],
+    synonyms: ['家猫'],
+    antonyms: [],
+    collocations: ['小猫', '养猫'],
+    idioms: [{ phrase: '不管黑猫白猫，捉住老鼠就是好猫', meaning: 'it doesn\'t matter if a cat is black or white, as long as it catches mice' }],
+    conjugation: [],
+    etymology: 'Phono-semantic compound.',
+    pronunciationTips: [],
+  },
+  {
+    word: '读',
+    ipa: '/tu³⁵/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Actions',
+    vietnamese: 'đọc',
+    shortDefinition: '看着文字发出声音或默默阅读 (to read / study)',
+    definitions: [
+      {
+        partOfSpeech: '动词 (verb)',
+        meaning: '看着文字发出声音，或用心默默地阅览 (To read aloud or silently).',
+        vietnamese: 'Đọc. Nhìn chữ phát ra âm thanh hoặc đọc thầm.',
+        examples: [
+          { source: '请读一下这课文。', translation: 'Xin vui lòng đọc bài khóa này.' }
+        ],
+      }
+    ],
+    synonyms: ['阅读', '念'],
+    antonyms: ['写'],
+    collocations: ['读书', '朗读'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'From Semantic 訁 (speech).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1151,6 +1232,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   tl: tagalogDictionaryEntries,
   am: amharicDictionaryEntries,
   ru: russianDictionaryEntries,
+  zh: mandarinDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

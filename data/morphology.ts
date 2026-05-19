@@ -60,6 +60,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'tl') return getTagalogMorphologyCandidates(input);
   if (languageCode === 'am') return getAmharicMorphologyCandidates(input);
   if (languageCode === 'ru') return getRussianMorphologyCandidates(input);
+  if (languageCode === 'zh') return getMandarinMorphologyCandidates(input);
 
   return [];
 }
@@ -1046,6 +1047,32 @@ function getRussianMorphologyCandidates(input: string): MorphologyCandidate[] {
       candidates.push(createCandidate(stem + 'а', `plural/case ending restored to -а (-${suffix} -> -а)`));
       candidates.push(createCandidate(stem + 'я', `plural/case ending restored to -я (-${suffix} -> -я)`));
     }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getMandarinMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim();
+  if (word.length < 1) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // Try traditional/simplified variant lookup character-by-character
+  const zhVariantMap: Record<string, string> = {
+    '書': '书', '书': '書',
+    '貓': '猫', '猫': '貓',
+    '讀': '读', '读': '讀',
+  };
+
+  let alternativeWord = '';
+  for (let i = 0; i < word.length; i++) {
+    const char = word[i];
+    alternativeWord += zhVariantMap[char] || char;
+  }
+
+  if (alternativeWord !== word) {
+    candidates.push(createCandidate(alternativeWord, 'variant (simplified/traditional)'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

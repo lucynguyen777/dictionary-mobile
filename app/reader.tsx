@@ -379,7 +379,24 @@ export default function ReaderScreen() {
 }
 
 function tokenizeReaderText(text: string) {
-  return text.replace(/\s+/g, ' ').match(/[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF]+/g) ?? [];
+  if (!text) return [];
+
+  // Use Intl.Segmenter if available for CJK or general advanced segmentation
+  if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+    try {
+      const hasCjk = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af]/.test(text);
+      if (hasCjk) {
+        const segmenter = new Intl.Segmenter('zh', { granularity: 'word' });
+        return Array.from(segmenter.segment(text), (s) => s.segment);
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  // Fallback regex supporting CJK characters individually and other alphabetic/abjad scripts grouped
+  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af]|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af]+/g;
+  return text.replace(/\s+/g, ' ').match(regex) ?? [];
 }
 
 function getReaderTextStyle(settings: ReaderSettings) {

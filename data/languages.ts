@@ -161,6 +161,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'zh',
+    label: '中文 (Chinese)',
+    hint: 'Wiktionary preview',
+    family: 'sino-tibetan',
+    script: 'hanzi',
+    writingDirection: 'ltr',
+    adapterKey: 'zh',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'fi',
     label: 'Suomi (Finnish)',
     hint: 'Wiktionary preview',
