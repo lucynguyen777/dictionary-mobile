@@ -288,7 +288,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate `Intl.Segmenter` for word segmentation, using the community Chinese Wiktionary (`zhwiktionary`) CC BY-SA data.
   - [x] DONE [HARD]: Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
-  - [~] IN PROGRESS [HARD]: Burmese monolingual baseline planning: Research script-specific Burmese segmentation and dictionary source.
+  - [x] DONE [HARD]: Burmese monolingual baseline planning: Research script-specific Burmese segmentation and dictionary source.
+  - [~] IN PROGRESS [HARD]: Burmese monolingual baseline implementation: Register Burmese adapter and configure tokenization fallback, using CC BY-SA data.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
@@ -356,7 +357,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Burmese monolingual baseline planning: Research script-specific segmentation and dictionary source.
+1. [~] [HARD] Burmese monolingual baseline implementation: Register Burmese adapter and configure tokenization fallback, using CC BY-SA data.
 2. [ ] [HARD] Tibetan monolingual baseline planning: Research script-specific segmentation and dictionary source.
 3. [ ] [MEDIUM] Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
 4. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
