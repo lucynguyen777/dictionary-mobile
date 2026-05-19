@@ -249,3 +249,46 @@ describe('Korean monolingual baseline and morphology', () => {
     expect(related.antonyms).toContain('증오');
   });
 });
+
+describe('Swahili monolingual baseline and morphology', () => {
+
+  it('looks up exact monolingual nouns and verbs', async () => {
+    const mtu = await fetchMonolingualMeaning('mtu', 'sw');
+    expect(mtu.word).toBe('mtu');
+    expect(mtu.ipa).toBe('/m.tu/');
+    expect(mtu.definitions[0].meaning).toContain('Kiumbe hai mwenye akili');
+    expect(mtu.definitions[0].vietnamese).toBe('Người, con người. Thực thể sống có tư duy và nhận thức, khác biệt với động vật.');
+
+    const penda = await fetchMonolingualMeaning('penda', 'sw');
+    expect(penda.word).toBe('penda');
+    expect(penda.definitions[0].meaning).toContain('Kuwa na mapenzi au hisia kali');
+  });
+
+  it('resolves plural noun classes using local morphology fallback', async () => {
+    // Class 2 to 1 (watu -> mtu)
+    const watu = await fetchMonolingualMeaning('watu', 'sw');
+    expect(watu.word).toBe('mtu');
+    expect(watu.source).toContain('base form of watu');
+
+    // Class 8 to 7 (vitu -> kitu)
+    const vitu = await fetchMonolingualMeaning('vitu', 'sw');
+    expect(vitu.word).toBe('kitu');
+
+    // Class 4 to 3 (miti -> mti)
+    const miti = await fetchMonolingualMeaning('miti', 'sw');
+    expect(miti.word).toBe('mti');
+  });
+
+  it('resolves highly agglutinated verbs by stripping subject/tense/object prefixes', async () => {
+    // ninakupenda -> penda
+    const ninakupenda = await fetchMonolingualMeaning('ninakupenda', 'sw');
+    expect(ninakupenda.word).toBe('penda');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('mtu', 'sw');
+    expect(related.synonyms).toContain('binadamu');
+    expect(related.synonyms).toContain('mwanadamu');
+    expect(related.antonyms).toContain('mnyama');
+  });
+});

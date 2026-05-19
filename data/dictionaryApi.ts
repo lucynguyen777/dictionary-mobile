@@ -183,6 +183,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'tr') return fetchTurkishMeaning(word);
   if (languageCode === 'ja') return fetchJapaneseMeaning(word);
   if (languageCode === 'ko') return fetchKoreanMeaning(word);
+  if (languageCode === 'sw') return fetchSwahiliMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -197,6 +198,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'tr') return fetchTurkishRelatedWords(word);
   if (languageCode === 'ja') return fetchJapaneseRelatedWords(word);
   if (languageCode === 'ko') return fetchKoreanRelatedWords(word);
+  if (languageCode === 'sw') return fetchSwahiliRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -941,6 +943,57 @@ export async function fetchKoreanMeaning(word: string): Promise<ApiMeaningResult
 export async function fetchKoreanRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('ko', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchSwahiliMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().toLowerCase();
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('sw', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('sw', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'swwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'swwiktionary' : `swwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Swahili Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchSwahiliRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().toLowerCase();
+  const localEntry = findLocalDictionaryEntry('sw', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],

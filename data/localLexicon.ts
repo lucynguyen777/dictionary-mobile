@@ -630,6 +630,122 @@ const koreanDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const swahiliDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'mtu',
+    ipa: '/m.tu/',
+    audio: '',
+    level: 'A1',
+    topic: 'Watu (People)',
+    vietnamese: 'người',
+    shortDefinition: 'kiumbe mwenye akili (human being / person)',
+    definitions: [
+      {
+        partOfSpeech: 'Nomino (noun)',
+        meaning: 'Kiumbe hai mwenye akili ya kufikiri na utambuzi, tofauti na mnyama (A living being with the ability to think and reason, distinct from animals).',
+        vietnamese: 'Người, con người. Thực thể sống có tư duy và nhận thức, khác biệt với động vật.',
+        examples: [
+          { source: 'Mtu huyu ni rafiki yangu.', translation: 'Người này là bạn tôi.' }
+        ],
+      }
+    ],
+    synonyms: ['binadamu', 'mwanadamu'],
+    antonyms: ['mnyama'],
+    collocations: ['mtu mzuri', 'watu wote'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural (Class 2)', form: 'watu' }
+    ],
+    etymology: 'Proto-Bantu: *-ntu (human/thing).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'kitu',
+    ipa: '/ki.tu/',
+    audio: '',
+    level: 'A1',
+    topic: 'Kawaida (General)',
+    vietnamese: 'vật / thứ',
+    shortDefinition: 'jambo au chombo kisicho na uzima (thing / object)',
+    definitions: [
+      {
+        partOfSpeech: 'Nomino (noun)',
+        meaning: 'Jambo, chombo au dutu yoyote isiyo na uzima (Any matter, object, or substance without life).',
+        vietnamese: 'Vật, vật thể, thứ, đồ đạc. Bất kỳ đối tượng hay chất nào không có sự sống.',
+        examples: [
+          { source: 'Hiki ni kitu gani?', translation: 'Đây là cái gì vậy?' }
+        ],
+      }
+    ],
+    synonyms: ['dutu', 'chombo'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural (Class 8)', form: 'vitu' }
+    ],
+    etymology: 'Proto-Bantu: *-ntu (human/thing) with class 7 prefix.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'mti',
+    ipa: '/m.ti/',
+    audio: '',
+    level: 'A1',
+    topic: 'Mazingira (Environment)',
+    vietnamese: 'cây',
+    shortDefinition: 'mmea mkubwa wenye shina la mbao (tree)',
+    definitions: [
+      {
+        partOfSpeech: 'Nomino (noun)',
+        meaning: 'Mmea mkubwa na mrefu wenye shina gumu la mbao na matawi (A large, tall plant with a hard woody trunk and branches).',
+        vietnamese: 'Cây, cây cối. Loại thực vật lớn và cao có thân gỗ cứng và các cành lá.',
+        examples: [
+          { source: 'Mti huu una matunda mazuri.', translation: 'Cây này có quả ngon.' }
+        ],
+      }
+    ],
+    synonyms: [],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural (Class 4)', form: 'miti' }
+    ],
+    etymology: 'Proto-Bantu: *-tɪ́ (tree/wood).',
+    pronunciationTips: [],
+  },
+  {
+    word: 'penda',
+    ipa: '/pe.nda/',
+    audio: '',
+    level: 'A1',
+    topic: 'Hisia (Feelings)',
+    vietnamese: 'yêu / thích',
+    shortDefinition: 'kuwa na hisia nzuri kwa mtu au kitu (to love / to like)',
+    definitions: [
+      {
+        partOfSpeech: 'Kitenzi (verb)',
+        meaning: 'Kuwa na mapenzi au hisia kali za kuvutiwa na mtu au kupendezwa na kitu (To have strong affection or feelings of attraction to someone or interest in something).',
+        vietnamese: 'Yêu, thương, thích. Có tình cảm sâu sắc hoặc sự hấp dẫn mạnh mẽ đối với ai đó hoặc quan tâm đến điều gì đó.',
+        examples: [
+          { source: 'Ninakupenda sana.', translation: 'Tôi yêu bạn rất nhiều.' }
+        ],
+      }
+    ],
+    synonyms: ['thamani', 'husudu'],
+    antonyms: ['chukia'],
+    collocations: ['kupenda sana'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Present (I love you)', form: 'ninakupenda' },
+      { tense: 'Infinitive', form: 'kupenda' }
+    ],
+    etymology: 'Proto-Bantu: *-penda (to love/like).',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -640,6 +756,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   tr: turkishDictionaryEntries,
   ja: japaneseDictionaryEntries,
   ko: koreanDictionaryEntries,
+  sw: swahiliDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

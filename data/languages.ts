@@ -63,12 +63,12 @@ export const languageOptions = [
   {
     code: 'sw',
     label: 'Kiswahili',
-    hint: 'Sắp hỗ trợ',
+    hint: 'Wiktionary preview',
     family: 'niger-congo',
     script: 'latin',
     writingDirection: 'ltr',
-    adapterKey: undefined,
-    dictionaryStatus: 'unavailable',
+    adapterKey: 'sw',
+    dictionaryStatus: 'monolingual',
   },
   {
     code: 'hi',

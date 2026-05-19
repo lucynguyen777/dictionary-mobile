@@ -53,6 +53,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'tr') return getTurkishMorphologyCandidates(input);
   if (languageCode === 'ja') return getJapaneseMorphologyCandidates(input);
   if (languageCode === 'ko') return getKoreanMorphologyCandidates(input);
+  if (languageCode === 'sw') return getSwahiliMorphologyCandidates(input);
 
   return [];
 }
@@ -647,6 +648,63 @@ function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
   if (word.endsWith('은') && word.length > 1) {
     candidates.push(createCandidate(`${word.slice(0, -1)}다`, '동사/형용사 (modifier)'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getSwahiliMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim().toLowerCase();
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // 1. Noun Class Plural-to-Singular fallbacks:
+  // - Class 2 to 1 (wa- -> m-)
+  // e.g. watu -> mtu
+  if (word.startsWith('wa')) {
+    const stem = word.slice(2);
+    candidates.push(createCandidate(`m${stem}`, 'Class 1 singular (m-)'));
+    candidates.push(createCandidate(`mw${stem}`, 'Class 1 singular (mw-)'));
+  }
+
+  // - Class 8 to 7 (vi- -> ki-)
+  // e.g. vitu -> kitu
+  if (word.startsWith('vi')) {
+    const stem = word.slice(2);
+    candidates.push(createCandidate(`ki${stem}`, 'Class 7 singular (ki-)'));
+  }
+
+  // - Class 4 to 3 (mi- -> m-)
+  // e.g. miti -> mti
+  if (word.startsWith('mi')) {
+    const stem = word.slice(2);
+    candidates.push(createCandidate(`m${stem}`, 'Class 3 singular (m-)'));
+  }
+
+  // 2. Verb prefixes stripping (subject + tense)
+  // Swahili verbs stack prefixes: [subject] + [tense] + [object] + root
+  // Subject prefixes: ni- (I), u- (you), a- (he/she), tu- (we), m- (you pl), wa- (they)
+  // Tense markers: -na- (present), -li- (past), -ta- (future), -me- (perfect)
+  const tenses = ['na', 'li', 'ta', 'me'];
+  const subjects = ['ni', 'u', 'a', 'tu', 'm', 'wa'];
+
+  for (const sub of subjects) {
+    for (const tense of tenses) {
+      const prefix = `${sub}${tense}`;
+      if (word.startsWith(prefix) && word.length > prefix.length + 2) {
+        const remaining = word.slice(prefix.length);
+        if (remaining.endsWith('a')) {
+          candidates.push(createCandidate(remaining, 'verb root'));
+        }
+        if (remaining.startsWith('ku') && remaining.length > 4) {
+          const rootWord = remaining.slice(2);
+          if (rootWord.endsWith('a')) {
+            candidates.push(createCandidate(rootWord, 'verb root (with object pronoun stripped)'));
+          }
+        }
+      }
+    }
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
