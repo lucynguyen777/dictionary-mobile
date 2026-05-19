@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `21875d0` feat(lang): implement Finnish monolingual baseline adapter, local dictionary fixtures, and case-gradation morphology fallback rules
   - `f12afe0` docs(licensing): accept dictionary source licensing policy and unblock monolingual implementations
   - `cd2cb4b` docs(lang): add Tagalog monolingual planning and language option metadata
   - `abfff92` docs(lang): add Cantonese monolingual planning and language option metadata
@@ -304,11 +305,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
 - [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
+  - [~] IN PROGRESS [HARD]: Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
   - [x] DONE [HARD]: Finnish monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/finnish-language-plan.md`.
-  - [ ] TODO [HARD]: Finnish monolingual baseline implementation: Register the Finnish adapter, add tiny test fixtures under the CC BY-SA license from the community Finnish Wiktionary (`fiwiktionary`), and write morphology fallback rules for noun/verb case endings.
+  - [x] DONE [HARD]: Finnish monolingual baseline implementation: Register the Finnish adapter, add tiny test fixtures under the CC BY-SA license from the community Finnish Wiktionary (`fiwiktionary`), and write morphology fallback rules for noun/verb case endings.
   - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
   - [ ] TODO [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
   - Case-rich morphology and lemmatization are required before production lookup.
@@ -341,9 +343,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Finnish monolingual baseline implementation: Select community fiwiktionary CC BY-SA source, register the Finnish adapter, and write morphology fallback rules for case endings.
-2. [ ] [HARD] Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
-3. [ ] [HARD] Japanese monolingual baseline implementation: register Japanese adapter, write hiragana/katakana normalization, and add tiny test fixtures under CC BY-SA license.
+1. [~] [HARD] Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
+2. [ ] [HARD] Japanese monolingual baseline implementation: register Japanese adapter, write hiragana/katakana normalization, and add tiny test fixtures under CC BY-SA license.
+3. [ ] [HARD] Korean monolingual baseline implementation: register Korean adapter, construct local lookup fixtures, and write particles/adjective ending fallback rules.
 
 
 
