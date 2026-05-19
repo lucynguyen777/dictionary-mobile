@@ -294,7 +294,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: RTL UI smoke coverage: support RTL alignment for dictionary results, search input direction, saved-word lists, and Reader tokenization/RTL paragraph wrapping.
   - [x] DONE [HARD]: Arabic/Hebrew adapter implementation: Register Arabic/Hebrew adapters and write morphology lookup logic, using CC BY-SA community dumps (`arwiktionary` and `hewiktionary`) as monolingual sources.
   - Arabic/Hebrew: RTL UI, abjad script, root-pattern morphology, diacritics.
-  - Amharic: Ge'ez script and transliteration.
+  - [x] DONE [HARD]: Amharic monolingual baseline planning: Research Ge'ez script characteristics, transliteration, and morphology source candidates.
+  - [x] DONE [HARD]: Amharic monolingual baseline implementation: Register Amharic adapter, write abugida vowel/order shift mapping morphology fallbacks, using CC BY-SA `amwiktionary` data.
   - Somali: Latin script but needs morphology/source research.
 - [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: source candidates, Latin-script search implications, and adapter fixture gates documented in `docs/swahili-language-plan.md`.
@@ -351,7 +352,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Amharic monolingual baseline planning: Research Ge'ez script characteristics, transliteration, and morphology source candidates.
+1. [~] [HARD] Russian monolingual baseline planning: Research Cyrillic script characteristics, noun case systems, verb aspect morphology, and local fixture mockups.
 2. [ ] [HARD] Russian monolingual baseline implementation: Register Russian adapter, write case/aspect morphology fallbacks.
 3. [ ] [HARD] Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate word segmentation.
 
