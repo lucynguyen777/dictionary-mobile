@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `f7c0e90` feat(lang): implement Japanese monolingual baseline adapter, exact kana/kanji search, Group 1/2 verb inflection suffix fallback, and local test fixtures
   - `3c74956` feat(lang): implement Turkish monolingual baseline adapter, custom dotless/dotted I casing normalization, case-suffix stripping morphology, and local test fixtures
   - `21875d0` feat(lang): implement Finnish monolingual baseline adapter, local dictionary fixtures, and case-gradation morphology fallback rules
   - `f12afe0` docs(licensing): accept dictionary source licensing policy and unblock monolingual implementations
@@ -320,8 +321,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Japanese/Korean monolingual source candidates identified: Kaikki/Wiktextract raw data from `jawiktionary` and `kowiktionary` provide Japanese/Korean-edition gloss metadata; adapter implementation still requires tiny fixture smoke first.
   - [x] DONE [HARD]: Japanese/Korean raw dump noun/verb smoke: `猫`, `たべる`, `사랑`, and `먹다` confirm target-language glosses and useful metadata in raw dumps; hosted WiktAPI direct word endpoints still return 404 for sampled JA/KO words.
   - [x] DONE [HARD]: Japanese/Korean adapter implementation unblocked: source licensing/attribution policy accepted; next step is to register the adapters, construct simple lookup fixtures, and query NIKL Open API for Korean.
-  - [~] IN PROGRESS [HARD]: Japanese monolingual baseline implementation: register Japanese adapter, write kana/kanji normalization, and construct simple local lookup fixtures.
-  - [ ] TODO [HARD]: Korean monolingual baseline implementation: register Korean adapter, construct local lookup fixtures, and write particles/adjective ending fallback rules.
+  - [x] DONE [HARD]: Japanese monolingual baseline implementation: register Japanese adapter, write kana/kanji normalization, and construct simple local lookup fixtures.
+  - [~] IN PROGRESS [HARD]: Korean monolingual baseline implementation: register Korean adapter, construct local lookup fixtures, and write particles/adjective ending fallback rules.
   - Japanese: kana/kanji, romaji, tokenizer, pitch accent if source supports it.
   - Korean: Hangul, romanization, particles, verb/adjective endings; treat as Korean-specific, not dependent on disputed Altaic grouping.
 - [!] BLOCKED [HARD]: Amerind/proposed-family candidates: Quechua, Nahuatl, Guarani.
@@ -346,9 +347,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Japanese monolingual baseline implementation: register Japanese adapter, write hiragana/katakana normalization, and add tiny test fixtures under CC BY-SA license.
-2. [ ] [HARD] Korean monolingual baseline implementation: register Korean adapter, construct local lookup fixtures, and write particles/adjective ending fallback rules.
-3. [ ] [MEDIUM] Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (swwiktionary) CC BY-SA data.
+1. [~] [HARD] Korean monolingual baseline implementation: register Korean adapter, construct local lookup fixtures, and write particles/adjective ending fallback rules.
+2. [ ] [MEDIUM] Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (swwiktionary) CC BY-SA data.
+3. [ ] [HARD] Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from huwiktionary, and write morphology fallback rules.
 
 
 
