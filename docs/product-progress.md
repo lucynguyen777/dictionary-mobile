@@ -285,7 +285,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: Implementation BLOCKED (WiktAPI 'hi' returns 404).
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
-  - [ ] TODO [HARD]: Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate `Intl.Segmenter` for word segmentation, using the community Chinese Wiktionary (`zhwiktionary`) CC BY-SA data.
+  - [x] DONE [HARD]: Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate `Intl.Segmenter` for word segmentation, using the community Chinese Wiktionary (`zhwiktionary`) CC BY-SA data.
   - [x] DONE [HARD]: Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
