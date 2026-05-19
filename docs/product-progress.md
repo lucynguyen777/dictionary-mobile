@@ -290,7 +290,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Cantonese: Hanzi, jyutping, tones, traditional/simplified variants.
   - [x] DONE [HARD]: Burmese monolingual baseline planning: Research script-specific Burmese segmentation and dictionary source.
   - [x] DONE [HARD]: Burmese monolingual baseline implementation: Register Burmese adapter and configure tokenization fallback, using CC BY-SA data.
-  - [~] IN PROGRESS [HARD]: Tibetan monolingual baseline planning: Research script-specific Tibetan segmentation and dictionary source.
+  - [x] DONE [HARD]: Tibetan monolingual baseline planning: Research script-specific Tibetan segmentation and dictionary source.
+  - [~] IN PROGRESS [HARD]: Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [ ] TODO [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
@@ -358,10 +359,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Tibetan monolingual baseline planning: Research script-specific segmentation and dictionary source.
-2. [ ] [HARD] Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
-3. [ ] [MEDIUM] Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
-4. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
+1. [~] [HARD] Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
+2. [ ] [MEDIUM] Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
+3. [ ] [HARD] Cantonese monolingual baseline implementation: Request/integrate stable hosted API or local bundle.
 
 
 
