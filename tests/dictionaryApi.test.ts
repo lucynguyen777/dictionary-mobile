@@ -344,3 +344,69 @@ describe('Hungarian monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('lakás');
   });
 });
+
+describe('Arabic monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const kitab = await fetchMonolingualMeaning('كتاب', 'ar');
+    expect(kitab.word).toBe('كتاب');
+    expect(kitab.ipa).toBe('/kiˈtaːb/');
+    expect(kitab.definitions[0].meaning).toContain('عمل مكتوب أو مطبوع');
+  });
+
+  it('resolves definite article and prefix forms using local morphology fallback', async () => {
+    // Definite article (الكتاب -> كتاب)
+    const alKitab = await fetchMonolingualMeaning('الكتاب', 'ar');
+    expect(alKitab.word).toBe('كتاب');
+
+    // Conjunction and definite article (والكتاب -> كتاب)
+    const waAlKitab = await fetchMonolingualMeaning('والكتاب', 'ar');
+    expect(waAlKitab.word).toBe('كتاب');
+
+    // Preposition (بالكتاب -> كتاب)
+    const biAlKitab = await fetchMonolingualMeaning('بالكتاب', 'ar');
+    expect(biAlKitab.word).toBe('كتاب');
+  });
+
+  it('resolves broken plurals using local morphology fallback', async () => {
+    // Plural (كتب -> كتاب)
+    const kutub = await fetchMonolingualMeaning('كتب', 'ar');
+    expect(kutub.word).toBe('كتاب');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('كتاب', 'ar');
+    expect(related.synonyms).toContain('مجلد');
+    expect(related.synonyms).toContain('سفر');
+  });
+});
+
+describe('Hebrew monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const sefer = await fetchMonolingualMeaning('ספר', 'he');
+    expect(sefer.word).toBe('ספר');
+    expect(sefer.ipa).toBe('/ˈse.feʁ/');
+    expect(sefer.definitions[0].meaning).toContain('קובץ דפים מודפסים');
+  });
+
+  it('resolves definite article and prefix forms using local morphology fallback', async () => {
+    // Definite article (הספר -> ספר)
+    const haSefer = await fetchMonolingualMeaning('הספר', 'he');
+    expect(haSefer.word).toBe('ספר');
+
+    // Conjunction, preposition, and definite article (ובספר -> ספר)
+    const veBeSefer = await fetchMonolingualMeaning('ובספר', 'he');
+    expect(veBeSefer.word).toBe('ספר');
+  });
+
+  it('resolves plurals using local morphology fallback', async () => {
+    // Plural (ספרים -> ספר)
+    const sefarim = await fetchMonolingualMeaning('ספרים', 'he');
+    expect(sefarim.word).toBe('ספר');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('ספר', 'he');
+    expect(related.synonyms).toContain('חיבור');
+    expect(related.synonyms).toContain('כרך');
+  });
+});

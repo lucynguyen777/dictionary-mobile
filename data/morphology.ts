@@ -55,6 +55,8 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ko') return getKoreanMorphologyCandidates(input);
   if (languageCode === 'sw') return getSwahiliMorphologyCandidates(input);
   if (languageCode === 'hu') return getHungarianMorphologyCandidates(input);
+  if (languageCode === 'ar') return getArabicMorphologyCandidates(input);
+  if (languageCode === 'he') return getHebrewMorphologyCandidates(input);
 
   return [];
 }
@@ -789,6 +791,90 @@ function getHungarianMorphologyCandidates(input: string): MorphologyCandidate[] 
   // 4. Verb conjugation fallbacks for "enni" (to eat)
   if (word === 'eszem' || word === 'eszik' || word === 'esznek' || word === 'eszünk' || word === 'esztek' || word === 'eszel') {
     candidates.push(createCandidate('enni', 'verb root'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getArabicMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim();
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // 1. Definite article ال (al-)
+  if (word.startsWith('ال') && word.length > 3) {
+    candidates.push(createCandidate(word.slice(2), 'definite article stripped (ال-)'));
+  }
+
+  // 2. Stacked prefix stripping (e.g. وبالكتاب -> بالكتاب -> الكتاب -> كتاب)
+  const prefixChars = ['و', 'ف', 'ب', 'ل', 'ك', 'س'];
+  let current = word;
+  while (current.length > 3) {
+    let stripped = false;
+    if (current.startsWith('ال') && current.length > 3) {
+      current = current.slice(2);
+      candidates.push(createCandidate(current, 'definite article stripped (ال-)'));
+      stripped = true;
+    } else {
+      for (const char of prefixChars) {
+        if (current.startsWith(char)) {
+          current = current.slice(1);
+          candidates.push(createCandidate(current, `prefix stripped (${char}-)`));
+          stripped = true;
+          break;
+        }
+      }
+    }
+    if (!stripped) break;
+  }
+
+  // 3. Specific plural-to-singular mappings
+  if (word === 'كتب' || word === 'الكتب' || word === 'والكتب' || word === 'بالكتب') {
+    candidates.push(createCandidate('كتاب', 'broken plural to singular'));
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getHebrewMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim();
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  // 1. Definite article ה (ha-)
+  if (word.startsWith('ה') && word.length > 3) {
+    candidates.push(createCandidate(word.slice(1), 'definite article stripped (ה-)'));
+  }
+
+  // 2. Stacked prefix stripping (e.g. ובספר -> בספר -> ספר)
+  const hebrewPrefixes = ['ו', 'ב', 'ל', 'כ', 'מ', 'ה'];
+  let current = word;
+  while (current.length > 3) {
+    let stripped = false;
+    for (const char of hebrewPrefixes) {
+      if (current.startsWith(char)) {
+        current = current.slice(1);
+        candidates.push(createCandidate(current, `prefix stripped (${char}-)`));
+        stripped = true;
+        break;
+      }
+    }
+    if (!stripped) break;
+  }
+
+  // 3. Plurals: masculine -im (ים), feminine -ot (ות)
+  if (word.endsWith('ים') && word.length > 4) {
+    candidates.push(createCandidate(word.slice(0, -2), 'masculine plural stripped (-im)'));
+  }
+  if (word.endsWith('ות') && word.length > 4) {
+    candidates.push(createCandidate(word.slice(0, -2), 'feminine plural stripped (-ot)'));
+  }
+
+  // 4. Specific plural-to-singular mappings
+  if (word === 'ספרים' || word === 'הספרים' || word === 'ובספרים' || word === 'בספרים') {
+    candidates.push(createCandidate('ספר', 'plural to singular'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

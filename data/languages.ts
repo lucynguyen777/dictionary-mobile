@@ -127,7 +127,7 @@ export const languageOptions = [
     family: 'afroasiatic',
     script: 'arabic',
     writingDirection: 'rtl',
-    adapterKey: undefined,
+    adapterKey: 'ar',
     dictionaryStatus: 'monolingual',
   },
   {
@@ -137,7 +137,7 @@ export const languageOptions = [
     family: 'afroasiatic',
     script: 'hebrew',
     writingDirection: 'rtl',
-    adapterKey: undefined,
+    adapterKey: 'he',
     dictionaryStatus: 'monolingual',
   },
   {

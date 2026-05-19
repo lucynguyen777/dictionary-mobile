@@ -185,6 +185,8 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'ko') return fetchKoreanMeaning(word);
   if (languageCode === 'sw') return fetchSwahiliMeaning(word);
   if (languageCode === 'hu') return fetchHungarianMeaning(word);
+  if (languageCode === 'ar') return fetchArabicMeaning(word);
+  if (languageCode === 'he') return fetchHebrewMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -201,6 +203,8 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'ko') return fetchKoreanRelatedWords(word);
   if (languageCode === 'sw') return fetchSwahiliRelatedWords(word);
   if (languageCode === 'hu') return fetchHungarianRelatedWords(word);
+  if (languageCode === 'ar') return fetchArabicRelatedWords(word);
+  if (languageCode === 'he') return fetchHebrewRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1047,6 +1051,108 @@ export async function fetchHungarianMeaning(word: string): Promise<ApiMeaningRes
 export async function fetchHungarianRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('hu', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchArabicMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('ar', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('ar', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'arwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'arwiktionary' : `arwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Arabic Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchArabicRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('ar', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchHebrewMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('he', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('he', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'hewiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'hewiktionary' : `hewiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Hebrew Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchHebrewRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('he', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],
