@@ -27,7 +27,8 @@ For language adapter, dictionary lookup, local fixture, or morphology changes, u
 4. Start the app on Expo web or the requested platform when the feature is user-facing.
 5. Test the feature against the four app-testing areas below.
 6. Capture temporary screenshots when visual comparison helps prove layout, state, or responsive behavior.
-7. Report commands, browser/platform coverage, screenshots kept, skipped areas, and remaining risk.
+7. Use configured Playwright, Maestro, or Detox flows only when the task requires UI artifacts or the tooling already exists.
+8. Report commands, browser/platform coverage, screenshots kept, skipped areas, and remaining risk.
 
 ## App-Testing Areas
 
@@ -60,9 +61,18 @@ For language adapter, dictionary lookup, local fixture, or morphology changes, u
 - Browser-based testing is allowed for Expo web smoke checks, responsive checks, and state screenshots.
 - Temporary screenshots may be saved under `tmp/app-testing/<task-or-date>/` for short-term comparison during the test session.
 - DOM/media snapshots from browser tools are temporary testing artifacts only. Treat files such as `dom_*.txt`, `.tempmediaStorage/*`, screenshots, and traces as non-source evidence unless explicitly promoted into repo fixtures.
+- If Playwright is configured or explicitly requested, use it for Expo Web UI artifacts: screenshot, video, trace, DOM/HTML snapshot, and visible-text snapshot.
+- Save intentional Playwright comparison artifacts under `artifacts/ui-tests/<branch-or-task>/<flow>/` or temporary ad hoc screenshots under `tmp/app-testing/<task-or-date>/`.
 - Keep screenshot names descriptive, for example `word-mobile-empty.png` or `library-desktop-after-import.png`.
 - Do not commit screenshots or browser artifacts unless a task explicitly asks for fixture assets.
 - Clean up or leave a clear note about any temporary screenshots that remain useful for handoff.
+
+## Optional UI Artifact Automation
+- Do not add Playwright, Maestro, Detox, new npm scripts, or E2E config unless the user explicitly asks for that setup task.
+- For Expo Web branch comparisons, run the same flow on `main` and the feature branch, keep artifacts in separate branch/task folders, and compare layout, visual hierarchy, readability, tab alignment, wrapping, overflow, missing content, duplicated content, and usability regressions.
+- For native mobile testing, use Maestro or Detox only when configured. Native evidence is screenshots, video, accessibility labels/tree, view hierarchy/UI tree, logs, device profile, OS version, and Expo Go versus development-build notes.
+- Do not describe native compatibility as proven from DOM snapshots or Expo Web evidence.
+- Keep browser/Computer Use and internet access scoped to the task. Avoid secrets, unrelated domains, and private user data in captured artifacts.
 
 ## Output
 - Automated checks and results.

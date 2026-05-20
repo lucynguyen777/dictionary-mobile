@@ -12,7 +12,8 @@ Testing layers:
 2. Focused offline tests: run the closest Vitest suite for the changed behavior.
 3. Full offline suite: run before marking shared data, parser, adapter, or store behavior DONE.
 4. App smoke: use Expo web or the target native platform when UI, navigation, file picking, sharing, audio, permissions, or layout changed.
-5. Compatibility smoke: document browser viewport, Expo Go, emulator/simulator, or development-build coverage when native behavior matters.
+5. Optional UI artifact automation: use Playwright for Expo Web or Maestro/Detox for native only when the tooling is configured or the task explicitly asks to set it up.
+6. Compatibility smoke: document browser viewport, Expo Go, emulator/simulator, or development-build coverage when native behavior matters.
 
 Default policy:
 
@@ -20,6 +21,7 @@ Default policy:
 - Do not require live APIs, OAuth, device permissions, or native-only state for normal verification.
 - Promote temporary browser evidence to durable fixtures only when a task explicitly asks for it.
 - Use UI/browser screenshots for short-term comparison, not as unstable visual baselines.
+- Do not add E2E dependencies, npm scripts, Playwright, Maestro, or Detox as a side effect of routine feature work.
 
 Reference practices:
 
@@ -40,7 +42,8 @@ Use this order unless the task has a more specific acceptance gate:
 5. Run a focused offline suite when available, for example `npm test -- --run tests/dictionaryApi.test.ts`.
 6. Run `npm test -- --run` when shared data, parser, adapter, store, or covered behavior changed.
 7. Run Expo web or native smoke only when user-facing behavior changed.
-8. Record skipped checks and why.
+8. Run configured E2E/UI artifact tests only when the task requires browser/native evidence or the repo already has that tooling.
+9. Record skipped checks and why.
 
 Focused tests are enough for documentation-only changes and narrow isolated behavior. Full tests are required before marking DONE for shared behavior, local persistence, parser pipelines, dictionary adapters, or anything that affects multiple screens.
 
@@ -90,6 +93,7 @@ After a new feature is built, choose the smallest practical app-testing scope th
 ### Browser And Screenshot Evidence
 - Browser-based testing is allowed for Expo web smoke checks, responsive checks, app-flow verification, and visual comparison.
 - Temporary screenshots may be saved under `tmp/app-testing/<task-or-date>/` while testing.
+- When Playwright is configured for a task, browser artifacts may be saved under `artifacts/ui-tests/<branch-or-task>/`.
 - Use descriptive screenshot names, for example `word-mobile-empty.png`, `reader-desktop-loaded.png`, or `library-after-import.png`.
 - Screenshots and browser artifacts are short-term evidence and must not be committed unless a task explicitly asks for fixture assets.
 - Report screenshot paths in the verification summary only when they remain useful for handoff or comparison.
@@ -111,7 +115,71 @@ How to treat them:
 - `.tempmediaStorage/*`, traces, screenshots, and browser recordings are short-term testing evidence, not source code.
 - Do not copy artifacts from external AI/tool caches such as `.gemini/antigravity/brain/...` into this repo.
 - Store intentional short-term repo-local evidence under `tmp/app-testing/<task-or-date>/`.
+- Store intentional Playwright comparison evidence under `artifacts/ui-tests/<branch-or-task>/` when an E2E task asks for it.
 - Do not commit these artifacts unless the task explicitly asks for durable fixtures under `tests/fixtures/`.
+
+## Optional UI Artifact Workflow
+
+Use this workflow for visual redesigns, high-risk layout changes, branch-to-branch UI comparisons, or tasks that explicitly ask for screenshot/video/trace evidence. It is optional until the repo has committed E2E tooling.
+
+### Expo Web With Playwright
+
+Expo Web plus Playwright is the fastest practical path for automated UI artifact capture in this project. It can open the app in an iPhone-sized browser viewport, click through a flow, assert visible text, capture screenshots, record video, save a trace, and write DOM/HTML plus visible-text snapshots.
+
+Use Playwright when the task needs:
+
+- branch comparison, for example `main` versus `feature/glassmorphism-word-ui`
+- Word Detail, Reader, Library, Profile, or import/export flow screenshots
+- DOM/HTML and visible-text snapshots for web-rendered layout debugging
+- repeatable responsive checks on a narrow mobile browser viewport and a desktop viewport
+
+Do not treat Playwright as installed unless `package.json`, `playwright.config.*`, and the relevant `e2e/` tests exist. A future E2E setup task may add commands such as:
+
+```bash
+npm install -D @playwright/test
+npx playwright install chromium
+npm run test:e2e
+npm run test:e2e:headed
+npm run test:e2e:report
+```
+
+Recommended artifact set:
+
+```txt
+artifacts/ui-tests/<branch-or-task>/<flow>/
+  screenshot.png
+  video.webm
+  trace.zip
+  page.dom.html
+  visible-text.txt
+```
+
+Recommended branch-comparison process:
+
+1. Confirm the worktree is clean or only contains the intended changes.
+2. Run the same UI flow on `main` and save artifacts under `artifacts/ui-tests/main/<flow>/`.
+3. Run the same UI flow on the feature branch and save artifacts under `artifacts/ui-tests/<feature-branch>/<flow>/`.
+4. Compare layout consistency, visual hierarchy, mobile readability, tab visibility and alignment, missing or duplicated content, text wrapping, overflow, off-screen controls, and usability regressions.
+5. Report a verdict: keep, revise, or reject the UI change, with affected screens and suggested fixes.
+
+### Native Mobile With Maestro Or Detox
+
+Use native E2E only when the behavior must be proven on iOS or Android rather than Expo Web: native navigation, file pickers, sharing, audio, permissions, offline device behavior, native performance, or simulator/device compatibility.
+
+Native app tests do not have an HTML DOM. Collect native evidence instead:
+
+- screenshots
+- screen recordings
+- accessibility labels and accessibility tree
+- view hierarchy/UI tree when available
+- simulator/device logs
+- platform, OS version, device profile, and Expo Go versus development-build notes
+
+Maestro is the preferred lightweight future option for Expo native smoke flows. Detox can be considered later when the project needs deeper React Native synchronization or heavier CI integration. Do not add either tool during unrelated feature work.
+
+### Security And Privacy
+
+Browser/Computer Use, internet access, traces, DOM snapshots, screenshots, videos, and native UI trees can expose local app state or user content. Keep them scoped to the tested route and task, avoid unrelated domains, avoid secrets and private user data, and leave artifacts in ignored temporary folders unless a task explicitly promotes sanitized fixtures into `tests/fixtures/`.
 
 ## Unit Test Guide
 

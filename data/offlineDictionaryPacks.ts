@@ -42,6 +42,10 @@ export function getOfflinePackSummary(packs: OfflineDictionaryPack[] = offlineDi
 }
 
 export function formatPackSizeRange(pack: OfflineDictionaryPack) {
+  if (pack.estimatedCompressedSizeMb.min === pack.estimatedCompressedSizeMb.max) {
+    return `${pack.estimatedCompressedSizeMb.min}MB`;
+  }
+
   return `${pack.estimatedCompressedSizeMb.min}-${pack.estimatedCompressedSizeMb.max}MB`;
 }
 

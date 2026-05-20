@@ -49,6 +49,10 @@ tmp/offline-packs/
 
 # temporary app-testing screenshots and browser artifacts
 tmp/app-testing/
+artifacts/ui-tests/
+playwright-report/
+test-results/
+maestro-results/
 .tempmediaStorage/
 dom_*.txt
 trace.zip

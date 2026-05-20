@@ -32,4 +32,16 @@ describe('offlineDictionaryPacks', () => {
     expect(formatPackStatus('planned')).toBe('Đang thiết kế');
     expect(formatPackSizeRange(offlineDictionaryPacks[0])).toBe('10-50MB');
   });
+
+  it('formats exact pack size estimates as a single value', () => {
+    expect(
+      formatPackSizeRange({
+        ...offlineDictionaryPacks[0],
+        estimatedCompressedSizeMb: {
+          max: 25,
+          min: 25,
+        },
+      })
+    ).toBe('25MB');
+  });
 });

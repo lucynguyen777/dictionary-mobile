@@ -43,6 +43,8 @@ Also perform the smallest practical app test that covers:
 
 Browser-based Expo web testing is allowed. Temporary screenshots may be saved under `tmp/app-testing/<task-or-date>/` for short-term visual comparison, but must not be committed unless explicitly requested as fixtures.
 
+If Playwright, Maestro, or Detox is configured for the task, include artifact paths and branch/viewport/device coverage in the result. Otherwise, document the manual Expo web/native smoke gap instead of adding E2E tooling during unrelated work.
+
 ## Documentation-Only Changes
 For `.ai`, `docs`, or markdown-only edits, prefer:
 
