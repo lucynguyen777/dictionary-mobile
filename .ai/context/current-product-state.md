@@ -4,8 +4,8 @@
 Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Completed Or Existing Areas
-- Dictionary lookup for English, Vietnamese, French, Spanish, and Malay baselines.
-- Adapter registry with `en`, `vi`, `fr`, `es`, `ms`, `minhqnd`, and `wiktapi` adapters.
+- Dictionary lookup for English, Vietnamese, French, Spanish, Malay, Turkish, Finnish, Japanese, Korean, Swahili, Hungarian, Tagalog, Amharic, Russian, Mandarin, Javanese, Somali, Burmese, Tibetan, and Yoruba baselines.
+- Adapter registry with local/source-specific adapters for the supported monolingual languages plus `minhqnd` and `wiktapi` source paths.
 - Local library with folders, saved words, notes, tags, favorites, folder colors, color notes, duplicate folder, folder sorting/view modes, and folder share/export actions.
 - Flashcards with card types, review states, and SM-2 scheduling fields.
 - CSV/TSV import with row/column orientation, custom field mapping, primary field, preview, validation, tags, and duplicate handling.
@@ -18,19 +18,20 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 - Polished profile settings sidebar with compact navigation rows, safer text truncation, section headers, disabled coming-soon actions, and destructive styling.
 - Local notification preferences persisted in the profile store with privacy sidebar controls for daily reminders, review reminders, weekly summaries, and reminder time.
 - Bulk Wiktionary crawl tooling with resumable sample headword runs and ignored runtime cache/log output.
+- Zulu monolingual baseline planning is documented with noun class prefix and fixture gates.
 
 ## Current Queue Notes
 `docs/product-progress.md` is the canonical Next Work Queue. The repository currently lists these active queue items (kept to five or fewer):
 
-1. [~] Reader PDF import enablement gate — PDF is wired into Reader import only behind `READER_ENABLE_PDF=true` on Expo web; manual browser fixture smoke remains before enabling it by default.
-2. [ ] Hungarian monolingual baseline planning — document source candidates, Latin-script search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates before any Hungarian adapter code.
-3. [ ] RTL UI smoke coverage — add static Arabic/Hebrew sample strings to verify dictionary cards, search input direction, saved-word rows, and Reader token display before adapter code.
+1. [ ] Zulu monolingual baseline implementation — register `zu`, add fixture-backed noun class prefix fallbacks, and test exact/plural/related lookups.
+2. [ ] Igbo monolingual baseline planning — research tone marks, underdot orthography, vowel harmony, and source candidates.
+3. [ ] Hawaiian monolingual baseline planning — research Polynesian morphology, macron/okina normalization, and source candidates.
 
 If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.
 
 ## In Progress Or Partial
 - Advanced frontend tabs exist as shells/polish targets.
-- Reader DOCX and EPUB import prototypes are enabled; PDF extraction is wired behind a web-only env gate and remains disabled by default pending manual web smoke.
+- Reader DOCX and EPUB import prototypes are enabled; PDF extraction is wired behind a web-only env gate.
 - Language selector and bilingual lookup flow now guards unsupported bilingual pairs before hitting the bilingual API.
 - The Wiktionary crawler, local API server, and bulk scheduler are implemented as prototypes; runtime caches are created during sample runs.
 
@@ -48,5 +49,4 @@ If DONE items appear in `Next Work Queue`, use `product-progress-manager` to cle
 - Production translation.
 - Etymology/conjugation data sources.
 - Offline dictionary bundles.
-- Finnish monolingual adapter until a true Finnish-definition source and licensing path are accepted.
-- Arabic/Hebrew adapters until true AR->AR and HE->HE definition sources plus RTL UI smoke coverage are accepted.
+- Cantonese implementation until a stable Words.hk hosted API or approved local bundle path exists.
