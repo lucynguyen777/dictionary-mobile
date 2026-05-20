@@ -1,7 +1,7 @@
 # Decision: Etymology And Conjugation Source
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 Production etymology and conjugation features need structured, legally usable lexical data. The app currently must not mock etymology or conjugation as if it were production data.
@@ -57,13 +57,20 @@ For offline or bundled features:
 - No Wiktionary/Kaikki/UniMorph data should be packaged until `.docs/decisions/offline-dictionary-bundle.md` and `.docs/decisions/dictionary-source-licensing.md` are accepted.
 
 ## Decision
-Chosen option: pending.
+Chosen option:
+- **Etymology**: Option 1 — Wiktionary-derived live data through WiktAPI or Wiktextract/Kaikki, with visible attribution.
+- **Conjugation/Inflection prototype direction**: Option 2 — UniMorph for structured paradigm exploration, not as definition/etymology data.
+
+Scope note:
+- This acceptance unblocks etymology source selection and online prototype work under attribution constraints.
+- Production/offline packaging remains governed by `.docs/decisions/offline-dictionary-bundle.md` and `.docs/decisions/dictionary-source-licensing.md`.
 
 ## Consequences
-- Production etymology and conjugation remain blocked while this decision is `Proposed`.
-- UI may show explicit coming-soon or source-needed states.
-- Engineering may add typed contracts or fixture-free UI shells, but not production data integration.
-- Any future source integration must include attribution behavior and tests for missing/partial source data.
+- Etymology source direction is now accepted for implementation planning and staged integration using Wiktionary-derived live data.
+- Conjugation/paradigm prototype direction may use UniMorph structured data, but must not present UniMorph as dictionary definition/etymology content.
+- UI may move from generic blocked state to source-aware staged rollout states.
+- Any source integration must include attribution behavior and tests for missing/partial source data.
+- Offline/bundled redistribution remains blocked until offline/licensing decisions are accepted.
 
 ## Tasks Unblocked If Accepted
 - Production etymology source integration.

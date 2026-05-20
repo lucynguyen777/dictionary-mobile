@@ -2010,6 +2010,87 @@ const tamilDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const malayalamDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'മരം',
+    ipa: '/maɾam/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Nature',
+    vietnamese: 'cây',
+    shortDefinition: 'മരം (tree)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'വേരുകളും തടിയും കൊമ്പുകളും ഇലകളുമുള്ള വലിയ സസ്യം (A woody perennial plant, typically having a single stem or trunk).',
+        vietnamese: 'Cây cối. Cây lớn có thân gỗ, cành và lá.',
+        examples: [
+          { source: 'മുറ്റത്ത് ഒരു വലിയ മരമുണ്ട്.', translation: 'Có một cái cây lớn ở trong sân.' }
+        ],
+      }
+    ],
+    synonyms: ['വൃക്ഷം'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'വീട്',
+    ipa: '/ʋiːʈu/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Places',
+    vietnamese: 'ngôi nhà',
+    shortDefinition: 'പാർപ്പിടം (house)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'മനുഷ്യർക്ക് താമസിക്കാനുള്ള കെട്ടിടം (A building for human habitation).',
+        vietnamese: 'Ngôi nhà. Tòa nhà để con người sinh sống.',
+        examples: [
+          { source: 'ഇതാണ് എന്റെ വീട്.', translation: 'Đây là nhà của tôi.' }
+        ],
+      }
+    ],
+    synonyms: ['ഗൃഹം', 'ഭവനം'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'പൂച്ച',
+    ipa: '/puːt͡ʃt͡ʃa/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con mèo',
+    shortDefinition: 'പൂച്ച (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'വീടുകളിൽ വളർത്തുന്ന ഒരു ചെറിയ മൃഗം (A small domesticated carnivorous mammal).',
+        vietnamese: 'Con mèo. Một loài động vật nuôi nhỏ trong nhà.',
+        examples: [
+          { source: 'പൂച്ച പാൽ കുടിക്കുന്നു.', translation: 'Con mèo đang uống sữa.' }
+        ],
+      }
+    ],
+    synonyms: ['മാർജ്ജാരൻ'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  }
+];
+
 const kannadaDictionaryEntries: DictionaryEntry[] = [
   {
     word: 'ಪುಸ್ತಕ',
@@ -2199,6 +2280,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   ta: tamilDictionaryEntries,
   te: teluguDictionaryEntries,
   kn: kannadaDictionaryEntries,
+  ml: malayalamDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

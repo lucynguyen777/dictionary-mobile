@@ -135,8 +135,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Search History / Recent searches (Lịch sử tìm kiếm).
 - [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
 - [x] DONE [HARD]: Word variations/morphology search for English inflections and common irregular forms (VD: "went" -> "go") (commit `3706441`).
-- [ ] TODO [HARD]: Offline dictionary database bundle (Bộ dữ liệu từ điển offline hoàn chỉnh).
-- [ ] TODO [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
+- [x] DONE [HARD]: Offline dictionary database bundle planning and decision accepted in `.docs/decisions/offline-dictionary-bundle.md` (Option 1: Wiktionary/Kaikki bundles with staged implementation).
+- [~] IN PROGRESS [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
+  - [x] DONE [HARD]: Architecture/library evaluation and staged implementation plan: `docs/voice-ocr-plan.md`.
 
 ### Context & Examples
 - [x] DONE [MEDIUM]: Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ) (commit `d1f96b5`).
@@ -334,7 +335,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Hawaiian monolingual baseline implementation: Register Hawaiian adapter, normalize ʻokina variants, add kahakō-aware fixture lookup, and local fixture tests.
   - Tagalog: focus/voice system and affix-heavy morphology.
   - Javanese/Hawaiian: register or diacritic-sensitive search.
-- [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
+- [x] DONE [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
   - [x] DONE [HARD]: Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
   - [x] DONE [HARD]: Tamil monolingual baseline implementation: Register Tamil adapter, write nominal/verbal oblique suffix morphology fallbacks, and add local fixtures.
   - [x] DONE [HARD]: Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
@@ -342,7 +343,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
   - [x] DONE [HARD]: Kannada monolingual baseline implementation: Register Kannada adapter, write suffix morphology fallbacks, and add local fixtures.
   - [x] DONE [HARD]: Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
-  - [~] IN PROGRESS [HARD]: Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
+  - [x] DONE [HARD]: Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
 - [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
@@ -376,9 +377,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Etymology And Conjugation
 - [x] DONE [HARD]: Draft etymology/conjugation source decision brief with legal structured source candidates and keep production integration blocked while decision remains Proposed.
-- [ ] TODO [HARD]: Choose legal structured resource for etymology.
-- [ ] TODO [HARD]: Choose reliable resource for conjugation.
-- [!] BLOCKED [HARD]: Etymology/conjugation source option selection requires an accepted `.docs/decisions/etymology-conjugation-source.md` option from the product owner.
+- [x] DONE [HARD]: Choose legal structured resource for etymology via accepted decision in `.docs/decisions/etymology-conjugation-source.md` (Option 1: Wiktionary-derived live data with attribution).
+- [x] DONE [HARD]: Choose reliable resource for conjugation via accepted decision in `.docs/decisions/etymology-conjugation-source.md` (Option 2: UniMorph for structured paradigm exploration).
+- [x] DONE [HARD]: Etymology/conjugation source option selection accepted by product owner in `.docs/decisions/etymology-conjugation-source.md`; implementation remains subject to attribution and offline licensing constraints.
+- [~] IN PROGRESS [HARD]: Etymology source integration slice (Wiktionary-derived attribution): define adapter contract, UI attribution behavior, and missing-source fallback coverage before enabling production data path.
 - [!] BLOCKED [HARD]: Production etymology and conjugation should not be mocked without a real resource.
 
 ### AI
@@ -386,9 +388,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
-2. [ ] [HARD] Voice Search / OCR Camera Lookup: define feasible local-vs-backend architecture, evaluate libraries, and create implementation plan.
-3. [ ] [HARD] Etymology source decision finalization: choose legal structured resource option and mark decision accepted in `docs/decisions/etymology-conjugation-source.md`.
+1. [~] [HARD] Etymology source integration slice: define adapter contract, attribution UI behavior, and missing-source fallback tests for Wiktionary-derived data.
+2. [ ] [HARD] Offline dictionary MVP (Phase 1): design SQLite schema, extract/compress single-language Kaikki pack, and implement attribution UI.
+3. [ ] [HARD] Voice Search / OCR implementation Phase 1: add permission flow + speech-to-text prototype + OCR image extraction prototype.
 
 
 

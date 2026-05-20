@@ -29,6 +29,8 @@ import {
   fetchKannadaRelatedWords,
   fetchKoreanMeaning,
   fetchKoreanRelatedWords,
+  fetchMalayalamMeaning,
+  fetchMalayalamRelatedWords,
   fetchMandarinMeaning,
   fetchMandarinRelatedWords,
   fetchMinhQndMonolingualMeaning,
@@ -271,6 +273,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchKannadaMeaning(word),
     fetchRelatedWords: (word: string) => fetchKannadaRelatedWords(word),
+  },
+  ml: {
+    key: 'ml',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchMalayalamMeaning(word),
+    fetchRelatedWords: (word: string) => fetchMalayalamRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

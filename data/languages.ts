@@ -300,6 +300,16 @@ export const languageOptions = [
     adapterKey: 'kn',
     dictionaryStatus: 'monolingual',
   },
+  {
+    code: 'ml',
+    label: 'മലയാളം (Malayalam)',
+    hint: 'Wiktionary preview',
+    family: 'dravidian',
+    script: 'malayalam',
+    writingDirection: 'ltr',
+    adapterKey: 'ml',
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

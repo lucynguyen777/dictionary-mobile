@@ -21,14 +21,6 @@ import {
 } from '@/data/dictionaryApi';
 import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair, languageOptions } from '@/data/languages';
 import {
-  findLocalDictionaryEntry,
-  getLocalDictionaryEntries,
-  getSpellingSuggestions,
-  normalizeLookupTerm,
-  supportsLocalDictionary,
-} from '@/data/localLexicon';
-import { getMorphologyCandidates } from '@/data/morphology';
-import {
   LibraryState,
   addSearchHistory,
   getDefaultLibraryState,
@@ -38,6 +30,14 @@ import {
   saveWordToFolder,
   toggleFavoriteWord,
 } from '@/data/libraryStore';
+import {
+  findLocalDictionaryEntry,
+  getLocalDictionaryEntries,
+  getSpellingSuggestions,
+  normalizeLookupTerm,
+  supportsLocalDictionary,
+} from '@/data/localLexicon';
+import { getMorphologyCandidates } from '@/data/morphology';
 
 const { width } = Dimensions.get('window');
 
@@ -547,6 +547,16 @@ function LookupLanguageSelect({
   );
 }
 
+function buildSourceAttributionNote(
+  apiMeaning: ApiMeaningResult | null,
+  apiBilingualMeaning: ApiBilingualMeaningResult | null
+) {
+  const source = apiBilingualMeaning?.source || apiMeaning?.source;
+  if (!source) return 'Source attribution: unavailable (fallback mode).';
+
+  return `Source attribution: ${source}.`;
+}
+
 function mergeLookupEntry(
   localEntry: DictionaryEntry | undefined,
   selectedWord: string,
@@ -605,7 +615,9 @@ function mergeLookupEntry(
       collocations: hasLocalEntry ? fallbackEntry.collocations : [],
       idioms: hasLocalEntry ? fallbackEntry.idioms : [],
       conjugation: hasLocalEntry ? fallbackEntry.conjugation : [],
-      etymology: hasLocalEntry ? fallbackEntry.etymology : 'Etymology is available for monolingual entries only.',
+      etymology: hasLocalEntry
+        ? fallbackEntry.etymology
+        : `Etymology is available for monolingual entries only. ${buildSourceAttributionNote(apiMeaning, apiBilingualMeaning)}`,
       pronunciationTips: hasLocalEntry ? fallbackEntry.pronunciationTips : [],
     };
   }
@@ -638,7 +650,7 @@ function mergeLookupEntry(
       collocations: [],
       idioms: [],
       conjugation: [],
-      etymology: 'Etymology needs a selected production resource for non-seed words.',
+      etymology: `Etymology needs a selected production resource for non-seed words. ${buildSourceAttributionNote(apiMeaning, apiBilingualMeaning)}`,
       pronunciationTips: [],
     };
   }
@@ -702,7 +714,7 @@ function createDictionaryUnavailableEntry(
     collocations: [],
     idioms: [],
     conjugation: [],
-    etymology: 'Trong MVP này, etymology chỉ có cho một số mục từ tiếng Anh.',
+    etymology: 'Trong MVP này, etymology chỉ có cho một số mục từ tiếng Anh. Source attribution: unavailable (fallback mode).',
     pronunciationTips: [],
   };
 }

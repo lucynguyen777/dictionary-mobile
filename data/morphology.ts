@@ -72,6 +72,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ta') return getTamilMorphologyCandidates(input);
   if (languageCode === 'te') return getTeluguMorphologyCandidates(input);
   if (languageCode === 'kn') return getKannadaMorphologyCandidates(input);
+  if (languageCode === 'ml') return getMalayalamMorphologyCandidates(input);
 
   return [];
 }
@@ -1509,6 +1510,84 @@ function getKannadaMorphologyCandidates(input: string): MorphologyCandidate[] {
       }
       // Only process the first matching suffix (longest match first)
       break;
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getMalayalamMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+
+  // 1. Plural markers: -കൾ (-kaḷ), -ങ്ങൾ (-ṅṅaḷ) → base form
+  // e.g. പുസ്തകങ്ങൾ -> പുസ്തകം (rough stem); മരങ്ങൾ -> മരം
+  if (word.endsWith('ങ്ങൾ') && word.length > 4) {
+    const stem = word.slice(0, -4);
+    if (stem.length > 0) {
+      candidates.push({ word: stem + 'ം', label: stem + 'ം', reason: 'stripped plural suffix -ങ്ങൾ (restored -ം)' });
+      candidates.push({ word: stem, label: stem, reason: 'stripped plural suffix -ങ്ങൾ' });
+    }
+  }
+
+  if (word.endsWith('കൾ') && word.length > 2) {
+    const stem = word.slice(0, -2);
+    if (stem.length > 0) {
+      candidates.push({ word: stem, label: stem, reason: 'stripped plural suffix -കൾ' });
+    }
+  }
+
+  if (word.endsWith('ൾ') && word.length > 1) {
+    const stem = word.slice(0, -1);
+    if (stem.length > 0) {
+      candidates.push({ word: stem, label: stem, reason: 'stripped plural suffix -ൾ' });
+    }
+  }
+
+  // 2. Plural + case suffix combinations
+  const pluralCaseSuffixes = [
+    { suffix: 'ങ്ങൾക്ക്', replace: 'ം' },   // Dative plural: മരങ്ങൾക്ക് -> മരം
+    { suffix: 'ങ്ങളിൽ', replace: 'ം' },     // Locative plural
+    { suffix: 'ങ്ങളിൽ നിന്ന്', replace: 'ം' }, // Ablative plural
+    { suffix: 'ങ്ങളെ', replace: 'ം' },      // Accusative plural
+    { suffix: 'ങ്ങളുടെ', replace: 'ം' },    // Genitive plural
+    { suffix: 'കളിൽ', replace: '' },         // Locative plural
+    { suffix: 'കളെ', replace: '' },           // Accusative plural
+    { suffix: 'കൾക്ക്', replace: '' },        // Dative plural
+    { suffix: 'കളുടെ', replace: '' },         // Genitive plural
+  ];
+
+  for (const item of pluralCaseSuffixes) {
+    if (word.endsWith(item.suffix) && word.length > item.suffix.length) {
+      const stem = word.slice(0, -item.suffix.length) + item.replace;
+      if (stem.length > 0) {
+        candidates.push({ word: stem, label: stem, reason: `stripped plural+case suffix -${item.suffix}` });
+      }
+    }
+  }
+
+  // 3. Singular case suffixes (longest-match first)
+  const singularCaseSuffixes = [
+    'ിൽ നിന്ന്', 'ൽ നിന്ന്',   // Ablative
+    'ിലേക്ക്', 'ലേക്ക്',        // Directive/Dative (long)
+    'ിലേക്കു', 'ലേക്കു',        // Directive/Dative (short)
+    'ന്റെ', 'ൻ്റെ',             // Genitive
+    'കൊണ്ട്',                    // Instrumental
+    'ിൽ', 'ൽ',                   // Locative
+    'ിൽ',                         // Locative (alternative)
+    'ക്ക്', 'ക്കു',              // Dative
+    'ആൽ', 'ാൽ',                  // Instrumental / reason
+    'ിനെ', 'നെ',                  // Accusative animate
+    'ിന്',                        // Dative (short)
+  ];
+
+  for (const suffix of singularCaseSuffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length) {
+      const stem = word.slice(0, -suffix.length);
+      if (stem.length > 0) {
+        candidates.push({ word: stem, label: stem, reason: `stripped case suffix -${suffix}` });
+        break; // longest match first
+      }
     }
   }
 

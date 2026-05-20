@@ -202,6 +202,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'ta') return fetchTamilMeaning(word);
   if (languageCode === 'te') return fetchTeluguMeaning(word);
   if (languageCode === 'kn') return fetchKannadaMeaning(word);
+  if (languageCode === 'ml') return fetchMalayalamMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -235,6 +236,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'ta') return fetchTamilRelatedWords(word);
   if (languageCode === 'te') return fetchTeluguRelatedWords(word);
   if (languageCode === 'kn') return fetchKannadaRelatedWords(word);
+  if (languageCode === 'ml') return fetchMalayalamRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1949,6 +1951,57 @@ export async function fetchKannadaMeaning(word: string): Promise<ApiMeaningResul
 export async function fetchKannadaRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('kn', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchMalayalamMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('ml', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('ml', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'mlwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'mlwiktionary' : `mlwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Malayalam Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchMalayalamRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('ml', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],
