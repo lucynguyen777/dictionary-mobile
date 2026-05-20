@@ -280,6 +280,16 @@ export const languageOptions = [
     adapterKey: 'ta',
     dictionaryStatus: 'monolingual',
   },
+  {
+    code: 'te',
+    label: 'తెలుగు (Telugu)',
+    hint: 'Wiktionary preview',
+    family: 'dravidian',
+    script: 'telugu',
+    writingDirection: 'ltr',
+    adapterKey: 'te',
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

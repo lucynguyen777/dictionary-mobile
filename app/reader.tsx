@@ -305,7 +305,7 @@ export default function ReaderScreen() {
             <Text style={[styles.readerTitle, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>{selectedDocument.title}</Text>
             <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
               {readerTokens.slice(0, 900).map((token, index) => {
-                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF]/.test(token);
+                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F]/.test(token);
                 const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
 
                 return isWord ? (
@@ -381,11 +381,11 @@ export default function ReaderScreen() {
 function tokenizeReaderText(text: string) {
   if (!text) return [];
 
-  // Use Intl.Segmenter if available for CJK/Burmese/Tibetan/Tamil or general advanced segmentation
+  // Use Intl.Segmenter if available for CJK/Burmese/Tibetan/Tamil/Telugu or general advanced segmentation
   if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
     try {
-      const hasCjkOrBurmeseOrTibetanOrTamil = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF]/.test(text);
-      if (hasCjkOrBurmeseOrTibetanOrTamil) {
+      const hasCjkOrBurmeseOrTibetanOrTamilOrTelugu = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F]/.test(text);
+      if (hasCjkOrBurmeseOrTibetanOrTamilOrTelugu) {
         let locale = 'zh';
         if (/[\u1000-\u109F]/.test(text)) {
           locale = 'my';
@@ -393,6 +393,8 @@ function tokenizeReaderText(text: string) {
           locale = 'bo';
         } else if (/[\u0B80-\u0BFF]/.test(text)) {
           locale = 'ta';
+        } else if (/[\u0C00-\u0C7F]/.test(text)) {
+          locale = 'te';
         }
         const segmenter = new Intl.Segmenter(locale, { granularity: 'word' });
         return Array.from(segmenter.segment(text), (s) => s.segment);
@@ -402,8 +404,8 @@ function tokenizeReaderText(text: string) {
     }
   }
 
-  // Fallback regex supporting CJK/Burmese characters individually, Tamil words, Tibetan syllables (ending with optional tsheg \u0F0B), and other alphabetic/abjad scripts grouped
-  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[\u0B80-\u0BFF]+|[\u0F00-\u0F0A\u0F0C-\u0FFF]+\u0F0B?|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF]+/g;
+  // Fallback regex supporting CJK/Burmese characters individually, Tamil/Telugu words, Tibetan syllables (ending with optional tsheg \u0F0B), and other alphabetic/abjad scripts grouped
+  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[\u0B80-\u0BFF]+|[\u0C00-\u0C7F]+|[\u0F00-\u0F0A\u0F0C-\u0FFF]+\u0F0B?|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F]+/g;
   return text.replace(/\s+/g, ' ').match(regex) ?? [];
 }
 

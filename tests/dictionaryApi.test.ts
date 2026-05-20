@@ -889,3 +889,41 @@ describe('Tamil monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('மஞ்சரி');
   });
 });
+
+describe('Telugu monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const book = await fetchMonolingualMeaning('పుస్తకము', 'te');
+    expect(book.word).toBe('పుస్తకము');
+    expect(book.ipa).toBe('/pustakamu/');
+    expect(book.definitions[0].meaning).toContain('అచ్చు వేయబడిన లేదా రాయబడిన కాగితాల కట్ట');
+
+    const house = await fetchMonolingualMeaning('ఇల్లు', 'te');
+    expect(house.word).toBe('ఇల్లు');
+  });
+
+  it('resolves plural suffix forms (-లు / -ాలు)', async () => {
+    // పుస్తకాలు -> పుస్తకము
+    const books = await fetchMonolingualMeaning('పుస్తకాలు', 'te');
+    expect(books.word).toBe('పుస్తకము');
+    expect(books.source).toContain('base form of పుస్తకాలు');
+  });
+
+  it('resolves oblique case suffixes (-కి, -నుండి, -లో)', async () => {
+    // పిల్లికి -> పిల్లి
+    const catDative = await fetchMonolingualMeaning('పిల్లికి', 'te');
+    expect(catDative.word).toBe('పిల్లి');
+
+    // పుస్తకాలలో -> పుస్తకము (oblique plural + case suffix)
+    const booksLocative = await fetchMonolingualMeaning('పుస్తకాలలో', 'te');
+    expect(booksLocative.word).toBe('పుస్తకము');
+
+    // ఇంటిలో -> ఇల్లు (irregular oblique stem)
+    const houseLocative = await fetchMonolingualMeaning('ఇంటిలో', 'te');
+    expect(houseLocative.word).toBe('ఇల్లు');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('పిల్లి', 'te');
+    expect(related.synonyms).toContain('మార్జాలము');
+  });
+});

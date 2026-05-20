@@ -70,6 +70,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ig') return getIgboMorphologyCandidates(input);
   if (languageCode === 'haw') return getHawaiianMorphologyCandidates(input);
   if (languageCode === 'ta') return getTamilMorphologyCandidates(input);
+  if (languageCode === 'te') return getTeluguMorphologyCandidates(input);
 
   return [];
 }
@@ -1434,6 +1435,75 @@ function getTamilMorphologyCandidates(input: string): MorphologyCandidate[] {
     'யால்', 'வால்', 'ஆல்',
     'யின்', 'வின்', 'இன்',
     'க்கு', 'உக்கு',
+  ];
+
+  for (const suffix of standardSuffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length) {
+      const stem = word.slice(0, -suffix.length);
+      if (stem.length > 0) {
+        candidates.push({
+          word: stem,
+          label: stem,
+          reason: `stripped case suffix -${suffix}`,
+        });
+      }
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getTeluguMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+
+  // 1. Oblique / plural sandhi replacements
+  const obliqueSuffixes = [
+    // Plural oblique + case suffix combinations
+    { suffix: 'ాలయొక్క', replace: 'ము' },
+    { suffix: 'ాలనుండి', replace: 'ము' },
+    { suffix: 'ాలకొరకు', replace: 'ము' },
+    { suffix: 'ాలకంటే', replace: 'ము' },
+    { suffix: 'ాలందు', replace: 'ము' },
+    { suffix: 'ాలలో', replace: 'ము' },
+    { suffix: 'ాలకు', replace: 'ము' },
+    { suffix: 'ాలని', replace: 'ము' },
+    { suffix: 'ాలతో', replace: 'ము' },
+    { suffix: 'ాలచే', replace: 'ము' },
+
+    // Standard plural / oblique suffixes
+    { suffix: 'ాలను', replace: 'ము' },
+    { suffix: 'ాల', replace: 'ము' },
+    { suffix: 'ాలు', replace: 'ము' },
+    { suffix: 'ులను', replace: 'ి' },
+    { suffix: 'ులు', replace: 'ి' },
+  ];
+
+  for (const item of obliqueSuffixes) {
+    if (word.endsWith(item.suffix) && word.length > item.suffix.length) {
+      const stem = word.slice(0, -item.suffix.length) + item.replace;
+      candidates.push({
+        word: stem,
+        label: stem,
+        reason: `stripped oblique/plural suffix -${item.suffix}`,
+      });
+    }
+  }
+
+  // 1b. Irregular noun obliques (e.g., ఇల్లు -> ఇంటి, ఇంటిలో, ఇంటికి)
+  if (word.startsWith('ఇంటి')) {
+    candidates.push({
+      word: 'ఇల్లు',
+      label: 'ఇల్లు',
+      reason: 'resolved irregular oblique stem ఇంటి',
+    });
+  }
+
+  // 2. Standard case suffixes
+  const standardSuffixes = [
+    'యొక్క', 'నుండి', 'కొరకు', 'కంటే', 'లందు',
+    'చేత', 'తోడ', 'లను',
+    'తో', 'చే', 'లో', 'కై', 'ని', 'ను', 'కి', 'కు',
   ];
 
   for (const suffix of standardSuffixes) {

@@ -2009,6 +2009,87 @@ const tamilDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const teluguDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'పుస్తకము',
+    ipa: '/pustakamu/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'పుస్తకము, చదవడానికి లేదా రాయడానికి ఉపయోగించే కాగితాల కట్ట (book)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'అచ్చు వేయబడిన లేదా రాయబడిన కాగితాల కట్ట (A bound set of printed or written sheets of paper).',
+        vietnamese: 'Sách. Một tập hợp các tờ giấy in hoặc viết được đóng lại với nhau.',
+        examples: [
+          { source: 'నేను ఒక పుస్తకము చదువుతున్నాను.', translation: 'Tôi đang đọc một cuốn sách.' }
+        ],
+      }
+    ],
+    synonyms: ['గ్రంథము'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Sanskrit loan / Dravidian structure.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ఇల్లు',
+    ipa: '/illu/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'ఇల్లు, మనుషులు నివసించే చోటు (house / home)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'మనుషులు నివసించే భవనం (A building built for people to live in).',
+        vietnamese: 'Nhà. Tòa nhà xây dựng để làm nơi ở.',
+        examples: [
+          { source: 'నా ఇల్లు చాలా బాగుంది.', translation: 'Nhà của tôi rất đẹp.' }
+        ],
+      }
+    ],
+    synonyms: ['గృహము', 'భవనము'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'పిల్లి',
+    ipa: '/pilli/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con mèo',
+    shortDefinition: 'పిల్లి, ఒక పెంపుడు జంతువు (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ఇళ్లలో పెంచుకునే ఒక చిన్న జంతువు (A small domesticated carnivorous mammal kept as a pet).',
+        vietnamese: 'Con mèo. Một loài động vật nuôi nhỏ trong nhà.',
+        examples: [
+          { source: 'పిల్లి పాలు తాగుతోంది.', translation: 'Con mèo đang uống sữa.' }
+        ],
+      }
+    ],
+    synonyms: ['మార్జాలము'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -2034,6 +2115,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   ig: igboDictionaryEntries,
   haw: hawaiianDictionaryEntries,
   ta: tamilDictionaryEntries,
+  te: teluguDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

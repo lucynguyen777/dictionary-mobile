@@ -336,9 +336,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
   - [x] DONE [HARD]: Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
   - [x] DONE [HARD]: Tamil monolingual baseline implementation: Register Tamil adapter, write nominal/verbal oblique suffix morphology fallbacks, and add local fixtures.
-  - [~] IN PROGRESS [HARD]: Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
-  - [ ] TODO [HARD]: Telugu monolingual baseline implementation: Register Telugu adapter, write suffix morphology fallbacks, and add local fixtures.
-  - [ ] TODO [HARD]: Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
+  - [x] DONE [HARD]: Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
+  - [x] DONE [HARD]: Telugu monolingual baseline implementation: Register Telugu adapter, write suffix morphology fallbacks, and add local fixtures.
+  - [~] IN PROGRESS [HARD]: Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
   - [ ] TODO [HARD]: Kannada monolingual baseline implementation: Register Kannada adapter, write suffix morphology fallbacks, and add local fixtures.
   - [ ] TODO [HARD]: Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
   - [ ] TODO [HARD]: Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
@@ -385,11 +385,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
-2. [ ] [HARD] Telugu monolingual baseline implementation: Register Telugu adapter, write suffix morphology fallbacks, and add local fixtures.
-3. [ ] [HARD] Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
-4. [ ] [HARD] Kannada monolingual baseline implementation: Register Kannada adapter, write suffix morphology fallbacks, and add local fixtures.
-5. [ ] [HARD] Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
+1. [x] [HARD] Telugu monolingual baseline implementation: Register Telugu adapter, write suffix morphology fallbacks, and add local fixtures. (Completed)
+2. [~] [HARD] Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
+3. [ ] [HARD] Kannada monolingual baseline implementation: Register Kannada adapter, write suffix morphology fallbacks, and add local fixtures.
+4. [ ] [HARD] Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
+5. [ ] [HARD] Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
 
 
 

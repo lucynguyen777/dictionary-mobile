@@ -54,6 +54,8 @@ import {
     fetchHawaiianRelatedWords,
     fetchTamilMeaning,
     fetchTamilRelatedWords,
+    fetchTeluguMeaning,
+    fetchTeluguRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -253,6 +255,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchTamilMeaning(word),
     fetchRelatedWords: (word: string) => fetchTamilRelatedWords(word),
+  },
+  te: {
+    key: 'te',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchTeluguMeaning(word),
+    fetchRelatedWords: (word: string) => fetchTeluguRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

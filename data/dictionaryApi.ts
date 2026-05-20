@@ -200,6 +200,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'ig') return fetchIgboMeaning(word);
   if (languageCode === 'haw') return fetchHawaiianMeaning(word);
   if (languageCode === 'ta') return fetchTamilMeaning(word);
+  if (languageCode === 'te') return fetchTeluguMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -231,6 +232,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'ig') return fetchIgboRelatedWords(word);
   if (languageCode === 'haw') return fetchHawaiianRelatedWords(word);
   if (languageCode === 'ta') return fetchTamilRelatedWords(word);
+  if (languageCode === 'te') return fetchTeluguRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1843,6 +1845,57 @@ export async function fetchTamilMeaning(word: string): Promise<ApiMeaningResult>
 export async function fetchTamilRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('ta', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchTeluguMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('te', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('te', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'tewiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'tewiktionary' : `tewiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Telugu Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchTeluguRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('te', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],
