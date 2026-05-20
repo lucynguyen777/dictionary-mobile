@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `2d0a897` docs(lang): plan Hawaiian monolingual baseline, ʻokina/kahakō normalization, source gates, and fixture-first implementation path
   - `378fae2` feat(lang): implement Igbo monolingual baseline adapter, local educational fixtures, tone-insensitive underdot-preserving lookup, and tests
   - `f3e6b7a` docs(lang): plan Igbo monolingual baseline, source gates, tone/underdot normalization, and fixture-first implementation path
   - `6e8ced6` docs(qa): add centralized testing and build guide, README QA links, and verification rule pointer
