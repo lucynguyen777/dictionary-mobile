@@ -1659,6 +1659,87 @@ const yorubaDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const zuluDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'umuntu',
+    ipa: '/umúːntʼu/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'People',
+    vietnamese: 'người',
+    shortDefinition: 'umuntu, isidalwa esingumuntu noma ilungu lomphakathi (person / human being)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Isidalwa esingumuntu, ilungu lomphakathi elinomqondo nobuntu (A person or human being).',
+        vietnamese: 'Người. Một cá nhân hoặc thành viên của cộng đồng con người.',
+        examples: [
+          { source: 'Umuntu uyafunda nsuku zonke.', translation: 'Một người học hỏi mỗi ngày.' }
+        ],
+      }
+    ],
+    synonyms: ['isidalwa', 'umntwana womuntu'],
+    antonyms: [],
+    collocations: ['umuntu omdala', 'umuntu omuhle'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Zulu Wiktionary / Kaikki CC BY-SA fixture; class 1 noun, plural abantu.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'inja',
+    ipa: '/íːndʒa/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con chó',
+    shortDefinition: 'inja, isilwane sasekhaya esivame ukugcinwa ngabantu (dog)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Isilwane esincelisayo esivame ukuhlala nabantu futhi sigade ikhaya (A domesticated animal often kept by people).',
+        vietnamese: 'Con chó. Động vật nuôi thường sống cùng con người và canh giữ nhà.',
+        examples: [
+          { source: 'Inja igijima egcekeni.', translation: 'Con chó chạy trong sân.' }
+        ],
+      }
+    ],
+    synonyms: ['umdlwane'],
+    antonyms: [],
+    collocations: ['inja yasekhaya', 'inja enkulu'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Zulu Wiktionary / Kaikki CC BY-SA fixture; class 9 noun, plural izinja.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'isiZulu',
+    ipa: '/isízuːlu/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Language',
+    vietnamese: 'tiếng Zulu',
+    shortDefinition: 'isiZulu, ulimi lwamaZulu (Zulu language)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Ulimi olukhulunywa amaZulu nabanye abantu eNingizimu Afrika (The Zulu language).',
+        vietnamese: 'Tiếng Zulu. Ngôn ngữ của người Zulu và nhiều cộng đồng tại Nam Phi.',
+        examples: [
+          { source: 'Ngifunda isiZulu.', translation: 'Tôi đang học tiếng Zulu.' }
+        ],
+      }
+    ],
+    synonyms: ['ulimi lwesiZulu'],
+    antonyms: [],
+    collocations: ['ukufunda isiZulu', 'ukukhuluma isiZulu'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Zulu Wiktionary / Kaikki CC BY-SA fixture; class 7 noun.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1680,6 +1761,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   my: burmeseDictionaryEntries,
   bo: tibetanDictionaryEntries,
   yo: yorubaDictionaryEntries,
+  zu: zuluDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

@@ -81,6 +81,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'zu',
+    label: 'isiZulu (Zulu)',
+    hint: 'Wiktionary preview',
+    family: 'niger-congo',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'zu',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'hi',
     label: 'हिन्दी',
     hint: 'Sắp hỗ trợ',

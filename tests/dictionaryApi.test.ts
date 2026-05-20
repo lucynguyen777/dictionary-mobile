@@ -757,3 +757,34 @@ describe('Yoruba monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('àkọsílẹ̀');
   });
 });
+
+describe('Zulu monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const person = await fetchMonolingualMeaning('umuntu', 'zu');
+    expect(person.word).toBe('umuntu');
+    expect(person.ipa).toBe('/umúːntʼu/');
+    expect(person.definitions[0].meaning).toContain('Isidalwa esingumuntu');
+
+    const language = await fetchMonolingualMeaning('isiZulu', 'zu');
+    expect(language.word).toBe('isiZulu');
+  });
+
+  it('resolves noun class plural prefixes', async () => {
+    const people = await fetchMonolingualMeaning('abantu', 'zu');
+    expect(people.word).toBe('umuntu');
+    expect(people.source).toContain('base form of abantu');
+
+    const dogs = await fetchMonolingualMeaning('izinja', 'zu');
+    expect(dogs.word).toBe('inja');
+  });
+
+  it('resolves fixture-backed locative forms', async () => {
+    const locative = await fetchMonolingualMeaning('esiZulwini', 'zu');
+    expect(locative.word).toBe('isiZulu');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('umuntu', 'zu');
+    expect(related.synonyms).toContain('isidalwa');
+  });
+});

@@ -66,6 +66,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'my') return getBurmeseMorphologyCandidates(input);
   if (languageCode === 'bo') return getTibetanMorphologyCandidates(input);
   if (languageCode === 'yo') return getYorubaMorphologyCandidates(input);
+  if (languageCode === 'zu') return getZuluMorphologyCandidates(input);
 
   return [];
 }
@@ -1261,4 +1262,55 @@ function getYorubaMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getZuluMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = normalizeMorphologyInput(input);
+  if (word.length < 4) return [];
+
+  const addCandidate = (candidate: string, reason: string) => {
+    candidates.push({
+      word: candidate,
+      label: candidate,
+      reason,
+    });
+  };
+
+  const prefixPairs: [string, string][] = [
+    ['aba', 'umu'],
+    ['aba', 'um'],
+    ['ab', 'um'],
+    ['imi', 'umu'],
+    ['imi', 'um'],
+    ['im', 'um'],
+    ['ama', 'ili'],
+    ['ama', 'i'],
+    ['izi', 'isi'],
+    ['iz', 'is'],
+    ['izin', 'in'],
+    ['izim', 'im'],
+    ['izin', 'i'],
+    ['izim', 'i'],
+  ];
+
+  for (const [pluralPrefix, singularPrefix] of prefixPairs) {
+    if (word.startsWith(pluralPrefix) && word.length > pluralPrefix.length + 1) {
+      addCandidate(`${singularPrefix}${word.slice(pluralPrefix.length)}`, `noun class ${pluralPrefix}- -> ${singularPrefix}-`);
+    }
+  }
+
+  if (word.startsWith('e') && word.endsWith('ini') && word.length > 6) {
+    const locativeStem = word.slice(1, -3);
+    addCandidate(locativeStem, 'locative e-...-ini stripped');
+    addCandidate(`i${locativeStem}`, 'locative e-...-ini restored with i- augment');
+  }
+
+  if (word.startsWith('e') && word.endsWith('wini') && word.length > 7) {
+    const locativeStem = word.slice(1, -4);
+    addCandidate(`i${locativeStem}`, 'locative e-...-wini restored with i- augment');
+    addCandidate(`i${locativeStem}u`, 'locative e-...-wini restored with final -u');
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 8);
 }
