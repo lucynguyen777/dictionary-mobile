@@ -101,6 +101,7 @@ For Phase 1 changes:
 
 ```bash
 node scripts/build-offline-pack.mjs --input <jsonl> --lang <lang> --source <source> --out tmp/offline-packs/<name>
+npm test -- --run tests/offlinePackBuilder.test.ts
 npx tsc --noEmit
 npm run lint
 npm test -- --run
