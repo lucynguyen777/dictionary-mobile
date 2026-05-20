@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `42e6b61` feat(lang): complete Kannada monolingual baseline and reader script support
   - `b0f5eac` feat(lang): implement Hawaiian monolingual baseline adapter, local educational fixtures, ʻokina normalization, kahakō-aware lookup, and tests
   - `2d0a897` docs(lang): plan Hawaiian monolingual baseline, ʻokina/kahakō normalization, source gates, and fixture-first implementation path
   - `378fae2` feat(lang): implement Igbo monolingual baseline adapter, local educational fixtures, tone-insensitive underdot-preserving lookup, and tests
@@ -385,11 +386,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [x] [HARD] Telugu monolingual baseline implementation: Register Telugu adapter, write suffix morphology fallbacks, and add local fixtures. (Completed)
-2. [x] [HARD] Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates. (Completed)
-3. [x] [HARD] Kannada monolingual baseline implementation: Register Kannada adapter, write suffix morphology fallbacks, and add local fixtures. (Completed)
-4. [ ] [HARD] Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
-5. [ ] [HARD] Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
+1. [~] [HARD] Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
+2. [ ] [HARD] Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
+3. [ ] [HARD] Voice Search / OCR Camera Lookup: define feasible local-vs-backend architecture, evaluate libraries, and create implementation plan.
 
 
 
