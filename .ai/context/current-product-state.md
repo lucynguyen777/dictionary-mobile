@@ -1,54 +1,102 @@
 # Current Product State
 
-## Source Of Truth
-Use `docs/product-progress.md` as the canonical roadmap and checklist.
+## Completed Areas
 
-## Completed Or Existing Areas
-- Dictionary lookup for English, Vietnamese, French, Spanish, Malay, Turkish, Finnish, Japanese, Korean, Swahili, Hungarian, Tagalog, Amharic, Russian, Mandarin, Javanese, Somali, Burmese, Tibetan, Yoruba, Zulu, Igbo, and Hawaiian baselines.
-- Adapter registry with local/source-specific adapters for the supported monolingual languages plus `minhqnd` and `wiktapi` source paths.
-- Local library with folders, saved words, notes, tags, favorites, folder colors, color notes, duplicate folder, folder sorting/view modes, and folder share/export actions.
-- Flashcards with card types, review states, and SM-2 scheduling fields.
-- CSV/TSV import with row/column orientation, custom field mapping, primary field, preview, validation, tags, and duplicate handling.
-- Export formats: CSV, Excel-compatible `.xls`, Anki TSV, and full local JSON backup.
-- Reader for TXT/HTML imported local content, with DOCX and EPUB structured import prototypes enabled through local parsing paths.
-- Reader settings for font size, font family, and background color.
-- Profile store with local profile, language, level, goal, timezone, daily goal, and app lock fields.
-- Privacy/support UI shells and local data reset/export flows.
-- Advanced Export tab polish with folder selection, CSV/Excel/Anki text actions, blocked Google Sheets state, and per-session export status/history.
-- Polished profile settings sidebar with compact navigation rows, safer text truncation, section headers, disabled coming-soon actions, and destructive styling.
-- Local notification preferences persisted in the profile store with privacy sidebar controls for daily reminders, review reminders, weekly summaries, and reminder time.
-- Bulk Wiktionary crawl tooling with resumable sample headword runs and ignored runtime cache/log output.
-- Zulu monolingual baseline is implemented with local fixtures, noun class prefix fallbacks, and locative fixture fallback coverage.
-- Igbo monolingual baseline is implemented with local fixtures, tone-insensitive underdot-preserving lookup, and fixture tests.
-- Hawaiian monolingual baseline is implemented with local fixtures, ʻokina normalization, kahakō-aware lookup, and fixture tests.
+### Dictionary Lookup
+- English monolingual lookup (definitions, IPA, audio, morphology fallback)
+- English-Vietnamese bilingual lookup
+- Vietnamese monolingual lookup
+- French monolingual lookup (Wiktionary preview)
+- French-Vietnamese bilingual lookup
+- Spanish monolingual lookup (WiktAPI adapter, morphology, gender labels)
+- Malay monolingual lookup (WiktAPI adapter, affix/reduplication morphology)
+- Russian monolingual lookup (ruwiktionary CC BY-SA, Cyrillic case/aspect morphology fallbacks)
+- Swahili monolingual lookup (swwiktionary CC BY-SA, noun class plural-to-singular, verb prefix stripping)
+- Yoruba monolingual lookup (CC BY-SA, tone-insensitive lookup, morphology fallbacks)
+- Zulu monolingual lookup (CC BY-SA, noun class prefix & locative fallbacks)
+- Igbo monolingual lookup (local educational fixtures, tone-insensitive underdot-preserving lookup)
+- Hawaiian monolingual lookup (ʻokina normalization, kahakō-aware lookup)
+- Mandarin monolingual lookup (zhwiktionary CC BY-SA, Intl.Segmenter word segmentation)
+- Burmese monolingual lookup (CC BY-SA, script tokenization fallback)
+- Tibetan monolingual lookup (CC BY-SA, tokenization fallback, local fixtures)
+- Arabic monolingual lookup (arwiktionary CC BY-SA, RTL UI support, diacritic handling, root-pattern morphology)
+- Hebrew monolingual lookup (hewiktionary CC BY-SA, RTL UI support, diacritic handling, morphology lookup)
+- Amharic monolingual lookup (amwiktionary CC BY-SA, abugida vowel/order shift mapping morphology)
+- Somali monolingual lookup (CC BY-SA, definite article morphology fallbacks)
+- Tagalog monolingual lookup (tlwiktionary CC BY-SA, focus trigger & reduplication/infixation fallbacks)
+- Javanese monolingual lookup (CC BY-SA, active/passive morphology fallbacks)
+- Tamil monolingual lookup (agglutinative nominal/verbal oblique suffix morphology fallbacks)
+- Telugu monolingual lookup (agglutinative suffix morphology fallbacks)
+- Kannada monolingual lookup (agglutinative suffix morphology fallbacks)
+- Malayalam monolingual lookup (agglutinative suffix morphology fallbacks)
+- Turkish monolingual lookup (dotless/dotted I casing, case-suffix stripping morphology, suffix chains)
+- Finnish monolingual lookup (fiwiktionary CC BY-SA, case-gradation morphology fallback rules)
+- Hungarian monolingual lookup (huwiktionary CC BY-SA, exact Latin, vowel harmony plural/case fallbacks, verb conjugation fallback)
+- IPA display and audio sample playback
+- Example sentence TTS (expo-speech)
+- Spelling suggestions / "Did you mean?" for empty results
+- Synonyms, antonyms, idioms, phrasal verbs (expanded dataset and classification, backlinks to lookup)
+- Etymology adapter integration slice (Wiktionary-derived attribution UI and missing-source fallback)
 
-## Current Queue Notes
-`docs/product-progress.md` is the canonical Next Work Queue. The repository currently lists these active queue items (kept to five or fewer):
+### Library
+- Save words to folders
+- Favorites and notes
+- Create, rename, delete folders (rename flow in kebab menu, creative plus button sheet)
+- Folder search/filter
+- Folder sorting (newest, oldest, A-Z, Z-A, most words, least words, favorites first)
+- Folder view modes (icon toggles for list/grid, compact removed)
+- Folder favorite metadata (visual state isolated from word favorites)
+- Duplicate folder action (copies metadata and word membership safely without saved-word duplicates)
+- Folder color picker and persistent color metadata with color rule notes
+- CSV, Excel-compatible XLS, and Anki TSV export (moved to Kebab Download menu)
+- Folder share action using local share/export paths
+- Layout fixed FAB and sheet menus to prevent overlaps on mobile and Expo web
 
-1. [ ] Tamil monolingual baseline planning — research Tamil script, agglutinative morphology, transliteration, and source candidates.
-2. [ ] Telugu monolingual baseline planning — research Telugu script, agglutinative morphology, transliteration, and source candidates.
-3. [ ] Kannada monolingual baseline planning — research Kannada script, agglutinative morphology, transliteration, and source candidates.
+### Flashcards
+- Flashcards from saved words
+- Card type checklist (bilingual, word-definition, definition-word, word-pronunciation)
+- Review states (new, learning, reviewed)
+- Review filters (by folder, card type, review state)
+- SuperMemo-2 (SM-2) spaced repetition algorithm
+- Flashcards from imported datasets
+- Flashcards from Reader highlights
+- Offline sync state management (version, syncStatus tracker, and background sync preparation)
 
-If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.
+### Reader
+- TXT reader
+- HTML reader
+- Font and background settings
+- Tap word to lookup/save (quick save flow in reading flow)
+- Highlight flow (adjacent multi-word selection and highlight highlights)
+- Flashcards from highlights
+- Structured imports hardened with file-size (10MB limit) and empty-text limits
+- PDF.js-style extraction parser prototype covering digital, empty, and scanned-image PDFs
+- PDF Reader import enabled under `READER_ENABLE_PDF=true` gate for Expo web (with unsupported alerts on native/Expo Go)
 
-## In Progress Or Partial
-- Advanced frontend tabs exist as shells/polish targets.
-- Reader DOCX and EPUB import prototypes are enabled; PDF extraction is wired behind a web-only env gate.
-- Language selector and bilingual lookup flow now guards unsupported bilingual pairs before hitting the bilingual API.
-- The Wiktionary crawler, local API server, and bulk scheduler are implemented as prototypes; runtime caches are created during sample runs.
+### Profile & Privacy
+- Local profile settings
+- Settings sidebar / drawer overlay (avatar, display name, username, email/phone/password placeholders)
+- Native language and multiple learning languages
+- Proficiency level (A1 to C2) and learning goals
+- Timezone and Daily goal settings (words, minutes, reviews)
+- Local data overview showing count of saved words, folders, flashcards, reader files, and datasets
+- Export all local user data and reset/delete all local data with confirmation alert
+- Privacy copy explaining local-first storage and biometric app lock (expo-local-authentication)
 
-## Runtime cache policy
-- Policy: runtime caches and per-run logs generated by local crawling are ignored from version control by default. Sample lists, canonical fixtures, and tests should be kept under `data/headword-lists/` or `tests/fixtures/` as appropriate.
-- Ignored paths: `data/wiktionary-cache/`, `data/wiktionary-bulk-runs/`.
+## In Progress
+- Estonian monolingual baseline planning (case-rich morphology, source checks)
+- Voice Search / OCR implementation Phase 1 (permission flows, speech-to-text prototype, OCR image extraction)
+- Offline dictionary MVP Phase 1 (SQLite schema, JSONL-to-gzip pack builder scripts, pack status shell in Profile)
 
 ## Blocked
-- Auth and account identity.
-- Backend architecture.
-- Cloud sync and encrypted backup.
-- Google Sheets export.
-- Speech scoring.
-- Real-time AI chatbot.
-- Production translation.
-- Etymology/conjugation data sources.
-- Offline dictionary bundles.
-- Cantonese implementation until a stable Words.hk hosted API or approved local bundle path exists.
+- Auth (Email login, password changes, account deletion, real sign out)
+- Cloud sync (cross-device sync, encrypted backup)
+- Google Sheets export (OAuth flow and Google API blocked)
+- Speech scoring (IPA comparison, per-phoneme scoring alignment engine)
+- AI chatbot (Real-time AI conversation, voice chatbot, persistent memory)
+- Production translation (multilingual production translation, specialized glossary translation)
+- Offline dictionary bundle Phase 2 (Runtime SQLite import, download progress, and offline lookup)
+- Hindi monolingual baseline (WiktAPI 'hi' returns 404)
+- Cantonese monolingual baseline (needs words.hk hosted API or approved local bundle path)
+- VI-to-FR bilingual dictionary source selection (no machine translation allowed)
+- Production conjugation and real etymology resource paths ( UniMorph/Kaikki CC-BY-SA integration blocked until licensed offline strategy selected)

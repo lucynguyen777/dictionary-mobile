@@ -1,71 +1,61 @@
 # Verification Rules
 
-Detailed human-facing QA, unit test, build, and release guidance lives in `docs/testing-and-build-guide.md`.
-
-Use `.ai/skills/app-feature-testing.md` for post-feature app testing on user-facing work.
-
-## Required For Code Changes
-Run:
+## Required Commands
+Before marking implementation DONE, run:
 
 ```bash
 npx tsc --noEmit
-npm run lint
+npx eslint . --no-cache
 ```
 
-## Required When Data Logic Changes
-Also run the closest focused offline suite first, then the full suite when shared behavior changed:
+## Required Review
 
-```bash
-npm test -- --run tests/dictionaryApi.test.ts # dictionary/language changes
-npm test -- --run tests/readerImport.test.ts  # reader parser/file gate changes
-npm test -- --run tests/libraryStore.test.ts  # library persistence changes
-npm test -- --run
-```
+Check:
 
-This applies when changing:
-- `data/csvImport.ts`
-- `data/readerImport.ts`
-- `data/adapterRegistry.ts`
-- `data/dictionaryApi.ts`
-- `data/localLexicon.ts`
-- `data/morphology.ts`
-- stores in `data/*Store.ts`
-- behavior covered by `tests/`
+1. git status
+2. changed files
+3. docs/product-progress.md
+4. task status
+5. Next Work Queue
+6. blocked task boundaries
 
-For dictionary/language changes, prefer offline fixture coverage for exact lookup, morphology fallback, missing results, and related words before any live source smoke.
+## DONE Criteria
 
-## Required When A User-Facing Feature Changes
-Also perform the smallest practical app test that covers:
-- functional app flow, interruption handling, and data integrity
-- UI/UX layout, display, and usability
-- performance basics for loading, repeated actions, network, and offline assumptions
-- compatibility across Expo web plus target native platform or documented browser/device viewports
+A task can be marked DONE only if:
 
-Browser-based Expo web testing is allowed. Temporary screenshots may be saved under `tmp/app-testing/<task-or-date>/` for short-term visual comparison, but must not be committed unless explicitly requested as fixtures.
+* implementation exists
+* basic behavior is verified
+* typecheck passes
+* lint passes
+* checklist is updated
 
-If Playwright, Maestro, or Detox is configured for the task, include artifact paths and branch/viewport/device coverage in the result. Otherwise, document the manual Expo web/native smoke gap instead of adding E2E tooling during unrelated work.
+## IN PROGRESS Criteria
 
-## Documentation-Only Changes
-For `.ai`, `docs`, or markdown-only edits, prefer:
+Use IN PROGRESS if:
 
-```bash
-git diff --check
-npx tsc --noEmit
-npm run lint
-```
+* UI shell exists but behavior is incomplete
+* implementation is partial
+* verification fails
+* some edge cases remain
 
-Document any blocker clearly if a check cannot run.
+## BLOCKED Criteria
 
-## Before Marking DONE
-Confirm:
-- acceptance criteria are implemented
-- blocked behavior was not faked
-- `docs/product-progress.md` matches code reality
-- `Next Work Queue` has at most 5 items
-- failed or skipped checks are documented
+Use BLOCKED if task requires:
 
-## Before Commit
-Confirm:
-- no unrelated changes were staged
-- no secrets or generated noise were added
-- decision docs are not treated as accepted unless their status says `Accepted`
+* backend
+* auth
+* OAuth
+* paid/external API
+* licensed dictionary source
+* speech/phoneme engine
+* production AI cost control
+
+## Commit Message Format
+
+Prefer:
+
+```txt
+feat(area): short summary
+fix(area): short summary
+docs: update product progress
+chore: update verification workflow

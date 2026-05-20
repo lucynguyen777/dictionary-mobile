@@ -1,112 +1,89 @@
 # Blocked Decisions
 
-## Decision Docs
-Decision records live in `.docs/decisions/`.
+## Auth Provider
+Status: Not selected
 
-Current decision docs are all `Proposed` unless edited:
-- `.docs/decisions/auth-provider.md`
-- `.docs/decisions/backend-architecture.md`
-- `.docs/decisions/cloud-sync.md`
-- `.docs/decisions/dictionary-source-licensing.md`
-- `.docs/decisions/etymology-conjugation-source.md`
-- `.docs/decisions/speech-scoring-engine.md`
-- `.docs/decisions/ai-chat-cost-control.md`
-- `.docs/decisions/translation-api.md`
-- `.docs/decisions/offline-dictionary-bundle.md`
-
-## Rule
-Treat `Proposed` as still blocked. Production implementation may proceed only when the relevant decision is explicitly accepted or the user gives a scoped implementation instruction.
-
-## Blocked Areas
-
-### Auth Provider
-Blocked:
+Blocked tasks:
 - Email login
 - Password changes
-- Email/phone verification
+- Email verification
+- Phone verification
 - Account deletion
 - Real sign out
 
-Allowed:
+Allowed work:
 - Local UI placeholder
 - Decision document
 - Interface planning
 
-### Backend Architecture
-Blocked:
-- Feedback submission
-- Server-side account workflows
-- AI/translation proxy
-- Shared user data storage
+---
 
-Allowed:
-- Frontend shell
-- API contract draft
-- Decision document
+## Cloud Sync
+Status: Not selected
 
-### Cloud Sync
-Blocked:
+Blocked tasks:
 - Cloud backup
 - Cross-device sync
 - Encrypted backup
 
-Allowed:
+Allowed work:
 - Local export
-- Conflict strategy document
 - Data model planning
+- Sync conflict strategy document
 
-### Google Sheets Export
-Blocked:
+---
+
+## Google Sheets Export
+Status: Blocked until OAuth flow is selected
+
+Blocked tasks:
 - Real Google Sheets export
-- OAuth flow
-- Google API writes
 
-Allowed:
+Allowed work:
 - Disabled UI state
 - Export copy
 - Decision document
 
-### Speech Scoring
-Blocked:
-- IPA comparison scoring
-- Per-phoneme scoring
-- Alignment table
+---
 
-Allowed:
+## Speech Scoring
+Status: No speech/phoneme engine selected
+
+Blocked tasks:
+- IPA comparison
+- Per-phoneme scoring
+- Phoneme alignment table
+
+Allowed work:
 - Recording playback
 - UI shell
-- Engine comparison decision
+- Engine comparison document
 
-### AI Chatbot And Translation
-Blocked:
+---
+
+## AI Chatbot
+Status: No backend, streaming, auth, or cost control selected
+
+Blocked tasks:
 - Real-time AI conversation
+- Voice chatbot
 - Persistent AI memory
-- Production translation
-- Specialized document translation with glossary
 
-Allowed:
+Allowed work:
 - Frontend shell
 - Prompt planning
-- Cost-control and translation API decisions
+- Backend architecture decision document
 
-### Dictionary Data Licensing
-Blocked:
-- Licensed offline dictionary bundle
-- Production etymology data
-- Production conjugation data
+---
 
-Allowed:
-- Source research
-- Adapter planning
-- Decision document
+## Production Translation
+Status: No translation API/backend selected
 
-### Etymology And Conjugation Sources
-Blocked:
-- Production etymology source integration
-- Production conjugation/paradigm data integration
-- Offline etymology or conjugation bundles
+Blocked tasks:
+- Multilingual production translation
+- Specialized document translation with glossary
 
-Allowed:
-- Source decision brief
-- Typed contracts
-- Placeholder UI with explicit blocked copy
+Allowed work:
+- UI shell
+- Glossary import interface
+- API decision document

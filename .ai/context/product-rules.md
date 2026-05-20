@@ -1,41 +1,44 @@
 # Product Rules
 
-## Progress Rules
-1. Read `docs/product-progress.md` before starting roadmap work.
-2. Do not start tasks marked `[!] BLOCKED`.
-3. Do not keep completed tasks as active `Next Work Queue` items.
-4. Keep `Next Work Queue` to at most 5 items.
-5. Mark work DONE only when implementation and verification support it.
-6. Keep blocked items in the roadmap with their blocker named.
-7. For user-facing features, include app testing evidence before marking DONE.
+## Progress Rule
+Before starting any task:
+1. Read docs/product-progress.md.
+2. Check that the task status is correct.
+3. Do not start tasks marked BLOCKED.
+4. Do not keep DONE tasks inside the active Next Work Queue.
+5. Keep Next Work Queue to maximum 5 active tasks.
 
-## Local-First Rules
-- Assume user data is local unless an accepted backend/cloud decision exists.
-- Use `data/storageAdapter.ts` and `data/storageAdapter.web.ts` patterns for persistence.
-- Do not add remote persistence, auth, OAuth, sync, or server-side data storage without an accepted decision.
+## Implementation Rule
+Prefer small, complete, verifiable changes.
 
-## Dictionary Rules
-- Build monolingual lookup first for each language.
-- Add bilingual lookup only after a trustworthy lexical source is selected.
-- Never use machine translation as dictionary data.
-- Do not package licensed offline data without a licensing decision.
+Do not make unrelated refactors unless required.
 
-## Implementation Rules
-- Keep changes small, complete, and verifiable.
-- Reuse existing routes, components, stores, and helpers before adding abstractions.
-- Avoid unrelated refactors.
-- Keep mobile and Expo web behavior safe.
-- Keep Vietnamese UI copy consistent with nearby screens.
-- After building a user-facing feature, verify the relevant functional, UI/UX, performance, and compatibility behavior from `.ai/skills/app-feature-testing.md`.
+## Verification Rule
+Before marking a task DONE, run:
 
-## Blocked Work
-The following remain blocked until accepted decision docs exist:
-- Auth provider
-- Backend architecture
-- Cloud sync
-- Google Sheets OAuth/export
-- Speech scoring engine
-- AI chat cost control/backend proxy
-- Translation API
-- Dictionary source licensing
-- Offline dictionary bundle
+```bash
+npx tsc --noEmit
+npx eslint . --no-cache
+```
+
+If verification fails, the task must not be marked DONE.
+
+## Documentation Rule
+
+After implementation:
+
+1. Update docs/product-progress.md.
+2. Sync checklist status with code reality.
+3. Update Next Work Queue if needed.
+4. Suggest a commit message.
+
+## Blocked Task Rule
+
+Do not implement real behavior for features that require unresolved backend, auth, API, OAuth, speech, AI, or licensing decisions.
+
+For BLOCKED tasks, only create:
+
+* decision docs
+* frontend placeholder UI
+* interface contracts
+* implementation plans

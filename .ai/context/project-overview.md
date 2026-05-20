@@ -1,25 +1,23 @@
 # Project Overview
 
 ## Product
-Dictionary Mobile is a local-first Expo React Native language learning and dictionary app with mobile and Expo web support.
+Dictionary Mobile is a local-first mobile/web language learning and dictionary app.
 
 ## Core Value
-Help users look up words, save vocabulary, organize folders, review flashcards, read imported texts, and manage local learning data privately.
+Help users look up words, save vocabulary, review flashcards, read imported texts, and gradually personalize their learning.
 
-## Current Stage
-The product is beyond MVP. Core dictionary lookup, library, flashcards, reader, profile, privacy, import, and export foundations exist. The next stage is workflow polish, progress synchronization, language adapter expansion, and explicit decisions for backend/AI/licensed-data work.
-
-## Main User Workflows
-1. Look up a word.
-2. Save the word to one or more folders.
-3. Review saved words as flashcards.
-4. Import vocabulary datasets from CSV/TSV.
-5. Export folders or all local data.
-6. Read TXT/HTML documents and save words from reading.
-7. Configure local profile, privacy, and learning preferences.
+## Current Product Direction
+The app should prioritize:
+1. Deep dictionary lookup
+2. Saved vocabulary and folders
+3. Flashcards and spaced repetition
+4. Reader-based word learning
+5. Import/export workflows
+6. Local-first privacy
+7. Language expansion through reliable dictionary sources
 
 ## Product Philosophy
-- Prefer deep language support over shallow language quantity.
-- Prefer local-first behavior until a backend decision is accepted.
-- Prefer real dictionary/lexical sources over generated or translated fake data.
-- Prefer small, verifiable product increments over broad rewrites.
+Deep support for each language is better than shallow support for many languages.
+
+## Current Stage
+The project is beyond MVP. It already has core dictionary, library, flashcard, reader, profile, and privacy features. The next stage is workflow polish, checklist synchronization, and careful backend/AI decision-making.
