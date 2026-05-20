@@ -71,6 +71,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'yo',
+    label: 'Èdè Yorùbá (Yoruba)',
+    hint: 'Wiktionary preview',
+    family: 'niger-congo',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'yo',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'hi',
     label: 'हिन्दी',
     hint: 'Sắp hỗ trợ',

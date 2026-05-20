@@ -730,3 +730,30 @@ describe('Tibetan monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('དཔེ་ཆ་');
   });
 });
+
+describe('Yoruba monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const book = await fetchMonolingualMeaning('ìwé', 'yo');
+    expect(book.word).toBe('ìwé');
+    expect(book.ipa).toBe('/ìwé/');
+    expect(book.definitions[0].meaning).toContain('Pépà tí a dì papò');
+
+    const house = await fetchMonolingualMeaning('ilé', 'yo');
+    expect(house.word).toBe('ilé');
+  });
+
+  it('looks up tone-insensitive words', async () => {
+    // iwe should normalize and find ìwé
+    const bookNoTones = await fetchMonolingualMeaning('iwe', 'yo');
+    expect(bookNoTones.word).toBe('ìwé');
+
+    // ologbo should normalize and find ológbò
+    const catNoTones = await fetchMonolingualMeaning('ologbo', 'yo');
+    expect(catNoTones.word).toBe('ológbò');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('ìwé', 'yo');
+    expect(related.synonyms).toContain('àkọsílẹ̀');
+  });
+});

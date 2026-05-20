@@ -1578,6 +1578,87 @@ const tibetanDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const yorubaDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'ìwé',
+    ipa: '/ìwé/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'ìwé, ohun tí a kọ nǹkan sí láti kà (book)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Pépà tí a dì papò tí a kọ nǹkan sí láti kà tàbí láti kọ nǹkan sí (A sheet or sheets of paper bound together with writing, print, or blank pages).',
+        vietnamese: 'Sách. Những tờ giấy được đóng lại với nhau để đọc hoặc viết.',
+        examples: [
+          { source: 'Ìwé yìí dára gan-an.', translation: 'Cuốn sách này rất tốt.' }
+        ],
+      }
+    ],
+    synonyms: ['àkọsílẹ̀'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Niger-Congo.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ilé',
+    ipa: '/īlé/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'ilé, ibi tí ènìyàn ń gbé (house / home)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Ibi tí a kọ tàbí tí a ṣe láti gbé tàbí láti fi pamọ́ (A building or place built for people to live or stay in).',
+        vietnamese: 'Nhà. Nơi được xây dựng hoặc chuẩn bị để con người ở hoặc che chở.',
+        examples: [
+          { source: 'Ilé mi tóbi.', translation: 'Nhà của tôi lớn.' }
+        ],
+      }
+    ],
+    synonyms: ['àbà́'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Niger-Congo.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ológbò',
+    ipa: '/ōlógbò/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con mèo',
+    shortDefinition: 'ológbò, ẹranko ilé tí ó máa ń pa eku (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Ẹranko kékeré kan tí ó máa ń gbé inú ilé, tí ó sì máa ń pa eku (A small domesticated carnivorous mammal kept as a pet or for catching mice).',
+        vietnamese: 'Con mèo. Một loài động vật nhỏ sống trong nhà và thường bắt chuột.',
+        examples: [
+          { source: 'Ológbò náà rẹwà.', translation: 'Con mèo thật xinh đẹp.' }
+        ],
+      }
+    ],
+    synonyms: ['músù', 'yanbọ̀'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Niger-Congo.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1598,6 +1679,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   so: somaliDictionaryEntries,
   my: burmeseDictionaryEntries,
   bo: tibetanDictionaryEntries,
+  yo: yorubaDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {
@@ -1608,6 +1690,10 @@ export function findLocalDictionaryEntry(languageCode: string, word: string) {
   if (languageCode === 'tr') {
     const normalizedWord = normalizeTurkishWord(word);
     return getLocalDictionaryEntries('tr').find((entry) => normalizeTurkishWord(entry.word) === normalizedWord);
+  }
+  if (languageCode === 'yo') {
+    const normalizedWord = normalizeYorubaWord(word);
+    return getLocalDictionaryEntries('yo').find((entry) => normalizeYorubaWord(entry.word) === normalizedWord);
   }
   const normalizedWord = normalizeLookupTerm(word);
 
@@ -1626,6 +1712,15 @@ export function normalizeTurkishWord(value: string) {
   let res = value.trim();
   res = res.replace(/I/g, 'ı').replace(/İ/g, 'i');
   return res.toLocaleLowerCase('tr');
+}
+
+export function normalizeYorubaWord(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300\u0301]/g, '')
+    .normalize('NFC')
+    .toLocaleLowerCase()
+    .trim();
 }
 
 /**

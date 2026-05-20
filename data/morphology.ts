@@ -65,6 +65,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'so') return getSomaliMorphologyCandidates(input);
   if (languageCode === 'my') return getBurmeseMorphologyCandidates(input);
   if (languageCode === 'bo') return getTibetanMorphologyCandidates(input);
+  if (languageCode === 'yo') return getYorubaMorphologyCandidates(input);
 
   return [];
 }
@@ -1225,6 +1226,37 @@ function getTibetanMorphologyCandidates(input: string): MorphologyCandidate[] {
           reason: `stripped particle ${part}`,
         });
       }
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getYorubaMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+
+  // Strip tone marks to get base letters
+  const base = word.normalize('NFD').replace(/[\u0300\u0301]/g, '').normalize('NFC').toLowerCase();
+
+  if (base !== word.toLowerCase()) {
+    candidates.push({
+      word: base,
+      label: base,
+      reason: 'tone-insensitive base form',
+    });
+  }
+
+  // Common Yoruba nominalizing prefixes: i-, a-, o-, e-
+  const prefixes = ['i', 'a', 'o', 'e'];
+  for (const prefix of prefixes) {
+    if (base.startsWith(prefix) && base.length > prefix.length + 1) {
+      const stem = base.slice(prefix.length);
+      candidates.push({
+        word: stem,
+        label: stem,
+        reason: `stripped prefix ${prefix}-`,
+      });
     }
   }
 
