@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# Dictionary Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Dictionary Mobile is a local-first Expo Router app for dictionary lookup, saved vocabulary, flashcards, imports/exports, Reader workflows, and multilingual adapter expansion.
 
 ## Get started
 
@@ -10,43 +10,61 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Start the Expo dev server
 
    ```bash
-   npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run a platform target when needed
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npm run web
+   npm run android
+   npm run ios
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Verification
 
-## Get a fresh project
-
-When you're ready, run:
+Run these before marking code work done:
 
 ```bash
-npm run reset-project
+npx tsc --noEmit
+npm run lint
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Run the full unit suite when changing data logic, parser behavior, adapters, stores, or covered behavior:
 
-## Learn more
+```bash
+npm test -- --run
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Focused examples:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm test -- --run tests/dictionaryApi.test.ts
+npm test -- --run tests/readerImport.test.ts
+```
 
-## Join the community
+See [Testing And Build Guide](docs/testing-and-build-guide.md) for the full QA matrix, unit test guidance, manual smoke checklist, and release checklist.
 
-Join our community of developers creating universal apps.
+## Project Docs
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-# dictionary-mobile
-# dictionary-mobile
+- [Product Progress](docs/product-progress.md): canonical roadmap, queue, and completion checklist.
+- [Testing And Build Guide](docs/testing-and-build-guide.md): QA workflow, unit tests, build/run commands, and release checklist.
+- [Cache And Fixtures](docs/cache-and-fixtures.md): runtime cache and deterministic fixture policy.
+
+## Notes
+
+- User data is local-first unless an accepted backend/cloud decision exists.
+- Dictionary work must build monolingual lookup first and must not use machine translation as dictionary data.
+- Auth, cloud sync, OAuth, AI, speech scoring, production translation, and licensed offline bundles remain blocked until accepted decisions exist.
+
+## Expo References
+
+This project uses [Expo](https://expo.dev) and [Expo Router](https://docs.expo.dev/router/introduction/).
+
+- [Expo development builds](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go)

@@ -270,6 +270,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Dictionary Data Tooling
 - [x] DONE [MEDIUM]: Schedule bulk crawl and import for headword batches: `scripts/wiktionary-bulk.mjs`, `scripts/wiktionary-client.mjs`, sample headword list, `.gitignore`, and `docs/cache-and-fixtures.md` support resumable crawls with ignored cache/log output. Verification: `node scripts/wiktionary-bulk.mjs --file data/headword-lists/sample-headwords.txt --batch-size 3 --concurrency 2 --delay-between-batches 1 --delay-ms 1 --resume` skipped 6 existing cached sample entries with 0 errors.
+- [x] DONE [MEDIUM]: Add centralized QA, unit test, build/run, manual smoke, and release checklist documentation in `docs/testing-and-build-guide.md`; update README and agent verification rules.
 
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).

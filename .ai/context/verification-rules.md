@@ -1,5 +1,7 @@
 # Verification Rules
 
+Detailed human-facing QA, unit test, build, and release guidance lives in `docs/testing-and-build-guide.md`.
+
 ## Required For Code Changes
 Run:
 
@@ -12,7 +14,7 @@ npm run lint
 Also run:
 
 ```bash
-npm test
+npm test -- --run
 ```
 
 This applies when changing:
@@ -24,7 +26,15 @@ This applies when changing:
 - behavior covered by `tests/`
 
 ## Documentation-Only Changes
-For `.ai`, `.docs`, or markdown-only edits, typecheck/lint are optional unless the user asks for full verification. Still check `git status --short` and review diffs.
+For `.ai`, `docs`, or markdown-only edits, prefer:
+
+```bash
+git diff --check
+npx tsc --noEmit
+npm run lint
+```
+
+Document any blocker clearly if a check cannot run.
 
 ## Before Marking DONE
 Confirm:
