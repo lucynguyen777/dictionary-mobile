@@ -340,9 +340,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
   - [x] DONE [HARD]: Telugu monolingual baseline implementation: Register Telugu adapter, write suffix morphology fallbacks, and add local fixtures.
   - [x] DONE [HARD]: Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
-  - [ ] TODO [HARD]: Kannada monolingual baseline implementation: Register Kannada adapter, write suffix morphology fallbacks, and add local fixtures.
-  - [ ] TODO [HARD]: Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
-  - [ ] TODO [HARD]: Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
+  - [x] DONE [HARD]: Kannada monolingual baseline implementation: Register Kannada adapter, write suffix morphology fallbacks, and add local fixtures.
+  - [x] DONE [HARD]: Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
+  - [~] IN PROGRESS [HARD]: Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
 - [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
@@ -386,9 +386,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
-2. [ ] [HARD] Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
-3. [ ] [HARD] Voice Search / OCR Camera Lookup: define feasible local-vs-backend architecture, evaluate libraries, and create implementation plan.
+1. [~] [HARD] Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
+2. [ ] [HARD] Voice Search / OCR Camera Lookup: define feasible local-vs-backend architecture, evaluate libraries, and create implementation plan.
+3. [ ] [HARD] Etymology source decision finalization: choose legal structured resource option and mark decision accepted in `docs/decisions/etymology-conjugation-source.md`.
 
 
 
