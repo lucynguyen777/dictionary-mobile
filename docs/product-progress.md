@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `3bff964` docs(lang): plan Zulu monolingual baseline, close completed Yoruba/Korean progress, and refresh Next Work Queue
   - `ee00811` feat(lang): implement Yoruba monolingual baseline adapter, tone-insensitive lookup, local fixtures, and morphology fallbacks
   - `16dee5f` feat(lang): implement Hungarian monolingual baseline adapter, exact Latin search, vowel harmony vowel lengthening plural/case fallbacks, verb conjugation fallback, and local test fixtures
   - `a16cb11` feat(lang): implement Swahili monolingual baseline adapter, exact Latin search, noun class plural-to-singular fallback, verb prefix stripping, and local test fixtures
