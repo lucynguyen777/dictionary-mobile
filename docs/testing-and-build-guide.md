@@ -31,6 +31,26 @@ Reference practices:
 - Vitest testing practice: https://main.vitest.dev/guide/learn/testing-in-practice
 - Playwright screenshots: https://playwright.dev/docs/screenshots
 
+## First-time Setup
+
+Before running tests for the first time in a new environment:
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **For E2E tests, install Playwright browsers:**
+   ```bash
+   npx playwright install chromium
+   # On Linux containers, if browser dependencies are missing:
+   npx playwright install-deps chromium
+   ```
+
+3. **For native tests, install Maestro:**
+   - Follow Maestro installation guide: https://maestro.mobile.dev/getting-started/installing-maestro
+   - Set `MAESTRO_APP_ID` environment variable (see Native Mobile section below)
+
 ## Verification Ladder
 
 Use this order unless the task has a more specific acceptance gate:
@@ -46,6 +66,36 @@ Use this order unless the task has a more specific acceptance gate:
 9. Record skipped checks and why.
 
 Focused tests are enough for documentation-only changes and narrow isolated behavior. Full tests are required before marking DONE for shared behavior, local persistence, parser pipelines, dictionary adapters, or anything that affects multiple screens.
+
+## When Tests Fail
+
+When tests fail during verification:
+
+1. **Review the failure output carefully:**
+   - Read the error message and stack trace
+   - Identify which test(s) failed and why
+   - Check if the failure is in your changed code or existing code
+
+2. **Determine if the failure is expected:**
+   - If you intentionally changed behavior, update the tests to match
+   - If tests are catching a real bug, fix your code
+   - If tests are flaky or environment-dependent, investigate the root cause
+
+3. **Fix and re-run:**
+   - Make the necessary code or test changes
+   - Re-run the focused test: `npm test -- --run tests/failing-test.test.ts`
+   - Once passing, re-run the full suite: `npm test -- --run`
+
+4. **Do not commit with failing tests:**
+   - All tests must pass before committing
+   - If you must commit with known issues, document them clearly in the commit message and create a follow-up task
+   - Never skip or comment out failing tests to make them pass
+
+5. **When stuck:**
+   - Check if the test expectations are correct
+   - Verify your changes didn't break assumptions in other parts of the codebase
+   - Use `npm test -- tests/specific-test.test.ts` (without --run) for watch mode debugging
+   - Add console.log or debugger statements to understand the failure
 
 ## Required Verification Matrix
 
@@ -186,6 +236,21 @@ Maestro is the preferred lightweight native smoke option for this project. A tem
 export MAESTRO_APP_ID=<ios-or-android-app-id>
 npm run test:native:maestro
 ```
+
+**Getting MAESTRO_APP_ID:**
+
+For Expo Go:
+- iOS: `host.exp.Exponent`
+- Android: `host.exp.exponent`
+
+For development builds:
+- Check `app.json` for your bundle identifier
+- iOS: typically `com.yourcompany.yourapp` or the value in `ios.bundleIdentifier`
+- Android: typically `com.yourcompany.yourapp` or the value in `android.package`
+
+To find the app ID of an installed app:
+- iOS: `xcrun simctl listapps booted` (lists all apps on booted simulator)
+- Android: `adb shell pm list packages -3` (lists third-party packages)
 
 Use the Maestro flow only after the app is installed on a simulator/device or Expo Go/development-build app id has been confirmed. Detox can be considered later when the project needs deeper React Native synchronization or heavier CI integration.
 

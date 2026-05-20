@@ -112,8 +112,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - `3d29779` Improve vocabulary import validation
   - `30cb448` Standardize lookup tab states
 - Verification habit before code commits:
+  - `git diff --check`
   - `npx tsc --noEmit`
   - `npm run lint`
+  - `npm test -- --run` (when shared behavior, parser, adapter, or store changed)
 
 ## Core Features
 
@@ -405,7 +407,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 2. Khi bắt đầu một task trong `Next Work Queue`, chuyển task đó sang `[~] IN PROGRESS` trong checklist tương ứng và trong queue.
 3. Sau khi triển khai xong, cập nhật checklist theo trạng thái thực tế của code: `[x]`, `[~]`, `[ ]`, hoặc `[!]`.
 4. Trước mỗi commit, kiểm tra lại tiến độ code và `docs/product-progress.md` đã đồng bộ. Nếu commit hash chưa tồn tại, có thể cập nhật `Current Baseline` ngay sau commit code bằng một commit checklist kế tiếp.
-5. Trước mỗi commit code, chạy kiểm tra xác minh: `npx tsc --noEmit` và `npm run lint`. Nếu chỉ sửa tài liệu, vẫn ưu tiên chạy hai lệnh này trừ khi có blocker rõ ràng.
+5. Trước mỗi commit code, chạy kiểm tra xác minh theo verification ladder trong `docs/testing-and-build-guide.md`: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, và focused/full test suite khi shared behavior, parser, adapter, hoặc store thay đổi. Nếu chỉ sửa tài liệu, vẫn ưu tiên chạy `git diff --check`, `npx tsc --noEmit`, và `npm run lint` trừ khi có blocker rõ ràng.
 6. Commit code và checklist cùng nhau khi hợp lý. Nếu cần ghi commit hash mới vào `Current Baseline`, commit cập nhật checklist ngay sau commit code.
 7. Trước mỗi lần push lên GitHub, kiểm tra lại `git status`, commit gần nhất, và `docs/product-progress.md` để đảm bảo code/checklist không lệch.
 8. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
