@@ -855,3 +855,37 @@ describe('Hawaiian monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('huaʻōlelo');
   });
 });
+
+describe('Tamil monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const book = await fetchMonolingualMeaning('புத்தகம்', 'ta');
+    expect(book.word).toBe('புத்தகம்');
+    expect(book.ipa).toBe('/put̪t̪aɡam/');
+    expect(book.definitions[0].meaning).toContain('எழுதப்பட்ட அல்லது அச்சிடப்பட்ட தாள்கள்');
+
+    const house = await fetchMonolingualMeaning('வீடு', 'ta');
+    expect(house.word).toBe('வீடு');
+  });
+
+  it('resolves plural suffix forms (-கள்)', async () => {
+    // புத்தகங்கள் -> புத்தகம்
+    const books = await fetchMonolingualMeaning('புத்தகங்கள்', 'ta');
+    expect(books.word).toBe('புத்தகம்');
+    expect(books.source).toContain('base form of புத்தகங்கள்');
+  });
+
+  it('resolves oblique case suffixes (-க்கு, -யை, -தில்)', async () => {
+    // பூனைக்கு -> பூனை
+    const catDative = await fetchMonolingualMeaning('பூனைக்கு', 'ta');
+    expect(catDative.word).toBe('பூனை');
+
+    // புத்தகத்தில் -> புத்தகம்
+    const bookLocative = await fetchMonolingualMeaning('புத்தகத்தில்', 'ta');
+    expect(bookLocative.word).toBe('புத்தகம்');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('பூனை', 'ta');
+    expect(related.synonyms).toContain('மஞ்சரி');
+  });
+});

@@ -1928,6 +1928,87 @@ const hawaiianDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const tamilDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'புத்தகம்',
+    ipa: '/put̪t̪aɡam/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'புத்தகம், படிப்பதற்கும் எழுதுவதற்கும் பயன்படுத்தப்படும் தாள்களின் தொகுப்பு (book)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'எழுதப்பட்ட அல்லது அச்சிடப்பட்ட தாள்கள் ஒன்றாகக் கட்டப்பட்டு வெளியிடப்படும் வடிவம் (A bound set of printed or written sheets of paper).',
+        vietnamese: 'Sách. Một tập hợp các tờ giấy in hoặc viết được đóng lại với nhau.',
+        examples: [
+          { source: 'நான் ஒரு புத்தகம் படிக்கிறேன்.', translation: 'Tôi đang đọc một cuốn sách.' }
+        ],
+      }
+    ],
+    synonyms: ['நூல்'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'வீடு',
+    ipa: '/ʋiːɖu/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'வீடு, மனிதர்கள் வாழ்வதற்கான தங்குமிடம் (house / home)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'மனிதர்கள் வசிப்பதற்குக் கட்டப்பட்ட கட்டிடம் (A building built for people to live in).',
+        vietnamese: 'Nhà. Tòa nhà được xây dựng cho con người ở.',
+        examples: [
+          { source: 'என் வீடு அழகாக இருக்கிறது.', translation: 'Nhà của tôi thật đẹp.' }
+        ],
+      }
+    ],
+    synonyms: ['இல்லம்', 'மனை'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'பூனை',
+    ipa: '/puːnaɪ/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con mèo',
+    shortDefinition: 'பூனை, எலிகளைப் பிடிக்கும் ஒரு வீட்டு விலங்கு (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'எலிகளைப் பிடிப்பதற்காக வீட்டில் வளர்க்கப்படும் ஒரு செல்லப் பிராணி (A small domesticated carnivorous mammal kept as a pet or for catching mice).',
+        vietnamese: 'Con mèo. Vật nuôi trong nhà để bắt chuột.',
+        examples: [
+          { source: 'பூனை பால் குடிக்கிறது.', translation: 'Con mèo đang uống sữa.' }
+        ],
+      }
+    ],
+    synonyms: ['மஞ்சரி'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1952,6 +2033,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   zu: zuluDictionaryEntries,
   ig: igboDictionaryEntries,
   haw: hawaiianDictionaryEntries,
+  ta: tamilDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

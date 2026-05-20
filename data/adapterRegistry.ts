@@ -52,6 +52,8 @@ import {
     fetchIgboRelatedWords,
     fetchHawaiianMeaning,
     fetchHawaiianRelatedWords,
+    fetchTamilMeaning,
+    fetchTamilRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -244,6 +246,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchHawaiianMeaning(word),
     fetchRelatedWords: (word: string) => fetchHawaiianRelatedWords(word),
+  },
+  ta: {
+    key: 'ta',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchTamilMeaning(word),
+    fetchRelatedWords: (word: string) => fetchTamilRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

@@ -270,6 +270,16 @@ export const languageOptions = [
     adapterKey: 'hu',
     dictionaryStatus: 'monolingual',
   },
+  {
+    code: 'ta',
+    label: 'தமிழ் (Tamil)',
+    hint: 'Wiktionary preview',
+    family: 'dravidian',
+    script: 'tamil',
+    writingDirection: 'ltr',
+    adapterKey: 'ta',
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

@@ -69,6 +69,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'zu') return getZuluMorphologyCandidates(input);
   if (languageCode === 'ig') return getIgboMorphologyCandidates(input);
   if (languageCode === 'haw') return getHawaiianMorphologyCandidates(input);
+  if (languageCode === 'ta') return getTamilMorphologyCandidates(input);
 
   return [];
 }
@@ -1390,4 +1391,63 @@ function getHawaiianMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 6);
+}
+
+function getTamilMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+
+  // 1. Oblique / plural suffixes for nouns ending in -ம்
+  const obliqueSuffixes = [
+    { suffix: 'ங்களை', replace: 'ம்' },
+    { suffix: 'ங்களில்', replace: 'ம்' },
+    { suffix: 'ங்களுக்கு', replace: 'ம்' },
+    { suffix: 'ங்கள்', replace: 'ம்' },
+    { suffix: 'த்தை', replace: 'ம்' },
+    { suffix: 'த்தில்', replace: 'ம்' },
+    { suffix: 'த்துக்கு', replace: 'ம்' },
+    { suffix: 'த்துடன்', replace: 'ம்' },
+    { suffix: 'த்தால்', replace: 'ம்' },
+    { suffix: 'த்தின்', replace: 'ம்' },
+    { suffix: 'த்தோடு', replace: 'ம்' },
+  ];
+
+  for (const item of obliqueSuffixes) {
+    if (word.endsWith(item.suffix) && word.length > item.suffix.length) {
+      const stem = word.slice(0, -item.suffix.length) + item.replace;
+      candidates.push({
+        word: stem,
+        label: stem,
+        reason: `stripped oblique/plural suffix -${item.suffix}`,
+      });
+    }
+  }
+
+  // 2. Standard case suffixes (with glides)
+  const standardSuffixes = [
+    'யிலிருந்து', 'விலிருந்து', 'லிருந்து',
+    'யுடைய', 'உடைய',
+    'யோடு', 'வோடு', 'ஓடு',
+    'யுடன்', 'வுடன்', 'உடன்',
+    'யை', 'வை',
+    'யில்', 'வில்', 'இல்',
+    'யால்', 'வால்', 'ஆல்',
+    'யின்', 'வின்', 'இன்',
+    'க்கு', 'உக்கு',
+  ];
+
+  for (const suffix of standardSuffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length) {
+      const stem = word.slice(0, -suffix.length);
+      if (stem.length > 0) {
+        candidates.push({
+          word: stem,
+          label: stem,
+          reason: `stripped case suffix -${suffix}`,
+        });
+      }
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
 }
