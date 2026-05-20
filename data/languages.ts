@@ -101,6 +101,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'haw',
+    label: 'ʻŌlelo Hawaiʻi (Hawaiian)',
+    hint: 'Local fixture preview',
+    family: 'austronesian',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'haw',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'hi',
     label: 'हिन्दी',
     hint: 'Sắp hỗ trợ',

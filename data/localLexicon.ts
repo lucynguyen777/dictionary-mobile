@@ -1821,6 +1821,113 @@ const igboDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const hawaiianDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'hale',
+    ipa: '',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'hale, kahi e noho ai ka poʻe (house / building)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Kahi e noho ai, e hana ai, a i ʻole e mālama ai i nā mea (A house, building, or place used for living, work, or storage).',
+        vietnamese: 'Nhà hoặc tòa nhà. Nơi để ở, làm việc hoặc cất giữ đồ.',
+        examples: [
+          { source: 'Aia ko mākou hale ma ke kahakai.', translation: 'Nhà của chúng tôi ở gần bờ biển.' }
+        ],
+      }
+    ],
+    synonyms: ['home'],
+    antonyms: [],
+    collocations: ['hale kula', 'hale kūʻai'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Local educational fixture based on Hawaiian source-gate research; not a production lexical source.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'wai',
+    ipa: '',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Nature',
+    vietnamese: 'nước',
+    shortDefinition: 'wai, ka mea inu a me ke kumu ola (water)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Ka wai inu a me ka mea nui no ke ola (Water, the liquid essential for life).',
+        vietnamese: 'Nước. Chất lỏng thiết yếu cho sự sống.',
+        examples: [
+          { source: 'Inu ke keiki i ka wai.', translation: 'Đứa trẻ uống nước.' }
+        ],
+      }
+    ],
+    synonyms: ['ka wai'],
+    antonyms: [],
+    collocations: ['wai inu', 'wai kai'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Local educational fixture based on Hawaiian source-gate research; not a production lexical source.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ʻohana',
+    ipa: '',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Family',
+    vietnamese: 'gia đình',
+    shortDefinition: 'ʻohana, ka ʻohana a me nā pilina pili koko a pili aloha (family)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Nā kānaka pili koko, pili hānai, a pili aloha i loko o kekahi hui ʻohana (Family or close kinship group).',
+        vietnamese: 'Gia đình. Nhóm người có quan hệ huyết thống, nuôi dưỡng hoặc gắn bó thân thiết.',
+        examples: [
+          { source: 'He mea nui ka ʻohana.', translation: 'Gia đình là điều quan trọng.' }
+        ],
+      }
+    ],
+    synonyms: ['ʻohana pili'],
+    antonyms: [],
+    collocations: ['ka ʻohana', 'ʻohana nui'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Local educational fixture based on Hawaiian source-gate research; preserves canonical ʻokina.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ʻōlelo',
+    ipa: '',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Language',
+    vietnamese: 'ngôn ngữ / lời nói',
+    shortDefinition: 'ʻōlelo, ka ʻōlelo a ka poʻe e kamaʻilio ai (language / speech)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Ka ʻōlelo a me nā huaʻōlelo i hoʻohana ʻia e kamaʻilio ai (Language, speech, or words used to communicate).',
+        vietnamese: 'Ngôn ngữ hoặc lời nói. Hệ thống từ ngữ dùng để giao tiếp.',
+        examples: [
+          { source: 'Ke aʻo nei au i ka ʻōlelo Hawaiʻi.', translation: 'Tôi đang học tiếng Hawaii.' }
+        ],
+      }
+    ],
+    synonyms: ['huaʻōlelo'],
+    antonyms: [],
+    collocations: ['ʻōlelo Hawaiʻi', 'huaʻōlelo'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Local educational fixture based on Hawaiian source-gate research; preserves canonical ʻokina and kahakō.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1844,6 +1951,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   yo: yorubaDictionaryEntries,
   zu: zuluDictionaryEntries,
   ig: igboDictionaryEntries,
+  haw: hawaiianDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {
@@ -1862,6 +1970,10 @@ export function findLocalDictionaryEntry(languageCode: string, word: string) {
   if (languageCode === 'ig') {
     const normalizedWord = normalizeIgboWord(word);
     return getLocalDictionaryEntries('ig').find((entry) => normalizeIgboWord(entry.word) === normalizedWord);
+  }
+  if (languageCode === 'haw') {
+    const normalizedWord = normalizeHawaiianWord(word);
+    return getLocalDictionaryEntries('haw').find((entry) => normalizeHawaiianWord(entry.word) === normalizedWord);
   }
   const normalizedWord = normalizeLookupTerm(word);
 
@@ -1898,6 +2010,16 @@ export function normalizeIgboWord(value: string) {
     .normalize('NFC')
     .toLocaleLowerCase()
     .trim();
+}
+
+export function normalizeHawaiianWord(value: string) {
+  return value
+    .trim()
+    .replace(/['‘’`]/g, 'ʻ')
+    .normalize('NFD')
+    .replace(/[\u0304]/g, '')
+    .normalize('NFC')
+    .toLocaleLowerCase();
 }
 
 /**

@@ -818,3 +818,40 @@ describe('Igbo monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('onye');
   });
 });
+
+describe('Hawaiian monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const house = await fetchMonolingualMeaning('hale', 'haw');
+    expect(house.word).toBe('hale');
+    expect(house.definitions[0].meaning).toContain('Kahi e noho ai');
+
+    const water = await fetchMonolingualMeaning('wai', 'haw');
+    expect(water.word).toBe('wai');
+  });
+
+  it('normalizes apostrophe-like input to canonical okina', async () => {
+    const family = await fetchMonolingualMeaning("'ohana", 'haw');
+    expect(family.word).toBe('ʻohana');
+    expect(family.source).toContain("base form of 'ohana");
+
+    const curly = await fetchMonolingualMeaning('’ohana', 'haw');
+    expect(curly.word).toBe('ʻohana');
+  });
+
+  it('looks up kahako-insensitive forms while preserving display', async () => {
+    const speech = await fetchMonolingualMeaning('olelo', 'haw');
+    expect(speech.word).toBe('ʻōlelo');
+
+    const speechWithOkina = await fetchMonolingualMeaning('ʻolelo', 'haw');
+    expect(speechWithOkina.word).toBe('ʻōlelo');
+  });
+
+  it('does not collapse okina away for primary lookup', async () => {
+    await expect(fetchMonolingualMeaning('ohana', 'haw')).rejects.toThrow('No Hawaiian local fixture meanings');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('ʻōlelo', 'haw');
+    expect(related.synonyms).toContain('huaʻōlelo');
+  });
+});

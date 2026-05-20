@@ -50,6 +50,8 @@ import {
     fetchZuluRelatedWords,
     fetchIgboMeaning,
     fetchIgboRelatedWords,
+    fetchHawaiianMeaning,
+    fetchHawaiianRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -235,6 +237,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchIgboMeaning(word),
     fetchRelatedWords: (word: string) => fetchIgboRelatedWords(word),
+  },
+  haw: {
+    key: 'haw',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchHawaiianMeaning(word),
+    fetchRelatedWords: (word: string) => fetchHawaiianRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {

@@ -68,6 +68,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'yo') return getYorubaMorphologyCandidates(input);
   if (languageCode === 'zu') return getZuluMorphologyCandidates(input);
   if (languageCode === 'ig') return getIgboMorphologyCandidates(input);
+  if (languageCode === 'haw') return getHawaiianMorphologyCandidates(input);
 
   return [];
 }
@@ -1344,6 +1345,48 @@ function getIgboMorphologyCandidates(input: string): MorphologyCandidate[] {
         reason: `fixture-backed prefix ${prefix}- stripped`,
       });
     }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 6);
+}
+
+function getHawaiianMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+  if (word.length < 2) return [];
+
+  const okinaNormalized = word.replace(/['‘’`]/g, 'ʻ').toLocaleLowerCase();
+  if (okinaNormalized !== word.toLocaleLowerCase()) {
+    candidates.push({
+      word: okinaNormalized,
+      label: okinaNormalized,
+      reason: 'ʻokina-normalized form',
+    });
+  }
+
+  const kahakoStripped = okinaNormalized
+    .normalize('NFD')
+    .replace(/[\u0304]/g, '')
+    .normalize('NFC');
+
+  if (kahakoStripped !== okinaNormalized) {
+    candidates.push({
+      word: kahakoStripped,
+      label: kahakoStripped,
+      reason: 'kahakō-insensitive form',
+    });
+  }
+
+  const fixtureBackedAliases: Record<string, string> = {
+    olelo: 'ʻolelo',
+  };
+  const fixtureAlias = fixtureBackedAliases[kahakoStripped];
+  if (fixtureAlias) {
+    candidates.push({
+      word: fixtureAlias,
+      label: fixtureAlias,
+      reason: 'fixture-backed ʻokina/kahakō alias',
+    });
   }
 
   return uniqueCandidates(candidates, word).slice(0, 6);

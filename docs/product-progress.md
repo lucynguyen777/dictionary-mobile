@@ -329,12 +329,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Javanese monolingual baseline planning: Research Javanese script, speech registers (Ngoko/Krama), and morphology.
   - [x] DONE [HARD]: Javanese monolingual baseline implementation: Register Javanese adapter, write active/passive morphology fallbacks, using CC BY-SA data.
   - [x] DONE [MEDIUM]: Hawaiian monolingual baseline planning: Research Polynesian morphology, ʻokina/kahakō normalization, and source candidates in `docs/hawaiian-language-plan.md`.
-  - [ ] TODO [MEDIUM]: Hawaiian monolingual baseline implementation: Register Hawaiian adapter, normalize ʻokina variants, add kahakō-aware fixture lookup, and local fixture tests.
+  - [x] DONE [MEDIUM]: Hawaiian monolingual baseline implementation: Register Hawaiian adapter, normalize ʻokina variants, add kahakō-aware fixture lookup, and local fixture tests.
   - Tagalog: focus/voice system and affix-heavy morphology.
   - Javanese/Hawaiian: register or diacritic-sensitive search.
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
   - [ ] TODO [HARD]: Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
   - [ ] TODO [HARD]: Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
+  - [ ] TODO [HARD]: Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
 - [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
@@ -378,9 +379,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [MEDIUM] Hawaiian monolingual baseline implementation: Register Hawaiian adapter, normalize ʻokina variants, add kahakō-aware fixture lookup, and local fixture tests.
-2. [ ] [HARD] Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
-3. [ ] [HARD] Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
+1. [ ] [HARD] Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
+2. [ ] [HARD] Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
+3. [ ] [HARD] Kannada monolingual baseline planning: Research Kannada script, agglutinative morphology, transliteration, and source candidates.
 
 
 
