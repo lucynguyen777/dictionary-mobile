@@ -20,11 +20,12 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 - Bulk Wiktionary crawl tooling with resumable sample headword runs and ignored runtime cache/log output.
 - Zulu monolingual baseline is implemented with local fixtures, noun class prefix fallbacks, and locative fixture fallback coverage.
 - Igbo monolingual baseline is implemented with local fixtures, tone-insensitive underdot-preserving lookup, and fixture tests.
+- Hawaiian monolingual baseline planning is documented with ʻokina/kahakō normalization and source gates.
 
 ## Current Queue Notes
 `docs/product-progress.md` is the canonical Next Work Queue. The repository currently lists these active queue items (kept to five or fewer):
 
-1. [ ] Hawaiian monolingual baseline planning — research Polynesian morphology, macron/okina normalization, and source candidates.
+1. [ ] Hawaiian monolingual baseline implementation — register `haw`, normalize ʻokina variants, add kahakō-aware fixture lookup, and local fixture tests.
 2. [ ] Tamil monolingual baseline planning — research Tamil script, agglutinative morphology, transliteration, and source candidates.
 3. [ ] Telugu monolingual baseline planning — research Telugu script, agglutinative morphology, transliteration, and source candidates.
 
