@@ -5,6 +5,7 @@ Use this before committing, after implementing a task, when verifying local chan
 
 ## Context to read first
 - `.ai/agents/verifier.md`
+- `.ai/skills/app-feature-testing.md` when a user-facing feature changed
 - `.ai/prompts/verify-before-commit.md`
 - `.ai/prompts/write-pr-summary.md`
 - `git status --short`
@@ -22,9 +23,15 @@ Use this before committing, after implementing a task, when verifying local chan
    - `npx tsc --noEmit`
    - `npm run lint`
    - `npm test` when behavior, parser, adapter, store, or data logic changed
-5. Check that `docs/product-progress.md` matches the verified result.
-6. Fix in-scope failures or report out-of-scope failures.
-7. Commit only intended files with a concise imperative message when asked to commit.
+5. For user-facing features, run the app-testing scope from `.ai/skills/app-feature-testing.md`:
+   - functional flow, interruption handling, and data integrity
+   - UI/UX layout, display, and usability
+   - performance basics for load, network, and offline behavior
+   - compatibility on Expo web plus target native platform or documented browser/device coverage
+6. Use browser testing and temporary screenshots when helpful; keep them under `tmp/app-testing/` and out of commits.
+7. Check that `docs/product-progress.md` matches the verified result.
+8. Fix in-scope failures or report out-of-scope failures.
+9. Commit only intended files with a concise imperative message when asked to commit.
 
 ## Rules
 - Do not revert user changes.
@@ -36,6 +43,7 @@ Use this before committing, after implementing a task, when verifying local chan
 ## Output
 - Changed files.
 - Verification commands and outcomes.
+- App-testing coverage and temporary screenshot paths, when applicable.
 - Checklist consistency result.
 - Remaining risks.
 - Commit readiness decision.

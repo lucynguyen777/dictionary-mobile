@@ -45,3 +45,6 @@ app-example
 # runtime wiktionary caches and bulk run logs
 data/wiktionary-cache/
 data/wiktionary-bulk-runs/
+
+# temporary app-testing screenshots and browser artifacts
+tmp/app-testing/

@@ -10,6 +10,7 @@ Validate that a completed implementation matches its task brief, does not introd
 - `package.json`
 - relevant tests in `tests/`
 - `.ai/skills/verification-and-commit.md`
+- `.ai/skills/app-feature-testing.md` for user-facing feature changes
 
 ## Required Checks
 1. Inspect `git status --short`.
@@ -18,7 +19,9 @@ Validate that a completed implementation matches its task brief, does not introd
    - `npx tsc --noEmit`
    - `npm run lint`
 4. Run `npm test` when data logic, parser logic, adapters, stores, or behavior covered by tests changed.
-5. Perform a checklist review against the task acceptance criteria.
+5. For user-facing changes, run app testing that covers the relevant functional, UI/UX, performance, and compatibility areas.
+6. Use Expo web/browser testing and short-term screenshots under `tmp/app-testing/` when visual comparison or responsive checks are needed.
+7. Perform a checklist review against the task acceptance criteria.
 
 ## Report Template
 ```md
@@ -31,6 +34,8 @@ Failed checks:
 Changed files:
 
 Acceptance criteria review:
+
+App testing evidence:
 
 Risks or manual checks:
 

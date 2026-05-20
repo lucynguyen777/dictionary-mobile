@@ -6,6 +6,7 @@ Use this before creating a commit or when the user asks whether the current work
 ## Context to read first
 - `.ai/agents/verifier.md`
 - `.ai/skills/verification-and-commit.md`
+- `.ai/skills/app-feature-testing.md` when a user-facing feature changed
 - `git status --short`
 - changed files and diff
 - `docs/product-progress.md`
@@ -18,6 +19,8 @@ Verify the current working tree, check checklist consistency, and decide whether
 - Run `npx tsc --noEmit`.
 - Run `npm run lint`.
 - Run `npm test` when data logic, parser logic, adapters, stores, or tested behavior changed.
+- For user-facing features, verify functional flow, interruption handling, data integrity, UI/UX, performance basics, and compatibility coverage.
+- Browser testing and temporary screenshots under `tmp/app-testing/` are allowed for Expo web smoke and visual comparison.
 - Check that `docs/product-progress.md` matches the code.
 - Confirm `Next Work Queue` remains valid.
 - Identify unrelated changes and risky files.
@@ -26,6 +29,7 @@ Verify the current working tree, check checklist consistency, and decide whether
 ## Output
 - Changed files.
 - Verification results.
+- App-testing evidence when applicable.
 - Checklist consistency result.
 - Unresolved risks.
 - Suggested commit message.

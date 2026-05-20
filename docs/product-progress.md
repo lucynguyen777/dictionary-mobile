@@ -355,6 +355,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Finnish monolingual baseline implementation: Register the Finnish adapter, add tiny test fixtures under the CC BY-SA license from the community Finnish Wiktionary (`fiwiktionary`), and write morphology fallback rules for noun/verb case endings.
   - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
   - [x] DONE [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
+  - [ ] TODO [HARD]: Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
@@ -380,7 +381,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Choose legal structured resource for etymology via accepted decision in `.docs/decisions/etymology-conjugation-source.md` (Option 1: Wiktionary-derived live data with attribution).
 - [x] DONE [HARD]: Choose reliable resource for conjugation via accepted decision in `.docs/decisions/etymology-conjugation-source.md` (Option 2: UniMorph for structured paradigm exploration).
 - [x] DONE [HARD]: Etymology/conjugation source option selection accepted by product owner in `.docs/decisions/etymology-conjugation-source.md`; implementation remains subject to attribution and offline licensing constraints.
-- [~] IN PROGRESS [HARD]: Etymology source integration slice (Wiktionary-derived attribution): define adapter contract, UI attribution behavior, and missing-source fallback coverage before enabling production data path.
+- [x] DONE [HARD]: Etymology source integration slice (Wiktionary-derived attribution): adapter contract, UI attribution behavior, and missing-source fallback coverage are implemented before enabling production data path. Verification: `npm test -- --run tests/etymologyAdapter.test.ts`, `npm test -- --run`, `npx tsc --noEmit`, `npm run lint`, and Expo web HTTP smoke for `/word`.
 - [!] BLOCKED [HARD]: Production etymology and conjugation should not be mocked without a real resource.
 
 ### AI
@@ -388,9 +389,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Etymology source integration slice: define adapter contract, attribution UI behavior, and missing-source fallback tests for Wiktionary-derived data.
-2. [ ] [HARD] Offline dictionary MVP (Phase 1): design SQLite schema, extract/compress single-language Kaikki pack, and implement attribution UI.
-3. [ ] [HARD] Voice Search / OCR implementation Phase 1: add permission flow + speech-to-text prototype + OCR image extraction prototype.
+1. [ ] [HARD] Offline dictionary MVP (Phase 1): design SQLite schema, extract/compress single-language Kaikki pack, and implement attribution UI.
+2. [ ] [HARD] Voice Search / OCR implementation Phase 1: add permission flow + speech-to-text prototype + OCR image extraction prototype.
+3. [ ] [HARD] Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications.
 
 
 

@@ -2,6 +2,8 @@
 
 Detailed human-facing QA, unit test, build, and release guidance lives in `docs/testing-and-build-guide.md`.
 
+Use `.ai/skills/app-feature-testing.md` for post-feature app testing on user-facing work.
+
 ## Required For Code Changes
 Run:
 
@@ -24,6 +26,15 @@ This applies when changing:
 - `data/dictionaryApi.ts`
 - stores in `data/*Store.ts`
 - behavior covered by `tests/`
+
+## Required When A User-Facing Feature Changes
+Also perform the smallest practical app test that covers:
+- functional app flow, interruption handling, and data integrity
+- UI/UX layout, display, and usability
+- performance basics for loading, repeated actions, network, and offline assumptions
+- compatibility across Expo web plus target native platform or documented browser/device viewports
+
+Browser-based Expo web testing is allowed. Temporary screenshots may be saved under `tmp/app-testing/<task-or-date>/` for short-term visual comparison, but must not be committed unless explicitly requested as fixtures.
 
 ## Documentation-Only Changes
 For `.ai`, `docs`, or markdown-only edits, prefer:

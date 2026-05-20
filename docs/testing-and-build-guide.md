@@ -7,7 +7,8 @@ This is the human-facing QA guide for Dictionary Mobile. Use it with `docs/produ
 | Change type | Required automated checks | Focused checks |
 | --- | --- | --- |
 | Documentation only | `npx tsc --noEmit`, `npm run lint` unless blocked | `git diff --check`, link/command review |
-| UI or copy | `npx tsc --noEmit`, `npm run lint` | Manual mobile and Expo web smoke for touched screens |
+| UI or copy | `npx tsc --noEmit`, `npm run lint` | Manual mobile and Expo web smoke for touched screens, screenshots when layout comparison helps |
+| User-facing feature flow | `npx tsc --noEmit`, `npm run lint`, focused tests when available | Functional flow, interruption, data integrity, UI/UX, performance, compatibility smoke |
 | Data stores or local persistence | `npx tsc --noEmit`, `npm run lint`, `npm test -- --run` | Relevant store test, reset/export/import path if changed |
 | Dictionary adapter or language metadata | `npx tsc --noEmit`, `npm run lint`, `npm test -- --run` | `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, normalization tests when applicable |
 | Import/export parser | `npx tsc --noEmit`, `npm run lint`, `npm test -- --run` | Parser fixture tests and destination folder/export smoke |
@@ -15,6 +16,41 @@ This is the human-facing QA guide for Dictionary Mobile. Use it with `docs/produ
 | Profile/privacy/security UI | `npx tsc --noEmit`, `npm run lint`, `npm test -- --run` when store behavior changes | Profile store tests and local reset/export smoke |
 
 Run focused tests first when a focused suite exists. Run the full suite before marking a shared behavior, parser, adapter, or store task as DONE.
+
+## Post-Feature App Testing
+
+After a new feature is built, choose the smallest practical app-testing scope that proves the feature works. Use `.ai/skills/app-feature-testing.md` for agent-facing workflow details.
+
+### Functional Testing
+- Validate the full app flow: entry point, navigation, success path, failure path, cancel/back behavior, and return-to-screen state.
+- Check interruption handling where relevant: reload, tab switch, modal close, cancelled picker/share action, temporary offline mode, or retry after an error.
+- Confirm data integrity after create, update, delete, import, export, reset, reload, and any persistence-sensitive action touched by the feature.
+- Confirm local-first behavior is preserved unless an accepted decision explicitly changes it.
+
+### UI/UX Testing
+- Check layout and display on a narrow mobile viewport and an Expo web desktop viewport when practical.
+- Confirm long text, Vietnamese copy, buttons, toolbars, tab bars, modals, and fixed actions do not overlap or clip.
+- Validate usability basics: primary action is discoverable, destructive action needs confirmation, disabled states are visible, and blocked features do not look production-ready.
+- Check loading, empty, success, error, disabled, and destructive-confirmation states touched by the feature.
+
+### Performance Testing
+- Watch screen load time, feature action latency, and repeated interaction responsiveness.
+- Confirm loading indicators appear for slow operations and controls do not feel stuck.
+- Test network and offline assumptions when a feature reads remote, cached, imported, or file-backed data.
+- Do not make live network services mandatory for routine verification unless the task explicitly requires them.
+
+### Compatibility Testing
+- Cover Expo web plus the target native platform when tooling is available.
+- For browser testing, cover one narrow mobile viewport and one desktop viewport.
+- For native-sensitive behavior, state whether testing used Expo Go, Android emulator, iOS simulator, or a development build.
+- Do not claim native compatibility from Expo web evidence alone.
+
+### Browser And Screenshot Evidence
+- Browser-based testing is allowed for Expo web smoke checks, responsive checks, app-flow verification, and visual comparison.
+- Temporary screenshots may be saved under `tmp/app-testing/<task-or-date>/` while testing.
+- Use descriptive screenshot names, for example `word-mobile-empty.png`, `reader-desktop-loaded.png`, or `library-after-import.png`.
+- Screenshots and browser artifacts are short-term evidence and must not be committed unless a task explicitly asks for fixture assets.
+- Report screenshot paths in the verification summary only when they remain useful for handoff or comparison.
 
 ## Unit Test Guide
 

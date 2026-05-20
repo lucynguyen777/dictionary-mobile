@@ -19,6 +19,11 @@ import {
   fetchVietnameseSuggestions,
   isBlockedBilingualDictionaryPair,
 } from '@/data/dictionaryApi';
+import {
+  buildLocalFixtureFallback,
+  formatEtymologyWithAttribution,
+  resolveEtymologyDisplay,
+} from '@/data/etymologyAdapter';
 import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair, languageOptions } from '@/data/languages';
 import {
   LibraryState,
@@ -547,14 +552,24 @@ function LookupLanguageSelect({
   );
 }
 
-function buildSourceAttributionNote(
+function getEtymologyForEntry(
+  localEntry: DictionaryEntry | undefined,
   apiMeaning: ApiMeaningResult | null,
-  apiBilingualMeaning: ApiBilingualMeaningResult | null
-) {
-  const source = apiBilingualMeaning?.source || apiMeaning?.source;
-  if (!source) return 'Source attribution: unavailable (fallback mode).';
-
-  return `Source attribution: ${source}.`;
+  canUseSourceDictionaryApi: boolean,
+  isBilingualLookup: boolean,
+  sourceLanguageLabel: string,
+  targetLanguageLabel: string
+): string {
+  return formatEtymologyWithAttribution(
+    resolveEtymologyDisplay({
+      localEtymology: localEntry?.etymology,
+      sourceLanguageLabel,
+      targetLanguageLabel,
+      isBilingualLookup,
+      hasConfiguredSource: canUseSourceDictionaryApi,
+      sourceName: getEtymologySourceName(apiMeaning, sourceLanguageLabel),
+    })
+  );
 }
 
 function mergeLookupEntry(
@@ -615,9 +630,14 @@ function mergeLookupEntry(
       collocations: hasLocalEntry ? fallbackEntry.collocations : [],
       idioms: hasLocalEntry ? fallbackEntry.idioms : [],
       conjugation: hasLocalEntry ? fallbackEntry.conjugation : [],
-      etymology: hasLocalEntry
-        ? fallbackEntry.etymology
-        : `Etymology is available for monolingual entries only. ${buildSourceAttributionNote(apiMeaning, apiBilingualMeaning)}`,
+      etymology: getEtymologyForEntry(
+        localEntry,
+        apiMeaning,
+        canUseSourceDictionaryApi,
+        true,
+        sourceLanguageLabel,
+        targetLanguageLabel
+      ),
       pronunciationTips: hasLocalEntry ? fallbackEntry.pronunciationTips : [],
     };
   }
@@ -650,7 +670,14 @@ function mergeLookupEntry(
       collocations: [],
       idioms: [],
       conjugation: [],
-      etymology: `Etymology needs a selected production resource for non-seed words. ${buildSourceAttributionNote(apiMeaning, apiBilingualMeaning)}`,
+      etymology: getEtymologyForEntry(
+        undefined,
+        apiMeaning,
+        canUseSourceDictionaryApi,
+        false,
+        sourceLanguageLabel,
+        targetLanguageLabel
+      ),
       pronunciationTips: [],
     };
   }
@@ -670,6 +697,15 @@ function mergeLookupEntry(
 
 function getRouteParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function getEtymologySourceName(apiMeaning: ApiMeaningResult | null, sourceLanguageLabel: string) {
+  const sourceName = apiMeaning?.source.split(' · ')[0];
+  if (sourceName?.toLocaleLowerCase().includes('wiktionary')) {
+    return sourceName;
+  }
+
+  return `${sourceLanguageLabel} Wiktionary`;
 }
 
 function getBilingualDictionaryUnavailableMessage(sourceLanguage: LanguageOption, targetLanguage: LanguageOption) {
@@ -714,7 +750,7 @@ function createDictionaryUnavailableEntry(
     collocations: [],
     idioms: [],
     conjugation: [],
-    etymology: 'Trong MVP này, etymology chỉ có cho một số mục từ tiếng Anh. Source attribution: unavailable (fallback mode).',
+    etymology: formatEtymologyWithAttribution(buildLocalFixtureFallback()),
     pronunciationTips: [],
   };
 }

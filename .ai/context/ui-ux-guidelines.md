@@ -13,6 +13,8 @@ Must work on:
 - portrait mobile
 - Expo web
 
+For changed user-facing screens, verify the layout with app testing from `.ai/skills/app-feature-testing.md`. Browser-based Expo web checks and temporary screenshots under `tmp/app-testing/` are allowed when they help compare mobile and desktop states.
+
 Avoid:
 - toolbar/menu/FAB overlap
 - text overflow

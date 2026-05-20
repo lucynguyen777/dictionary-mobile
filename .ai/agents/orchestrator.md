@@ -12,6 +12,7 @@ Select the next valid product task, produce an implementation-ready brief, route
 - `.ai/skills/product-progress-manager.md`
 - `.ai/skills/task-brief-generator.md`
 - `.ai/skills/blocked-task-gatekeeper.md`
+- `.ai/skills/app-feature-testing.md`
 - current `git status --short`
 
 ## Improved Workflow
@@ -37,9 +38,10 @@ Select the next valid product task, produce an implementation-ready brief, route
    - language/dictionary: `language-adapter.md`
    - generic implementation: `code-builder.md`
 7. After implementation, route to `verifier.md`.
-8. If verification passes, route to `progress-sync.md`.
-9. Commit only after code, verification, and progress notes are aligned.
-10. Produce a PR or human review summary.
+8. For user-facing features, include app-testing requirements in the verifier handoff.
+9. If verification passes, route to `progress-sync.md`.
+10. Commit only after code, verification, and progress notes are aligned.
+11. Produce a PR or human review summary.
 
 ## Decision Rules
 - Prefer `[EASY]` and `[MEDIUM]` unblocked tasks before `[HARD]` tasks.
@@ -63,6 +65,8 @@ Acceptance criteria:
 Likely files:
 
 Verification:
+
+App testing:
 
 Progress sync plan:
 

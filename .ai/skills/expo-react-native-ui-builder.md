@@ -5,6 +5,7 @@ Use this when building or polishing screens, tabs, controls, forms, menus, empty
 
 ## Context to read first
 - `.ai/agents/ui-polish.md`
+- `.ai/skills/app-feature-testing.md` when validating finished UI behavior
 - `docs/product-progress.md`
 - target route in `app/`
 - shared components in `components/app`, `components/ui`, and feature folders
@@ -19,6 +20,7 @@ Use this when building or polishing screens, tabs, controls, forms, menus, empty
 5. Keep copy concise and consistent with surrounding Vietnamese UI.
 6. Use local state or existing stores for UI behavior.
 7. Run typecheck and lint after code edits.
+8. For user-facing changes, run or request app testing for functional flow, UI/UX, performance basics, and compatibility coverage.
 
 ## Rules
 - Do not add new dependencies without a strong reason.
@@ -32,6 +34,7 @@ Use this when building or polishing screens, tabs, controls, forms, menus, empty
 - Changed files.
 - States handled: empty, loading, error, disabled, destructive.
 - Mobile/web layout notes.
+- App-testing coverage and screenshot paths when used.
 - Verification results or skipped-check reason.
 
 ## Stop conditions

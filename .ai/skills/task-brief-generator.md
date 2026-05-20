@@ -17,7 +17,7 @@ Use this when turning a product queue item, bug, vague feature request, or user-
 3. Name the correct specialist agent and supporting skill.
 4. List files to inspect first.
 5. Define acceptance criteria as observable behavior.
-6. Name verification commands and manual smoke checks.
+6. Name verification commands, focused tests, and app-testing smoke checks.
 7. Call out blocked decisions before implementation begins.
 8. Keep the brief short enough to paste into an agent prompt.
 
@@ -36,6 +36,7 @@ Context:
 Likely files:
 Acceptance criteria:
 Verification:
+App testing:
 Blocked or out of scope:
 Stop conditions:
 ```

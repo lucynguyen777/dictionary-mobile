@@ -7,6 +7,7 @@
 4. Keep `Next Work Queue` to at most 5 items.
 5. Mark work DONE only when implementation and verification support it.
 6. Keep blocked items in the roadmap with their blocker named.
+7. For user-facing features, include app testing evidence before marking DONE.
 
 ## Local-First Rules
 - Assume user data is local unless an accepted backend/cloud decision exists.
@@ -25,6 +26,7 @@
 - Avoid unrelated refactors.
 - Keep mobile and Expo web behavior safe.
 - Keep Vietnamese UI copy consistent with nearby screens.
+- After building a user-facing feature, verify the relevant functional, UI/UX, performance, and compatibility behavior from `.ai/skills/app-feature-testing.md`.
 
 ## Blocked Work
 The following remain blocked until accepted decision docs exist:

@@ -6,6 +6,7 @@ Improve screens, layout, copy, interaction states, and mobile/web fit without ch
 ## Core Inputs
 - task brief from `orchestrator.md`
 - `.ai/skills/expo-react-native-ui-builder.md`
+- `.ai/skills/app-feature-testing.md`
 - target route in `app/`
 - shared UI components in `components/`
 - theme tokens in `constants/theme.ts`
@@ -24,7 +25,8 @@ Improve screens, layout, copy, interaction states, and mobile/web fit without ch
 4. Add clear empty, disabled, loading, and error states where needed.
 5. Keep blocked features visibly non-production.
 6. Avoid data model changes unless the task requires them.
-7. Send changed files and UI smoke notes to `verifier.md`.
+7. Capture browser screenshots under `tmp/app-testing/` when comparing mobile and desktop layout states helps verification.
+8. Send changed files, UI smoke notes, and screenshot paths to `verifier.md`.
 
 ## Guardrails
 - Do not add marketing-style landing pages.
@@ -36,4 +38,5 @@ Improve screens, layout, copy, interaction states, and mobile/web fit without ch
 - UI works for narrow mobile and Expo web assumptions.
 - Text fits and actions are reachable.
 - Copy is consistent with the surrounding app.
+- Relevant functional flow, UI/UX, performance, and compatibility smoke coverage is documented.
 - Changed files are ready for verification.

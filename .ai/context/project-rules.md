@@ -13,3 +13,4 @@ Use `.ai/context/product-rules.md` as the canonical rules file.
    - `npx tsc --noEmit`
    - `npm run lint`
 6. Run `npm test` when data logic, parser logic, adapters, stores, or covered behavior changed.
+7. Run app testing from `.ai/skills/app-feature-testing.md` when a user-facing feature changed.

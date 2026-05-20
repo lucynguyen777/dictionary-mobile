@@ -9,6 +9,7 @@ Use this when the user provides one specific roadmap task, bug, or feature reque
 - `.ai/agents/code-builder.md`
 - `.ai/skills/task-brief-generator.md`
 - `.ai/skills/blocked-task-gatekeeper.md`
+- `.ai/skills/app-feature-testing.md` for user-facing feature verification
 - files related to the requested feature
 - existing components before creating new ones
 
@@ -24,11 +25,13 @@ Implement the requested task in the smallest complete slice that satisfies its a
 - Avoid broad unrelated refactors.
 - Do not modify unrelated checklist sections.
 - Do not mark DONE unless the implementation is real and verified.
+- For user-facing work, include app-testing coverage or a clear skipped-check reason in the result.
 
 ## Output
 - Implementation summary.
 - Changed files.
 - Verification result.
+- App-testing coverage when applicable.
 - Product progress update.
 - Suggested commit message.
 

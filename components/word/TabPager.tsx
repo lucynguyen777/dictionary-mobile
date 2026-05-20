@@ -649,8 +649,8 @@ function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
   return (
     <View>
       <PreviewNotice
-        title="Sắp hỗ trợ"
-        text="Etymology cần nguồn dữ liệu có cấu trúc và hợp pháp. Phần dưới hiện chỉ là preview local nếu có."
+        title="Nguồn đang kiểm thử"
+        text="Etymology dùng nguồn Wiktionary-derived khi có dữ liệu hợp lệ; preview local và fallback luôn ghi rõ attribution."
       />
       <Text style={styles.heading}>Nguồn gốc</Text>
       {entry.etymology ? <Text style={styles.body}>{entry.etymology}</Text> : <EmptyState text="Chưa có dữ liệu etymology local cho từ này." />}
