@@ -21,6 +21,7 @@ import { studyStats } from '@/data/dictionary';
 import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
+import { formatPackSizeRange, formatPackStatus, getOfflinePackSummary, offlineDictionaryPacks } from '@/data/offlineDictionaryPacks';
 import {
     LoginMethod,
     NotificationPreferences,
@@ -198,6 +199,7 @@ export default function ProfileScreen() {
 
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
   const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
+  const offlinePackSummary = getOfflinePackSummary();
   const avatarUri = profile.avatarUrl || defaultAvatarUri;
   const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
 
@@ -391,6 +393,39 @@ export default function ProfileScreen() {
             <Ionicons name="trash-outline" size={16} color="#DC2626" />
             <Text style={styles.clearDataText}>Xóa tất cả dữ liệu</Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Gói từ điển offline</Text>
+          <Text style={styles.cardSubtitle}>
+            Phase 1 đang chuẩn bị pack đơn ngôn ngữ tùy chọn. Online lookup vẫn là mặc định cho đến khi runtime SQLite và tải pack được bật.
+          </Text>
+          <View style={styles.offlinePackSummaryRow}>
+            <DataStat label="Gói" value={offlinePackSummary.packCount} />
+            <DataStat label="Builder" value={offlinePackSummary.builderReadyCount} />
+            <DataStat label="Runtime" value={offlinePackSummary.runtimePendingCount} />
+          </View>
+          {offlineDictionaryPacks.map((pack) => {
+            const language = languageOptions.find((item) => item.code === pack.languageCode);
+
+            return (
+              <View key={pack.id} style={styles.offlinePackRow}>
+                <View style={styles.securityCopy}>
+                  <Text style={styles.securityTitle}>{language?.label ?? pack.languageCode}</Text>
+                  <Text style={styles.securityText}>
+                    {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
+                  </Text>
+                </View>
+                <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
+              </View>
+            );
+          })}
+          <View style={styles.privacyNote}>
+            <Ionicons name="information-circle-outline" size={18} color="#2563EB" />
+            <Text style={styles.privacyText}>
+              Chưa tải dữ liệu offline trong bản này. Pack sẽ cần xác nhận dung lượng, attribution và license trước khi bật.
+            </Text>
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -1369,6 +1404,32 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
     marginTop: 12,
+  },
+  offlinePackSummaryRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  offlinePackRow: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+    padding: 10,
+  },
+  offlinePackStatus: {
+    backgroundColor: '#EEF2FF',
+    borderRadius: 999,
+    color: '#3730A3',
+    flexShrink: 0,
+    fontSize: 11,
+    fontWeight: '900',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
   },
   dataStat: {
     backgroundColor: '#F8FAFC',

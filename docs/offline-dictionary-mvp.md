@@ -95,6 +95,17 @@ Before enabling offline packs, the app must expose:
 
 The Phase 1 UI only adds source acknowledgement copy. Pack download and storage management remain future work.
 
+## Pack Status Shell
+
+`data/offlineDictionaryPacks.ts` tracks planned pack metadata for UI and tests without claiming that offline lookup is enabled. Profile shows:
+
+- planned pack count;
+- builder-ready count;
+- runtime-enabled count, currently `0`;
+- language, source, size estimate, license, and status.
+
+Runtime SQLite import, download progress, deletion, version checks, and per-entry offline lookup remain future work.
+
 ## Verification
 
 For Phase 1 changes:
@@ -102,6 +113,7 @@ For Phase 1 changes:
 ```bash
 node scripts/build-offline-pack.mjs --input <jsonl> --lang <lang> --source <source> --out tmp/offline-packs/<name>
 npm test -- --run tests/offlinePackBuilder.test.ts
+npm test -- --run tests/offlineDictionaryPacks.test.ts
 npx tsc --noEmit
 npm run lint
 npm test -- --run
