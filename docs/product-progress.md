@@ -315,7 +315,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Yoruba monolingual baseline implementation: Register Yoruba adapter and write tone-insensitive morphology lookup logic, using CC BY-SA data.
   - [x] DONE [MEDIUM]: Zulu monolingual baseline planning: Research noun class prefixes, locative markers, Latin orthography, and adapter fixture gates in `docs/zulu-language-plan.md`.
   - [x] DONE [MEDIUM]: Zulu monolingual baseline implementation: Register Zulu adapter, write noun class prefix lookup fallbacks, and add local fixture tests using CC BY-SA data.
-  - [ ] TODO [MEDIUM]: Igbo monolingual baseline planning: Research tone marks, underdot orthography, vowel harmony, and source candidates.
+  - [x] DONE [MEDIUM]: Igbo monolingual baseline planning: Research tone marks, underdot orthography, vowel harmony, and source candidates in `docs/igbo-language-plan.md`.
+  - [ ] TODO [MEDIUM]: Igbo monolingual baseline implementation: Register Igbo adapter, add tone-insensitive underdot-preserving lookup, and local fixture tests using verified source data.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
@@ -372,7 +373,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [MEDIUM] Igbo monolingual baseline planning: Research tone marks, underdot orthography, vowel harmony, and source candidates.
+1. [ ] [MEDIUM] Igbo monolingual baseline implementation: Register Igbo adapter, add tone-insensitive underdot-preserving lookup, and local fixture tests using verified source data.
 2. [ ] [MEDIUM] Hawaiian monolingual baseline planning: Research Polynesian morphology, macron/okina normalization, and source candidates.
 3. [ ] [HARD] Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
 

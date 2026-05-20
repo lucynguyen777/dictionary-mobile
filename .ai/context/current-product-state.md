@@ -19,11 +19,12 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 - Local notification preferences persisted in the profile store with privacy sidebar controls for daily reminders, review reminders, weekly summaries, and reminder time.
 - Bulk Wiktionary crawl tooling with resumable sample headword runs and ignored runtime cache/log output.
 - Zulu monolingual baseline is implemented with local fixtures, noun class prefix fallbacks, and locative fixture fallback coverage.
+- Igbo monolingual baseline planning is documented with tone, underdot, vowel harmony, and source gates.
 
 ## Current Queue Notes
 `docs/product-progress.md` is the canonical Next Work Queue. The repository currently lists these active queue items (kept to five or fewer):
 
-1. [ ] Igbo monolingual baseline planning — research tone marks, underdot orthography, vowel harmony, and source candidates.
+1. [ ] Igbo monolingual baseline implementation — register `ig`, add tone-insensitive underdot-preserving lookup, and local fixture tests using verified source data.
 2. [ ] Hawaiian monolingual baseline planning — research Polynesian morphology, macron/okina normalization, and source candidates.
 3. [ ] Tamil monolingual baseline planning — research Tamil script, agglutinative morphology, transliteration, and source candidates.
 
