@@ -120,7 +120,7 @@ How to treat them:
 
 ## Optional UI Artifact Workflow
 
-Use this workflow for visual redesigns, high-risk layout changes, branch-to-branch UI comparisons, or tasks that explicitly ask for screenshot/video/trace evidence. It is optional until the repo has committed E2E tooling.
+Use this workflow for visual redesigns, high-risk layout changes, branch-to-branch UI comparisons, or tasks that explicitly ask for screenshot/video/trace evidence. Dictionary Mobile has Playwright configured for Expo Web artifact capture. Native Maestro coverage has a committed flow template but still requires a runnable native app and `MAESTRO_APP_ID`.
 
 ### Expo Web With Playwright
 
@@ -133,11 +133,16 @@ Use Playwright when the task needs:
 - DOM/HTML and visible-text snapshots for web-rendered layout debugging
 - repeatable responsive checks on a narrow mobile browser viewport and a desktop viewport
 
-Do not treat Playwright as installed unless `package.json`, `playwright.config.*`, and the relevant `e2e/` tests exist. A future E2E setup task may add commands such as:
+Playwright is configured through `playwright.config.mjs` and `e2e/word-detail.spec.js`. Install browser binaries in a fresh environment before the first run:
 
 ```bash
-npm install -D @playwright/test
 npx playwright install chromium
+npx playwright install-deps chromium # Linux containers only when browser deps are missing
+```
+
+Available commands:
+
+```bash
 npm run test:e2e
 npm run test:e2e:headed
 npm run test:e2e:report
@@ -175,7 +180,14 @@ Native app tests do not have an HTML DOM. Collect native evidence instead:
 - simulator/device logs
 - platform, OS version, device profile, and Expo Go versus development-build notes
 
-Maestro is the preferred lightweight future option for Expo native smoke flows. Detox can be considered later when the project needs deeper React Native synchronization or heavier CI integration. Do not add either tool during unrelated feature work.
+Maestro is the preferred lightweight native smoke option for this project. A template flow lives in `.maestro/word-detail.yml` and expects a native app id:
+
+```bash
+export MAESTRO_APP_ID=<ios-or-android-app-id>
+npm run test:native:maestro
+```
+
+Use the Maestro flow only after the app is installed on a simulator/device or Expo Go/development-build app id has been confirmed. Detox can be considered later when the project needs deeper React Native synchronization or heavier CI integration.
 
 ### Security And Privacy
 
@@ -328,6 +340,21 @@ Run focused tests:
 ```bash
 npm test -- --run tests/dictionaryApi.test.ts
 npm test -- --run tests/readerImport.test.ts
+```
+
+Run Expo Web E2E artifact tests:
+
+```bash
+npm run test:e2e
+npm run test:e2e:headed
+npm run test:e2e:report
+```
+
+Run native Maestro smoke after setting the target app id and installing the app on a simulator/device:
+
+```bash
+export MAESTRO_APP_ID=<ios-or-android-app-id>
+npm run test:native:maestro
 ```
 
 Known caveats:

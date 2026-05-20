@@ -1,0 +1,7 @@
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp
+- assertVisible: "articulate"
+- assertVisible: "Meaning"
+- assertVisible: "Synonyms"
+- assertVisible: "Etymology"
