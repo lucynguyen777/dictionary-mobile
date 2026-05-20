@@ -5,6 +5,8 @@ Use this after building a new feature or changing a user-facing flow, before mar
 
 Trigger this skill for changes that touch navigation, screens, forms, local data, import/export, reader flows, dictionary lookup, profile/privacy, loading/error states, network/offline assumptions, or responsive layout.
 
+For language adapter, dictionary lookup, local fixture, or morphology changes, use the offline language-testing workflow in `docs/testing-and-build-guide.md`.
+
 ## Context to read first
 - `docs/testing-and-build-guide.md`
 - `.ai/context/verification-rules.md`
@@ -34,6 +36,7 @@ Trigger this skill for changes that touch navigation, screens, forms, local data
 - Validate app flow through navigation, back/cancel behavior, and return-to-screen state.
 - Test interruption handling such as reload, tab switch, modal close, cancelled picker/share action, or temporary offline mode when relevant.
 - Confirm data integrity after create, update, delete, reload, reset, import, export, or migration-sensitive actions.
+- For dictionary language features, verify exact lookup, morphology fallback, missing result behavior, and related-word behavior through offline Vitest fixtures.
 
 ### UI/UX
 - Check layout and display on a narrow mobile viewport and Expo web desktop when practical.
@@ -56,6 +59,7 @@ Trigger this skill for changes that touch navigation, screens, forms, local data
 ## Browser And Screenshot Rules
 - Browser-based testing is allowed for Expo web smoke checks, responsive checks, and state screenshots.
 - Temporary screenshots may be saved under `tmp/app-testing/<task-or-date>/` for short-term comparison during the test session.
+- DOM/media snapshots from browser tools are temporary testing artifacts only. Treat files such as `dom_*.txt`, `.tempmediaStorage/*`, screenshots, and traces as non-source evidence unless explicitly promoted into repo fixtures.
 - Keep screenshot names descriptive, for example `word-mobile-empty.png` or `library-desktop-after-import.png`.
 - Do not commit screenshots or browser artifacts unless a task explicitly asks for fixture assets.
 - Clean up or leave a clear note about any temporary screenshots that remain useful for handoff.

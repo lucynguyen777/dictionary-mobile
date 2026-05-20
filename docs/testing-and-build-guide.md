@@ -2,11 +2,53 @@
 
 This is the human-facing QA guide for Dictionary Mobile. Use it with `docs/product-progress.md` before marking roadmap work done. The short agent-facing rules remain in `.ai/context/verification-rules.md`.
 
+## Testing Strategy
+
+Dictionary Mobile uses an offline-first verification strategy. Routine checks should prefer deterministic local fixtures, TypeScript contracts, and Vitest suites over live network calls or device-only state. Browser and native smoke tests are used to confirm user-facing behavior after the stable offline checks pass.
+
+Testing layers:
+
+1. Static checks: whitespace, TypeScript, and lint.
+2. Focused offline tests: run the closest Vitest suite for the changed behavior.
+3. Full offline suite: run before marking shared data, parser, adapter, or store behavior DONE.
+4. App smoke: use Expo web or the target native platform when UI, navigation, file picking, sharing, audio, permissions, or layout changed.
+5. Compatibility smoke: document browser viewport, Expo Go, emulator/simulator, or development-build coverage when native behavior matters.
+
+Default policy:
+
+- Keep routine tests offline and fixture-based.
+- Do not require live APIs, OAuth, device permissions, or native-only state for normal verification.
+- Promote temporary browser evidence to durable fixtures only when a task explicitly asks for it.
+- Use UI/browser screenshots for short-term comparison, not as unstable visual baselines.
+
+Reference practices:
+
+- Expo unit testing: https://docs.expo.dev/develop/unit-testing/
+- Expo Router testing: https://docs.expo.dev/router/reference/testing/
+- React Native testing overview: https://reactnative.dev/docs/0.81/testing-overview
+- Vitest testing practice: https://main.vitest.dev/guide/learn/testing-in-practice
+- Playwright screenshots: https://playwright.dev/docs/screenshots
+
+## Verification Ladder
+
+Use this order unless the task has a more specific acceptance gate:
+
+1. Review the diff and changed files.
+2. Run `git diff --check`.
+3. Run `npx tsc --noEmit`.
+4. Run `npm run lint`.
+5. Run a focused offline suite when available, for example `npm test -- --run tests/dictionaryApi.test.ts`.
+6. Run `npm test -- --run` when shared data, parser, adapter, store, or covered behavior changed.
+7. Run Expo web or native smoke only when user-facing behavior changed.
+8. Record skipped checks and why.
+
+Focused tests are enough for documentation-only changes and narrow isolated behavior. Full tests are required before marking DONE for shared behavior, local persistence, parser pipelines, dictionary adapters, or anything that affects multiple screens.
+
 ## Required Verification Matrix
 
 | Change type | Required automated checks | Focused checks |
 | --- | --- | --- |
-| Documentation only | `npx tsc --noEmit`, `npm run lint` unless blocked | `git diff --check`, link/command review |
+| Documentation only | `git diff --check`, `npx tsc --noEmit`, `npm run lint` unless blocked | Link/command review |
 | UI or copy | `npx tsc --noEmit`, `npm run lint` | Manual mobile and Expo web smoke for touched screens, screenshots when layout comparison helps |
 | User-facing feature flow | `npx tsc --noEmit`, `npm run lint`, focused tests when available | Functional flow, interruption, data integrity, UI/UX, performance, compatibility smoke |
 | Data stores or local persistence | `npx tsc --noEmit`, `npm run lint`, `npm test -- --run` | Relevant store test, reset/export/import path if changed |
@@ -52,6 +94,25 @@ After a new feature is built, choose the smallest practical app-testing scope th
 - Screenshots and browser artifacts are short-term evidence and must not be committed unless a task explicitly asks for fixture assets.
 - Report screenshot paths in the verification summary only when they remain useful for handoff or comparison.
 
+### DOM And Media Artifacts
+
+Browser automation tools may create temporary artifacts such as:
+
+```txt
+.tempmediaStorage/
+dom_1779205896929.txt
+trace.zip
+screenshot-*.png
+```
+
+How to treat them:
+
+- `dom_*.txt` files are DOM snapshots captured during a browser session.
+- `.tempmediaStorage/*`, traces, screenshots, and browser recordings are short-term testing evidence, not source code.
+- Do not copy artifacts from external AI/tool caches such as `.gemini/antigravity/brain/...` into this repo.
+- Store intentional short-term repo-local evidence under `tmp/app-testing/<task-or-date>/`.
+- Do not commit these artifacts unless the task explicitly asks for durable fixtures under `tests/fixtures/`.
+
 ## Unit Test Guide
 
 Existing unit tests live in `tests/`:
@@ -63,6 +124,43 @@ Existing unit tests live in `tests/`:
 - `nativePdfGate.test.ts`: PDF platform gate behavior.
 - `profileStore.test.ts`: local profile, notification, privacy state.
 - `readerImport.test.ts`: TXT/HTML/DOCX/EPUB/PDF import parsing and gates.
+
+### Offline Language Feature Tests
+
+Language adapter and morphology checks should run offline through `tests/dictionaryApi.test.ts`. These tests use local fixtures and should not call live APIs, which keeps them fast and stable.
+
+Typical pipeline:
+
+```txt
+fetchMonolingualMeaning(word, lang)
+  -> language-specific fetch helper in data/dictionaryApi.ts
+  -> getMorphologyCandidates(lang, word)
+  -> language-specific morphology helper in data/morphology.ts
+  -> findLocalDictionaryEntry(lang, candidate)
+  -> fixture entry in data/localLexicon.ts
+```
+
+For each new language baseline or morphology slice, cover the smallest useful set:
+
+| Test type | Example | Purpose |
+| --- | --- | --- |
+| Exact lookup | `fetchMonolingualMeaning('புத்தகம்', 'ta')` returns the same headword | Fixture and adapter registration are correct |
+| Plural or suffix fallback | Telugu `పుస్తకాలు` resolves to `పుస్తకము` | Morphology stripping or canonical rewrite works |
+| Case or oblique fallback | Telugu `పిల్లికి` resolves to `పిల్లి` | Nominal case handling works |
+| Irregular fallback | Telugu `ఇంటిలో` resolves to `ఇల్లు` | Special-case lemma rules work |
+| Related words | `fetchRelatedWords(word, lang)` returns fixture synonyms/antonyms | Local relation data is wired |
+| Missing result | Unsupported or absent entry returns the intended fallback/null state | UI can distinguish missing data from crashes |
+
+Focused commands:
+
+```bash
+npm test -- --run tests/dictionaryApi.test.ts
+npm test -- tests/dictionaryApi.test.ts
+npx tsc --noEmit
+npm run lint
+```
+
+Use `npm test -- tests/dictionaryApi.test.ts` only for local watch-style iteration. Before marking a language task DONE, run the focused suite once with `--run`; run the full suite when shared dictionary behavior changed.
 
 When adding or changing behavior:
 

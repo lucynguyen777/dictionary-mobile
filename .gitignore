@@ -48,3 +48,7 @@ data/wiktionary-bulk-runs/
 
 # temporary app-testing screenshots and browser artifacts
 tmp/app-testing/
+.tempmediaStorage/
+dom_*.txt
+trace.zip
+screenshot-*.png

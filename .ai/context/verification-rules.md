@@ -13,9 +13,12 @@ npm run lint
 ```
 
 ## Required When Data Logic Changes
-Also run:
+Also run the closest focused offline suite first, then the full suite when shared behavior changed:
 
 ```bash
+npm test -- --run tests/dictionaryApi.test.ts # dictionary/language changes
+npm test -- --run tests/readerImport.test.ts  # reader parser/file gate changes
+npm test -- --run tests/libraryStore.test.ts  # library persistence changes
 npm test -- --run
 ```
 
@@ -24,8 +27,12 @@ This applies when changing:
 - `data/readerImport.ts`
 - `data/adapterRegistry.ts`
 - `data/dictionaryApi.ts`
+- `data/localLexicon.ts`
+- `data/morphology.ts`
 - stores in `data/*Store.ts`
 - behavior covered by `tests/`
+
+For dictionary/language changes, prefer offline fixture coverage for exact lookup, morphology fallback, missing results, and related words before any live source smoke.
 
 ## Required When A User-Facing Feature Changes
 Also perform the smallest practical app test that covers:
