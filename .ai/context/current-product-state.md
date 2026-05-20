@@ -4,7 +4,7 @@
 Use `docs/product-progress.md` as the canonical roadmap and checklist.
 
 ## Completed Or Existing Areas
-- Dictionary lookup for English, Vietnamese, French, Spanish, Malay, Turkish, Finnish, Japanese, Korean, Swahili, Hungarian, Tagalog, Amharic, Russian, Mandarin, Javanese, Somali, Burmese, Tibetan, Yoruba, and Zulu baselines.
+- Dictionary lookup for English, Vietnamese, French, Spanish, Malay, Turkish, Finnish, Japanese, Korean, Swahili, Hungarian, Tagalog, Amharic, Russian, Mandarin, Javanese, Somali, Burmese, Tibetan, Yoruba, Zulu, and Igbo baselines.
 - Adapter registry with local/source-specific adapters for the supported monolingual languages plus `minhqnd` and `wiktapi` source paths.
 - Local library with folders, saved words, notes, tags, favorites, folder colors, color notes, duplicate folder, folder sorting/view modes, and folder share/export actions.
 - Flashcards with card types, review states, and SM-2 scheduling fields.
@@ -19,14 +19,14 @@ Use `docs/product-progress.md` as the canonical roadmap and checklist.
 - Local notification preferences persisted in the profile store with privacy sidebar controls for daily reminders, review reminders, weekly summaries, and reminder time.
 - Bulk Wiktionary crawl tooling with resumable sample headword runs and ignored runtime cache/log output.
 - Zulu monolingual baseline is implemented with local fixtures, noun class prefix fallbacks, and locative fixture fallback coverage.
-- Igbo monolingual baseline planning is documented with tone, underdot, vowel harmony, and source gates.
+- Igbo monolingual baseline is implemented with local fixtures, tone-insensitive underdot-preserving lookup, and fixture tests.
 
 ## Current Queue Notes
 `docs/product-progress.md` is the canonical Next Work Queue. The repository currently lists these active queue items (kept to five or fewer):
 
-1. [ ] Igbo monolingual baseline implementation — register `ig`, add tone-insensitive underdot-preserving lookup, and local fixture tests using verified source data.
-2. [ ] Hawaiian monolingual baseline planning — research Polynesian morphology, macron/okina normalization, and source candidates.
-3. [ ] Tamil monolingual baseline planning — research Tamil script, agglutinative morphology, transliteration, and source candidates.
+1. [ ] Hawaiian monolingual baseline planning — research Polynesian morphology, macron/okina normalization, and source candidates.
+2. [ ] Tamil monolingual baseline planning — research Tamil script, agglutinative morphology, transliteration, and source candidates.
+3. [ ] Telugu monolingual baseline planning — research Telugu script, agglutinative morphology, transliteration, and source candidates.
 
 If DONE items appear in `Next Work Queue`, use `product-progress-manager` to clean the queue before starting new implementation.
 

@@ -67,6 +67,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'bo') return getTibetanMorphologyCandidates(input);
   if (languageCode === 'yo') return getYorubaMorphologyCandidates(input);
   if (languageCode === 'zu') return getZuluMorphologyCandidates(input);
+  if (languageCode === 'ig') return getIgboMorphologyCandidates(input);
 
   return [];
 }
@@ -1313,4 +1314,37 @@ function getZuluMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 8);
+}
+
+function getIgboMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+
+  const toneStripped = word
+    .normalize('NFD')
+    .replace(/[\u0300\u0301\u0304]/g, '')
+    .normalize('NFC')
+    .toLocaleLowerCase();
+
+  if (toneStripped !== word.toLocaleLowerCase()) {
+    candidates.push({
+      word: toneStripped,
+      label: toneStripped,
+      reason: 'tone-insensitive base form',
+    });
+  }
+
+  const prefixes = ['i', 'ị', 'o', 'ọ', 'u', 'ụ'];
+  for (const prefix of prefixes) {
+    if (toneStripped.startsWith(prefix) && toneStripped.length > prefix.length + 2) {
+      const stem = toneStripped.slice(prefix.length);
+      candidates.push({
+        word: stem,
+        label: stem,
+        reason: `fixture-backed prefix ${prefix}- stripped`,
+      });
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 6);
 }

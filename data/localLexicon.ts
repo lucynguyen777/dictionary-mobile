@@ -1740,6 +1740,87 @@ const zuluDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const igboDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'mmadụ',
+    ipa: '',
+    audio: '',
+    level: 'Beginner',
+    topic: 'People',
+    vietnamese: 'người',
+    shortDefinition: 'mmadụ, onye nwere ndụ na uche (person / human being)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Onye nwere ndụ, uche, na mmekọrịta n’etiti ndị mmadụ (A person or human being).',
+        vietnamese: 'Người. Một cá nhân có sự sống, ý thức và quan hệ trong cộng đồng.',
+        examples: [
+          { source: 'Mmadụ kwesịrị ịkwanyere ibe ya ùgwù.', translation: 'Con người nên tôn trọng lẫn nhau.' }
+        ],
+      }
+    ],
+    synonyms: ['onye', 'ndị mmadụ'],
+    antonyms: [],
+    collocations: ['ezigbo mmadụ', 'ndị mmadụ'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Local educational fixture based on Igbo source-gate research; Ọnwụ orthography, not a production lexical source.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ụlọ',
+    ipa: '',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'ụlọ, ebe mmadụ bi ma ọ bụ na-echekwa ihe (house / home)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Ebe e wuru ma ọ bụ kwadebere ka mmadụ biri ma ọ bụ debe ihe (A house or place where people live or keep things).',
+        vietnamese: 'Nhà. Nơi được xây dựng hoặc chuẩn bị để con người ở hay cất giữ đồ.',
+        examples: [
+          { source: 'Ụlọ anyị dị nso n’ahịa.', translation: 'Nhà của chúng tôi ở gần chợ.' }
+        ],
+      }
+    ],
+    synonyms: ['ebe obibi'],
+    antonyms: [],
+    collocations: ['ụlọ akwụkwọ', 'ụlọ ahịa'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Local educational fixture based on Igbo source-gate research; Ọnwụ orthography, not a production lexical source.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'akwụkwọ',
+    ipa: '',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách / giấy',
+    shortDefinition: 'akwụkwọ, ihe e ji ede ma ọ bụ ihe a na-agụ (book / paper)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'Ihe e ji ede ma ọ bụ nchịkọta peeji ndị mmadụ na-agụ (Paper, writing material, or a book).',
+        vietnamese: 'Sách hoặc giấy. Vật liệu để viết hoặc tập hợp trang để đọc.',
+        examples: [
+          { source: 'Akwụkwọ a bara uru maka ọmụmụ Igbo.', translation: 'Cuốn sách này hữu ích cho việc học Igbo.' }
+        ],
+      }
+    ],
+    synonyms: ['ihe ọgụgụ'],
+    antonyms: [],
+    collocations: ['akwụkwọ ọgụgụ', 'akwụkwọ ozi'],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Local educational fixture based on Igbo source-gate research; Ọnwụ orthography, not a production lexical source.',
+    pronunciationTips: [],
+  }
+];
+
 const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   en: dictionaryEntries,
   vi: vietnameseDictionaryEntries,
@@ -1762,6 +1843,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   bo: tibetanDictionaryEntries,
   yo: yorubaDictionaryEntries,
   zu: zuluDictionaryEntries,
+  ig: igboDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {
@@ -1776,6 +1858,10 @@ export function findLocalDictionaryEntry(languageCode: string, word: string) {
   if (languageCode === 'yo') {
     const normalizedWord = normalizeYorubaWord(word);
     return getLocalDictionaryEntries('yo').find((entry) => normalizeYorubaWord(entry.word) === normalizedWord);
+  }
+  if (languageCode === 'ig') {
+    const normalizedWord = normalizeIgboWord(word);
+    return getLocalDictionaryEntries('ig').find((entry) => normalizeIgboWord(entry.word) === normalizedWord);
   }
   const normalizedWord = normalizeLookupTerm(word);
 
@@ -1800,6 +1886,15 @@ export function normalizeYorubaWord(value: string) {
   return value
     .normalize('NFD')
     .replace(/[\u0300\u0301]/g, '')
+    .normalize('NFC')
+    .toLocaleLowerCase()
+    .trim();
+}
+
+export function normalizeIgboWord(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300\u0301\u0304]/g, '')
     .normalize('NFC')
     .toLocaleLowerCase()
     .trim();

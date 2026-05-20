@@ -91,6 +91,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'ig',
+    label: 'Igbo',
+    hint: 'Local fixture preview',
+    family: 'niger-congo',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'ig',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'hi',
     label: 'हिन्दी',
     hint: 'Sắp hỗ trợ',

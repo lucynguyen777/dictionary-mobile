@@ -788,3 +788,33 @@ describe('Zulu monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('isidalwa');
   });
 });
+
+describe('Igbo monolingual baseline and morphology', () => {
+  it('looks up exact monolingual words', async () => {
+    const person = await fetchMonolingualMeaning('mmadụ', 'ig');
+    expect(person.word).toBe('mmadụ');
+    expect(person.definitions[0].meaning).toContain('Onye nwere ndụ');
+
+    const book = await fetchMonolingualMeaning('akwụkwọ', 'ig');
+    expect(book.word).toBe('akwụkwọ');
+  });
+
+  it('looks up tone-insensitive forms while preserving underdots', async () => {
+    const accentedPerson = await fetchMonolingualMeaning('m̀madụ̀', 'ig');
+    expect(accentedPerson.word).toBe('mmadụ');
+    expect(accentedPerson.source).toContain('base form of m̀madụ̀');
+
+    const accentedHouse = await fetchMonolingualMeaning('ụ́lọ̀', 'ig');
+    expect(accentedHouse.word).toBe('ụlọ');
+  });
+
+  it('does not collapse underdot vowels into plain vowels', async () => {
+    await expect(fetchMonolingualMeaning('ulo', 'ig')).rejects.toThrow('No Igbo local fixture meanings');
+    await expect(fetchMonolingualMeaning('mmadu', 'ig')).rejects.toThrow('No Igbo local fixture meanings');
+  });
+
+  it('fetches local synonyms and antonyms', async () => {
+    const related = await fetchRelatedWords('mmadụ', 'ig');
+    expect(related.synonyms).toContain('onye');
+  });
+});

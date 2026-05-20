@@ -317,7 +317,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Zulu monolingual baseline planning: Research noun class prefixes, locative markers, Latin orthography, and adapter fixture gates in `docs/zulu-language-plan.md`.
   - [x] DONE [MEDIUM]: Zulu monolingual baseline implementation: Register Zulu adapter, write noun class prefix lookup fallbacks, and add local fixture tests using CC BY-SA data.
   - [x] DONE [MEDIUM]: Igbo monolingual baseline planning: Research tone marks, underdot orthography, vowel harmony, and source candidates in `docs/igbo-language-plan.md`.
-  - [ ] TODO [MEDIUM]: Igbo monolingual baseline implementation: Register Igbo adapter, add tone-insensitive underdot-preserving lookup, and local fixture tests using verified source data.
+  - [x] DONE [MEDIUM]: Igbo monolingual baseline implementation: Register Igbo adapter, add tone-insensitive underdot-preserving lookup, and local fixture tests using source-gated local educational fixture data.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
 - [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
@@ -331,6 +331,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - Javanese/Hawaiian: register or diacritic-sensitive search.
 - [ ] TODO [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
   - [ ] TODO [HARD]: Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
+  - [ ] TODO [HARD]: Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
 - [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
@@ -374,9 +375,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [MEDIUM] Igbo monolingual baseline implementation: Register Igbo adapter, add tone-insensitive underdot-preserving lookup, and local fixture tests using verified source data.
-2. [ ] [MEDIUM] Hawaiian monolingual baseline planning: Research Polynesian morphology, macron/okina normalization, and source candidates.
-3. [ ] [HARD] Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
+1. [ ] [MEDIUM] Hawaiian monolingual baseline planning: Research Polynesian morphology, macron/okina normalization, and source candidates.
+2. [ ] [HARD] Tamil monolingual baseline planning: Research Tamil script, agglutinative morphology, transliteration, and source candidates.
+3. [ ] [HARD] Telugu monolingual baseline planning: Research Telugu script, agglutinative morphology, transliteration, and source candidates.
 
 
 

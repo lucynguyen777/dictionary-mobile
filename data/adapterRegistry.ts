@@ -48,6 +48,8 @@ import {
     fetchYorubaRelatedWords,
     fetchZuluMeaning,
     fetchZuluRelatedWords,
+    fetchIgboMeaning,
+    fetchIgboRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
 
@@ -226,6 +228,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchZuluMeaning(word),
     fetchRelatedWords: (word: string) => fetchZuluRelatedWords(word),
+  },
+  ig: {
+    key: 'ig',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchIgboMeaning(word),
+    fetchRelatedWords: (word: string) => fetchIgboRelatedWords(word),
   },
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {
