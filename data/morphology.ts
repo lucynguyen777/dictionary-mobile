@@ -71,6 +71,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'haw') return getHawaiianMorphologyCandidates(input);
   if (languageCode === 'ta') return getTamilMorphologyCandidates(input);
   if (languageCode === 'te') return getTeluguMorphologyCandidates(input);
+  if (languageCode === 'kn') return getKannadaMorphologyCandidates(input);
 
   return [];
 }
@@ -1447,6 +1448,67 @@ function getTamilMorphologyCandidates(input: string): MorphologyCandidate[] {
           reason: `stripped case suffix -${suffix}`,
         });
       }
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getKannadaMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim();
+
+  // 1. Plural marker: -ಗಳು (-gaḷu) -> base form
+  // e.g. ಪುಸ್ತಕಗಳು -> ಪುಸ್ತಕ
+  if (word.endsWith('ಗಳು') && word.length > 3) {
+    candidates.push({
+      word: word.slice(0, -3),
+      label: word.slice(0, -3),
+      reason: 'stripped plural suffix -ಗಳು',
+    });
+  }
+
+  // 2. Plural oblique + case suffix combinations
+  const pluralObliqueSuffixes = [
+    { suffix: 'ಗಳಲ್ಲಿ', replace: '' }, // Locative: ಪುಸ್ತಕಗಳಲ್ಲಿ -> ಪುಸ್ತಕ
+    { suffix: 'ಗಳನ್ನು', replace: '' },  // Accusative: ಪುಸ್ತಕಗಳನ್ನು -> ಪುಸ್ತಕ
+    { suffix: 'ಗಳಿಗೆ', replace: '' },   // Dative: ಪುಸ್ತಕಗಳಿಗೆ -> ಪುಸ್ತಕ
+    { suffix: 'ಗಳಿಂದ', replace: '' },   // Instrumental: ಪುಸ್ತಕಗಳಿಂದ -> ಪುಸ್ತಕ
+    { suffix: 'ಗಳ', replace: '' },       // Genitive: ಪುಸ್ತಕಗಳ -> ಪುಸ್ತಕ
+  ];
+
+  for (const item of pluralObliqueSuffixes) {
+    if (word.endsWith(item.suffix) && word.length > item.suffix.length) {
+      const stem = word.slice(0, -item.suffix.length) + item.replace;
+      candidates.push({
+        word: stem,
+        label: stem,
+        reason: `stripped plural oblique suffix -${item.suffix}`,
+      });
+    }
+  }
+
+  // 3. Singular case suffixes
+  const singularCaseSuffixes = [
+    'ವನ್ನು', 'ಅನ್ನು', 'ನ್ನು',  // Accusative
+    'ಳಿಗೆ', 'ಿಗೆ', 'ಗೆ', 'ಕೆ',   // Dative
+    'ದಿಂದ', 'ಿಂದ', 'ಇಂದ',     // Instrumental
+    'ಯಲ್ಲಿ', 'ನಲ್ಲಿ', 'ದಲ್ಲಿ', 'ಅಲ್ಲಿ', // Locative
+    'ಯ', 'ದ', 'ಅ',            // Genitive
+  ];
+
+  for (const suffix of singularCaseSuffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length) {
+      const stem = word.slice(0, -suffix.length);
+      if (stem.length > 0) {
+        candidates.push({
+          word: stem,
+          label: stem,
+          reason: `stripped case suffix -${suffix}`,
+        });
+      }
+      // Only process the first matching suffix (longest match first)
+      break;
     }
   }
 

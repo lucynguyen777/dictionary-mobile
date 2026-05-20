@@ -8,22 +8,13 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import Screen from '@/components/app/Screen';
 import { DictionaryEntry } from '@/data/dictionary';
 import {
-    LibraryState,
-    createFlashcardsFromWordIds,
-    getDefaultLibraryState,
-    getFavoriteFolderId,
-    loadLibraryState,
-    saveWordToFolder,
+  LibraryState,
+  createFlashcardsFromWordIds,
+  getDefaultLibraryState,
+  getFavoriteFolderId,
+  loadLibraryState,
+  saveWordToFolder,
 } from '@/data/libraryStore';
-import {
-    ReaderSettings,
-    ReaderState,
-    getDefaultReaderState,
-    importReaderText,
-    loadReaderState,
-    selectReaderDocument,
-    updateReaderSettings,
-} from '@/data/readerStore';
 import {
   extractReaderDocument,
   extractReaderText,
@@ -31,6 +22,15 @@ import {
   getUnsupportedReaderImportMessage,
   isEnabledReaderImportFormat,
 } from '@/data/readerImport';
+import {
+  ReaderSettings,
+  ReaderState,
+  getDefaultReaderState,
+  importReaderText,
+  loadReaderState,
+  selectReaderDocument,
+  updateReaderSettings,
+} from '@/data/readerStore';
 
 const fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[] = [
   { label: 'System', value: 'system' },
@@ -305,7 +305,7 @@ export default function ReaderScreen() {
             <Text style={[styles.readerTitle, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>{selectedDocument.title}</Text>
             <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
               {readerTokens.slice(0, 900).map((token, index) => {
-                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F]/.test(token);
+                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF]/.test(token);
                 const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
 
                 return isWord ? (
@@ -384,8 +384,8 @@ function tokenizeReaderText(text: string) {
   // Use Intl.Segmenter if available for CJK/Burmese/Tibetan/Tamil/Telugu or general advanced segmentation
   if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
     try {
-      const hasCjkOrBurmeseOrTibetanOrTamilOrTelugu = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F]/.test(text);
-      if (hasCjkOrBurmeseOrTibetanOrTamilOrTelugu) {
+      const hasCjkOrBurmeseOrTibetanOrTamilOrTeluguOrKannada = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF]/.test(text);
+      if (hasCjkOrBurmeseOrTibetanOrTamilOrTeluguOrKannada) {
         let locale = 'zh';
         if (/[\u1000-\u109F]/.test(text)) {
           locale = 'my';
@@ -395,6 +395,8 @@ function tokenizeReaderText(text: string) {
           locale = 'ta';
         } else if (/[\u0C00-\u0C7F]/.test(text)) {
           locale = 'te';
+        } else if (/[\u0C80-\u0CFF]/.test(text)) {
+          locale = 'kn';
         }
         const segmenter = new Intl.Segmenter(locale, { granularity: 'word' });
         return Array.from(segmenter.segment(text), (s) => s.segment);
@@ -404,8 +406,8 @@ function tokenizeReaderText(text: string) {
     }
   }
 
-  // Fallback regex supporting CJK/Burmese characters individually, Tamil/Telugu words, Tibetan syllables (ending with optional tsheg \u0F0B), and other alphabetic/abjad scripts grouped
-  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[\u0B80-\u0BFF]+|[\u0C00-\u0C7F]+|[\u0F00-\u0F0A\u0F0C-\u0FFF]+\u0F0B?|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F]+/g;
+  // Fallback regex supporting CJK/Burmese characters individually, Tamil/Telugu/Kannada words, Tibetan syllables (ending with optional tsheg \u0F0B), and other alphabetic/abjad scripts grouped
+  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[\u0B80-\u0BFF]+|[\u0C00-\u0C7F]+|[\u0C80-\u0CFF]+|[\u0F00-\u0F0A\u0F0C-\u0FFF]+\u0F0B?|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF]+/g;
   return text.replace(/\s+/g, ' ').match(regex) ?? [];
 }
 

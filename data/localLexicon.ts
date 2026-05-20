@@ -1,3 +1,4 @@
+
 import { DictionaryEntry, dictionaryEntries } from './dictionary';
 
 const vietnameseDictionaryEntries: DictionaryEntry[] = [
@@ -2009,6 +2010,87 @@ const tamilDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const kannadaDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'ಪುಸ್ತಕ',
+    ipa: '/pustaka/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Education',
+    vietnamese: 'sách',
+    shortDefinition: 'ಪುಸ್ತಕ, ಓದಲು ಅಥವಾ ಬರೆಯಲು ಬಳಸುವ ಕಾಗದಗಳ ಸಂಗ್ರಹ (book)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ಮುದ್ರಿತ ಅಥವಾ ಬರೆದ ಕಾಗದಗಳ ಸಂಗ್ರಹ (A bound collection of printed or written sheets of paper).',
+        vietnamese: 'Sách. Một tập hợp các tờ giấy in hoặc viết được đóng lại với nhau.',
+        examples: [
+          { source: 'ನಾನು ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದುತ್ತಿದ್ದೇನೆ.', translation: 'Tôi đang đọc một cuốn sách.' }
+        ],
+      }
+    ],
+    synonyms: ['ಗ್ರಂಥ'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Sanskrit loan / Dravidian structure.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ಮನೆ',
+    ipa: '/mane/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Home',
+    vietnamese: 'nhà',
+    shortDefinition: 'ಮನೆ, ಜನರು ವಾಸಿಸುವ ಸ್ಥಳ (house / home)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ಜನರು ವಾಸಿಸುವ ಕಟ್ಟಡ (A building where people live).',
+        vietnamese: 'Nhà. Tòa nhà nơi mọi người sinh sống.',
+        examples: [
+          { source: 'ನನ್ನ ಮನೆ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ.', translation: 'Nhà của tôi rất lớn.' }
+        ],
+      }
+    ],
+    synonyms: ['ಗೃಹ', 'ನಿವಾಸ'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'ಬೆಕ್ಕು',
+    ipa: '/bekku/',
+    audio: '',
+    level: 'Beginner',
+    topic: 'Animals',
+    vietnamese: 'con mèo',
+    shortDefinition: 'ಬೆಕ್ಕು, ಒಂದು ಸಾಕು ಪ್ರಾಣಿ (cat)',
+    definitions: [
+      {
+        partOfSpeech: 'noun',
+        meaning: 'ಮನೆಯಲ್ಲಿ ಸಾಕುವ ಸಣ್ಣ ಮಾಂಸಾಹಾರಿ ಪ್ರಾಣಿ (A small domesticated carnivorous mammal kept as a pet).',
+        vietnamese: 'Con mèo. Một loài động vật nuôi nhỏ trong nhà.',
+        examples: [
+          { source: 'ಬೆಕ್ಕು ಹಾಲು ಕುಡಿಯುತ್ತಿದೆ.', translation: 'Con mèo đang uống sữa.' }
+        ],
+      }
+    ],
+    synonyms: ['ಮಾರ್ಜಾಲ'],
+    antonyms: [],
+    collocations: [],
+    idioms: [],
+    conjugation: [],
+    etymology: 'Dravidian.',
+    pronunciationTips: [],
+  }
+];
+
 const teluguDictionaryEntries: DictionaryEntry[] = [
   {
     word: 'పుస్తకము',
@@ -2116,6 +2198,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   haw: hawaiianDictionaryEntries,
   ta: tamilDictionaryEntries,
   te: teluguDictionaryEntries,
+  kn: kannadaDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {

@@ -290,6 +290,16 @@ export const languageOptions = [
     adapterKey: 'te',
     dictionaryStatus: 'monolingual',
   },
+  {
+    code: 'kn',
+    label: 'ಕನ್ನಡ (Kannada)',
+    hint: 'Wiktionary preview',
+    family: 'dravidian',
+    script: 'kannada',
+    writingDirection: 'ltr',
+    adapterKey: 'kn',
+    dictionaryStatus: 'monolingual',
+  },
 ];
 
 export type LanguageOption = (typeof languageOptions)[number];

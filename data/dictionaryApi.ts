@@ -3,8 +3,8 @@ import {
   isBlockedBilingualDictionaryPair as isBlockedPair,
   isSupportedBilingualDictionaryPair,
 } from './languages';
-import { getMorphologyCandidates } from './morphology';
 import { findLocalDictionaryEntry } from './localLexicon';
+import { getMorphologyCandidates } from './morphology';
 
 export type ApiDefinition = {
   partOfSpeech: string;
@@ -201,6 +201,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'haw') return fetchHawaiianMeaning(word);
   if (languageCode === 'ta') return fetchTamilMeaning(word);
   if (languageCode === 'te') return fetchTeluguMeaning(word);
+  if (languageCode === 'kn') return fetchKannadaMeaning(word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
@@ -233,6 +234,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'haw') return fetchHawaiianRelatedWords(word);
   if (languageCode === 'ta') return fetchTamilRelatedWords(word);
   if (languageCode === 'te') return fetchTeluguRelatedWords(word);
+  if (languageCode === 'kn') return fetchKannadaRelatedWords(word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -1896,6 +1898,57 @@ export async function fetchTeluguMeaning(word: string): Promise<ApiMeaningResult
 export async function fetchTeluguRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
   const localEntry = findLocalDictionaryEntry('te', normalizedWord);
+  if (localEntry) {
+    return {
+      synonyms: localEntry.synonyms || [],
+      antonyms: localEntry.antonyms || [],
+    };
+  }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchKannadaMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('kn', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('kn', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'knwiktionary',
+          })),
+          source: lookupWord === normalizedWord ? 'knwiktionary' : `knwiktionary · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Kannada Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchKannadaRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC');
+  const localEntry = findLocalDictionaryEntry('kn', normalizedWord);
   if (localEntry) {
     return {
       synonyms: localEntry.synonyms || [],
