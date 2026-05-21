@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `ebca0dc` feat: advance recognition and offline roadmap slices
   - `7fb6deb` docs(progress): mark offline dictionary MVP phase 1 done and advance queue
   - `7bfe146` docs(progress): sync baseline commit and set Uzbek planning in queue
   - `dc371a0` docs(lang): add Estonian monolingual baseline plan and advance queue
