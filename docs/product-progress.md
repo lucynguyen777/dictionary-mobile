@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `95477d7` feat: prefer ready offline packs in lookup
   - `543b53c` feat: wire offline pack profile actions
   - `1d58d4e` feat: add offline pack download verification
   - `cda92fa` feat: add sqlite offline dictionary storage
