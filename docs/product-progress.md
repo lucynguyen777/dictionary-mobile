@@ -389,11 +389,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
   - [x] DONE [HARD]: Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
-- [ ] TODO [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
+- [~] IN PROGRESS [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
   - [x] DONE [HARD]: Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
   - [x] DONE [HARD]: Uzbek monolingual baseline planning: Latin/Cyrillic script handling, apostrophe normalization, agglutinative morphology implications, source smoke, and implementation gates documented in `docs/uzbek-language-plan.md` and `docs/uzbek-source-smoke.md`.
   - [!] BLOCKED [HARD]: Uzbek monolingual baseline implementation requires a true Uzbek-definition source with approved API/terms; Kaikki English-edition data is useful for forms but not sufficient for `uz -> uz` definitions.
+  - [x] DONE [HARD]: Kazakh monolingual baseline planning: Cyrillic/Latin script duality, full vowel harmony, 7-case morphology fallbacks, source candidates (Sozdik.kz, kkwiktionary Kaikki dump), and gated implementation plan documented in `docs/kazakh-language-plan.md`.
+  - [!] BLOCKED [HARD]: Kazakh monolingual baseline implementation requires a true Kazakh-definition source with approved license/terms before fixtures or adapter code.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
@@ -438,7 +440,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Next Work Queue
 1. [~] [HARD] Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
 2. [~] [HARD] Voice Search / OCR implementation Phase 2: add capture previews, manual dev-client smoke matrix, and select on-device OCR/STT engine candidates.
-3. [ ] [HARD] Kazakh monolingual baseline planning: research Cyrillic/Latin transition, agglutinative morphology, and source candidates.
+3. [x] [HARD] Kazakh monolingual baseline planning: Cyrillic/Latin script duality, full vowel harmony, 7-case morphology, source candidates, and gated implementation plan documented in `docs/kazakh-language-plan.md`.
+4. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
+5. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
 
 
 
