@@ -2,7 +2,7 @@ import { LanguageCode } from '@/data/languages';
 import type { OfflinePackDownloadSource } from './offlineDictionaryPackDownload';
 
 export type OfflinePackStatus = 'planned' | 'builder_ready' | 'runtime_pending';
-export type OfflinePackRuntimeBlockReason = 'pack_not_built' | 'pack_source_pending' | 'ready';
+export type OfflinePackRuntimeBlockReason = 'native_runtime_pending' | 'pack_not_built' | 'pack_source_pending' | 'ready';
 
 export type OfflinePackRuntimeGate = {
   actionLabel: string;
@@ -10,6 +10,10 @@ export type OfflinePackRuntimeGate = {
   canImport: boolean;
   detail: string;
   reason: OfflinePackRuntimeBlockReason;
+};
+
+export type OfflinePackRuntimeGateOptions = {
+  supportsSqliteRuntime?: boolean;
 };
 
 export type OfflineDictionaryPack = {
@@ -26,12 +30,21 @@ export type OfflineDictionaryPack = {
   status: OfflinePackStatus;
 };
 
+export const englishOfflinePackDevSource: OfflinePackDownloadSource = {
+  entriesMd5: '706093a86d8cd59d8dc9e575a46faf60',
+  entriesUrl: '/offline-packs/enwiktionary-lite/entries.json',
+  entryCount: 2,
+  manifestMd5: 'f56ebabae0d6f3fa222b81ab0d9b52a8',
+  manifestUrl: '/offline-packs/enwiktionary-lite/manifest.json',
+};
+
 export const offlineDictionaryPacks: OfflineDictionaryPack[] = [
   {
     attribution: 'Source: English Wiktionary via Kaikki/Wiktextract (CC-BY-SA-4.0/GFDL)',
+    downloadSource: englishOfflinePackDevSource,
     estimatedCompressedSizeMb: {
-      max: 50,
-      min: 10,
+      max: 1,
+      min: 1,
     },
     id: 'enwiktionary-en-offline-pack-v1',
     languageCode: 'en',
@@ -41,10 +54,13 @@ export const offlineDictionaryPacks: OfflineDictionaryPack[] = [
   },
 ];
 
-export function getOfflinePackSummary(packs: OfflineDictionaryPack[] = offlineDictionaryPacks) {
+export function getOfflinePackSummary(
+  packs: OfflineDictionaryPack[] = offlineDictionaryPacks,
+  options: OfflinePackRuntimeGateOptions = {}
+) {
   const builderReadyCount = packs.filter((pack) => pack.status === 'builder_ready').length;
-  const downloadableCount = packs.filter((pack) => getOfflinePackRuntimeGate(pack).canDownload).length;
-  const runtimeBlockedCount = packs.filter((pack) => !getOfflinePackRuntimeGate(pack).canImport).length;
+  const downloadableCount = packs.filter((pack) => getOfflinePackRuntimeGate(pack, options).canDownload).length;
+  const runtimeBlockedCount = packs.filter((pack) => !getOfflinePackRuntimeGate(pack, options).canImport).length;
   const runtimePendingCount = packs.filter((pack) => pack.status === 'runtime_pending').length;
 
   return {
@@ -71,7 +87,10 @@ export function formatPackStatus(status: OfflinePackStatus) {
   return 'Đang thiết kế';
 }
 
-export function getOfflinePackRuntimeGate(pack: OfflineDictionaryPack): OfflinePackRuntimeGate {
+export function getOfflinePackRuntimeGate(
+  pack: OfflineDictionaryPack,
+  { supportsSqliteRuntime = true }: OfflinePackRuntimeGateOptions = {}
+): OfflinePackRuntimeGate {
   if (pack.status === 'planned') {
     return {
       actionLabel: 'Chưa có pack',
@@ -89,6 +108,16 @@ export function getOfflinePackRuntimeGate(pack: OfflineDictionaryPack): OfflineP
       canImport: false,
       detail: 'Pack builder và runtime đã sẵn sàng, nhưng cần manifest/entries URL kèm checksum trước khi tải.',
       reason: 'pack_source_pending',
+    };
+  }
+
+  if (!supportsSqliteRuntime) {
+    return {
+      actionLabel: 'Chờ native runtime',
+      canDownload: false,
+      canImport: false,
+      detail: 'Pack URL/checksum đã sẵn sàng, nhưng SQLite import chỉ bật trên native runtime.',
+      reason: 'native_runtime_pending',
     };
   }
 

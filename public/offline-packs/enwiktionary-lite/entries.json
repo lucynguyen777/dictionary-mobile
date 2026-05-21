@@ -1,0 +1,77 @@
+[
+  {
+    "attribution": "Source: enwiktionary dev fixture (CC-BY-SA-4.0/GFDL)",
+    "audio": [],
+    "definitions": [
+      {
+        "gloss": "A set of written, printed, or digital pages bound or collected together.",
+        "tags": [
+          "countable"
+        ],
+        "topics": [
+          "education"
+        ]
+      }
+    ],
+    "etymology": "",
+    "examples": [
+      {
+        "source": "I borrowed a book from the library.",
+        "translation": "Tôi mượn một cuốn sách từ thư viện."
+      }
+    ],
+    "id": "en:book",
+    "ipa": "/bʊk/",
+    "langCode": "en",
+    "license": "CC-BY-SA-4.0/GFDL",
+    "normalizedWord": "book",
+    "partOfSpeech": "noun",
+    "relations": {
+      "antonyms": [],
+      "synonyms": [
+        "volume"
+      ]
+    },
+    "sourceName": "enwiktionary",
+    "sourceUrl": "/offline-packs/enwiktionary-lite/entries.json",
+    "updatedAt": "2026-05-21T00:00:00.000Z",
+    "word": "Book"
+  },
+  {
+    "attribution": "Source: enwiktionary dev fixture (CC-BY-SA-4.0/GFDL)",
+    "audio": [],
+    "definitions": [
+      {
+        "gloss": "To express an idea clearly in words.",
+        "tags": [],
+        "topics": [
+          "communication"
+        ]
+      }
+    ],
+    "etymology": "",
+    "examples": [
+      {
+        "source": "She can articulate complex ideas clearly.",
+        "translation": "Cô ấy có thể diễn đạt ý tưởng phức tạp một cách rõ ràng."
+      }
+    ],
+    "id": "en:articulate",
+    "ipa": "/ɑːrˈtɪkjəleɪt/",
+    "langCode": "en",
+    "license": "CC-BY-SA-4.0/GFDL",
+    "normalizedWord": "articulate",
+    "partOfSpeech": "verb",
+    "relations": {
+      "antonyms": [],
+      "synonyms": [
+        "express",
+        "state"
+      ]
+    },
+    "sourceName": "enwiktionary",
+    "sourceUrl": "/offline-packs/enwiktionary-lite/entries.json",
+    "updatedAt": "2026-05-21T00:00:00.000Z",
+    "word": "articulate"
+  }
+]

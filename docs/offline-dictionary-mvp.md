@@ -85,6 +85,16 @@ The script writes:
 
 Generated pack output belongs in `tmp/offline-packs/` and must not be committed. Durable parser fixtures, if needed, belong under `tests/fixtures/`.
 
+## Hosted Development Pack
+
+`public/offline-packs/enwiktionary-lite/` contains the current tiny English development pack served by Expo Web/static hosting for smoke coverage:
+
+- `manifest.json`: `enwiktionary-en-offline-pack-v1`, schema version `1`, two entries.
+- `entries.json`: normalized entries for `book` and `articulate`.
+- Checksums are wired in `englishOfflinePackDevSource` in `data/offlineDictionaryPacks.ts`.
+
+This pack is deliberately small and intended for download/import path verification, not production dictionary coverage. Expo Web still keeps Profile import disabled because the SQLite import runtime is native-only; native/dev-client flows can use the same source metadata.
+
 ## Attribution UI
 
 Before enabling offline packs, the app must expose:
@@ -143,9 +153,9 @@ The store intentionally tracks metadata only. Actual pack files, SQLite database
 - `data/offlineDictionaryPackDownload.ts` provides the pack download/checksum layer before Profile actions are enabled: lazy runtime use of Expo FileSystem's document directory, deterministic offline-pack artifact paths, manifest/entries download, MD5 verification, install-state transitions through `downloading`, `downloaded`, or `failed`, and cleanup of partial files when verification fails.
 - `data/offlineDictionaryPackActions.ts` wires the action boundary for Profile: download source validation, manifest parsing, gzipped entries parsing via `pako`, SQLite import, downloaded artifact cleanup, and installed-pack deletion through the storage port.
 - `data/offlineDictionaryRuntimeLookup.ts` wires ready install-state records into runtime lookup: ready pack records seed the SQLite storage routing map, monolingual lookup checks offline entries first, related words come from the same offline entry, and failures fall back to online adapters.
-- Profile now renders the pack action surface and deletion path, but the English pack remains disabled with `Chờ pack URL` until a real manifest/entries URL plus checksums are configured in pack metadata.
+- Profile now renders the pack action surface and deletion path. The English development pack has a hosted source/checksum, while Expo Web shows `Chờ native runtime` because SQLite import is native-only.
 
-This slice intentionally keeps the default English pack gated. It proves the manifest/entry contract, download/checksum handling, install-state transitions, persistent SQLite lookup path, Profile action wiring, and lookup fallback routing without claiming a hosted production pack exists. FTS table creation is present for the eventual search surface; current lookup uses the indexed normalized-word path plus morphology candidates.
+This slice intentionally ships only a tiny development pack. It proves the manifest/entry contract, download/checksum handling, install-state transitions, persistent SQLite lookup path, Profile action wiring, and lookup fallback routing without claiming a production-size hosted pack exists. FTS table creation is present for the eventual search surface; current lookup uses the indexed normalized-word path plus morphology candidates.
 
 ## Verification
 
@@ -160,6 +170,7 @@ npm test -- --run tests/offlineDictionaryPackStore.test.ts
 npm test -- --run tests/offlineDictionaryPackDownload.test.ts
 npm test -- --run tests/offlineDictionaryPackActions.test.ts
 npm test -- --run tests/offlineDictionaryRuntimeLookup.test.ts
+npm test -- --run tests/offlineDictionaryPacks.test.ts
 npm test -- --run tests/offlineDictionaryImport.test.ts
 npm test -- --run tests/offlineDictionarySqliteStorage.test.ts
 npx tsc --noEmit

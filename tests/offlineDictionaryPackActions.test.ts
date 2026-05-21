@@ -1,4 +1,5 @@
 import { gzip } from 'pako';
+import { readFile } from 'node:fs/promises';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const storageAdapter = vi.hoisted(() => new Map<string, string>());
@@ -29,7 +30,7 @@ import {
   getDefaultOfflinePackInstallState,
   getOfflinePackInstallRecord,
 } from '../data/offlineDictionaryPackStore';
-import { offlineDictionaryPacks } from '../data/offlineDictionaryPacks';
+import { englishOfflinePackDevSource, offlineDictionaryPacks } from '../data/offlineDictionaryPacks';
 
 const pack = offlineDictionaryPacks[0];
 const timestamp = '2026-05-21T20:00:00.000Z';
@@ -130,10 +131,49 @@ describe('offlineDictionaryPackActions', () => {
     });
   });
 
+  it('smokes the hosted English dev pack fixture through download, manifest parse, and import', async () => {
+    const fileSystem = createPublicFixtureDownloadFileSystem();
+    const fileReader = createPublicFixtureFileReader();
+    const storage = createMemoryOfflineDictionaryStorage();
+
+    const result = await installOfflineDictionaryPackFromSource({
+      clock: () => timestamp,
+      fileReader,
+      fileSystem,
+      pack,
+      source: englishOfflinePackDevSource,
+      state: getDefaultOfflinePackInstallState(),
+      storage,
+    });
+
+    if (!result.ok) throw new Error(result.errorMessage);
+    expect(result).toMatchObject({
+      entryCount: 2,
+      ok: true,
+    });
+
+    expect(fileSystem.downloads).toEqual([
+      ['/offline-packs/enwiktionary-lite/manifest.json', 'manifest.json'],
+      ['/offline-packs/enwiktionary-lite/entries.json', 'entries.json'],
+    ]);
+    expect(getOfflinePackInstallRecord(result.state, pack)).toMatchObject({
+      entryCount: 2,
+      localUri: `memory://${pack.id}.sqlite`,
+      status: 'ready',
+    });
+    await expect(storage.findEntry('articulate', 'en')).resolves.toMatchObject({
+      normalizedWord: 'articulate',
+      word: 'articulate',
+    });
+  });
+
   it('marks install failed when no download source is configured', async () => {
     const result = await installOfflineDictionaryPackFromSource({
       clock: () => timestamp,
-      pack,
+      pack: {
+        ...pack,
+        downloadSource: undefined,
+      },
       state: getDefaultOfflinePackInstallState(),
       storage: createMemoryOfflineDictionaryStorage(),
     });
@@ -220,6 +260,47 @@ function createFakeActionFileSystem() {
     deletedUris: string[];
     downloads: Array<[string, string]>;
   };
+}
+
+function createPublicFixtureDownloadFileSystem() {
+  const downloads: Array<[string, string]> = [];
+  const deletedUris: string[] = [];
+
+  return {
+    deletedUris,
+    downloads,
+    async deleteFile(uri: string) {
+      deletedUris.push(uri);
+    },
+    async downloadFile(url: string, fileName: string) {
+      downloads.push([url, fileName]);
+
+      return {
+        md5: fileName === 'manifest.json' ? englishOfflinePackDevSource.manifestMd5 ?? '' : englishOfflinePackDevSource.entriesMd5,
+        size: 128,
+        uri: `fixture://${fileName}`,
+      };
+    },
+  } satisfies OfflinePackDownloadFileSystem & {
+    deletedUris: string[];
+    downloads: Array<[string, string]>;
+  };
+}
+
+function createPublicFixtureFileReader(): OfflinePackFileReader {
+  return {
+    async readBytes(uri: string) {
+      return new Uint8Array(await readFile(getPublicFixturePath(uri)));
+    },
+    async readText(uri: string) {
+      return readFile(getPublicFixturePath(uri), 'utf8');
+    },
+  };
+}
+
+function getPublicFixturePath(uri: string) {
+  const fileName = uri.replace('fixture://', '');
+  return `${process.cwd()}/public/offline-packs/enwiktionary-lite/${fileName}`;
 }
 
 function createFakeFileReader({

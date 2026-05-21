@@ -5,6 +5,7 @@ import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -275,7 +276,8 @@ export default function ProfileScreen() {
 
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
   const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
-  const offlinePackSummary = getOfflinePackSummary();
+  const offlinePackRuntimeOptions = { supportsSqliteRuntime: Platform.OS !== 'web' };
+  const offlinePackSummary = getOfflinePackSummary(offlineDictionaryPacks, offlinePackRuntimeOptions);
   const offlinePackInstallSummary = getOfflinePackInstallSummary(offlinePackInstallState);
   const avatarUri = profile.avatarUrl || defaultAvatarUri;
   const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
@@ -475,7 +477,7 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Gói từ điển offline</Text>
           <Text style={styles.cardSubtitle}>
-            Phase 2 đã có download, checksum và SQLite import path. Online lookup vẫn là mặc định cho đến khi pack URL thật được cấu hình.
+            Phase 2 đã có dev pack URL/checksum, download, và SQLite import path. Web chỉ hiển thị smoke; native runtime mới tải và nhập pack.
           </Text>
           <View style={styles.offlinePackSummaryRow}>
             <DataStat label="Gói" value={offlinePackSummary.packCount} />
@@ -485,7 +487,7 @@ export default function ProfileScreen() {
           </View>
           {offlineDictionaryPacks.map((pack) => {
             const language = languageOptions.find((item) => item.code === pack.languageCode);
-            const runtimeGate = getOfflinePackRuntimeGate(pack);
+            const runtimeGate = getOfflinePackRuntimeGate(pack, offlinePackRuntimeOptions);
             const installRecord = getOfflinePackInstallRecord(offlinePackInstallState, pack);
             const installStatus = formatOfflinePackInstallStatus(installRecord.status);
             const progressLabel =

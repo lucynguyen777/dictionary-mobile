@@ -188,7 +188,7 @@ function getOfflinePackDirectoryName(packId: string) {
 
 function getUrlFileName(url: string) {
   try {
-    const parsedUrl = new URL(url);
+    const parsedUrl = url.startsWith('/') ? new URL(url, 'https://offline-pack.local') : new URL(url);
     const fileName = parsedUrl.pathname.split('/').filter(Boolean).at(-1) ?? '';
     return decodeURIComponent(fileName);
   } catch {

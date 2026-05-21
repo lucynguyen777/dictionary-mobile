@@ -1,0 +1,10 @@
+{
+  "entryCount": 2,
+  "generatedAt": "2026-05-21T00:00:00.000Z",
+  "langCode": "en",
+  "license": "CC-BY-SA-4.0/GFDL",
+  "packId": "enwiktionary-en-offline-pack-v1",
+  "schemaVersion": 1,
+  "sourceName": "enwiktionary",
+  "sourceUrl": "/offline-packs/enwiktionary-lite/entries.json"
+}

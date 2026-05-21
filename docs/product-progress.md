@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Offline dictionary MVP Phase 2 hosted pack source/checksum enablement, Voice/OCR capture-preview polish, Kazakh source smoke, Uyghur planning, and remaining backend/source-gated work.
+- Hard next tasks: Voice/OCR capture-preview polish, Kazakh source smoke, Uyghur planning, and remaining backend/source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -317,13 +317,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Add offline pack install-state store for download/import/ready/failed metadata, progress clamping, installed entry counts, failure copy, and deletion coverage.
 - [x] DONE [MEDIUM]: Wire offline pack install-state metadata into Profile so local install status, ready count, and clear-all-data cleanup are visible in UI and covered by Playwright smoke.
 - [x] DONE [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status/lookup/store test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution, runtime-gate copy, and local install-state metadata.
-- [~] IN PROGRESS [HARD]: Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
+- [x] DONE [HARD]: Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
   - [x] DONE [MEDIUM]: Add Phase 2 import/storage contract: SQLite schema SQL, manifest validation, SQLite row serialization/parsing, storage port, in-memory test storage, install-state import orchestration, and focused `tests/offlineDictionaryImport.test.ts` coverage.
   - [x] DONE [HARD]: Add Expo SQLite-backed storage driver with `expo-sqlite`, deterministic per-pack database names, schema setup, transaction import, deletion, SQL-backed exact/morphology lookup routing, restart-seeded manifest routing, and focused `tests/offlineDictionarySqliteStorage.test.ts` coverage.
   - [x] DONE [HARD]: Add real pack file download/checksum handling before enabling Profile download/import actions: Expo FileSystem document-directory download adapter, deterministic artifact filenames, manifest/entries MD5 verification, install-state transitions, partial-file cleanup, and focused `tests/offlineDictionaryPackDownload.test.ts` coverage.
   - [x] DONE [HARD]: Wire Profile pack action through download, manifest parse, gzipped entries parse via `pako`, SQLite import, artifact cleanup, deletion, disabled `Chờ pack URL` UI state, focused `tests/offlineDictionaryPackActions.test.ts`, updated pack gating tests, and Profile e2e copy coverage.
   - [x] DONE [HARD]: Wire dictionary lookup flow to query ready SQLite packs before falling back to online adapters: `data/offlineDictionaryRuntimeLookup.ts`, adapter registry offline-first monolingual/related lookup, restart-seeded ready manifest routing, runtime failure fallback, and focused `tests/offlineDictionaryRuntimeLookup.test.ts`/`tests/adapterRegistry.test.ts` coverage.
-  - [ ] TODO [HARD]: Configure a hosted English offline pack source URL/checksum, then enable Profile download/import smoke against a real small pack.
+  - [x] DONE [HARD]: Configure a hosted English offline pack source URL/checksum and enable Profile download/import smoke against a real small pack: `public/offline-packs/enwiktionary-lite/`, MD5-wired `englishOfflinePackDevSource`, native-runtime gating for Expo Web, Profile e2e copy coverage, and fixture-backed `tests/offlineDictionaryPackActions.test.ts` import smoke.
 
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
@@ -440,10 +440,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Offline dictionary MVP Phase 2: configure a hosted English offline pack source URL/checksum, then enable Profile download/import smoke against a real small pack.
-2. [~] [HARD] Voice Search / OCR implementation Phase 2: add capture previews, manual dev-client smoke matrix, and select on-device OCR/STT engine candidates.
-3. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
-4. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
+1. [~] [HARD] Voice Search / OCR implementation Phase 2: add capture previews, manual dev-client smoke matrix, and select on-device OCR/STT engine candidates.
+2. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
+3. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
 
 
 

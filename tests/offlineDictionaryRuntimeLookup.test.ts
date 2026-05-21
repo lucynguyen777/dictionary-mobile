@@ -78,7 +78,7 @@ describe('offlineDictionaryRuntimeLookup', () => {
         packId: pack.id,
         schemaVersion: 1,
         sourceName: 'enwiktionary',
-        sourceUrl: '',
+        sourceUrl: '/offline-packs/enwiktionary-lite/entries.json',
       },
     ]);
   });

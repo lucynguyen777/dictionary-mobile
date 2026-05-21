@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
+        "NSCameraUsageDescription": "Dictionary Mobile uses the camera for the local OCR lookup prototype.",
         "NSMicrophoneUsageDescription": "Dictionary Mobile uses the microphone for the local voice lookup prototype.",
         "NSPhotoLibraryUsageDescription": "Dictionary Mobile uses selected images for the local OCR lookup prototype."
       }
@@ -25,6 +26,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
+        "CAMERA",
         "RECORD_AUDIO",
         "READ_EXTERNAL_STORAGE",
         "READ_MEDIA_IMAGES"
