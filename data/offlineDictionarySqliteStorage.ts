@@ -1,5 +1,4 @@
 import type { LanguageCode } from './languages';
-import type { SQLiteVariadicBindParams } from 'expo-sqlite';
 import {
   OFFLINE_DICTIONARY_SCHEMA_SQL,
   type OfflineDictionarySqliteRow,
@@ -12,12 +11,15 @@ import {
 import type { OfflineDictionaryEntry } from './offlineDictionaryLookup';
 import { getOfflineLookupCandidates } from './offlineDictionaryLookup';
 
+type OfflineSqliteBindValue = string | number | null | boolean | Uint8Array;
+type OfflineSqliteVariadicBindParams = OfflineSqliteBindValue[];
+
 export type OfflineSqliteDatabase = {
   closeAsync?: () => Promise<void>;
   databasePath: string;
   execAsync: (source: string) => Promise<void>;
-  getFirstAsync: <T>(source: string, ...params: SQLiteVariadicBindParams) => Promise<T | null>;
-  runAsync: (source: string, ...params: SQLiteVariadicBindParams) => Promise<unknown>;
+  getFirstAsync: <T>(source: string, ...params: OfflineSqliteVariadicBindParams) => Promise<T | null>;
+  runAsync: (source: string, ...params: OfflineSqliteVariadicBindParams) => Promise<unknown>;
   withTransactionAsync: (task: () => Promise<void>) => Promise<void>;
 };
 

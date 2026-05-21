@@ -1,7 +1,8 @@
 import { LanguageCode } from '@/data/languages';
+import type { OfflinePackDownloadSource } from './offlineDictionaryPackDownload';
 
 export type OfflinePackStatus = 'planned' | 'builder_ready' | 'runtime_pending';
-export type OfflinePackRuntimeBlockReason = 'pack_not_built' | 'runtime_import_pending';
+export type OfflinePackRuntimeBlockReason = 'pack_not_built' | 'pack_source_pending' | 'ready';
 
 export type OfflinePackRuntimeGate = {
   actionLabel: string;
@@ -13,6 +14,7 @@ export type OfflinePackRuntimeGate = {
 
 export type OfflineDictionaryPack = {
   attribution: string;
+  downloadSource?: OfflinePackDownloadSource;
   estimatedCompressedSizeMb: {
     max: number;
     min: number;
@@ -80,11 +82,21 @@ export function getOfflinePackRuntimeGate(pack: OfflineDictionaryPack): OfflineP
     };
   }
 
+  if (!pack.downloadSource) {
+    return {
+      actionLabel: 'Chờ pack URL',
+      canDownload: false,
+      canImport: false,
+      detail: 'Pack builder và runtime đã sẵn sàng, nhưng cần manifest/entries URL kèm checksum trước khi tải.',
+      reason: 'pack_source_pending',
+    };
+  }
+
   return {
-    actionLabel: 'Chờ SQLite runtime',
-    canDownload: false,
-    canImport: false,
-    detail: 'Pack builder đã sẵn sàng, nhưng import SQLite và quản lý tải/xóa chưa được bật.',
-    reason: 'runtime_import_pending',
+    actionLabel: 'Tải pack',
+    canDownload: true,
+    canImport: true,
+    detail: 'Có thể tải pack, xác minh checksum, nhập SQLite, và xóa khỏi thiết bị khi cần.',
+    reason: 'ready',
   };
 }

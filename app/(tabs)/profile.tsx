@@ -22,6 +22,10 @@ import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import {
+  deleteInstalledOfflineDictionaryPack,
+  installOfflineDictionaryPackFromSource,
+} from '@/data/offlineDictionaryPackActions';
+import {
   OfflinePackInstallState,
   clearOfflinePackInstallState,
   formatOfflinePackInstallStatus,
@@ -92,6 +96,7 @@ export default function ProfileScreen() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarSection, setSidebarSection] = useState<SidebarSectionKey | null>(null);
   const [editingAvatar, setEditingAvatar] = useState(false);
+  const [offlinePackBusyId, setOfflinePackBusyId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -152,6 +157,56 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleInstallOfflinePack = async (pack: (typeof offlineDictionaryPacks)[number]) => {
+    const runtimeGate = getOfflinePackRuntimeGate(pack);
+
+    if (!runtimeGate.canDownload || !pack.downloadSource) {
+      Alert.alert('Chưa thể tải pack', runtimeGate.detail);
+      return;
+    }
+
+    setOfflinePackBusyId(pack.id);
+
+    try {
+      const result = await installOfflineDictionaryPackFromSource({
+        pack,
+        state: offlinePackInstallState,
+      });
+
+      setOfflinePackInstallState(result.state);
+      Alert.alert(
+        result.ok ? 'Đã cài pack offline' : 'Lỗi cài pack offline',
+        result.ok ? `Đã cài ${result.entryCount} mục từ vào SQLite.` : result.errorMessage
+      );
+    } finally {
+      setOfflinePackBusyId(null);
+    }
+  };
+
+  const handleDeleteOfflinePack = (pack: (typeof offlineDictionaryPacks)[number]) => {
+    Alert.alert('Xóa pack offline', 'Xóa SQLite pack và trạng thái cài đặt local trên thiết bị này?', [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Xóa pack',
+        style: 'destructive',
+        onPress: async () => {
+          setOfflinePackBusyId(pack.id);
+
+          try {
+            const nextState = await deleteInstalledOfflineDictionaryPack({
+              pack,
+              state: offlinePackInstallState,
+            });
+            setOfflinePackInstallState(nextState);
+            Alert.alert('Đã xóa pack', 'Pack offline đã được xóa khỏi thiết bị.');
+          } finally {
+            setOfflinePackBusyId(null);
+          }
+        },
+      },
+    ]);
   };
 
   const handleToggleAppLock = async (nextValue: boolean) => {
@@ -420,7 +475,7 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Gói từ điển offline</Text>
           <Text style={styles.cardSubtitle}>
-            Phase 1 đang chuẩn bị pack đơn ngôn ngữ tùy chọn. Online lookup vẫn là mặc định cho đến khi runtime SQLite và tải pack được bật.
+            Phase 2 đã có download, checksum và SQLite import path. Online lookup vẫn là mặc định cho đến khi pack URL thật được cấu hình.
           </Text>
           <View style={styles.offlinePackSummaryRow}>
             <DataStat label="Gói" value={offlinePackSummary.packCount} />
@@ -435,6 +490,9 @@ export default function ProfileScreen() {
             const installStatus = formatOfflinePackInstallStatus(installRecord.status);
             const progressLabel =
               installRecord.status === 'downloading' ? `Tiến độ ${formatOfflinePackProgress(installRecord)}` : installStatus;
+            const isBusy = offlinePackBusyId === pack.id;
+            const canInstall = runtimeGate.canDownload && !isBusy;
+            const hasInstallRecord = installRecord.status !== 'not_downloaded';
 
             return (
               <View key={pack.id} style={styles.offlinePackRow}>
@@ -449,6 +507,34 @@ export default function ProfileScreen() {
                   <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
                   <Text style={styles.offlinePackInstallText}>{progressLabel}</Text>
                   <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
+                  <View style={styles.offlinePackActionRow}>
+                    <TouchableOpacity
+                      accessibilityLabel={`Tải ${language?.label ?? pack.languageCode} offline pack`}
+                      accessibilityRole="button"
+                      activeOpacity={0.82}
+                      disabled={!canInstall}
+                      onPress={() => handleInstallOfflinePack(pack)}
+                      style={[styles.offlinePackActionButton, !canInstall && styles.offlinePackActionButtonDisabled]}>
+                      <Ionicons name="download-outline" size={14} color={canInstall ? '#2563EB' : '#94A3B8'} />
+                      <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
+                        {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
+                      </Text>
+                    </TouchableOpacity>
+                    {hasInstallRecord ? (
+                      <TouchableOpacity
+                        accessibilityLabel={`Xóa ${language?.label ?? pack.languageCode} offline pack`}
+                        accessibilityRole="button"
+                        activeOpacity={0.82}
+                        disabled={isBusy}
+                        onPress={() => handleDeleteOfflinePack(pack)}
+                        style={[styles.offlinePackDeleteButton, isBusy && styles.offlinePackActionButtonDisabled]}>
+                        <Ionicons name="trash-outline" size={14} color={isBusy ? '#94A3B8' : '#DC2626'} />
+                        <Text style={[styles.offlinePackDeleteText, isBusy && styles.offlinePackActionTextDisabled]}>
+                          Xóa
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
                 </View>
               </View>
             );
@@ -1468,7 +1554,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     flexShrink: 0,
     gap: 5,
-    maxWidth: 118,
+    maxWidth: 156,
   },
   offlinePackRuntimeText: {
     color: '#64748B',
@@ -1483,6 +1569,53 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 13,
     textAlign: 'right',
+  },
+  offlinePackActionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    justifyContent: 'flex-end',
+  },
+  offlinePackActionButton: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    minHeight: 32,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  offlinePackActionButtonDisabled: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#E2E8F0',
+  },
+  offlinePackActionText: {
+    color: '#2563EB',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  offlinePackActionTextDisabled: {
+    color: '#94A3B8',
+  },
+  offlinePackDeleteButton: {
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    minHeight: 32,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  offlinePackDeleteText: {
+    color: '#DC2626',
+    fontSize: 11,
+    fontWeight: '900',
   },
   dataStat: {
     backgroundColor: '#F8FAFC',

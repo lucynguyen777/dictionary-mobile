@@ -147,7 +147,7 @@ async function downloadAndVerifyFile({
   };
 }
 
-async function createExpoOfflinePackFileSystem(packId: string): Promise<OfflinePackDownloadFileSystem> {
+export async function createExpoOfflinePackFileSystem(packId: string): Promise<OfflinePackDownloadFileSystem> {
   const { Directory, File, Paths } = await import('expo-file-system');
   const directory = new Directory(Paths.document, 'offline-packs', getOfflinePackDirectoryName(packId));
   directory.create({ idempotent: true, intermediates: true });

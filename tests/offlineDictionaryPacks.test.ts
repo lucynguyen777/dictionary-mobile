@@ -36,13 +36,34 @@ describe('offlineDictionaryPacks', () => {
     expect(formatPackSizeRange(offlineDictionaryPacks[0])).toBe('10-50MB');
   });
 
-  it('blocks download/import until runtime pack management is implemented', () => {
+  it('blocks download/import until pack source URLs are configured', () => {
     expect(getOfflinePackRuntimeGate(offlineDictionaryPacks[0])).toEqual({
-      actionLabel: 'Chờ SQLite runtime',
+      actionLabel: 'Chờ pack URL',
       canDownload: false,
       canImport: false,
-      detail: 'Pack builder đã sẵn sàng, nhưng import SQLite và quản lý tải/xóa chưa được bật.',
-      reason: 'runtime_import_pending',
+      detail: 'Pack builder và runtime đã sẵn sàng, nhưng cần manifest/entries URL kèm checksum trước khi tải.',
+      reason: 'pack_source_pending',
+    });
+  });
+
+  it('enables download/import when source URLs and checksums exist', () => {
+    expect(
+      getOfflinePackRuntimeGate({
+        ...offlineDictionaryPacks[0],
+        downloadSource: {
+          entriesMd5: 'entries-md5',
+          entriesUrl: 'https://example.com/entries.json.gz',
+          entryCount: 1,
+          manifestMd5: 'manifest-md5',
+          manifestUrl: 'https://example.com/manifest.json',
+        },
+      })
+    ).toEqual({
+      actionLabel: 'Tải pack',
+      canDownload: true,
+      canImport: true,
+      detail: 'Có thể tải pack, xác minh checksum, nhập SQLite, và xóa khỏi thiết bị khi cần.',
+      reason: 'ready',
     });
   });
 
