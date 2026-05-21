@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -67,6 +68,12 @@ import {
   createOcrPrototypeResult,
   createSpeechToTextPrototypeResult,
 } from '@/data/recognition';
+import {
+  createAudioCapturePreview,
+  createImageCapturePreview,
+  formatCapturePreviewMeta,
+} from '@/data/recognitionCapture';
+import type { RecognitionCapturePreview } from '@/data/recognitionCapture';
 
 const { width } = Dimensions.get('window');
 
@@ -96,6 +103,7 @@ export default function WordScreen() {
   const [recognitionMode, setRecognitionMode] = useState<RecognitionKind>('speech');
   const [recognitionStatus, setRecognitionStatus] = useState<RecognitionStatus>('idle');
   const [recognitionResult, setRecognitionResult] = useState<RecognitionPrototypeResult | null>(null);
+  const [recognitionCapturePreview, setRecognitionCapturePreview] = useState<RecognitionCapturePreview | null>(null);
   const [recognitionError, setRecognitionError] = useState('');
   const [capturePreviewVisible, setCapturePreviewVisible] = useState(false);
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -372,6 +380,7 @@ export default function WordScreen() {
     setRecognitionMode(mode);
     setRecognitionStatus('idle');
     setRecognitionResult(null);
+    setRecognitionCapturePreview(null);
     setRecognitionError('');
     setRecognitionModalOpen(true);
   };
@@ -423,6 +432,7 @@ export default function WordScreen() {
     setCapturePreviewVisible(false);
     setRecognitionMode('ocr');
     setRecognitionStatus('processing');
+    setRecognitionCapturePreview(createImageCapturePreview({ uri, source: 'camera' }));
     try {
       const ocrText = await performOCR(uri, sourceLanguage.code);
       const prototypeResult = createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri: uri });
@@ -435,6 +445,7 @@ export default function WordScreen() {
     } catch {
       setRecognitionError('OCR processing failed');
       setRecognitionStatus('error');
+      setRecognitionModalOpen(true);
     }
   };
 
@@ -442,7 +453,9 @@ export default function WordScreen() {
     setRecognitionStatus('processing');
     setRecognitionError('');
 
+    const durationMs = audioRecorder.getStatus().durationMillis;
     const audioUri = await stopSpeechRecording();
+    setRecognitionCapturePreview(createAudioCapturePreview({ uri: audioUri, durationMs }));
     setRecognitionResult(createSpeechToTextPrototypeResult({ languageCode: sourceLanguage.code, audioUri }));
     setRecognitionStatus('ready');
   };
@@ -451,6 +464,7 @@ export default function WordScreen() {
     setRecognitionStatus('requesting');
     setRecognitionError('');
     setRecognitionResult(null);
+    setRecognitionCapturePreview(null);
 
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -470,7 +484,17 @@ export default function WordScreen() {
       }
 
       setRecognitionStatus('processing');
-      const imageUri = pickerResult.assets[0]?.uri ?? null;
+      const imageAsset = pickerResult.assets[0];
+      const imageUri = imageAsset?.uri ?? null;
+      setRecognitionCapturePreview(
+        createImageCapturePreview({
+          uri: imageUri,
+          width: imageAsset?.width,
+          height: imageAsset?.height,
+          sizeBytes: imageAsset?.fileSize,
+          source: 'library',
+        })
+      );
       setRecognitionResult(createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri }));
       setRecognitionStatus('ready');
     } catch (error) {
@@ -663,11 +687,13 @@ export default function WordScreen() {
       <RecognitionPrototypeModal
         error={recognitionError}
         mode={recognitionMode}
+        preview={recognitionCapturePreview}
         result={recognitionResult}
         status={recognitionStatus}
         sourceLanguage={sourceLanguage}
         visible={recognitionModalOpen}
         onClose={closeRecognitionModal}
+        onOpenCamera={() => setCapturePreviewVisible(true)}
         onPickImage={handlePickOcrPrototypeImage}
         onStartSpeech={handleStartSpeechPrototype}
         onStopSpeech={handleFinishSpeechPrototype}
@@ -685,11 +711,13 @@ export default function WordScreen() {
 function RecognitionPrototypeModal({
   error,
   mode,
+  preview,
   result,
   status,
   sourceLanguage,
   visible,
   onClose,
+  onOpenCamera,
   onPickImage,
   onStartSpeech,
   onStopSpeech,
@@ -697,11 +725,13 @@ function RecognitionPrototypeModal({
 }: {
   error: string;
   mode: RecognitionKind;
+  preview: RecognitionCapturePreview | null;
   result: RecognitionPrototypeResult | null;
   status: RecognitionStatus;
   sourceLanguage: LanguageOption;
   visible: boolean;
   onClose: () => void;
+  onOpenCamera: () => void;
   onPickImage: () => void;
   onStartSpeech: () => void;
   onStopSpeech: () => void;
@@ -748,6 +778,26 @@ function RecognitionPrototypeModal({
 
           {error ? <Text style={styles.recognitionError}>{error}</Text> : null}
 
+          {preview ? (
+            <View style={styles.recognitionPreviewCard}>
+              {preview.kind === 'image' ? (
+                <Image source={{ uri: preview.uri }} style={styles.recognitionPreviewImage} />
+              ) : (
+                <View style={styles.recognitionPreviewAudio}>
+                  <Ionicons name="musical-notes" size={20} color="#0F766E" />
+                </View>
+              )}
+              <View style={styles.recognitionPreviewCopy}>
+                <Text style={styles.recognitionPreviewTitle}>
+                  {preview.kind === 'audio' ? 'Âm thanh đã ghi' : preview.source === 'camera' ? 'Ảnh đã chụp' : 'Ảnh đã chọn'}
+                </Text>
+                <Text numberOfLines={1} style={styles.recognitionPreviewMeta}>
+                  {formatCapturePreviewMeta(preview)}
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
           {result ? (
             <View style={styles.recognitionResultBlock}>
               <Text style={styles.recognitionResultLabel}>Kết quả prototype</Text>
@@ -783,15 +833,26 @@ function RecognitionPrototypeModal({
                 <Text style={styles.recognitionPrimaryText}>{status === 'recording' ? 'Dừng ghi' : 'Bắt đầu'}</Text>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity
-                accessibilityLabel="Pick OCR prototype image"
-                activeOpacity={0.84}
-                disabled={isBusy}
-                onPress={onPickImage}
-                style={[styles.recognitionPrimaryButton, isBusy && styles.recognitionDisabledButton]}>
-                <Ionicons name="image" size={18} color="#FFFFFF" />
-                <Text style={styles.recognitionPrimaryText}>Chọn ảnh</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  accessibilityLabel="Pick OCR prototype image"
+                  activeOpacity={0.84}
+                  disabled={isBusy}
+                  onPress={onPickImage}
+                  style={[styles.recognitionPrimaryButton, isBusy && styles.recognitionDisabledButton]}>
+                  <Ionicons name="image" size={18} color="#FFFFFF" />
+                  <Text style={styles.recognitionPrimaryText}>Chọn ảnh</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  accessibilityLabel="Open OCR camera preview"
+                  activeOpacity={0.82}
+                  disabled={isBusy}
+                  onPress={onOpenCamera}
+                  style={[styles.recognitionSecondaryButton, isBusy && styles.recognitionDisabledButton]}>
+                  <Ionicons name="camera" size={17} color="#0F766E" />
+                  <Text style={styles.recognitionSecondaryText}>Camera</Text>
+                </TouchableOpacity>
+              </>
             )}
             {result ? (
               <TouchableOpacity activeOpacity={0.82} onPress={() => onUseText(result.suggestions[0] ?? result.text)} style={styles.recognitionSecondaryButton}>
@@ -1467,6 +1528,46 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     marginTop: 12,
     padding: 10,
+  },
+  recognitionPreviewCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#CCFBF1',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+    padding: 10,
+  },
+  recognitionPreviewImage: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    height: 52,
+    width: 52,
+  },
+  recognitionPreviewAudio: {
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 8,
+    height: 52,
+    justifyContent: 'center',
+    width: 52,
+  },
+  recognitionPreviewCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  recognitionPreviewTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  recognitionPreviewMeta: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 4,
   },
   recognitionResultBlock: {
     marginTop: 14,

@@ -154,14 +154,14 @@ Status: DONE. `app/(tabs)/word.tsx` now exposes Voice and OCR entry points on th
 
 ### Stage 2 — Real capture plumbing (still without OCR/STT engines)
 - Implement:
-  - Audio capture using `expo-av` (record audio file)
-  - Image capture using `expo-image-picker` (select image) or `expo-camera` (camera preview)
+  - Audio capture using `expo-audio` (record audio file)
+  - Image capture using `expo-image-picker` (select image) and `expo-camera` (camera preview)
 - Still returns “not recognized yet” message.
 
 Exit criteria:
 - We can capture and store a local audio file and image and show preview.
 
-Status: PARTIAL. The Phase 1 prototype records local audio with `expo-av` and captures a selected image URI with `expo-image-picker`, but it does not yet show waveform/image previews or persist a capture history.
+Status: DONE. The Word recognition modal now keeps a local capture preview for microphone recordings, picked library images, and camera captures. Audio previews show the local file metadata and recording duration from `expo-audio`; image previews show a thumbnail plus dimensions/file-size metadata when the picker provides it. The OCR modal also exposes the `expo-camera` preview path without replacing the existing image-library smoke flow. Capture history remains out of scope for this stage.
 
 ### Stage 3 — Real on-device OCR (dev-client required)
 - Integrate ML Kit OCR module (exact package TBD).
@@ -186,25 +186,48 @@ Exit criteria:
 ## Library shortlist & decision points
 
 ### For Stage 1–2 (safe within current repo)
-- `expo-av` (audio recording)
+- `expo-audio` (audio recording)
 - `expo-image-picker` (image selection)
-- `expo-camera` (optional; camera preview is more complex but better UX)
+- `expo-camera` (camera preview and capture)
 
 ### For OCR Stage 3 (dev-client)
-Decision needed:
-- Pick **one** MLKit wrapper that is maintained and supports Expo dev-client workflows.
+Current shortlist:
+1. **Google ML Kit Text Recognition wrapper for React Native**: preferred first candidate for Android+iOS on-device OCR in an Expo dev-client/custom native build.
+2. **iOS Vision native bridge**: fallback candidate if the selected ML Kit wrapper is not maintained enough for the current Expo SDK, but it would need separate Android coverage.
+3. **Tesseract.js**: keep as a web-only experiment candidate; do not use as the default mobile path because of performance, memory, and bundle-size risk.
+
+Decision gate:
+- Pick one maintained ML Kit wrapper, verify Expo dev-client compatibility, and prove basic English/Vietnamese OCR from a local image before adding bounding-box UI.
 
 ### For Voice Stage 4 (dev-client)
-Decision needed:
-- Pick native STT wrapper strategy:
-  1) OS SpeechRecognizer wrappers (simpler, but variable offline behavior), or
-  2) Vosk offline (heavy but privacy + offline).
+Current shortlist:
+1. **`expo-speech-recognition` / OS speech recognizers**: preferred first candidate because it maps to iOS `SFSpeechRecognizer`, Android `SpeechRecognizer`, and web `SpeechRecognition`. Offline behavior is OS/device dependent, so this is privacy-friendly only when validated with the smoke matrix.
+2. **Vosk via a React Native wrapper**: second candidate for true offline STT, with higher integration cost, model management, and app-size impact.
+3. **Cloud STT**: still blocked unless product explicitly accepts opt-in cloud processing, backend controls, billing, and a documented data policy.
+
+Decision gate:
+- Start with an Expo dev-client spike for OS recognizers. Move to Vosk only if offline behavior is required and the model-size tradeoff is accepted.
+
+## Manual dev-client smoke matrix
+
+Run this before marking Stage 3 or Stage 4 implementation done:
+
+| Platform | Flow | Expected result |
+| --- | --- | --- |
+| iOS dev-client | Microphone permission -> start voice capture -> stop | Local audio URI exists, duration preview appears, prototype suggestions remain selectable, lookup route opens. |
+| Android dev-client | Microphone permission -> start voice capture -> stop | Local audio URI exists, duration preview appears, prototype suggestions remain selectable, lookup route opens. |
+| iOS dev-client | Photo-library permission -> pick OCR image | Image thumbnail appears, dimensions/file-size metadata appears when available, prototype suggestions remain selectable, lookup route opens. |
+| Android dev-client | Photo-library permission -> pick OCR image | Image thumbnail appears, dimensions/file-size metadata appears when available, prototype suggestions remain selectable, lookup route opens. |
+| iOS dev-client | Camera permission -> open OCR camera -> capture | Camera preview opens, captured image preview appears, prototype suggestions remain selectable, lookup route opens. |
+| Android dev-client | Camera permission -> open OCR camera -> capture | Camera preview opens, captured image preview appears, prototype suggestions remain selectable, lookup route opens. |
+| iOS + Android dev-client | Airplane mode capture-only run | Stage 2 capture and preview still work without external OCR/STT network calls. |
 
 ---
 
 ## Testing strategy (when implementation begins)
 - Unit tests:
   - Parsing/normalization of transcript/OCR text into lookup queries.
+  - Capture-preview metadata formatting for audio and image inputs.
 - Manual smoke (required):
   - iOS dev-client: record voice → transcript; camera OCR → result.
   - Android dev-client: same.

@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Voice/OCR capture-preview polish, Kazakh source smoke, Uyghur planning, and remaining backend/source-gated work.
+- Hard next tasks: Kazakh source smoke, Uyghur planning, Uralic source/status refresh, and remaining backend/source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -169,6 +169,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [~] IN PROGRESS [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
   - [x] DONE [HARD]: Architecture/library evaluation and staged implementation plan: `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Implementation Phase 1: Word screen Voice/OCR entry points, microphone/photo-library permission flow, local audio/image capture hooks, deterministic STT/OCR prototype results, and lookup routing covered by `tests/recognition.test.ts`.
+  - [x] DONE [HARD]: Implementation Phase 2: capture previews for local audio/image inputs, OCR camera preview entry, manual dev-client smoke matrix, and on-device OCR/STT engine shortlist documented in `docs/voice-ocr-plan.md`.
 
 ### Context & Examples
 - [x] DONE [MEDIUM]: Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ) (commit `d1f96b5`).
@@ -441,9 +442,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Voice Search / OCR implementation Phase 2: add capture previews, manual dev-client smoke matrix, and select on-device OCR/STT engine candidates.
-2. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
-3. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
+1. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
+2. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
+3. [ ] [HARD] Uralic source/status refresh: review Finnish/Hungarian/Estonian implementation status, verify remaining source gates, and pick the next unblocked Uralic slice.
 
 
 
