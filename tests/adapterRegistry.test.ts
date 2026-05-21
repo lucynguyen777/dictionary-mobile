@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getAdapterByKey, getAdapterForLanguage, lookupBilingual, lookupMonolingual } from '../data/adapterRegistry';
+import { getAdapterByKey, getAdapterForLanguage, lookupBilingual, lookupMonolingual, lookupRelatedWords } from '../data/adapterRegistry';
 import * as dictApi from '../data/dictionaryApi';
+import * as offlineLookup from '../data/offlineDictionaryRuntimeLookup';
 
 vi.mock('../data/dictionaryApi', () => {
   const mockFetchEnglishMeaning = vi.fn(async (word: string) => ({
@@ -55,6 +56,11 @@ vi.mock('../data/dictionaryApi', () => {
   };
 });
 
+vi.mock('../data/offlineDictionaryRuntimeLookup', () => ({
+  fetchOfflineMonolingualMeaning: vi.fn(async () => null),
+  fetchOfflineRelatedWords: vi.fn(async () => null),
+}));
+
 describe('adapterRegistry', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -80,8 +86,39 @@ describe('adapterRegistry', () => {
   it('lookupMonolingual delegates to dictionaryApi', async () => {
     const result = await lookupMonolingual('hello', 'vi');
 
+    expect((offlineLookup as any).fetchOfflineMonolingualMeaning).toHaveBeenCalledWith('hello', 'vi');
     expect(result.word).toBe('hello-mock');
     expect((dictApi as any).fetchMinhQndMonolingualMeaning).toHaveBeenCalledWith('hello', 'vi');
+  });
+
+  it('lookupMonolingual prefers ready offline packs before dictionaryApi', async () => {
+    vi.mocked(offlineLookup.fetchOfflineMonolingualMeaning).mockResolvedValueOnce({
+      audio: '',
+      definitions: [],
+      ipa: '',
+      source: 'offline pack',
+      word: 'Book',
+    });
+
+    const result = await lookupMonolingual('book', 'en');
+
+    expect(result.source).toBe('offline pack');
+    expect((dictApi as any).fetchEnglishMeaning).not.toHaveBeenCalled();
+  });
+
+  it('lookupRelatedWords prefers offline related words before dictionaryApi', async () => {
+    vi.mocked(offlineLookup.fetchOfflineRelatedWords).mockResolvedValueOnce({
+      antonyms: ['scroll'],
+      synonyms: ['volume'],
+    });
+
+    const result = await lookupRelatedWords('book', 'en');
+
+    expect(result).toEqual({
+      antonyms: ['scroll'],
+      synonyms: ['volume'],
+    });
+    expect((dictApi as any).fetchEnglishRelatedWords).not.toHaveBeenCalled();
   });
 
   it('lookupBilingual delegates to dictionaryApi', async () => {

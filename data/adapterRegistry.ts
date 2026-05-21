@@ -62,6 +62,7 @@ import {
   fetchZuluRelatedWords,
 } from './dictionaryApi';
 import { languageOptions } from './languages';
+import { fetchOfflineMonolingualMeaning, fetchOfflineRelatedWords } from './offlineDictionaryRuntimeLookup';
 
 export type LanguageAdapter = {
   key: string;
@@ -339,9 +340,21 @@ export function getAdapterForPair(sourceLang: string, targetLang: string): Langu
 }
 
 export async function lookupMonolingual(word: string, languageCode: string) {
+  const offlineMeaning = await fetchOfflineMonolingualMeaning(word, languageCode);
+  if (offlineMeaning) return offlineMeaning;
+
   const adapter = getAdapterForLanguage(languageCode);
   if (!adapter.fetchMonolingualMeaning) throw new Error(`No monolingual dictionary for ${languageCode}`);
   return adapter.fetchMonolingualMeaning(word);
+}
+
+export async function lookupRelatedWords(word: string, languageCode: string) {
+  const offlineRelatedWords = await fetchOfflineRelatedWords(word, languageCode);
+  if (offlineRelatedWords) return offlineRelatedWords;
+
+  const adapter = getAdapterForLanguage(languageCode);
+  if (!adapter.fetchRelatedWords) return { synonyms: [], antonyms: [] };
+  return adapter.fetchRelatedWords(word);
 }
 
 export async function lookupBilingual(word: string, sourceLang: string, targetLang: string) {
@@ -356,5 +369,6 @@ export default {
   getAdapterForLanguage,
   getAdapterForPair,
   lookupMonolingual,
+  lookupRelatedWords,
   lookupBilingual,
 };

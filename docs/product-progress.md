@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Offline dictionary MVP Phase 2 native SQLite driver/download wiring, Voice/OCR capture-preview polish, Kazakh source/script planning, and remaining backend/source-gated work.
+- Hard next tasks: Offline dictionary MVP Phase 2 hosted pack source/checksum enablement, Voice/OCR capture-preview polish, Kazakh source smoke, Uyghur planning, and remaining backend/source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -321,7 +321,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Add Expo SQLite-backed storage driver with `expo-sqlite`, deterministic per-pack database names, schema setup, transaction import, deletion, SQL-backed exact/morphology lookup routing, restart-seeded manifest routing, and focused `tests/offlineDictionarySqliteStorage.test.ts` coverage.
   - [x] DONE [HARD]: Add real pack file download/checksum handling before enabling Profile download/import actions: Expo FileSystem document-directory download adapter, deterministic artifact filenames, manifest/entries MD5 verification, install-state transitions, partial-file cleanup, and focused `tests/offlineDictionaryPackDownload.test.ts` coverage.
   - [x] DONE [HARD]: Wire Profile pack action through download, manifest parse, gzipped entries parse via `pako`, SQLite import, artifact cleanup, deletion, disabled `Chờ pack URL` UI state, focused `tests/offlineDictionaryPackActions.test.ts`, updated pack gating tests, and Profile e2e copy coverage.
-  - [ ] TODO [HARD]: Wire dictionary lookup flow to query ready SQLite packs before falling back to online adapters.
+  - [x] DONE [HARD]: Wire dictionary lookup flow to query ready SQLite packs before falling back to online adapters: `data/offlineDictionaryRuntimeLookup.ts`, adapter registry offline-first monolingual/related lookup, restart-seeded ready manifest routing, runtime failure fallback, and focused `tests/offlineDictionaryRuntimeLookup.test.ts`/`tests/adapterRegistry.test.ts` coverage.
+  - [ ] TODO [HARD]: Configure a hosted English offline pack source URL/checksum, then enable Profile download/import smoke against a real small pack.
 
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
@@ -438,11 +439,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
+1. [~] [HARD] Offline dictionary MVP Phase 2: configure a hosted English offline pack source URL/checksum, then enable Profile download/import smoke against a real small pack.
 2. [~] [HARD] Voice Search / OCR implementation Phase 2: add capture previews, manual dev-client smoke matrix, and select on-device OCR/STT engine candidates.
-3. [x] [HARD] Kazakh monolingual baseline planning: Cyrillic/Latin script duality, full vowel harmony, 7-case morphology, source candidates, and gated implementation plan documented in `docs/kazakh-language-plan.md`.
-4. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
-5. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
+3. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
+4. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
 
 
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { Camera, CameraView, type CameraType } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 
 type VoiceCapturePreviewProps = {
@@ -11,8 +11,8 @@ type VoiceCapturePreviewProps = {
 
 export default function VoiceCapturePreview({ visible, onClose, onCapture }: VoiceCapturePreviewProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [cameraRef, setCameraRef] = useState<Camera | null>(null);
-  const [type, setType] = useState<CameraType>(CameraType.back);
+  const [cameraRef, setCameraRef] = useState<CameraView | null>(null);
+  const [type, setType] = useState<CameraType>('back');
 
   useEffect(() => {
     (async () => {
@@ -43,7 +43,7 @@ export default function VoiceCapturePreview({ visible, onClose, onCapture }: Voi
 
   return (
     <View style={styles.container}>
-      <Camera style={styles.camera} type={type} ref={setCameraRef} />
+      <CameraView style={styles.camera} facing={type} ref={setCameraRef} />
       <View style={styles.controls}>
         <TouchableOpacity onPress={onClose} style={styles.controlButton}>
           <Ionicons name="close" size={28} color="#FFFFFF" />
@@ -51,7 +51,7 @@ export default function VoiceCapturePreview({ visible, onClose, onCapture }: Voi
         <TouchableOpacity onPress={handleCapture} style={styles.controlButton}>
           <Ionicons name="camera" size={28} color="#FFFFFF" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setType(type === CameraType.back ? CameraType.front : CameraType.back)} style={styles.controlButton}>
+        <TouchableOpacity onPress={() => setType(type === 'back' ? 'front' : 'back')} style={styles.controlButton}>
           <Ionicons name="camera-reverse" size={28} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
