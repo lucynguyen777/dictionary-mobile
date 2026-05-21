@@ -118,6 +118,17 @@ Runtime SQLite import, download progress, deletion, version checks, and per-entr
 
 This resolver is covered by offline fixture tests and is intended to sit behind SQLite storage once pack import/download management is implemented.
 
+## Pack Install State
+
+`data/offlineDictionaryPackStore.ts` stores local pack lifecycle metadata in AsyncStorage before real downloader/SQLite wiring lands:
+
+- `not_downloaded`, `downloading`, `downloaded`, `importing`, `ready`, and `failed` statuses;
+- clamped download progress from `0` to `1`;
+- local URI, imported entry count, installed timestamp, and error copy;
+- deletion of pack metadata without touching user library/profile data.
+
+The store intentionally tracks metadata only. Actual pack files, SQLite database creation, checksum verification, and network download retries remain future work.
+
 ## Verification
 
 For Phase 1 changes:
@@ -127,6 +138,7 @@ node scripts/build-offline-pack.mjs --input <jsonl> --lang <lang> --source <sour
 npm test -- --run tests/offlinePackBuilder.test.ts
 npm test -- --run tests/offlineDictionaryPacks.test.ts
 npm test -- --run tests/offlineDictionaryLookup.test.ts
+npm test -- --run tests/offlineDictionaryPackStore.test.ts
 npx tsc --noEmit
 npm run lint
 npm test -- --run
