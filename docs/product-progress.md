@@ -437,7 +437,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Queue
 1. [~] [HARD] Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
-2. [ ] [HARD] Voice Search / OCR implementation Phase 2: add capture previews, manual dev-client smoke matrix, and select on-device OCR/STT engine candidates.
+2. [~] [HARD] Voice Search / OCR implementation Phase 2: add capture previews, manual dev-client smoke matrix, and select on-device OCR/STT engine candidates.
 3. [ ] [HARD] Kazakh monolingual baseline planning: research Cyrillic/Latin transition, agglutinative morphology, and source candidates.
 
 

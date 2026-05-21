@@ -5,6 +5,8 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from 'expo-audio';
+import VoiceCapturePreview from '@/app/(tabs)/voiceCapturePreview';
+import { performOCR } from '@/data/ocr';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -96,6 +98,9 @@ export default function WordScreen() {
   const [recognitionStatus, setRecognitionStatus] = useState<RecognitionStatus>('idle');
   const [recognitionResult, setRecognitionResult] = useState<RecognitionPrototypeResult | null>(null);
   const [recognitionError, setRecognitionError] = useState('');
+  // New state for capture preview
+  const [capturePreviewVisible, setCapturePreviewVisible] = useState(false);
+  const [capturedImageUri, setCapturedImageUri] = useState<string | null>(null);
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scrollRef = useRef<ScrollView | null>(null);
   const sourceLanguage = getLanguageByCode(getRouteParam(params.sourceLang), 'en');
@@ -367,6 +372,11 @@ export default function WordScreen() {
   };
 
   const openRecognitionModal = (mode: RecognitionKind) => {
+    if (mode === 'ocr') {
+      // Open camera preview for OCR capture
+      setCapturePreviewVisible(true);
+      return;
+    }
     setRecognitionMode(mode);
     setRecognitionStatus('idle');
     setRecognitionResult(null);
@@ -414,6 +424,26 @@ export default function WordScreen() {
     } catch (error) {
       setRecognitionStatus('error');
       setRecognitionError(error instanceof Error ? error.message : 'Chưa thể bắt đầu ghi âm.');
+    }
+  };
+
+  // Handler for OCR capture result
+  const handleCapture = async (uri: string) => {
+    setCapturedImageUri(uri);
+    setCapturePreviewVisible(false);
+    setRecognitionMode('ocr');
+    setRecognitionStatus('processing');
+    try {
+      const ocrText = await performOCR(uri, sourceLanguage.code);
+      // Use prototype result structure for consistency
+      const result = createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri: uri });
+      // Overwrite the text field with actual OCR (if you want) - here we keep prototype
+      setRecognitionResult(result);
+      setRecognitionStatus('ready');
+      setRecognitionModalOpen(true);
+    } catch (e) {
+      setRecognitionError('OCR processing failed');
+      setRecognitionStatus('error');
     }
   };
 
@@ -651,6 +681,11 @@ export default function WordScreen() {
         onStartSpeech={handleStartSpeechPrototype}
         onStopSpeech={handleFinishSpeechPrototype}
         onUseText={handleUseRecognitionText}
+      />
+      <VoiceCapturePreview
+        visible={capturePreviewVisible}
+        onClose={() => setCapturePreviewVisible(false)}
+        onCapture={handleCapture}
       />
     </View>
   );
