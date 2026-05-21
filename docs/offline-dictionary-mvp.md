@@ -140,8 +140,9 @@ The store intentionally tracks metadata only. Actual pack files, SQLite database
 - `importOfflineDictionaryPack` orchestrates install-state transitions through `importing`, `ready`, or `failed` while delegating persistence to an `OfflineDictionaryStorage` port.
 - `createMemoryOfflineDictionaryStorage` is a deterministic test/runtime stand-in for contract tests.
 - `data/offlineDictionarySqliteStorage.ts` provides the Expo SQLite-backed storage driver: lazy runtime import of `expo-sqlite`, deterministic per-pack database names, schema setup, transaction-backed metadata/entry replacement, database deletion, and SQL-backed exact/morphology lookup routing.
+- `data/offlineDictionaryPackDownload.ts` provides the pack download/checksum layer before Profile actions are enabled: lazy runtime use of Expo FileSystem's document directory, deterministic offline-pack artifact paths, manifest/entries download, MD5 verification, install-state transitions through `downloading`, `downloaded`, or `failed`, and cleanup of partial files when verification fails.
 
-This slice intentionally keeps Profile download/import buttons gated. It proves the manifest/entry contract, install-state transitions, and persistent SQLite lookup path without claiming pack download/checksum handling is ready. FTS table creation is present for the eventual search surface; current lookup uses the indexed normalized-word path plus morphology candidates.
+This slice intentionally keeps Profile download/import buttons gated. It proves the manifest/entry contract, download/checksum handling, install-state transitions, and persistent SQLite lookup path without claiming the end-to-end Profile action has been wired. FTS table creation is present for the eventual search surface; current lookup uses the indexed normalized-word path plus morphology candidates.
 
 ## Verification
 
@@ -153,6 +154,7 @@ npm test -- --run tests/offlinePackBuilder.test.ts
 npm test -- --run tests/offlineDictionaryPacks.test.ts
 npm test -- --run tests/offlineDictionaryLookup.test.ts
 npm test -- --run tests/offlineDictionaryPackStore.test.ts
+npm test -- --run tests/offlineDictionaryPackDownload.test.ts
 npm test -- --run tests/offlineDictionaryImport.test.ts
 npm test -- --run tests/offlineDictionarySqliteStorage.test.ts
 npx tsc --noEmit
