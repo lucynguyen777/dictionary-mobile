@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `54dfd88` feat(recognition): add capture previews
   - `81dac33` feat: add hosted offline pack smoke source
   - `95477d7` feat: prefer ready offline packs in lookup
   - `543b53c` feat: wire offline pack profile actions
