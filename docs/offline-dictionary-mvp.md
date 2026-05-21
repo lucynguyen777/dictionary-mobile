@@ -131,16 +131,17 @@ The store intentionally tracks metadata only. Actual pack files, SQLite database
 
 ## Phase 2 Import Contract
 
-`data/offlineDictionaryImport.ts` starts the runtime import layer before a native SQLite driver is wired into UI:
+`data/offlineDictionaryImport.ts` starts the runtime import layer before download UI is enabled:
 
 - `OFFLINE_DICTIONARY_SCHEMA_SQL` mirrors the documented `offline_pack_meta`, `dictionary_entry`, FTS, and lookup-index schema.
 - `serializeOfflineEntryForSqlite` maps normalized builder entries into SQLite row fields with JSON payload columns for definitions, audio, examples, and relations.
 - `parseOfflineEntryFromSqliteRow` maps persisted rows back into the shared `OfflineDictionaryEntry` lookup contract.
 - `validateOfflinePackManifest` blocks imports when pack id, language, license, schema version, or entry count do not match the selected planned pack.
 - `importOfflineDictionaryPack` orchestrates install-state transitions through `importing`, `ready`, or `failed` while delegating persistence to an `OfflineDictionaryStorage` port.
-- `createMemoryOfflineDictionaryStorage` is a deterministic test/runtime stand-in; production still needs an Expo SQLite-backed driver, file download, checksum verification, deletion, and lookup routing.
+- `createMemoryOfflineDictionaryStorage` is a deterministic test/runtime stand-in for contract tests.
+- `data/offlineDictionarySqliteStorage.ts` provides the Expo SQLite-backed storage driver: lazy runtime import of `expo-sqlite`, deterministic per-pack database names, schema setup, transaction-backed metadata/entry replacement, database deletion, and SQL-backed exact/morphology lookup routing.
 
-This slice intentionally keeps Profile download/import buttons gated. It proves the manifest/entry contract and state transitions without claiming a production SQLite runtime exists.
+This slice intentionally keeps Profile download/import buttons gated. It proves the manifest/entry contract, install-state transitions, and persistent SQLite lookup path without claiming pack download/checksum handling is ready. FTS table creation is present for the eventual search surface; current lookup uses the indexed normalized-word path plus morphology candidates.
 
 ## Verification
 
@@ -153,6 +154,7 @@ npm test -- --run tests/offlineDictionaryPacks.test.ts
 npm test -- --run tests/offlineDictionaryLookup.test.ts
 npm test -- --run tests/offlineDictionaryPackStore.test.ts
 npm test -- --run tests/offlineDictionaryImport.test.ts
+npm test -- --run tests/offlineDictionarySqliteStorage.test.ts
 npx tsc --noEmit
 npm run lint
 npm test -- --run

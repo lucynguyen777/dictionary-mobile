@@ -315,7 +315,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status/lookup/store test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution, runtime-gate copy, and local install-state metadata.
 - [~] IN PROGRESS [HARD]: Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
   - [x] DONE [MEDIUM]: Add Phase 2 import/storage contract: SQLite schema SQL, manifest validation, SQLite row serialization/parsing, storage port, in-memory test storage, install-state import orchestration, and focused `tests/offlineDictionaryImport.test.ts` coverage.
-  - [ ] TODO [HARD]: Add Expo SQLite-backed storage driver, transaction import, deletion, and persistent lookup query path.
+  - [x] DONE [HARD]: Add Expo SQLite-backed storage driver with `expo-sqlite`, deterministic per-pack database names, schema setup, transaction import, deletion, SQL-backed exact/morphology lookup routing, restart-seeded manifest routing, and focused `tests/offlineDictionarySqliteStorage.test.ts` coverage.
   - [ ] TODO [HARD]: Add real pack file download/checksum handling before enabling Profile download/import actions.
 
 ### Multilingual Dictionary Expansion
