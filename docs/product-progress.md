@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `dc371a0` docs(lang): add Estonian monolingual baseline plan and advance queue
   - `944baa7` docs(progress): sync completed baseline commits in progress checklist
   - `230fd7a` feat(profile): show offline pack install state
   - `c2e3184` feat(offline): track pack install state
