@@ -448,6 +448,7 @@ Known caveats:
 - PDF import is controlled by documented platform gates and fixture evidence.
 - Expo Go cannot validate native-only behavior that requires a development build.
 - `expo-av` remains in use for current audio behavior; migration to `expo-audio` should be handled as a separate feature task.
+- Remaining `npm audit` findings after safe fixes require major upgrades such as Expo SDK 55 or Vitest 4; do not run `npm audit fix --force` during routine feature work.
 - External APIs, OAuth, auth, cloud sync, AI, speech scoring, and licensed offline bundles remain blocked until accepted decisions exist.
 
 ## Release And Commit Checklist
