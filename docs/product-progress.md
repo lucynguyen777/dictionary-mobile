@@ -20,6 +20,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `7fb6deb` docs(progress): mark offline dictionary MVP phase 1 done and advance queue
+  - `7bfe146` docs(progress): sync baseline commit and set Uzbek planning in queue
   - `dc371a0` docs(lang): add Estonian monolingual baseline plan and advance queue
   - `944baa7` docs(progress): sync completed baseline commits in progress checklist
   - `230fd7a` feat(profile): show offline pack install state
