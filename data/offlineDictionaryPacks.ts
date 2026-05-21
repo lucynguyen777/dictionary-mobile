@@ -1,6 +1,15 @@
 import { LanguageCode } from '@/data/languages';
 
 export type OfflinePackStatus = 'planned' | 'builder_ready' | 'runtime_pending';
+export type OfflinePackRuntimeBlockReason = 'pack_not_built' | 'runtime_import_pending';
+
+export type OfflinePackRuntimeGate = {
+  actionLabel: string;
+  canDownload: boolean;
+  canImport: boolean;
+  detail: string;
+  reason: OfflinePackRuntimeBlockReason;
+};
 
 export type OfflineDictionaryPack = {
   attribution: string;
@@ -32,11 +41,15 @@ export const offlineDictionaryPacks: OfflineDictionaryPack[] = [
 
 export function getOfflinePackSummary(packs: OfflineDictionaryPack[] = offlineDictionaryPacks) {
   const builderReadyCount = packs.filter((pack) => pack.status === 'builder_ready').length;
+  const downloadableCount = packs.filter((pack) => getOfflinePackRuntimeGate(pack).canDownload).length;
+  const runtimeBlockedCount = packs.filter((pack) => !getOfflinePackRuntimeGate(pack).canImport).length;
   const runtimePendingCount = packs.filter((pack) => pack.status === 'runtime_pending').length;
 
   return {
     builderReadyCount,
+    downloadableCount,
     packCount: packs.length,
+    runtimeBlockedCount,
     runtimePendingCount,
   };
 }
@@ -54,4 +67,24 @@ export function formatPackStatus(status: OfflinePackStatus) {
   if (status === 'runtime_pending') return 'Chờ runtime';
 
   return 'Đang thiết kế';
+}
+
+export function getOfflinePackRuntimeGate(pack: OfflineDictionaryPack): OfflinePackRuntimeGate {
+  if (pack.status === 'planned') {
+    return {
+      actionLabel: 'Chưa có pack',
+      canDownload: false,
+      canImport: false,
+      detail: 'Cần build pack và xác nhận manifest trước khi tải về máy.',
+      reason: 'pack_not_built',
+    };
+  }
+
+  return {
+    actionLabel: 'Chờ SQLite runtime',
+    canDownload: false,
+    canImport: false,
+    detail: 'Pack builder đã sẵn sàng, nhưng import SQLite và quản lý tải/xóa chưa được bật.',
+    reason: 'runtime_import_pending',
+  };
 }

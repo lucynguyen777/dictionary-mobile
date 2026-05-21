@@ -21,7 +21,13 @@ import { studyStats } from '@/data/dictionary';
 import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
-import { formatPackSizeRange, formatPackStatus, getOfflinePackSummary, offlineDictionaryPacks } from '@/data/offlineDictionaryPacks';
+import {
+  formatPackSizeRange,
+  formatPackStatus,
+  getOfflinePackRuntimeGate,
+  getOfflinePackSummary,
+  offlineDictionaryPacks,
+} from '@/data/offlineDictionaryPacks';
 import {
     LoginMethod,
     NotificationPreferences,
@@ -403,10 +409,11 @@ export default function ProfileScreen() {
           <View style={styles.offlinePackSummaryRow}>
             <DataStat label="Gói" value={offlinePackSummary.packCount} />
             <DataStat label="Builder" value={offlinePackSummary.builderReadyCount} />
-            <DataStat label="Runtime" value={offlinePackSummary.runtimePendingCount} />
+            <DataStat label="Có thể tải" value={offlinePackSummary.downloadableCount} />
           </View>
           {offlineDictionaryPacks.map((pack) => {
             const language = languageOptions.find((item) => item.code === pack.languageCode);
+            const runtimeGate = getOfflinePackRuntimeGate(pack);
 
             return (
               <View key={pack.id} style={styles.offlinePackRow}>
@@ -415,8 +422,12 @@ export default function ProfileScreen() {
                   <Text style={styles.securityText}>
                     {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
                   </Text>
+                  <Text style={styles.securityText}>{runtimeGate.detail}</Text>
                 </View>
-                <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
+                <View style={styles.offlinePackStatusColumn}>
+                  <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
+                  <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
+                </View>
               </View>
             );
           })}
@@ -1426,11 +1437,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF2FF',
     borderRadius: 999,
     color: '#3730A3',
-    flexShrink: 0,
     fontSize: 11,
     fontWeight: '900',
     paddingHorizontal: 8,
     paddingVertical: 5,
+    textAlign: 'center',
+  },
+  offlinePackStatusColumn: {
+    alignItems: 'flex-end',
+    flexShrink: 0,
+    gap: 5,
+    maxWidth: 118,
+  },
+  offlinePackRuntimeText: {
+    color: '#64748B',
+    fontSize: 10,
+    fontWeight: '800',
+    lineHeight: 13,
+    textAlign: 'right',
   },
   dataStat: {
     backgroundColor: '#F8FAFC',

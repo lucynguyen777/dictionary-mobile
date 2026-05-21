@@ -101,8 +101,9 @@ The Phase 1 UI only adds source acknowledgement copy. Pack download and storage 
 
 - planned pack count;
 - builder-ready count;
-- runtime-enabled count, currently `0`;
+- downloadable count, currently `0`;
 - language, source, size estimate, license, and status.
+- runtime-gate copy explaining why download/import is blocked.
 
 Runtime SQLite import, download progress, deletion, version checks, and per-entry offline lookup remain future work.
 

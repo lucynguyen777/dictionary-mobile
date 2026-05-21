@@ -284,7 +284,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Complete QA development workflow: GitHub Actions verify/E2E jobs, reusable Playwright artifact helper, Profile offline-pack E2E coverage, Expo Go Maestro scripts, Expo patch-version alignment, and pointerEvents warning cleanup.
 - [x] DONE [EASY]: Run safe dependency audit cleanup without `--force`, including a narrow `brace-expansion` override for ESLint's `minimatch` path; remaining moderate audit findings require planned Expo SDK 55 and Vitest 4 upgrade tasks.
 - [x] DONE [EASY]: Polish offline pack size labels so exact estimates render as a single value, covered by focused offline pack tests.
-- [~] IN PROGRESS [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution. Runtime SQLite import, download progress/deletion, and per-entry offline lookup are still pending.
+- [x] DONE [EASY]: Add an explicit offline-pack runtime gate so Profile and tests show when pack download/import is blocked by missing SQLite runtime management.
+- [~] IN PROGRESS [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution plus runtime-gate copy. Runtime SQLite import, download progress/deletion, and per-entry offline lookup are still pending.
 
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
