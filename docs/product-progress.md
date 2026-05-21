@@ -308,7 +308,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Add offline normalized entry lookup contract with exact lookup, morphology fallback, missing-result behavior, related words, and API-result mapping coverage.
 - [x] DONE [MEDIUM]: Add offline pack install-state store for download/import/ready/failed metadata, progress clamping, installed entry counts, failure copy, and deletion coverage.
 - [x] DONE [MEDIUM]: Wire offline pack install-state metadata into Profile so local install status, ready count, and clear-all-data cleanup are visible in UI and covered by Playwright smoke.
-- [~] IN PROGRESS [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status/lookup/store test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution, runtime-gate copy, and local install-state metadata. Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage are still pending.
+- [x] DONE [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status/lookup/store test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution, runtime-gate copy, and local install-state metadata.
+- [ ] TODO [HARD]: Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
 
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
@@ -421,9 +422,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [~] [HARD] Offline dictionary MVP (Phase 1): design SQLite schema, extract/compress single-language Kaikki pack, and implement attribution UI.
-2. [ ] [HARD] Voice Search / OCR implementation Phase 1: add permission flow + speech-to-text prototype + OCR image extraction prototype.
-3. [ ] [HARD] Uzbek monolingual baseline planning: research Latin/Cyrillic script usage, agglutinative morphology, and source candidates.
+1. [ ] [HARD] Voice Search / OCR implementation Phase 1: add permission flow + speech-to-text prototype + OCR image extraction prototype.
+2. [ ] [HARD] Uzbek monolingual baseline planning: research Latin/Cyrillic script usage, agglutinative morphology, and source candidates.
+3. [ ] [HARD] Offline dictionary MVP Phase 2: Runtime SQLite import, actual file download/deletion, and wiring per-entry offline lookup to persistent storage.
 
 
 
