@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `1d58d4e` feat: add offline pack download verification
   - `cda92fa` feat: add sqlite offline dictionary storage
   - `ebca0dc` feat: advance recognition and offline roadmap slices
   - `7fb6deb` docs(progress): mark offline dictionary MVP phase 1 done and advance queue
