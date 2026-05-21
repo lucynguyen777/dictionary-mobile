@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `944baa7` docs(progress): sync completed baseline commits in progress checklist
   - `230fd7a` feat(profile): show offline pack install state
   - `c2e3184` feat(offline): track pack install state
   - `640c9b2` feat(offline): add normalized pack lookup contract
@@ -384,7 +385,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Finnish monolingual baseline implementation: Register the Finnish adapter, add tiny test fixtures under the CC BY-SA license from the community Finnish Wiktionary (`fiwiktionary`), and write morphology fallback rules for noun/verb case endings.
   - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
   - [x] DONE [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
-  - [~] IN PROGRESS [HARD]: Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications.
+  - [x] DONE [HARD]: Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications in `docs/estonian-language-plan.md`.
+  - [!] BLOCKED [HARD]: Estonian monolingual baseline implementation requires a true Estonian-definition source.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
@@ -420,7 +422,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Next Work Queue
 1. [~] [HARD] Offline dictionary MVP (Phase 1): design SQLite schema, extract/compress single-language Kaikki pack, and implement attribution UI.
 2. [ ] [HARD] Voice Search / OCR implementation Phase 1: add permission flow + speech-to-text prototype + OCR image extraction prototype.
-3. [~] [HARD] Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications.
+3. [ ] [HARD] Uzbek monolingual baseline planning: research Latin/Cyrillic script usage, agglutinative morphology, and source candidates.
 
 
 
