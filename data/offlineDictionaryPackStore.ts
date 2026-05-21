@@ -196,6 +196,20 @@ export function getOfflinePackInstallSummary(state: OfflinePackInstallState) {
   );
 }
 
+export function formatOfflinePackInstallStatus(status: OfflinePackInstallStatus) {
+  if (status === 'downloading') return 'Đang tải';
+  if (status === 'downloaded') return 'Đã tải';
+  if (status === 'importing') return 'Đang nhập';
+  if (status === 'ready') return 'Đã cài';
+  if (status === 'failed') return 'Lỗi';
+
+  return 'Chưa tải';
+}
+
+export function formatOfflinePackProgress(record: OfflinePackInstallRecord) {
+  return `${Math.round(clampProgress(record.downloadProgress) * 100)}%`;
+}
+
 function upsertOfflinePackRecord(state: OfflinePackInstallState, record: OfflinePackInstallRecord) {
   const normalizedRecord = normalizeOfflinePackInstallRecord(record);
   const nextRecords = state.records.filter((item) => item.packId !== normalizedRecord.packId);

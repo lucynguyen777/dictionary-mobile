@@ -22,6 +22,16 @@ import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import {
+  OfflinePackInstallState,
+  clearOfflinePackInstallState,
+  formatOfflinePackInstallStatus,
+  formatOfflinePackProgress,
+  getDefaultOfflinePackInstallState,
+  getOfflinePackInstallRecord,
+  getOfflinePackInstallSummary,
+  loadOfflinePackInstallState,
+} from '@/data/offlineDictionaryPackStore';
+import {
   formatPackSizeRange,
   formatPackStatus,
   getOfflinePackRuntimeGate,
@@ -75,6 +85,9 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
+  const [offlinePackInstallState, setOfflinePackInstallState] = useState<OfflinePackInstallState>(
+    getDefaultOfflinePackInstallState()
+  );
   const [saveMessage, setSaveMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarSection, setSidebarSection] = useState<SidebarSectionKey | null>(null);
@@ -84,13 +97,14 @@ export default function ProfileScreen() {
     useCallback(() => {
       let isMounted = true;
 
-      Promise.all([loadUserProfile(), loadLibraryState(), loadReaderState()]).then(
-        ([nextProfile, nextLibraryState, nextReaderState]) => {
+      Promise.all([loadUserProfile(), loadLibraryState(), loadReaderState(), loadOfflinePackInstallState()]).then(
+        ([nextProfile, nextLibraryState, nextReaderState, nextOfflinePackInstallState]) => {
           if (!isMounted) return;
 
           setProfile(nextProfile);
           setLibraryState(nextLibraryState);
           setReaderState(nextReaderState);
+          setOfflinePackInstallState(nextOfflinePackInstallState);
         }
       );
 
@@ -128,8 +142,9 @@ export default function ProfileScreen() {
           text: 'Xóa tất cả',
           style: 'destructive',
           onPress: async () => {
-            await Promise.all([clearLibraryState(), clearUserProfile()]);
+            await Promise.all([clearLibraryState(), clearUserProfile(), clearOfflinePackInstallState()]);
             setLibraryState(getDefaultLibraryState());
+            setOfflinePackInstallState(getDefaultOfflinePackInstallState());
             setProfile(getDefaultProfile());
             setSaveMessage('');
             Alert.alert('Đã xóa', 'Tất cả dữ liệu local đã được xóa.');
@@ -206,6 +221,7 @@ export default function ProfileScreen() {
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
   const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
   const offlinePackSummary = getOfflinePackSummary();
+  const offlinePackInstallSummary = getOfflinePackInstallSummary(offlinePackInstallState);
   const avatarUri = profile.avatarUrl || defaultAvatarUri;
   const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
 
@@ -410,10 +426,15 @@ export default function ProfileScreen() {
             <DataStat label="Gói" value={offlinePackSummary.packCount} />
             <DataStat label="Builder" value={offlinePackSummary.builderReadyCount} />
             <DataStat label="Có thể tải" value={offlinePackSummary.downloadableCount} />
+            <DataStat label="Đã cài" value={offlinePackInstallSummary.readyCount} />
           </View>
           {offlineDictionaryPacks.map((pack) => {
             const language = languageOptions.find((item) => item.code === pack.languageCode);
             const runtimeGate = getOfflinePackRuntimeGate(pack);
+            const installRecord = getOfflinePackInstallRecord(offlinePackInstallState, pack);
+            const installStatus = formatOfflinePackInstallStatus(installRecord.status);
+            const progressLabel =
+              installRecord.status === 'downloading' ? `Tiến độ ${formatOfflinePackProgress(installRecord)}` : installStatus;
 
             return (
               <View key={pack.id} style={styles.offlinePackRow}>
@@ -426,6 +447,7 @@ export default function ProfileScreen() {
                 </View>
                 <View style={styles.offlinePackStatusColumn}>
                   <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
+                  <Text style={styles.offlinePackInstallText}>{progressLabel}</Text>
                   <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
                 </View>
               </View>
@@ -1419,6 +1441,7 @@ const styles = StyleSheet.create({
   },
   offlinePackSummaryRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
     marginTop: 12,
   },
@@ -1453,6 +1476,13 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontSize: 10,
     fontWeight: '800',
+    lineHeight: 13,
+    textAlign: 'right',
+  },
+  offlinePackInstallText: {
+    color: '#0F766E',
+    fontSize: 10,
+    fontWeight: '900',
     lineHeight: 13,
     textAlign: 'right',
   },

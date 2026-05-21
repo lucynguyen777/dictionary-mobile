@@ -16,6 +16,8 @@ import {
   beginOfflinePackDownload,
   clearOfflinePackInstallState,
   deleteOfflinePackRecord,
+  formatOfflinePackInstallStatus,
+  formatOfflinePackProgress,
   getDefaultOfflinePackInstallState,
   getOfflinePackInstallRecord,
   getOfflinePackInstallSummary,
@@ -61,6 +63,7 @@ describe('offlineDictionaryPackStore', () => {
       status: 'downloading',
       updatedAt: laterTimestamp,
     });
+    expect(formatOfflinePackProgress(getOfflinePackInstallRecord(state, pack))).toBe('100%');
   });
 
   it('moves a pack through downloaded, importing, and ready states', async () => {
@@ -110,6 +113,15 @@ describe('offlineDictionaryPackStore', () => {
     state = await deleteOfflinePackRecord(state, pack.id);
     expect(state.records).toHaveLength(0);
     expect((await loadOfflinePackInstallState()).records).toHaveLength(0);
+  });
+
+  it('formats install statuses for Profile UI copy', () => {
+    expect(formatOfflinePackInstallStatus('not_downloaded')).toBe('Chưa tải');
+    expect(formatOfflinePackInstallStatus('downloading')).toBe('Đang tải');
+    expect(formatOfflinePackInstallStatus('downloaded')).toBe('Đã tải');
+    expect(formatOfflinePackInstallStatus('importing')).toBe('Đang nhập');
+    expect(formatOfflinePackInstallStatus('ready')).toBe('Đã cài');
+    expect(formatOfflinePackInstallStatus('failed')).toBe('Lỗi');
   });
 
   it('normalizes older or corrupt persisted records', async () => {
