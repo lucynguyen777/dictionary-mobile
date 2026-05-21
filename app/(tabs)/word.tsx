@@ -1,7 +1,24 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import {
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioRecorder,
+} from 'expo-audio';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import StickyTabBar from '@/components/word/StickyTabBar';
 import TabPager from '@/components/word/TabPager';
@@ -43,6 +60,12 @@ import {
   supportsLocalDictionary,
 } from '@/data/localLexicon';
 import { getMorphologyCandidates } from '@/data/morphology';
+import {
+  RecognitionKind,
+  RecognitionPrototypeResult,
+  createOcrPrototypeResult,
+  createSpeechToTextPrototypeResult,
+} from '@/data/recognition';
 
 const { width } = Dimensions.get('window');
 
@@ -50,6 +73,7 @@ const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etym
 
 type LookupStatus = 'idle' | 'loading' | 'ready' | 'error';
 type LanguageField = 'source' | 'target';
+type RecognitionStatus = 'idle' | 'requesting' | 'recording' | 'processing' | 'ready' | 'error';
 
 export default function WordScreen() {
   const params = useLocalSearchParams<{ word?: string; sourceLang?: string; targetLang?: string }>();
@@ -67,6 +91,12 @@ export default function WordScreen() {
   const [libraryLoaded, setLibraryLoaded] = useState(false);
   const [showLanguageControls, setShowLanguageControls] = useState(false);
   const [activeLanguageField, setActiveLanguageField] = useState<LanguageField | null>(null);
+  const [recognitionModalOpen, setRecognitionModalOpen] = useState(false);
+  const [recognitionMode, setRecognitionMode] = useState<RecognitionKind>('speech');
+  const [recognitionStatus, setRecognitionStatus] = useState<RecognitionStatus>('idle');
+  const [recognitionResult, setRecognitionResult] = useState<RecognitionPrototypeResult | null>(null);
+  const [recognitionError, setRecognitionError] = useState('');
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scrollRef = useRef<ScrollView | null>(null);
   const sourceLanguage = getLanguageByCode(getRouteParam(params.sourceLang), 'en');
   const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
@@ -336,6 +366,103 @@ export default function WordScreen() {
     scrollRef.current?.scrollTo({ x: 0, animated: false });
   };
 
+  const openRecognitionModal = (mode: RecognitionKind) => {
+    setRecognitionMode(mode);
+    setRecognitionStatus('idle');
+    setRecognitionResult(null);
+    setRecognitionError('');
+    setRecognitionModalOpen(true);
+  };
+
+  const closeRecognitionModal = async () => {
+    await stopSpeechRecording();
+    setRecognitionModalOpen(false);
+  };
+
+  const stopSpeechRecording = async () => {
+    if (recognitionStatus !== 'recording') return null;
+
+    try {
+      await audioRecorder.stop();
+      return audioRecorder.uri;
+    } catch {
+      return audioRecorder.uri;
+    } finally {
+      await setAudioModeAsync({ allowsRecording: false });
+    }
+  };
+
+  const handleStartSpeechPrototype = async () => {
+    setRecognitionStatus('requesting');
+    setRecognitionError('');
+    setRecognitionResult(null);
+
+    try {
+      const permission = await requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error('Cần quyền microphone để thử luồng tra bằng giọng nói.');
+      }
+
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
+
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
+      setRecognitionStatus('recording');
+    } catch (error) {
+      setRecognitionStatus('error');
+      setRecognitionError(error instanceof Error ? error.message : 'Chưa thể bắt đầu ghi âm.');
+    }
+  };
+
+  const handleFinishSpeechPrototype = async () => {
+    setRecognitionStatus('processing');
+    setRecognitionError('');
+
+    const audioUri = await stopSpeechRecording();
+    setRecognitionResult(createSpeechToTextPrototypeResult({ languageCode: sourceLanguage.code, audioUri }));
+    setRecognitionStatus('ready');
+  };
+
+  const handlePickOcrPrototypeImage = async () => {
+    setRecognitionStatus('requesting');
+    setRecognitionError('');
+    setRecognitionResult(null);
+
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error('Cần quyền thư viện ảnh để thử luồng OCR.');
+      }
+
+      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: false,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+      });
+
+      if (pickerResult.canceled) {
+        setRecognitionStatus('idle');
+        return;
+      }
+
+      setRecognitionStatus('processing');
+      const imageUri = pickerResult.assets[0]?.uri ?? null;
+      setRecognitionResult(createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri }));
+      setRecognitionStatus('ready');
+    } catch (error) {
+      setRecognitionStatus('error');
+      setRecognitionError(error instanceof Error ? error.message : 'Chưa thể chọn ảnh OCR.');
+    }
+  };
+
+  const handleUseRecognitionText = (text: string) => {
+    selectWord(text);
+    setRecognitionModalOpen(false);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.lookupPanel}>
@@ -372,6 +499,24 @@ export default function WordScreen() {
           <Text style={styles.languageCaption}>
             Đang tra: {sourceLanguage.label} → {targetLanguage.label}
           </Text>
+          <View style={styles.recognitionActionRow}>
+            <TouchableOpacity
+              accessibilityLabel="Open voice search prototype"
+              activeOpacity={0.82}
+              onPress={() => openRecognitionModal('speech')}
+              style={styles.recognitionActionButton}>
+              <Ionicons name="mic-outline" size={17} color="#0F766E" />
+              <Text style={styles.recognitionActionText}>Voice</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="Open OCR lookup prototype"
+              activeOpacity={0.82}
+              onPress={() => openRecognitionModal('ocr')}
+              style={styles.recognitionActionButton}>
+              <Ionicons name="image-outline" size={17} color="#0F766E" />
+              <Text style={styles.recognitionActionText}>OCR</Text>
+            </TouchableOpacity>
+          </View>
           {showLanguageControls ? (
             <View style={styles.languageControls}>
               <LookupLanguageSelect
@@ -494,7 +639,144 @@ export default function WordScreen() {
         scrollRef={scrollRef}
         onIndexChange={setActiveIndex}
       />
+      <RecognitionPrototypeModal
+        error={recognitionError}
+        mode={recognitionMode}
+        result={recognitionResult}
+        status={recognitionStatus}
+        sourceLanguage={sourceLanguage}
+        visible={recognitionModalOpen}
+        onClose={closeRecognitionModal}
+        onPickImage={handlePickOcrPrototypeImage}
+        onStartSpeech={handleStartSpeechPrototype}
+        onStopSpeech={handleFinishSpeechPrototype}
+        onUseText={handleUseRecognitionText}
+      />
     </View>
+  );
+}
+
+function RecognitionPrototypeModal({
+  error,
+  mode,
+  result,
+  status,
+  sourceLanguage,
+  visible,
+  onClose,
+  onPickImage,
+  onStartSpeech,
+  onStopSpeech,
+  onUseText,
+}: {
+  error: string;
+  mode: RecognitionKind;
+  result: RecognitionPrototypeResult | null;
+  status: RecognitionStatus;
+  sourceLanguage: LanguageOption;
+  visible: boolean;
+  onClose: () => void;
+  onPickImage: () => void;
+  onStartSpeech: () => void;
+  onStopSpeech: () => void;
+  onUseText: (text: string) => void;
+}) {
+  const isSpeechMode = mode === 'speech';
+  const isBusy = status === 'requesting' || status === 'processing';
+
+  return (
+    <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
+      <View style={styles.recognitionBackdrop}>
+        <View style={styles.recognitionSheet}>
+          <View style={styles.recognitionHeader}>
+            <View>
+              <Text style={styles.recognitionEyebrow}>{sourceLanguage.label}</Text>
+              <Text style={styles.recognitionTitle}>{isSpeechMode ? 'Voice Search' : 'OCR Lookup'}</Text>
+            </View>
+            <TouchableOpacity
+              accessibilityLabel="Close recognition prototype"
+              activeOpacity={0.78}
+              onPress={onClose}
+              style={styles.recognitionCloseButton}>
+              <Ionicons name="close" size={20} color="#334155" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.recognitionStatusCard}>
+            <View style={styles.recognitionStatusIcon}>
+              {isBusy ? (
+                <ActivityIndicator color="#0F766E" />
+              ) : (
+                <Ionicons
+                  name={isSpeechMode ? (status === 'recording' ? 'radio-button-on' : 'mic-outline') : 'image-outline'}
+                  size={24}
+                  color={status === 'recording' ? '#DC2626' : '#0F766E'}
+                />
+              )}
+            </View>
+            <View style={styles.recognitionStatusCopy}>
+              <Text style={styles.recognitionStatusTitle}>{getRecognitionStatusTitle(mode, status)}</Text>
+              <Text style={styles.recognitionStatusText}>{getRecognitionStatusText(mode, status)}</Text>
+            </View>
+          </View>
+
+          {error ? <Text style={styles.recognitionError}>{error}</Text> : null}
+
+          {result ? (
+            <View style={styles.recognitionResultBlock}>
+              <Text style={styles.recognitionResultLabel}>Kết quả prototype</Text>
+              <Text style={styles.recognitionResultText}>{result.text}</Text>
+              <Text style={styles.recognitionNotice}>{result.notice}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recognitionSuggestionRow}>
+                {result.suggestions.map((suggestion) => (
+                  <TouchableOpacity
+                    key={suggestion}
+                    activeOpacity={0.82}
+                    onPress={() => onUseText(suggestion)}
+                    style={styles.recognitionSuggestionChip}>
+                    <Text style={styles.recognitionSuggestionText}>{suggestion}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
+
+          <View style={styles.recognitionFooter}>
+            {isSpeechMode ? (
+              <TouchableOpacity
+                accessibilityLabel={status === 'recording' ? 'Stop voice recording prototype' : 'Start voice recording prototype'}
+                activeOpacity={0.84}
+                disabled={isBusy}
+                onPress={status === 'recording' ? onStopSpeech : onStartSpeech}
+                style={[
+                  styles.recognitionPrimaryButton,
+                  status === 'recording' && styles.recognitionStopButton,
+                  isBusy && styles.recognitionDisabledButton,
+                ]}>
+                <Ionicons name={status === 'recording' ? 'stop-circle' : 'mic'} size={18} color="#FFFFFF" />
+                <Text style={styles.recognitionPrimaryText}>{status === 'recording' ? 'Dừng ghi' : 'Bắt đầu'}</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                accessibilityLabel="Pick OCR prototype image"
+                activeOpacity={0.84}
+                disabled={isBusy}
+                onPress={onPickImage}
+                style={[styles.recognitionPrimaryButton, isBusy && styles.recognitionDisabledButton]}>
+                <Ionicons name="image" size={18} color="#FFFFFF" />
+                <Text style={styles.recognitionPrimaryText}>Chọn ảnh</Text>
+              </TouchableOpacity>
+            )}
+            {result ? (
+              <TouchableOpacity activeOpacity={0.82} onPress={() => onUseText(result.suggestions[0] ?? result.text)} style={styles.recognitionSecondaryButton}>
+                <Ionicons name="search" size={17} color="#0F766E" />
+                <Text style={styles.recognitionSecondaryText}>Tra kết quả</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -716,6 +998,31 @@ function getBilingualDictionaryUnavailableMessage(sourceLanguage: LanguageOption
   return `Chưa có nguồn dữ liệu từ điển ${sourceLanguage.label} sang ${targetLanguage.label} đủ tin cậy.`;
 }
 
+function getRecognitionStatusTitle(mode: RecognitionKind, status: RecognitionStatus) {
+  if (status === 'requesting') return 'Đang xin quyền';
+  if (status === 'recording') return 'Đang ghi âm';
+  if (status === 'processing') return 'Đang xử lý';
+  if (status === 'ready') return mode === 'speech' ? 'Đã có transcript' : 'Đã có text OCR';
+  if (status === 'error') return 'Cần thử lại';
+
+  return mode === 'speech' ? 'Sẵn sàng ghi âm' : 'Sẵn sàng chọn ảnh';
+}
+
+function getRecognitionStatusText(mode: RecognitionKind, status: RecognitionStatus) {
+  if (status === 'requesting') {
+    return mode === 'speech' ? 'Kiểm tra quyền microphone trên thiết bị.' : 'Kiểm tra quyền thư viện ảnh trên thiết bị.';
+  }
+
+  if (status === 'recording') return 'Dừng ghi để tạo transcript prototype.';
+  if (status === 'processing') return 'Luồng capture đã nhận dữ liệu cục bộ và đang tạo kết quả thử nghiệm.';
+  if (status === 'ready') return 'Chọn một chip hoặc tra ngay kết quả đầu tiên.';
+  if (status === 'error') return 'Quyền hoặc capture chưa sẵn sàng trên môi trường này.';
+
+  return mode === 'speech'
+    ? 'Prototype này chỉ giữ audio cục bộ và chưa gửi lên dịch vụ ngoài.'
+    : 'Prototype này chỉ chọn ảnh cục bộ và chưa gửi lên dịch vụ ngoài.';
+}
+
 function createDictionaryUnavailableEntry(
   word: string,
   hasLocalDictionarySource: boolean,
@@ -801,6 +1108,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     marginTop: 8,
+  },
+  recognitionActionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  recognitionActionButton: {
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 34,
+    paddingHorizontal: 10,
+  },
+  recognitionActionText: {
+    color: '#0F766E',
+    fontSize: 12,
+    fontWeight: '900',
   },
   languageControls: {
     alignItems: 'flex-start',
@@ -1027,5 +1355,172 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     marginTop: 3,
+  },
+  recognitionBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.48)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: 18,
+  },
+  recognitionSheet: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    maxWidth: 430,
+    padding: 16,
+    width: '100%',
+  },
+  recognitionHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  recognitionEyebrow: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  recognitionTitle: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  recognitionCloseButton: {
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  recognitionStatusCard: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 14,
+    padding: 12,
+  },
+  recognitionStatusIcon: {
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 8,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  recognitionStatusCopy: {
+    flex: 1,
+  },
+  recognitionStatusTitle: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  recognitionStatusText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 3,
+  },
+  recognitionError: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#B91C1C',
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
+    marginTop: 12,
+    padding: 10,
+  },
+  recognitionResultBlock: {
+    marginTop: 14,
+  },
+  recognitionResultLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  recognitionResultText: {
+    color: '#0F172A',
+    fontSize: 22,
+    fontWeight: '900',
+    marginTop: 5,
+  },
+  recognitionNotice: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 7,
+  },
+  recognitionSuggestionRow: {
+    gap: 8,
+    paddingTop: 12,
+  },
+  recognitionSuggestionChip: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  recognitionSuggestionText: {
+    color: '#0F766E',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  recognitionFooter: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 16,
+  },
+  recognitionPrimaryButton: {
+    alignItems: 'center',
+    backgroundColor: '#0F766E',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 7,
+    minHeight: 42,
+    paddingHorizontal: 14,
+  },
+  recognitionStopButton: {
+    backgroundColor: '#DC2626',
+  },
+  recognitionDisabledButton: {
+    opacity: 0.7,
+  },
+  recognitionPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  recognitionSecondaryButton: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#99F6E4',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
+    minHeight: 42,
+    paddingHorizontal: 14,
+  },
+  recognitionSecondaryText: {
+    color: '#0F766E',
+    fontSize: 13,
+    fontWeight: '900',
   },
 });

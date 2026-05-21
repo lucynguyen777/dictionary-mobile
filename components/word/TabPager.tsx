@@ -1,8 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Audio } from 'expo-av';
+import {
+  RecordingPresets,
+  createAudioPlayer,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioRecorder,
+} from 'expo-audio';
+import type { AudioPlayer } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { router } from 'expo-router';
-import { RefObject, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
@@ -663,25 +670,28 @@ function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
 }
 
 function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const [isRecording, setIsRecording] = useState(false);
+  const [playbackPlayer, setPlaybackPlayer] = useState<AudioPlayer | null>(null);
   const [recordedUri, setRecordedUri] = useState('');
   const [recordingStatus, setRecordingStatus] = useState('Chưa có bản ghi.');
 
   const handleStartRecording = async () => {
     try {
-      const permission = await Audio.requestPermissionsAsync();
+      const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
         setRecordingStatus('Cần cấp quyền microphone để ghi âm.');
         return;
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
       });
 
-      const { recording: nextRecording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      setRecording(nextRecording);
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      setIsRecording(true);
       setRecordedUri('');
       setRecordingStatus('Đang ghi âm phát âm của bạn...');
     } catch {
@@ -690,17 +700,17 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
   };
 
   const handleStopRecording = async () => {
-    if (!recording) return;
+    if (!isRecording) return;
 
     try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI() ?? '';
+      await recorder.stop();
+      const uri = recorder.uri ?? '';
       setRecordedUri(uri);
-      setRecording(null);
+      setIsRecording(false);
       setRecordingStatus(uri ? 'Đã lưu bản ghi tạm thời trên thiết bị.' : 'Không tạo được bản ghi.');
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+      await setAudioModeAsync({ allowsRecording: false });
     } catch {
-      setRecording(null);
+      setIsRecording(false);
       setRecordingStatus('Chưa thể dừng ghi âm. Thử lại sau.');
     }
   };
@@ -709,17 +719,28 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
     if (!recordedUri) return;
 
     try {
-      const { sound } = await Audio.Sound.createAsync({ uri: recordedUri }, { shouldPlay: true });
-      sound.setOnPlaybackStatusUpdate((status) => {
+      playbackPlayer?.remove();
+      const player = createAudioPlayer(recordedUri);
+      const subscription = player.addListener('playbackStatusUpdate', (status) => {
         if (status.isLoaded && status.didJustFinish) {
-          sound.unloadAsync();
+          subscription.remove();
+          player.remove();
+          setPlaybackPlayer((currentPlayer) => (currentPlayer?.id === player.id ? null : currentPlayer));
         }
       });
+      setPlaybackPlayer(player);
+      player.play();
       setRecordingStatus('Đang phát lại bản ghi của bạn.');
     } catch {
       setRecordingStatus('Chưa thể phát lại bản ghi.');
     }
   };
+
+  useEffect(() => {
+    return () => {
+      playbackPlayer?.remove();
+    };
+  }, [playbackPlayer]);
 
   return (
     <View>
@@ -735,20 +756,20 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
         <View style={styles.recordingActions}>
           <TouchableOpacity
             activeOpacity={0.82}
-            onPress={recording ? handleStopRecording : handleStartRecording}
-            style={[styles.recordingButton, recording && styles.stopRecordingButton]}>
-            <Ionicons name={recording ? 'stop' : 'mic-outline'} size={17} color={recording ? '#FFFFFF' : '#2563EB'} />
-            <Text style={[styles.recordingButtonText, recording && styles.stopRecordingButtonText]}>
-              {recording ? 'Dừng' : 'Ghi âm'}
+            onPress={isRecording ? handleStopRecording : handleStartRecording}
+            style={[styles.recordingButton, isRecording && styles.stopRecordingButton]}>
+            <Ionicons name={isRecording ? 'stop' : 'mic-outline'} size={17} color={isRecording ? '#FFFFFF' : '#2563EB'} />
+            <Text style={[styles.recordingButtonText, isRecording && styles.stopRecordingButtonText]}>
+              {isRecording ? 'Dừng' : 'Ghi âm'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.82}
-            disabled={!recordedUri || Boolean(recording)}
+            disabled={!recordedUri || isRecording}
             onPress={handlePlayRecording}
-            style={[styles.playRecordingButton, (!recordedUri || recording) && styles.disabledRecordingButton]}>
-            <Ionicons name="play-outline" size={17} color={recordedUri && !recording ? '#166534' : '#94A3B8'} />
-            <Text style={[styles.playRecordingText, (!recordedUri || recording) && styles.disabledRecordingText]}>
+            style={[styles.playRecordingButton, (!recordedUri || isRecording) && styles.disabledRecordingButton]}>
+            <Ionicons name="play-outline" size={17} color={recordedUri && !isRecording ? '#166534' : '#94A3B8'} />
+            <Text style={[styles.playRecordingText, (!recordedUri || isRecording) && styles.disabledRecordingText]}>
               Nghe lại
             </Text>
           </TouchableOpacity>
@@ -861,10 +882,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
-    shadowColor: '#0F172A',
-    shadowOffset: { height: 6, width: 0 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    boxShadow: '0px 6px 12px rgba(15, 23, 42, 0.18)',
     width: 44,
     zIndex: 30,
   },

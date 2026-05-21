@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Audio } from 'expo-av';
+import { createAudioPlayer } from 'expo-audio';
+import type { AudioPlayer } from 'expo-audio';
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -30,7 +31,7 @@ export default function WordHeader({
   onSaveToFolder,
   onToggleFavorite,
 }: Props) {
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [audioPlayer, setAudioPlayer] = useState<AudioPlayer | null>(null);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
   const [folderQuery, setFolderQuery] = useState('');
   const [noteDraft, setNoteDraft] = useState(note);
@@ -47,10 +48,11 @@ export default function WordHeader({
     try {
       if (!entry.audio) return;
 
-      await sound?.unloadAsync();
+      audioPlayer?.remove();
 
-      const { sound: newSound } = await Audio.Sound.createAsync({ uri: entry.audio }, { shouldPlay: true });
-      setSound(newSound);
+      const nextPlayer = createAudioPlayer(entry.audio);
+      setAudioPlayer(nextPlayer);
+      nextPlayer.play();
     } catch (err) {
       console.warn('Audio error:', err);
     }
@@ -58,9 +60,9 @@ export default function WordHeader({
 
   useEffect(() => {
     return () => {
-      sound?.unloadAsync();
+      audioPlayer?.remove();
     };
-  }, [sound]);
+  }, [audioPlayer]);
 
   useEffect(() => {
     setFolderPickerOpen(false);
@@ -68,10 +70,10 @@ export default function WordHeader({
     setNoteDraft(note);
     setSaveMessage('');
 
-    if (!sound) return;
+    if (!audioPlayer) return;
 
-    sound.unloadAsync();
-    setSound(null);
+    audioPlayer.remove();
+    setAudioPlayer(null);
     // Only reset cached audio when the selected word/audio changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry.audio, entry.word, note]);

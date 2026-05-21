@@ -6,8 +6,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 
+import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+installDevelopmentWarningFilter();
 
 export const unstable_settings = {
   anchor: '(tabs)',

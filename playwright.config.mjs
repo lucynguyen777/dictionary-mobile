@@ -17,7 +17,7 @@ export default defineConfig({
     video: 'on',
   },
   webServer: {
-    command: `npx expo start --web --port ${PORT}`,
+    command: `env -u NO_COLOR npx expo start --web --port ${PORT}`,
     reuseExistingServer: true,
     timeout: 120_000,
     url: baseURL,

@@ -150,6 +150,8 @@ Deliverables:
 Exit criteria:
 - End-to-end navigation into `/word` using the recognized string.
 
+Status: DONE. `app/(tabs)/word.tsx` now exposes Voice and OCR entry points on the lookup surface, opens a local prototype modal, requests microphone/photo-library permission through Expo modules, and routes deterministic recognized strings into the existing lookup flow. `data/recognition.ts` keeps text normalization, suggestion splitting, and deterministic prototype outputs covered by `tests/recognition.test.ts`.
+
 ### Stage 2 — Real capture plumbing (still without OCR/STT engines)
 - Implement:
   - Audio capture using `expo-av` (record audio file)
@@ -158,6 +160,8 @@ Exit criteria:
 
 Exit criteria:
 - We can capture and store a local audio file and image and show preview.
+
+Status: PARTIAL. The Phase 1 prototype records local audio with `expo-av` and captures a selected image URI with `expo-image-picker`, but it does not yet show waveform/image previews or persist a capture history.
 
 ### Stage 3 — Real on-device OCR (dev-client required)
 - Integrate ML Kit OCR module (exact package TBD).

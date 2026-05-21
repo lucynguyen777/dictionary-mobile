@@ -1208,10 +1208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
-    shadowColor: '#0F172A',
-    shadowOffset: { height: 8, width: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 18,
+    boxShadow: '0px 8px 18px rgba(15, 23, 42, 0.2)',
     zIndex: 45,
   },
   addSheetOverlay: {
@@ -1242,10 +1239,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     position: 'absolute',
     right: 0,
-    shadowColor: '#0F172A',
-    shadowOffset: { height: -8, width: 0 },
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
+    boxShadow: '0px -8px 20px rgba(15, 23, 42, 0.16)',
   },
   addSheetContent: {
     gap: 10,

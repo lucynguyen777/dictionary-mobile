@@ -1,8 +1,8 @@
-# Offline Dictionary MVP Phase 1
+# Offline Dictionary MVP
 
-This document defines the first offline dictionary slice for Dictionary Mobile. It follows the accepted `.docs/decisions/offline-dictionary-bundle.md` decision and keeps production data optional, attributed, and outside the base app bundle.
+This document defines the staged offline dictionary slices for Dictionary Mobile. It follows the accepted `.docs/decisions/offline-dictionary-bundle.md` decision and keeps production data optional, attributed, and outside the base app bundle.
 
-## Scope
+## Phase 1 Scope
 
 Phase 1 is a single-language pack prototype:
 
@@ -129,9 +129,22 @@ This resolver is covered by offline fixture tests and is intended to sit behind 
 
 The store intentionally tracks metadata only. Actual pack files, SQLite database creation, checksum verification, and network download retries remain future work.
 
+## Phase 2 Import Contract
+
+`data/offlineDictionaryImport.ts` starts the runtime import layer before a native SQLite driver is wired into UI:
+
+- `OFFLINE_DICTIONARY_SCHEMA_SQL` mirrors the documented `offline_pack_meta`, `dictionary_entry`, FTS, and lookup-index schema.
+- `serializeOfflineEntryForSqlite` maps normalized builder entries into SQLite row fields with JSON payload columns for definitions, audio, examples, and relations.
+- `parseOfflineEntryFromSqliteRow` maps persisted rows back into the shared `OfflineDictionaryEntry` lookup contract.
+- `validateOfflinePackManifest` blocks imports when pack id, language, license, schema version, or entry count do not match the selected planned pack.
+- `importOfflineDictionaryPack` orchestrates install-state transitions through `importing`, `ready`, or `failed` while delegating persistence to an `OfflineDictionaryStorage` port.
+- `createMemoryOfflineDictionaryStorage` is a deterministic test/runtime stand-in; production still needs an Expo SQLite-backed driver, file download, checksum verification, deletion, and lookup routing.
+
+This slice intentionally keeps Profile download/import buttons gated. It proves the manifest/entry contract and state transitions without claiming a production SQLite runtime exists.
+
 ## Verification
 
-For Phase 1 changes:
+For offline pack changes:
 
 ```bash
 node scripts/build-offline-pack.mjs --input <jsonl> --lang <lang> --source <source> --out tmp/offline-packs/<name>
@@ -139,6 +152,7 @@ npm test -- --run tests/offlinePackBuilder.test.ts
 npm test -- --run tests/offlineDictionaryPacks.test.ts
 npm test -- --run tests/offlineDictionaryLookup.test.ts
 npm test -- --run tests/offlineDictionaryPackStore.test.ts
+npm test -- --run tests/offlineDictionaryImport.test.ts
 npx tsc --noEmit
 npm run lint
 npm test -- --run

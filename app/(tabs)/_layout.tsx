@@ -26,10 +26,7 @@ export default function TabLayout() {
           height: 74,
           paddingBottom: 10,
           paddingTop: 8,
-          shadowColor: '#0F172A',
-          shadowOffset: { height: -4, width: 0 },
-          shadowOpacity: 0.06,
-          shadowRadius: 16,
+          boxShadow: '0px -4px 16px rgba(15, 23, 42, 0.06)',
         },
       }}>
       <Tabs.Screen
