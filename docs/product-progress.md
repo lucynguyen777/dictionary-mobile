@@ -20,6 +20,24 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `230fd7a` feat(profile): show offline pack install state
+  - `c2e3184` feat(offline): track pack install state
+  - `640c9b2` feat(offline): add normalized pack lookup contract
+  - `7772343` feat(offline): clarify pack runtime gate
+  - `306a898` chore(qa): restore baseline and apply safe audit cleanup
+  - `8ed572d` chore(qa): complete app verification workflow
+  - `eb5e28a` docs: update project context files and product progress checklist
+  - `529105c` docs: sync verification steps and add missing testing guide sections
+  - `570b8a8` Add testing infrastructure and update documentation
+  - `4b4162b` chore(qa): refine app testing workflow
+  - `3e8d2be` feat(offline): add pack status shell
+  - `42ecd80` test(offline): cover dictionary pack builder
+  - `42c5bd6` feat(offline): prototype dictionary pack planning
+  - `a884233` docs(qa): standardize offline-first testing workflow
+  - `6db0dfd` feat(qa): add app testing workflow and etymology attribution
+  - `b0a645b` feat(lookup): add etymology attribution fallback and sync progress queue
+  - `dc8d1ae` docs(lang): add Malayalam baseline plan and advance queue to implementation
+  - `a4f5779` docs(progress): sync baseline commit and set Malayalam planning in progress
   - `42e6b61` feat(lang): complete Kannada monolingual baseline and reader script support
   - `b0f5eac` feat(lang): implement Hawaiian monolingual baseline adapter, local educational fixtures, ʻokina normalization, kahakō-aware lookup, and tests
   - `2d0a897` docs(lang): plan Hawaiian monolingual baseline, ʻokina/kahakō normalization, source gates, and fixture-first implementation path
