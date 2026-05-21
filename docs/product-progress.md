@@ -285,7 +285,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Run safe dependency audit cleanup without `--force`, including a narrow `brace-expansion` override for ESLint's `minimatch` path; remaining moderate audit findings require planned Expo SDK 55 and Vitest 4 upgrade tasks.
 - [x] DONE [EASY]: Polish offline pack size labels so exact estimates render as a single value, covered by focused offline pack tests.
 - [x] DONE [EASY]: Add an explicit offline-pack runtime gate so Profile and tests show when pack download/import is blocked by missing SQLite runtime management.
-- [~] IN PROGRESS [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution plus runtime-gate copy. Runtime SQLite import, download progress/deletion, and per-entry offline lookup are still pending.
+- [x] DONE [MEDIUM]: Add offline normalized entry lookup contract with exact lookup, morphology fallback, missing-result behavior, related words, and API-result mapping coverage.
+- [~] IN PROGRESS [HARD]: Offline dictionary MVP Phase 1: SQLite schema and pack pipeline documented in `docs/offline-dictionary-mvp.md`, prototype JSONL-to-gzip pack builder added in `scripts/build-offline-pack.mjs`, focused pack-builder/pack-status/lookup test coverage added, and Profile shows an offline pack status shell with Wiktionary/Kaikki CC BY-SA/GFDL attribution plus runtime-gate copy. Runtime SQLite import, download progress/deletion, and wiring per-entry offline lookup to persistent storage are still pending.
 
 ### Multilingual Dictionary Expansion
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).

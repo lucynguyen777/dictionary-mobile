@@ -107,6 +107,17 @@ The Phase 1 UI only adds source acknowledgement copy. Pack download and storage 
 
 Runtime SQLite import, download progress, deletion, version checks, and per-entry offline lookup remain future work.
 
+## Offline Entry Resolver
+
+`data/offlineDictionaryLookup.ts` defines the in-memory resolver contract for normalized pack entries before SQLite is wired:
+
+- exact normalized lookup by language pack;
+- morphology fallback through existing `data/morphology.ts` candidates;
+- missing-result behavior without falling through to the wrong language pack;
+- mapping from normalized pack entries into the current `ApiMeaningResult` and related-word contracts.
+
+This resolver is covered by offline fixture tests and is intended to sit behind SQLite storage once pack import/download management is implemented.
+
 ## Verification
 
 For Phase 1 changes:
@@ -115,6 +126,7 @@ For Phase 1 changes:
 node scripts/build-offline-pack.mjs --input <jsonl> --lang <lang> --source <source> --out tmp/offline-packs/<name>
 npm test -- --run tests/offlinePackBuilder.test.ts
 npm test -- --run tests/offlineDictionaryPacks.test.ts
+npm test -- --run tests/offlineDictionaryLookup.test.ts
 npx tsc --noEmit
 npm run lint
 npm test -- --run
