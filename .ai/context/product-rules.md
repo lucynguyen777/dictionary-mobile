@@ -17,8 +17,9 @@ Do not make unrelated refactors unless required.
 Before marking a task DONE, run:
 
 ```bash
+git diff --check
 npx tsc --noEmit
-npx eslint . --no-cache
+npm run lint
 ```
 
 If verification fails, the task must not be marked DONE.

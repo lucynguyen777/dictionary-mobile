@@ -21,7 +21,7 @@ Default policy:
 - Do not require live APIs, OAuth, device permissions, or native-only state for normal verification.
 - Promote temporary browser evidence to durable fixtures only when a task explicitly asks for it.
 - Use UI/browser screenshots for short-term comparison, not as unstable visual baselines.
-- Do not add E2E dependencies, npm scripts, Playwright, Maestro, or Detox as a side effect of routine feature work.
+- Do not add additional E2E dependencies, npm scripts, browsers, Maestro flows, or Detox config as a side effect of routine feature work.
 
 Reference practices:
 
@@ -49,7 +49,7 @@ Before running tests for the first time in a new environment:
 
 3. **For native tests, install Maestro:**
    - Follow Maestro installation guide: https://maestro.mobile.dev/getting-started/installing-maestro
-   - Set `MAESTRO_APP_ID` environment variable (see Native Mobile section below)
+   - For Expo Go smoke, set `EXPO_GO_WORD_URL` and use the Expo Go scripts in the Native Mobile section below.
 
 ## Verification Ladder
 
@@ -183,7 +183,7 @@ Use Playwright when the task needs:
 - DOM/HTML and visible-text snapshots for web-rendered layout debugging
 - repeatable responsive checks on a narrow mobile browser viewport and a desktop viewport
 
-Playwright is configured through `playwright.config.mjs` and `e2e/word-detail.spec.js`. Install browser binaries in a fresh environment before the first run:
+Playwright is configured through `playwright.config.mjs` and the `e2e/` specs. Install browser binaries in a fresh environment before the first run:
 
 ```bash
 npx playwright install chromium
@@ -194,6 +194,7 @@ Available commands:
 
 ```bash
 npm run test:e2e
+npm run test:e2e:branch
 npm run test:e2e:headed
 npm run test:e2e:report
 ```
@@ -230,11 +231,19 @@ Native app tests do not have an HTML DOM. Collect native evidence instead:
 - simulator/device logs
 - platform, OS version, device profile, and Expo Go versus development-build notes
 
-Maestro is the preferred lightweight native smoke option for this project. A template flow lives in `.maestro/word-detail.yml` and expects a native app id:
+Maestro is the preferred lightweight native smoke option for this project. The default template flow lives in `.maestro/word-detail.yml` and expects a native app id:
 
 ```bash
 export MAESTRO_APP_ID=<ios-or-android-app-id>
 npm run test:native:maestro
+```
+
+Expo Go smoke uses `.maestro/expo-go-word-detail.yml` and opens a deep link provided by `EXPO_GO_WORD_URL`:
+
+```bash
+export EXPO_GO_WORD_URL=<expo-go-url-for-/word?word=articulate&sourceLang=en&targetLang=en>
+npm run test:native:maestro:expo-go:ios
+npm run test:native:maestro:expo-go:android
 ```
 
 **Getting MAESTRO_APP_ID:**
@@ -253,6 +262,8 @@ To find the app ID of an installed app:
 - Android: `adb shell pm list packages -3` (lists third-party packages)
 
 Use the Maestro flow only after the app is installed on a simulator/device or Expo Go/development-build app id has been confirmed. Detox can be considered later when the project needs deeper React Native synchronization or heavier CI integration.
+
+Development-build bundle identifiers remain deferred until a dev-build workflow is selected.
 
 ### Security And Privacy
 
@@ -411,6 +422,7 @@ Run Expo Web E2E artifact tests:
 
 ```bash
 npm run test:e2e
+npm run test:e2e:branch
 npm run test:e2e:headed
 npm run test:e2e:report
 ```
@@ -422,11 +434,20 @@ export MAESTRO_APP_ID=<ios-or-android-app-id>
 npm run test:native:maestro
 ```
 
+Run Expo Go native smoke after starting Expo and setting the deep link:
+
+```bash
+export EXPO_GO_WORD_URL=<expo-go-url-for-/word?word=articulate&sourceLang=en&targetLang=en>
+npm run test:native:maestro:expo-go:ios
+npm run test:native:maestro:expo-go:android
+```
+
 Known caveats:
 
 - User data is local-first unless an accepted backend/cloud decision exists.
 - PDF import is controlled by documented platform gates and fixture evidence.
 - Expo Go cannot validate native-only behavior that requires a development build.
+- `expo-av` remains in use for current audio behavior; migration to `expo-audio` should be handled as a separate feature task.
 - External APIs, OAuth, auth, cloud sync, AI, speech scoring, and licensed offline bundles remain blocked until accepted decisions exist.
 
 ## Release And Commit Checklist

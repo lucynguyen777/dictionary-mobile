@@ -481,7 +481,7 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {sidebarOpen ? (
-        <View style={styles.sidebarOverlay} pointerEvents="box-none">
+        <View style={styles.sidebarOverlay}>
           <TouchableOpacity
             accessibilityLabel="Đóng cài đặt"
             activeOpacity={1}
@@ -901,6 +901,7 @@ const styles = StyleSheet.create({
     elevation: 20,
     justifyContent: 'flex-start',
     left: 0,
+    pointerEvents: 'box-none',
     position: 'absolute',
     right: 0,
     top: 0,

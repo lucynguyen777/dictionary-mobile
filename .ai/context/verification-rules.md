@@ -1,61 +1,92 @@
 # Verification Rules
 
-## Required Commands
-Before marking implementation DONE, run:
+Detailed human-facing QA, unit test, build, E2E, and release guidance lives in `docs/testing-and-build-guide.md`.
+
+Use `.ai/skills/app-feature-testing.md` for post-feature app testing on user-facing work.
+
+## Required For Code Changes
+Run:
 
 ```bash
+git diff --check
 npx tsc --noEmit
-npx eslint . --no-cache
+npm run lint
 ```
 
-## Required Review
+## Required When Data Logic Changes
+Also run the closest focused offline suite first, then the full suite when shared behavior changed:
 
-Check:
+```bash
+npm test -- --run tests/dictionaryApi.test.ts # dictionary/language changes
+npm test -- --run tests/readerImport.test.ts  # reader parser/file gate changes
+npm test -- --run tests/libraryStore.test.ts  # library persistence changes
+npm test -- --run
+```
 
-1. git status
-2. changed files
-3. docs/product-progress.md
-4. task status
-5. Next Work Queue
-6. blocked task boundaries
+This applies when changing:
+- `data/csvImport.ts`
+- `data/readerImport.ts`
+- `data/adapterRegistry.ts`
+- `data/dictionaryApi.ts`
+- `data/localLexicon.ts`
+- `data/morphology.ts`
+- stores in `data/*Store.ts`
+- behavior covered by `tests/`
 
-## DONE Criteria
+For dictionary/language changes, prefer offline fixture coverage for exact lookup, morphology fallback, missing results, and related words before any live source smoke.
 
-A task can be marked DONE only if:
+## Required When A User-Facing Feature Changes
+Also perform the smallest practical app test that covers:
+- functional app flow, interruption handling, and data integrity
+- UI/UX layout, display, and usability
+- performance basics for loading, repeated actions, network, and offline assumptions
+- compatibility across Expo web plus target native platform or documented browser/device viewports
 
-* implementation exists
-* basic behavior is verified
-* typecheck passes
-* lint passes
-* checklist is updated
+Use Playwright when browser UI artifact evidence is needed:
 
-## IN PROGRESS Criteria
+```bash
+npm run test:e2e
+npm run test:e2e:branch
+```
 
-Use IN PROGRESS if:
+Use Maestro only after a native app is installed on a simulator/device and `MAESTRO_APP_ID` is set:
 
-* UI shell exists but behavior is incomplete
-* implementation is partial
-* verification fails
-* some edge cases remain
+```bash
+export MAESTRO_APP_ID=<ios-or-android-app-id>
+npm run test:native:maestro
+```
 
-## BLOCKED Criteria
+For Expo Go native smoke, start Expo, set the deep link, then use the platform script:
 
-Use BLOCKED if task requires:
+```bash
+export EXPO_GO_WORD_URL=<expo-go-url-for-/word?word=articulate&sourceLang=en&targetLang=en>
+npm run test:native:maestro:expo-go:ios
+npm run test:native:maestro:expo-go:android
+```
 
-* backend
-* auth
-* OAuth
-* paid/external API
-* licensed dictionary source
-* speech/phoneme engine
-* production AI cost control
+Browser-based Expo web testing is allowed. Temporary screenshots and generated browser artifacts must stay in ignored paths such as `tmp/app-testing/`, `artifacts/ui-tests/`, `playwright-report/`, and `test-results/` unless explicitly requested as fixtures.
 
-## Commit Message Format
+## Documentation-Only Changes
+For `.ai`, `docs`, or markdown-only edits, prefer:
 
-Prefer:
+```bash
+git diff --check
+npx tsc --noEmit
+npm run lint
+```
 
-```txt
-feat(area): short summary
-fix(area): short summary
-docs: update product progress
-chore: update verification workflow
+Document any blocker clearly if a check cannot run.
+
+## Before Marking DONE
+Confirm:
+- acceptance criteria are implemented
+- blocked behavior was not faked
+- `docs/product-progress.md` matches code reality
+- `Next Work Queue` has at most 5 items
+- failed or skipped checks are documented
+
+## Before Commit
+Confirm:
+- no unrelated changes were staged
+- no secrets or generated noise were added
+- decision docs are not treated as accepted unless their status says `Accepted`

@@ -1,0 +1,8 @@
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp
+- openLink: ${EXPO_GO_WORD_URL}
+- assertVisible: "articulate"
+- assertVisible: "Meaning"
+- assertVisible: "Synonyms"
+- assertVisible: "Etymology"

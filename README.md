@@ -46,6 +46,21 @@ npm test -- --run tests/dictionaryApi.test.ts
 npm test -- --run tests/readerImport.test.ts
 ```
 
+Run Expo Web UI artifact tests when a user-facing browser flow needs screenshot, trace, video, DOM, or visible-text evidence:
+
+```bash
+npm run test:e2e
+npm run test:e2e:branch
+```
+
+Run native Maestro smoke only after installing the app on a simulator/device. For Expo Go, start Expo, set the target deep link, then choose the platform script:
+
+```bash
+export EXPO_GO_WORD_URL=<expo-go-url-for-/word?word=articulate&sourceLang=en&targetLang=en>
+npm run test:native:maestro:expo-go:ios
+npm run test:native:maestro:expo-go:android
+```
+
 See [Testing And Build Guide](docs/testing-and-build-guide.md) for the full QA matrix, unit test guidance, manual smoke checklist, and release checklist.
 
 ## Project Docs

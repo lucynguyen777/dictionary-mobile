@@ -715,7 +715,7 @@ export default function LibraryScreen() {
         ) : null}
       </ScrollView>
       {createPanelOpen ? (
-        <View style={styles.addSheetOverlay} pointerEvents="box-none">
+        <View style={styles.addSheetOverlay}>
           <TouchableOpacity activeOpacity={1} onPress={closeAddPanel} style={styles.addSheetBackdrop} />
           <View style={[styles.addSheet, { paddingBottom: 16 + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0) }]}>
             <ScrollView
@@ -1012,7 +1012,7 @@ export default function LibraryScreen() {
         </View>
       ) : null}
       {colorPickerFolderId ? (
-        <View style={styles.colorPickerOverlay} pointerEvents="box-none">
+        <View style={styles.colorPickerOverlay}>
           <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => setColorPickerFolderId('')} />
           <View style={styles.colorPickerSheet}>
             <Text style={styles.colorPickerTitle}>Chọn màu cho bộ từ</Text>
@@ -1059,7 +1059,7 @@ export default function LibraryScreen() {
         </View>
       ) : null}
       {renameFolderId ? (
-        <View style={styles.colorPickerOverlay} pointerEvents="box-none">
+        <View style={styles.colorPickerOverlay}>
           <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => { setRenameFolderId(''); setRenameDraft(''); setRenameError(''); }} />
           <View style={styles.colorPickerSheet}>
             <Text style={styles.colorPickerTitle}>Đổi tên bộ từ</Text>
@@ -1217,6 +1217,7 @@ const styles = StyleSheet.create({
   addSheetOverlay: {
     bottom: 0,
     left: 0,
+    pointerEvents: 'box-none',
     position: 'absolute',
     right: 0,
     top: 0,
@@ -1868,6 +1869,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     top: 0,
     justifyContent: 'flex-end',
+    pointerEvents: 'box-none',
     zIndex: 60,
     elevation: 60,
   },
