@@ -508,11 +508,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 5. Update `docs/hindi-language-plan.md`, `docs/product-progress.md`, run full verification, and commit the completed module.
 
 ### Module Tasks
-1. [ ] [HARD] Hindi metadata and adapter registration: add `hi` metadata, `hi-IN` locale normalization, adapter dispatch, and dictionary API routing.
-2. [ ] [HARD] Hindi fixture source pack: add curated `hiwiktionary` fixtures for noun/verb/adjective coverage with attribution metadata.
-3. [ ] [HARD] Hindi normalization and Devanagari handling: NFC, anusvara handling, Devanagari-only lookup boundaries.
-4. [ ] [HARD] Hindi morphology and test coverage: conservative noun/verb form fallbacks plus adapter, API, normalization, and related-word tests.
-5. [ ] [MEDIUM] Hindi docs and progress sync: update `docs/hindi-language-plan.md` and this progress file after full verification.
+1. [~] IN PROGRESS [HARD] Hindi metadata and adapter registration: add `hi` metadata, `hi-IN` locale normalization, adapter dispatch, and dictionary API routing.
+2. [~] IN PROGRESS [HARD] Hindi fixture source pack: add curated `hiwiktionary` fixtures for noun/verb/adjective coverage with attribution metadata.
+3. [~] IN PROGRESS [HARD] Hindi normalization and Devanagari handling: NFC, anusvara handling, Devanagari-only lookup boundaries.
+4. [~] IN PROGRESS [HARD] Hindi morphology and test coverage: conservative noun/verb form fallbacks plus adapter, API, normalization, and related-word tests.
+5. [~] IN PROGRESS [MEDIUM] Hindi docs and progress sync: update `docs/hindi-language-plan.md` and this progress file after full verification.
 
 
 
