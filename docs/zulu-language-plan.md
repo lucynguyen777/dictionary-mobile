@@ -10,6 +10,12 @@
 ## Scope
 Plan a monolingual Zulu dictionary lookup (ZU->ZU), focusing on noun class prefixes, agglutinative morphology, and local fixture gates before any bilingual expansion.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `zu` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'zu'`; `data/adapterRegistry.ts` dispatches to `fetchZuluMeaning` and `fetchZuluRelatedWords`.
+- Fixture/runtime path: local Zulu fixtures, noun-class prefix fallback, locative fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Remaining gate: broader Zulu production/bulk coverage still needs a stable approved source and attribution packaging.
+
 ## Orthography & Normalization
 - Zulu uses a Roman-based orthography with standard word spacing, so the existing Reader tokenization path can start with the Latin-script flow.
 - Search should be case-insensitive and preserve digraph/trigraph consonants such as `hl`, `dl`, `sh`, `tsh`, `ng`, and click letters `c`, `q`, `x`.

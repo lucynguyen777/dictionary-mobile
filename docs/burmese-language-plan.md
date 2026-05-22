@@ -10,6 +10,12 @@
 ## Scope
 Plan a monolingual Burmese dictionary lookup (MY→MY), focusing on script-specific word segmentation challenges and local mockups.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `my` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'my'`; `data/adapterRegistry.ts` dispatches to `fetchBurmeseMeaning` and `fetchBurmeseRelatedWords`.
+- Fixture/runtime path: local Burmese fixtures and exact isolating-language lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Remaining gate: broader Burmese production/bulk coverage and offline bundles still need accepted source/license terms.
+
 ## Orthography & Word Segmentation
 - Written in the Burmese script, which features circular letters and uses no spaces between words. Spaces are used only for pauses or readability between clauses.
 - **Intelligent Word Segmentation**:

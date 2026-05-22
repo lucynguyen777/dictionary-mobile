@@ -14,6 +14,12 @@
 ## Scope
 This plan is now unblocked for a small source-backed baseline. `docs/kazakh-source-smoke.md` accepted Kazakh Wiktionary (`kk.wiktionary.org`) via the MediaWiki API for curated fixtures and adapter parsing under CC BY-SA 4.0 attribution rules. Kaikki `kkwiktionary` raw-dump ingestion remains blocked because the raw path currently returns 404.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `kk` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'kk'`; `data/adapterRegistry.ts` dispatches to `fetchKazakhMeaning` and `fetchKazakhRelatedWords`.
+- Fixture/runtime path: curated Kazakh Wiktionary fixtures, Cyrillic-preserving normalization, noun/adjective/verb morphology fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/languageNormalization.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Remaining gate: bulk Kaikki raw-dump ingestion, Sozdik.kz, official/state dictionaries, and offline Kazakh bundle packaging remain blocked pending source/license approval.
+
 ## Comparison With Turkish / Uzbek Baseline
 - Turkish gives the app a Turkic/agglutinative baseline. Kazakh belongs to the **Kipchak branch** (not Oghuz like Turkish), so vowel harmony patterns and suffix shapes differ significantly.
 - Unlike Uzbek (which has weakened vowel harmony), Kazakh retains **full vowel harmony** — both palatal and labial harmony apply to suffixes. Morphology fallbacks must account for this.

@@ -9,7 +9,14 @@
 - Baseline target: `hu -> hu` monolingual lookup before any bilingual Hungarian pair.
 
 ## Scope
-This is a planning and gate document only. Do not add Hungarian metadata or adapter code until source smoke, fixture policy, and attribution requirements are accepted.
+This document now tracks the implemented Hungarian baseline and the remaining production source gates. Hungarian metadata and a small local fixture adapter are implemented; broader production/bulk source expansion remains gated.
+
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `hu` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'hu'`; `data/adapterRegistry.ts` dispatches to `fetchHungarianMeaning` and `fetchHungarianRelatedWords`.
+- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `huwiktionary`-attributed Hungarian fixture set; `data/morphology.ts` includes plural, case, vowel-harmony, and verb fallback candidates used by `data/dictionaryApi.ts`.
+- Test coverage: `tests/dictionaryApi.test.ts` covers exact lookup, plural fallback, case fallback, `erdőben -> erdő`, `eszem/eszik -> enni`, and related words.
+- Remaining gate: Estonian is still the next Uralic blocker; Hungarian only needs future production/bulk source approval and offline bundle packaging before expansion beyond curated fixtures.
 
 ## Script And Normalization
 - Hungarian uses the Latin alphabet with 9 additional letters containing diacritics: `á`, `é`, `í`, `ó`, `ö`, `ő`, `ú`, `ü`, `ű`.
@@ -53,14 +60,16 @@ This is a planning and gate document only. Do not add Hungarian metadata or adap
 - Offline/bundled Hungarian data remains blocked until `.docs/decisions/offline-dictionary-bundle.md` and `.docs/decisions/dictionary-source-licensing.md` are accepted.
 
 ## Implementation Plan
-1. Select a true Hungarian-definition source before adding `hu` to language metadata.
-2. Smoke source records for at least:
+Status: first small baseline is implemented; production/bulk source expansion remains gated.
+
+1. Metadata, adapter dispatch, tiny fixtures, and local morphology fallback: DONE.
+2. Keep source-smoke records documented for future expansion:
    - noun: `ház` (house)
    - verb: `enni` (to eat)
    - diacritics: `erdő` (forest), `fű` (grass)
    - inflected lookup: `házban` (in the house), `eszem` (I eat [definite])
-3. Confirm fields: headword, part of speech, Hungarian glosses, examples, pronunciation/IPA/audio if available, forms if available, and attribution.
-4. Add adapter tests for monolingual lookup, inflected-form fallback, diacritic preservation, and missing-source behavior.
+3. Confirm any future source fields: headword, part of speech, Hungarian glosses, examples, pronunciation/IPA/audio if available, forms if available, and attribution.
+4. Add adapter tests for each new production source parser or bulk fixture importer.
 5. Keep Hungarian bilingual lookup blocked until a trustworthy lexical bilingual source exists.
 
 ## Tests
@@ -71,12 +80,12 @@ This is a planning and gate document only. Do not add Hungarian metadata or adap
 - Form lookup tests for source-provided case forms before any local suffix stripping.
 
 ## Blocked Decisions
-- Production Hungarian monolingual lookup remains blocked until a true Hungarian-definition source is accepted.
-- Committed fixtures or bundled data are blocked until licensing/attribution policy is accepted.
+- Production-scale Hungarian monolingual lookup remains blocked until a true Hungarian-definition source or bulk fixture source is accepted.
+- Additional committed fixtures or bundled data are blocked until licensing/attribution policy is accepted.
 - Offline Hungarian bundle is blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Decide whether a Hungarian monolingual definition source can be licensed for production and fixture tests. Until then, only morphology planning and non-production source smoke are safe.
+Next safe task: decide whether a Hungarian monolingual definition source can be licensed for production/bulk fixtures. Code expansion should stay source-gated until then.
 
 ## Sources Checked
 - WiktAPI overview: https://wiktapi.dev/

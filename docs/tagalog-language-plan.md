@@ -8,7 +8,14 @@
 - Writing direction: LTR
 
 ## Scope
-Plan a monolingual Tagalog dictionary lookup (TL→TL).
+Track the implemented monolingual Tagalog dictionary baseline (TL->TL) and the remaining production source gates.
+
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `tl` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'tl'`; `data/adapterRegistry.ts` dispatches to `fetchTagalogMeaning` and `fetchTagalogRelatedWords`.
+- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `tlwiktionary`-attributed Tagalog fixture set; `data/morphology.ts` includes prefix, infix, suffix, and reduplication fallback candidates used by `data/dictionaryApi.ts`.
+- Test coverage: `tests/dictionaryApi.test.ts` covers exact lookup, `magbasa/nagbabasa -> basa`, `kumain/kumakain -> kain`, `basahin -> basa`, and related words.
+- Remaining gate: production-scale Tagalog coverage still needs an approved Tagalog-definition source or bulk fixture policy; the old "implementation blocked" note no longer applies to the tiny local baseline.
 
 ## Script And Normalization
 - Uses the Latin alphabet, consisting of 28 letters (including `ñ` and the digraph `ng`).
@@ -30,16 +37,18 @@ Tagalog has an extremely complex, affix-heavy, and agglutinative morphological s
 | UP Diksiyonaryong Filipino | Proprietary | **Blocked (Copyright)** | N/A |
 | Kaikki Tagalog index | Offline DB | Bilingual Only | CC-BY-SA 3.0 |
 
-### The Monolingual Blocker
+### Production Source Gate
 - Probing `https://api.wiktapi.dev/v1/tl/word/aso` returns a **404 error**, showing that there is no active Tagalog edition on WiktAPI.
 - Probing the English edition `https://api.wiktapi.dev/v1/en/word/aso` returns Tagalog entries but with definitions written in English.
 - No free, open-source monolingual Tagalog dictionary API exists. Commercial dictionaries (like the University of the Philippines' UP Diksiyonaryong Filipino) are protected under strict copyrights.
-- Until a monolingual TL→TL source is found, implementation remains blocked.
+- Until a larger approved monolingual TL->TL source is found, expansion beyond the tiny local baseline remains blocked.
 
 ## Implementation Plan
-1. Add `tl` language metadata to `data/languages.ts` but mark it as `dictionaryStatus: 'unavailable'` so the UI shows "Coming soon".
-2. Keep the Tagalog adapter registration blocked until a reliable Tagalog monolingual API endpoint is confirmed.
-3. Design a prototype lemmatizer or stemmer capable of handling infixes (`-um-`, `-in-`) and reduplication patterns before implementing the live lookup.
+Status: first small baseline is implemented; production/bulk source expansion remains gated.
+
+1. Metadata, adapter dispatch, tiny fixtures, and local morphology fallback: DONE.
+2. Keep hosted/API expansion blocked until a reliable Tagalog monolingual endpoint or approved local bundle is confirmed.
+3. Extend the lemmatizer only with fixture-backed prefix, infix, suffix, and reduplication patterns.
 
 ## First Safe Task
-Add the language metadata config as "unavailable" and document the morphological complexities and blockers.
+Next safe task: source/status follow-up for a larger Tagalog-definition source or a documented bulk fixture policy. Adapter expansion should stay source-gated until then.

@@ -10,6 +10,12 @@
 ## Scope
 Plan a monolingual Javanese dictionary lookup (JV→JV) and morphology baseline, focusing on register mapping (Ngoko vs. Krama), prefix/suffix agglutinative morphology, and local mockups.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `jv` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'jv'`; `data/adapterRegistry.ts` dispatches to `fetchJavaneseMeaning` and `fetchJavaneseRelatedWords`.
+- Fixture/runtime path: local Javanese fixtures, Ngoko/Krama related-word behavior, active/passive morphology fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Remaining gate: broader Javanese production/bulk coverage still needs a stable approved source and attribution packaging.
+
 ## Orthography & Registers
 - **Latin Script Priority**: Modern online Javanese communications and dictionaries predominantly use the Latin alphabet. Standard space-based tokenization in the Reader works perfectly.
 - **Sociolinguistic Registers**:

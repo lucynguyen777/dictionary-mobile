@@ -10,6 +10,12 @@
 ## Scope
 Plan a monolingual Tibetan dictionary lookup (BO→BO), focusing on script-specific word segmentation challenges and local mockups.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `bo` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'bo'`; `data/adapterRegistry.ts` dispatches to `fetchTibetanMeaning` and `fetchTibetanRelatedWords`.
+- Fixture/runtime path: local Tibetan fixtures, tsheg-aware exact lookup, conservative particle fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Remaining gate: broader Tibetan production/bulk coverage and offline bundles still need accepted source/license terms.
+
 ## Orthography & Word Segmentation
 - Tibetan syllables are separated by a small dot called `tsheg` (`་`, Unicode `\u0F0B`).
 - Words are composed of one or more syllables, but there are no spaces between words. Spaces are only used to demarcate verses/sentences (along with the vertical line `shad` `།`, Unicode `\u0F0D`).

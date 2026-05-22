@@ -11,6 +11,12 @@
 ## Scope
 This is a planning and gate document only. Do not add Uzbek metadata or adapter code until a true Uzbek-definition source, fixture policy, and attribution/terms requirements are accepted.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Current code status: `uz` is not registered in `data/languages.ts`, has no adapter in `data/adapterRegistry.ts`, and has no Uzbek fixture set or dictionary API dispatch.
+- Family context: Turkish and Kazakh are implemented Turkic baselines; Uyghur has completed source smoke but remains blocked. Uzbek remains blocked on a true Uzbek-definition source and accepted attribution/terms.
+- Remaining gate: choose between Izoh.uz terms/API access, Uzbek Wiktionary parsing, or another approved Uzbek-definition source before metadata, fixtures, or adapter code.
+
 ## Comparison With Turkish Baseline
 - Turkish already gives the app a Turkic/agglutinative baseline, but Uzbek cannot simply reuse Turkish casing or vowel-harmony assumptions.
 - Uzbek standard Latin uses apostrophe-like characters in `oʻ` and `gʻ`; lookup must normalize apostrophe variants without damaging display text.

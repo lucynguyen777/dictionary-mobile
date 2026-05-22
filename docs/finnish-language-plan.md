@@ -9,7 +9,14 @@
 - Baseline target: `fi -> fi` monolingual lookup before any bilingual Finnish pair.
 
 ## Scope
-This is a planning and gate document only. Do not add Finnish metadata or adapter code until a true Finnish-definition source, fixture policy, and attribution requirements are accepted.
+This document now tracks the implemented Finnish baseline and the remaining production source gates. Finnish metadata and a small local fixture adapter are implemented; broader production/bulk source expansion remains gated.
+
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `fi` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'fi'`; `data/adapterRegistry.ts` dispatches to `fetchFinnishMeaning` and `fetchFinnishRelatedWords`.
+- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `fiwiktionary`-attributed Finnish fixture set; `data/morphology.ts` includes case/gradation and verb-form fallback candidates used by `data/dictionaryApi.ts`.
+- Test coverage: `tests/dictionaryApi.test.ts` covers exact lookup, `talossa -> talo`, `syön -> syödä`, `kädessä -> käsi`, `yötä -> yö`, and related words.
+- Remaining gate: Estonian is still the next Uralic blocker; Finnish only needs future production/bulk source approval and offline bundle packaging before expansion beyond curated fixtures.
 
 ## Script And Normalization
 - Finnish uses the Latin alphabet with native letters `ä` and `ö`; `å` appears mostly in Swedish-origin names and loan contexts.
@@ -54,14 +61,16 @@ This is a planning and gate document only. Do not add Finnish metadata or adapte
 - Offline/bundled Finnish data remains blocked until `.docs/decisions/offline-dictionary-bundle.md` and `.docs/decisions/dictionary-source-licensing.md` are accepted.
 
 ## Implementation Plan
-1. Select a true Finnish-definition source before adding `fi` to language metadata.
-2. Smoke source records for at least:
+Status: first small baseline is implemented; production/bulk source expansion remains gated.
+
+1. Metadata, adapter dispatch, tiny fixtures, and local morphology fallback: DONE.
+2. Keep source-smoke records documented for future expansion:
    - noun: `talo`
    - verb: `syödä`
    - diacritics: `käsi`, `yö`
    - inflected lookup: `talossa`, `kädessä`
-3. Confirm fields: headword, part of speech, Finnish glosses, examples, pronunciation/IPA/audio if available, forms if available, and attribution.
-4. Add adapter tests for monolingual lookup, inflected-form fallback, diacritic preservation, and missing-source behavior.
+3. Confirm any future source fields: headword, part of speech, Finnish glosses, examples, pronunciation/IPA/audio if available, forms if available, and attribution.
+4. Add adapter tests for each new production source parser or bulk fixture importer.
 5. Keep Finnish bilingual lookup blocked until a trustworthy lexical bilingual source exists.
 
 ## Tests
@@ -72,12 +81,12 @@ This is a planning and gate document only. Do not add Finnish metadata or adapte
 - Form lookup tests for source-provided case forms before any local suffix stripping.
 
 ## Blocked Decisions
-- Production Finnish monolingual lookup remains blocked until a true Finnish-definition source is accepted.
-- Committed fixtures or bundled data are blocked until licensing/attribution policy is accepted.
+- Production-scale Finnish monolingual lookup remains blocked until a true Finnish-definition source or bulk fixture source is accepted.
+- Additional committed fixtures or bundled data are blocked until licensing/attribution policy is accepted.
 - Offline Finnish bundle is blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Decide whether Suomi Sanakirja API terms or another Finnish-definition source can be used for production and fixture tests. Until then, only morphology planning and non-production source smoke are safe.
+Next safe task: decide whether Suomi Sanakirja API terms or another Finnish-definition source can be used for production/bulk fixtures. Code expansion should stay source-gated until then.
 
 ## Sources Checked
 - WiktAPI overview: https://wiktapi.dev/

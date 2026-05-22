@@ -14,6 +14,7 @@
 This is a planning and gate document only. Do not add Uyghur metadata or adapter code until a true Uyghur-definition source, fixture policy, RTL smoke plan, and attribution/terms requirements are accepted. The May 22, 2026 extended source smoke did not find enough non-placeholder Uyghur Wiktionary entries to unblock implementation.
 
 ## Current Code Audit
+- Status refreshed: May 22, 2026.
 - `data/languages.ts` does not register `ug` yet.
 - The app already has RTL handling for Arabic and Hebrew in lookup inputs, saved-word display, and detail surfaces; Uyghur can reuse the RTL direction path, but it still needs language-specific smoke because Uyghur Arabic letters and vowels differ from Arabic.
 - `data/languageNormalization.ts` currently has locale overrides for Turkish and Kazakh only.
@@ -22,6 +23,7 @@ This is a planning and gate document only. Do not add Uyghur metadata or adapter
   - Turkish: implemented Latin-script source-backed fixture adapter and suffix fallback.
   - Uzbek: planned but blocked pending true Uzbek definitions.
   - Kazakh: implemented small Cyrillic-script baseline from curated Kazakh Wiktionary fixtures.
+- Module refresh note: Uyghur remains blocked after `docs/uyghur-source-smoke.md`; next safe work is another approved native-definition source search or a larger non-placeholder Uyghur Wiktionary candidate list before adapter code.
 
 ## Comparison With Turkish / Uzbek / Kazakh
 - Uyghur is Karluk Turkic like Uzbek, but its dominant script is **Arabic-derived RTL**, not Latin/Cyrillic.

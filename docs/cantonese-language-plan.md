@@ -10,6 +10,12 @@
 ## Scope
 Plan a monolingual Cantonese dictionary lookup (YUE→YUE).
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Current code status: `yue` is registered in `data/languages.ts` as `dictionaryStatus: 'unavailable'` with no adapter key; `data/adapterRegistry.ts` has no Cantonese adapter dispatch.
+- Family context: Burmese (`my`) and Tibetan (`bo`) are implemented tiny Sino-Tibetan baselines; Cantonese remains the source-gated implementation blocker in this family.
+- Remaining gate: Words.hk API/dump access or another approved Cantonese-definition bundle path is required before adapter fixtures or runtime lookup.
+
 ## Script And Normalization
 - Written in Han characters (Hanzi).
 - Predominantly uses **Traditional Chinese** characters in Hong Kong, Macau, and overseas communities.

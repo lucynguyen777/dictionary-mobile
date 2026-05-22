@@ -10,6 +10,12 @@
 ## Scope
 Plan a monolingual Yoruba dictionary lookup (YO→YO), focusing on tone mark normalization, diacritic-safe search, and local fixtures.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `yo` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'yo'`; `data/adapterRegistry.ts` dispatches to `fetchYorubaMeaning` and `fetchYorubaRelatedWords`.
+- Fixture/runtime path: local Yoruba fixtures, tone-insensitive lookup, nominal-prefix fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Remaining gate: broader Yoruba production/bulk coverage still needs a stable approved source and attribution packaging.
+
 ## Diacritics & Tone-Insensitive Search
 - **Yoruba Diacritics**:
   - Underdots: `ẹ`, `ọ`, `ṣ` (indicate open vowels/consonants).

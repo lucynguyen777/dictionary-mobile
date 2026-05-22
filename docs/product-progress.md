@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: complete the Language source/status refresh module, then continue remaining backend/source-gated work.
+- Hard next tasks: complete the Source gate unblock module, then continue remaining backend/source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -358,6 +358,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Burmese monolingual baseline implementation: Register Burmese adapter and configure tokenization fallback, using CC BY-SA data.
   - [x] DONE [HARD]: Tibetan monolingual baseline planning: Research script-specific Tibetan segmentation and dictionary source.
   - [x] DONE [HARD]: Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
+  - [x] DONE [HARD]: Sino-Tibetan source/status refresh: `docs/cantonese-language-plan.md`, `docs/burmese-language-plan.md`, and `docs/tibetan-language-plan.md` now reflect Cantonese unavailable metadata, Burmese/Tibetan implemented adapters, and remaining bulk/source gates.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [x] DONE [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
@@ -368,7 +369,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Amharic monolingual baseline implementation: Register Amharic adapter, write abugida vowel/order shift mapping morphology fallbacks, using CC BY-SA `amwiktionary` data.
   - [x] DONE [HARD]: Somali monolingual baseline planning: Research Latin-script Somali morphology, noun declension/gender, and source options.
   - [x] DONE [HARD]: Somali monolingual baseline implementation: Register Somali adapter, write definite article morphology fallbacks, using CC BY-SA data.
-- [ ] TODO [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
+- [x] DONE [MEDIUM]: Niger-Congo next-build candidates: Yoruba, Zulu, Igbo.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline planning: source candidates, Latin-script search implications, and adapter fixture gates documented in `docs/swahili-language-plan.md`.
   - [x] DONE [MEDIUM]: Swahili monolingual baseline implementation: Register Swahili adapter, write noun prefix fallbacks, using the community Swahili Wiktionary (`swwiktionary`) CC BY-SA data.
   - [x] DONE [MEDIUM]: Yoruba monolingual baseline planning: Research tone marks, diacritics, and morphology fallbacks.
@@ -377,9 +378,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Zulu monolingual baseline implementation: Register Zulu adapter, write noun class prefix lookup fallbacks, and add local fixture tests using CC BY-SA data.
   - [x] DONE [MEDIUM]: Igbo monolingual baseline planning: Research tone marks, underdot orthography, vowel harmony, and source candidates in `docs/igbo-language-plan.md`.
   - [x] DONE [MEDIUM]: Igbo monolingual baseline implementation: Register Igbo adapter, add tone-insensitive underdot-preserving lookup, and local fixture tests using source-gated local educational fixture data.
+  - [x] DONE [MEDIUM]: Niger-Congo source/status refresh: `docs/yoruba-language-plan.md`, `docs/zulu-language-plan.md`, and `docs/igbo-language-plan.md` now reflect implemented adapters, fixture paths, morphology coverage, and remaining bulk/source gates.
   - Swahili/Zulu: noun classes and prefixes.
   - Yoruba/Igbo: tone and diacritic-safe search.
-- [ ] TODO [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
+- [x] DONE [MEDIUM]: Austronesian next-build candidates: Tagalog, Javanese, Hawaiian.
   - [x] DONE [MEDIUM]: Malay monolingual baseline: WiktAPI adapter, simple affix/reduplication morphology candidates.
   - [x] DONE [HARD]: Tagalog monolingual baseline planning: document source candidates, focus/voice system, affix-heavy morphology, and adapter fixture gates in `docs/tagalog-language-plan.md`.
   - [x] DONE [HARD]: Tagalog monolingual baseline implementation: Register Tagalog adapter, write focus trigger and reduplication/infixation fallbacks, using CC BY-SA `tlwiktionary` data.
@@ -387,6 +389,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Javanese monolingual baseline implementation: Register Javanese adapter, write active/passive morphology fallbacks, using CC BY-SA data.
   - [x] DONE [MEDIUM]: Hawaiian monolingual baseline planning: Research Polynesian morphology, ʻokina/kahakō normalization, and source candidates in `docs/hawaiian-language-plan.md`.
   - [x] DONE [MEDIUM]: Hawaiian monolingual baseline implementation: Register Hawaiian adapter, normalize ʻokina variants, add kahakō-aware fixture lookup, and local fixture tests.
+  - [x] DONE [MEDIUM]: Austronesian source/status refresh: `docs/tagalog-language-plan.md`, `docs/javanese-language-plan.md`, and `docs/hawaiian-language-plan.md` now reflect implemented adapters, fixture paths, morphology coverage, and remaining production/bulk source gates.
   - Tagalog: focus/voice system and affix-heavy morphology.
   - Javanese/Hawaiian: register or diacritic-sensitive search.
 - [x] DONE [HARD]: Dravidian next-build candidates: Tamil, Telugu, Kannada, Malayalam.
@@ -410,6 +413,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Uyghur monolingual baseline planning: Arabic-script RTL requirements, ULY romanization role, agglutinative morphology, source candidates, and implementation gates documented in `docs/uyghur-language-plan.md` and `docs/uyghur-source-smoke.md`.
   - [x] DONE [HARD]: Uyghur source smoke: sampled `ug.wiktionary.org` MediaWiki API pages and confirmed the current candidate set is insufficient for balanced noun/adjective/verb fixtures.
   - [!] BLOCKED [HARD]: Uyghur monolingual baseline implementation requires another approved Uyghur-definition source or a larger non-placeholder Uyghur Wiktionary candidate list before fixtures or adapter code.
+  - [x] DONE [HARD]: Turkic blocked-source follow-up: `docs/uzbek-language-plan.md`, `docs/uyghur-language-plan.md`, and `docs/kazakh-language-plan.md` now reflect current code status, Kazakh implemented baseline, and remaining Uzbek/Uyghur source gates.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
@@ -419,6 +423,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
   - [x] DONE [HARD]: Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications in `docs/estonian-language-plan.md`.
   - [!] BLOCKED [HARD]: Estonian monolingual baseline implementation requires a true Estonian-definition source.
+  - [x] DONE [HARD]: Uralic source/status refresh: `docs/finnish-language-plan.md`, `docs/hungarian-language-plan.md`, and `docs/estonian-language-plan.md` now reflect implemented Finnish/Hungarian adapters, Estonian blocked code status, and remaining production/bulk source gates.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
@@ -451,25 +456,34 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Real-time voice/text chatbot needs backend, streaming, auth, and cost controls.
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
+## Completed Work Modules
+
+**Module: Language source/status refresh** - DONE
+- Uralic: refreshed Finnish/Hungarian implemented status and Estonian source blocker.
+- Niger-Congo: refreshed Yoruba/Zulu/Igbo implemented status and bulk/source gates.
+- Austronesian: refreshed Tagalog/Javanese/Hawaiian implemented status and production/bulk source gates.
+- Sino-Tibetan: refreshed Cantonese blocked status and Burmese/Tibetan implemented status.
+- Turkic: refreshed Uzbek/Uyghur blocked status and Kazakh implemented status.
+
 ## Next Work Module
 
-**Module: Language source/status refresh**
-- Goal: reconcile implementation status, docs, source attribution, and blockers across related language-family tracks before opening the next adapter build.
-- Scope: 5 related source/status refresh tasks; complete the whole module before opening a new module.
+**Module: Source gate unblock**
+- Goal: turn the refreshed blocker map into concrete source decisions or smoke artifacts for the remaining language-family gates.
+- Scope: 5 related source/license unblock tasks; complete the whole module before opening a new module.
 
 ### Module Completion Plan
-1. Audit the current code, tests, fixtures, and language docs for all five family tracks.
-2. Reconcile each track against source/license status, morphology coverage, and existing roadmap checkboxes.
-3. Update family docs or progress checklist entries where implementation status and docs have drifted.
-4. Pick the next unblocked implementation or source-smoke slice only after all five refresh tasks have current status.
+1. Re-read each blocker doc and the current code registration status before touching source notes.
+2. Smoke or document one legal source path per blocked family track, using source terms/API pages or raw dump availability where possible.
+3. Update the relevant language plan/source-smoke docs with accepted, rejected, or still-blocked decisions.
+4. Pick the next implementation candidate only if a source path is accepted; otherwise keep the task explicitly blocked with the next research lead.
 5. Run doc/code verification, commit the completed module, then create the next 3-5 task module.
 
 ### Module Tasks
-1. [ ] [HARD] Uralic source/status refresh: review Finnish/Hungarian/Estonian implementation status, verify remaining source gates, and pick the next unblocked Uralic slice.
-2. [ ] [MEDIUM] Niger-Congo source/status refresh: review Yoruba/Zulu/Igbo implementation status, source attribution, and remaining morphology gaps before choosing the next slice.
-3. [ ] [MEDIUM] Austronesian source/status refresh: review Tagalog/Javanese/Hawaiian implementation status, source attribution, and remaining morphology gaps before choosing the next slice.
-4. [ ] [HARD] Sino-Tibetan source/status refresh: review Cantonese/Burmese/Tibetan implementation status, verify remaining source gates, and reconcile docs before choosing the next slice.
-5. [ ] [HARD] Turkic blocked-source follow-up: review Uzbek/Uyghur/Kazakh source status after the Kazakh and Uyghur baselines, confirm remaining legal-source gates, and document the next unblock path.
+1. [ ] [HARD] Estonian source unblock: smoke Sõnaveeb/EKI terms/API and Estonian Wiktionary/Kaikki options, then decide whether `et` can move from planning to fixtures.
+2. [ ] [HARD] Cantonese source unblock: evaluate Words.hk API/dump access and licensing, then decide whether `yue` can move beyond unavailable metadata.
+3. [ ] [HARD] Uzbek source unblock: verify Izoh.uz/API terms, Uzbek Wiktionary parsing viability, or another Uzbek-definition source before metadata/adapter work.
+4. [ ] [HARD] Uyghur source unblock: find another native-definition source or larger non-placeholder Uyghur Wiktionary candidate list before any `ug` adapter work.
+5. [ ] [MEDIUM] Cross-family attribution packaging: document the shared attribution/offline-bundle requirements that block bulk fixture expansion for implemented local baselines.
 
 
 

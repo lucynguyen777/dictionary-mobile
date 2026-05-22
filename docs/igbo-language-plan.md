@@ -10,6 +10,12 @@
 ## Scope
 Plan a monolingual Igbo dictionary lookup (IG->IG), focusing on tone-safe search, underdot-preserving normalization, vowel harmony implications, and source gates before any bilingual expansion.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Implemented in code: `ig` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'ig'`; `data/adapterRegistry.ts` dispatches to `fetchIgboMeaning` and `fetchIgboRelatedWords`.
+- Fixture/runtime path: local Igbo fixtures, tone-insensitive underdot-preserving lookup, conservative prefix fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Remaining gate: broader Igbo production/bulk coverage, Nkọwa okwu / Igbo API integration, and audio/example expansion still need accepted API/license/product terms.
+
 ## Orthography & Normalization
 - Igbo uses the Ọnwụ orthography in standard dictionary practice.
 - Underdot vowels and nasal marks are lexical and must be preserved in primary lookup:

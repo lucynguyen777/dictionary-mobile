@@ -11,6 +11,12 @@
 ## Scope
 This is a planning and gate document only. Do not add Estonian metadata or adapter code until a true Estonian-definition source, fixture policy, and attribution requirements are accepted.
 
+## Current Code Audit
+- Status refreshed: May 22, 2026.
+- Current code status: `et` is not registered in `data/languages.ts`, has no adapter in `data/adapterRegistry.ts`, and has no Estonian fixture set or dictionary API dispatch.
+- Family context: Finnish and Hungarian are implemented tiny Uralic baselines; Estonian remains the next unblocked-planning/blocked-implementation slice in this family.
+- Remaining gate: select and approve a true Estonian-definition source such as Sõnaveeb/EKI terms or another usable source before metadata, fixtures, or adapter code.
+
 ## Script And Normalization
 - Estonian uses the Latin alphabet with native letters `ä`, `ö`, `ü`, and `õ`.
 - Normalize text to NFC and preserve diacritics. Do not strip `ä`/`ö`/`ü`/`õ` to ASCII for canonical lookup.
