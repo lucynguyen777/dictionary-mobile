@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Uralic source/status refresh, Niger-Congo source/status refresh, Austronesian source/status refresh, and remaining backend/source-gated work.
+- Hard next tasks: complete the Language source/status refresh module, then continue remaining backend/source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -450,31 +450,48 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Real-time voice/text chatbot needs backend, streaming, auth, and cost controls.
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
-## Next Work Queue
+## Next Work Module
+
+**Module: Language source/status refresh**
+- Goal: reconcile implementation status, docs, source attribution, and blockers across related language-family tracks before opening the next adapter build.
+- Scope: 5 related source/status refresh tasks; complete the whole module before opening a new module.
+
+### Module Completion Plan
+1. Audit the current code, tests, fixtures, and language docs for all five family tracks.
+2. Reconcile each track against source/license status, morphology coverage, and existing roadmap checkboxes.
+3. Update family docs or progress checklist entries where implementation status and docs have drifted.
+4. Pick the next unblocked implementation or source-smoke slice only after all five refresh tasks have current status.
+5. Run doc/code verification, commit the completed module, then create the next 3-5 task module.
+
+### Module Tasks
 1. [ ] [HARD] Uralic source/status refresh: review Finnish/Hungarian/Estonian implementation status, verify remaining source gates, and pick the next unblocked Uralic slice.
 2. [ ] [MEDIUM] Niger-Congo source/status refresh: review Yoruba/Zulu/Igbo implementation status, source attribution, and remaining morphology gaps before choosing the next slice.
 3. [ ] [MEDIUM] Austronesian source/status refresh: review Tagalog/Javanese/Hawaiian implementation status, source attribution, and remaining morphology gaps before choosing the next slice.
+4. [ ] [HARD] Sino-Tibetan source/status refresh: review Cantonese/Burmese/Tibetan implementation status, verify remaining source gates, and reconcile docs before choosing the next slice.
+5. [ ] [HARD] Turkic blocked-source follow-up: review Uzbek/Uyghur/Kazakh source status after the Kazakh and Uyghur baselines, confirm remaining legal-source gates, and document the next unblock path.
 
 
 
 ## Rule
 
 ### Task Workflow
-1. Trước khi bắt đầu task mới, kiểm tra code hiện tại và `docs/product-progress.md` đã đồng bộ: task đang làm/đã làm đúng trạng thái, `Next Work Queue` phản ánh bước tiếp theo, và queue có tối đa 5 task.
-2. Khi bắt đầu một task trong `Next Work Queue`, chuyển task đó sang `[~] IN PROGRESS` trong checklist tương ứng và trong queue.
+1. Trước khi bắt đầu module mới, kiểm tra code hiện tại và `docs/product-progress.md` đã đồng bộ: task đang làm/đã làm đúng trạng thái, `Next Work Module` phản ánh bước tiếp theo, và module có 3-5 task liên quan.
+2. Khi bắt đầu một task trong `Next Work Module`, chuyển task đó sang `[~] IN PROGRESS` trong checklist tương ứng và trong module.
 3. Sau khi triển khai xong, cập nhật checklist theo trạng thái thực tế của code: `[x]`, `[~]`, `[ ]`, hoặc `[!]`.
 4. Trước mỗi commit, kiểm tra lại tiến độ code và `docs/product-progress.md` đã đồng bộ. Nếu commit hash chưa tồn tại, có thể cập nhật `Current Baseline` ngay sau commit code bằng một commit checklist kế tiếp.
 5. Trước mỗi commit code, chạy kiểm tra xác minh theo verification ladder trong `docs/testing-and-build-guide.md`: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, và focused/full test suite khi shared behavior, parser, adapter, hoặc store thay đổi. Nếu chỉ sửa tài liệu, vẫn ưu tiên chạy `git diff --check`, `npx tsc --noEmit`, và `npm run lint` trừ khi có blocker rõ ràng.
 6. Commit code và checklist cùng nhau khi hợp lý. Nếu cần ghi commit hash mới vào `Current Baseline`, commit cập nhật checklist ngay sau commit code.
 7. Trước mỗi lần push lên GitHub, kiểm tra lại `git status`, commit gần nhất, và `docs/product-progress.md` để đảm bảo code/checklist không lệch.
 8. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
-9. Sau khi checklist trên GitHub khớp với code thực tế, mới bắt đầu task tiếp theo trong `Next Work Queue`.
+9. Sau khi checklist trên GitHub khớp với code thực tế và module hiện tại hoàn tất, mới tạo hoặc bắt đầu `Next Work Module` tiếp theo.
 
-### Progress Queue Rules
-1. Mỗi lần cập nhật `Next Work Queue`, chỉ giữ tối đa 5 task ưu tiên nhất trong queue và trước mỗi lần commit code phải có ít nhất 3 task trong queue.
-2. Các task chưa vào queue vẫn phải giữ ở section checklist tương ứng, không xóa khỏi roadmap.
-3. Ưu tiên task theo thứ tự dễ đến khó, trừ khi user chọn rõ một ưu tiên khác.
-4. Sau khi task trong queue chuyển sang `[x] DONE`, xóa task đó khỏi `Next Work Queue` và thêm task kế tiếp nếu còn dưới 3 mục ưu tiên hợp lệ; không kéo task `[!] BLOCKED` vào queue như việc có thể làm ngay.
+### Module Queue Rules
+1. Mỗi `Next Work Module` phải có ít nhất 3 task và nhiều nhất 5 task liên quan; mặc định lập plan đủ 5 task khi còn đủ task hợp lệ.
+2. Mỗi module phải có `Module Completion Plan` trước khi triển khai, và plan phải hướng đến hoàn thành cả module thay vì một task lẻ.
+3. Các task chưa vào module vẫn phải giữ ở section checklist tương ứng, không xóa khỏi roadmap.
+4. Ưu tiên task theo thứ tự dễ đến khó trong cùng module, trừ khi user chọn rõ một ưu tiên khác.
+5. Sau khi một task trong module chuyển sang `[x] DONE`, giữ trạng thái đó trong module cho đến khi toàn bộ module hoàn tất; chỉ thay module mới khi tất cả task có thể làm ngay đã DONE hoặc blocker đã được ghi rõ.
+6. Không kéo task `[!] BLOCKED` vào module như việc có thể làm ngay. Nếu task trong module phát sinh blocker và module còn dưới 3 task có thể làm ngay, thay bằng task liên quan hợp lệ trước commit kế tiếp.
 
 ### Language Build Rules
 1. Trước khi build một ngôn ngữ mới, xác định language family/typology của ngôn ngữ đó và ghi vào `Language Family Roadmap`.
