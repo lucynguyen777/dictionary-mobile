@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Uyghur planning, Uralic source/status refresh, Niger-Congo source/status refresh, and remaining backend/source-gated work.
+- Hard next tasks: Uyghur source smoke, Uralic source/status refresh, Niger-Congo source/status refresh, and remaining backend/source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -404,6 +404,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Kazakh monolingual baseline planning: Cyrillic/Latin script duality, full vowel harmony, 7-case morphology fallbacks, source candidates (Sozdik.kz, kkwiktionary Kaikki dump), and gated implementation plan documented in `docs/kazakh-language-plan.md`.
   - [x] DONE [HARD]: Kazakh source smoke: `docs/kazakh-source-smoke.md` confirms Kaikki `kkwiktionary` raw data is not available, WiktAPI `kk` is not viable, and Kazakh Wiktionary MediaWiki API is accepted for curated CC BY-SA fixtures and adapter work.
   - [x] DONE [HARD]: Kazakh monolingual baseline implementation: register Kazakh metadata, add curated Kazakh Wiktionary fixtures with attribution, parse noun/adjective/verb definitions, and cover Cyrillic morphology fallbacks.
+  - [x] DONE [HARD]: Uyghur monolingual baseline planning: Arabic-script RTL requirements, ULY romanization role, agglutinative morphology, source candidates, and implementation gates documented in `docs/uyghur-language-plan.md` and `docs/uyghur-source-smoke.md`.
+  - [!] BLOCKED [HARD]: Uyghur monolingual baseline implementation requires broader `ug.wiktionary.org` source smoke with enough non-placeholder Uyghur-definition entries before fixtures or adapter code.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
@@ -446,7 +448,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
+1. [ ] [HARD] Uyghur source smoke: sample `ug.wiktionary.org` MediaWiki API pages for enough non-placeholder noun/adjective/verb entries and decide whether curated CC BY-SA fixtures can unblock adapter work.
 2. [ ] [HARD] Uralic source/status refresh: review Finnish/Hungarian/Estonian implementation status, verify remaining source gates, and pick the next unblocked Uralic slice.
 3. [ ] [MEDIUM] Niger-Congo source/status refresh: review Yoruba/Zulu/Igbo implementation status, source attribution, and remaining morphology gaps before choosing the next slice.
 
