@@ -11,7 +11,7 @@
 - Baseline target: `ug -> ug` monolingual lookup before any bilingual Uyghur pair.
 
 ## Scope
-This is a planning and gate document only. Do not add Uyghur metadata or adapter code until a true Uyghur-definition source, fixture policy, RTL smoke plan, and attribution/terms requirements are accepted.
+This is a planning and gate document only. Do not add Uyghur metadata or adapter code until a true Uyghur-definition source, fixture policy, RTL smoke plan, and attribution/terms requirements are accepted. The May 22, 2026 extended source smoke did not find enough non-placeholder Uyghur Wiktionary entries to unblock implementation.
 
 ## Current Code Audit
 - `data/languages.ts` does not register `ug` yet.
@@ -87,7 +87,8 @@ Uyghur is agglutinative and suffix-heavy.
 - MediaWiki API page smoke:
   - `ئۆي` contains native Uyghur definitions and examples.
   - `كىتاب` exists but currently uses a missing-definition placeholder.
-- Decision: strongest future source candidate, but adapter remains blocked until a broader smoke finds enough non-placeholder noun/adjective/verb entries.
+  - Extended noun/adjective/verb batches found `ئىت` as another substantial noun entry and `كۆك` as a minimal sense-label entry, but most sampled adjectives/verbs were missing, `#…`, or not useful definitions.
+- Decision: strongest future source candidate, but adapter remains blocked until a larger candidate list or another source yields enough non-placeholder noun/adjective/verb entries.
 
 ### 2. Kaikki English-edition Uyghur entries
 - URL: `https://kaikki.org/dictionary/Uyghur/index.html`
@@ -117,7 +118,7 @@ Uyghur is agglutinative and suffix-heavy.
 ## Implementation Plan (Gated)
 > Do not proceed past Step 1 until enough true Uyghur-definition fixtures are accepted.
 
-1. **Extended source smoke**: sample `ug.wiktionary.org` pages for at least three non-placeholder entries across noun/adjective/verb.
+1. **Extended source smoke**: DONE for the current candidate set. It did not find enough non-placeholder entries across noun/adjective/verb to accept fixtures.
 2. **RTL UI smoke plan**: verify Word search input, result chips, WordHeader, definition/examples, saved words, and search history with Uyghur Arabic text.
 3. **Metadata configuration**: register `ug` in `data/languages.ts` with `writingDirection: 'rtl'`, `script: 'arabic'`, and `dictionaryStatus: 'monolingual'` only after source acceptance.
 4. **Normalization tests**: preserve Uyghur Arabic letters, strip only approved invisible/decorative characters, and keep ULY romanization as optional search fallback.
@@ -139,7 +140,7 @@ Uyghur is agglutinative and suffix-heavy.
 - ULY romanization fallback requires a verified mapping table before production use.
 
 ## First Safe Task
-Run the extended Uyghur Wiktionary MediaWiki source smoke described in `docs/uyghur-source-smoke.md`. If it finds enough non-placeholder entries, submit the fixture/license decision and then add a tiny RTL Uyghur baseline adapter.
+Done for the current candidate set in `docs/uyghur-source-smoke.md`. Next safe task for Uyghur is to find another approved native-definition source or a larger non-placeholder Uyghur Wiktionary candidate list before revisiting adapter code.
 
 ## Sources To Check
 - Uyghur Wiktionary API: https://ug.wiktionary.org/w/api.php

@@ -1,9 +1,9 @@
 # Uyghur Source Smoke Test
 
 ## Status
-Run on May 22, 2026.
+Run on May 22, 2026; extended MediaWiki page smoke completed the same day.
 
-Uyghur has useful morphology and pronunciation support data from English Wiktionary-derived Kaikki data, and a native Uyghur Wiktionary edition exists under CC BY-SA 4.0. The first adapter remains blocked until a broader MediaWiki API smoke confirms enough non-placeholder Uyghur-definition entries for curated fixtures.
+Uyghur has useful morphology and pronunciation support data from English Wiktionary-derived Kaikki data, and a native Uyghur Wiktionary edition exists under CC BY-SA 4.0. The extended MediaWiki API smoke did **not** find enough non-placeholder noun/adjective/verb entries to unblock a first adapter.
 
 ## Smoke Tests
 
@@ -19,10 +19,13 @@ Uyghur has useful morphology and pronunciation support data from English Wiktion
 | Uyghur Wiktionary MediaWiki API rights | `meta=siteinfo`, `siprop=general|rightsinfo` | Site reports `wikiid = ugwiktionary`, `lang = ug`, `rtl`, and Creative Commons Attribution-Share Alike 4.0. | License path may be acceptable for future curated fixtures with attribution. |
 | Uyghur Wiktionary page: `كىتاب` | `titles=كىتاب` | Page exists but definition field is a placeholder (`چۈشەندۈرۈشى يوق`). | Do not use as a first fixture. |
 | Uyghur Wiktionary page: `ئۆي` | `titles=ئۆي` | Page has native Uyghur noun definitions and examples for building/room/institution/family senses. | Passes first native-definition smoke, but one good page is not enough to unblock adapter implementation. |
+| Extended Uyghur Wiktionary batch | `ئۆي`, `ياخشى`, `يامان`, `كەلمەك`, `يېمەك`, `ئوقۇماق`, `بارماق`, `ئادەم`, `سۇ`, `بالا`, `تىل`, `قۇش`, `كۈن`, `ئاي`, `ئاتا`, `ئانا`, `ئوقۇش`, `كۆرۈش`, `چوڭ`, `كىچىك` | Many pages exist, but common adjectives/verbs often returned `#…`, no content, or placeholder-only records. `بارماق` has mixed noun/verb lines, including English-gloss style verb lines. | Does not unblock adapter fixtures. |
+| Extended candidate batch from Kaikki word list | `ئىت`, `كۆك`, `قارا`, `كىچىك`, `ياخشى`, `چىرايلىق`, `بار`, `بولماق`, `بىلمەك`, `ئوقۇماق`, `يازماق`, `كەلمەك`, `كۆرمەك`, `قىلماق`, `دېمەك`, and other common nouns/verbs/adjectives | `ئىت` has a substantial native Uyghur noun definition; `كۆك` has minimal native sense labels (`ئاسمان`, `ئۆسۈملۈك`, `رەڭ`). Most sampled adjectives/verbs were missing, `#…`, or not useful as definitions. | Confirms there are native entries, but not enough balanced noun/adjective/verb evidence for first adapter. |
 
 ## License And Terms Decision
 
 - **Potentially acceptable later**: curated Uyghur Wiktionary fixtures and live MediaWiki API-backed parsing under CC BY-SA 4.0, with source URL, page revision/oldid when available, license, and attribution carried in metadata.
+- **Not accepted yet for app fixtures**: the extended smoke found too few non-placeholder entries across noun/adjective/verb categories.
 - **Required API behavior**: automated Wikimedia calls must send a descriptive `User-Agent` or `Api-User-Agent`.
 - **Still blocked**: bulk/offline Uyghur dictionary bundle from Kaikki `ugwiktionary` raw data, because that path is HTTP 404 today.
 - **Still not sufficient**: Kaikki English-edition Uyghur JSONL, because its glosses are English even though its forms, IPA, and romanization are useful.
@@ -30,13 +33,13 @@ Uyghur has useful morphology and pronunciation support data from English Wiktion
 
 ## Outcome
 
-- Uyghur source planning is complete.
-- Uyghur adapter implementation remains blocked pending a broader `ug.wiktionary.org` source smoke with enough non-placeholder entries.
+- Uyghur source smoke is complete for the current candidate set.
+- Uyghur adapter implementation remains blocked because the sampled `ug.wiktionary.org` entries do not provide enough non-placeholder noun/adjective/verb definitions.
 - The app should not add `ug` metadata yet because the first user-visible baseline needs more native-definition evidence and RTL UI smoke with Uyghur-specific text.
 
 ## Next Safe Work
 
-1. Run an extended Uyghur Wiktionary MediaWiki API smoke for at least `ئۆي`, `ياخشى`, `يامان`, `كەلمەك`, `يېمەك`, `ئوقۇماق`, and one high-frequency noun besides `كىتاب`.
+1. Look for another approved Uyghur-definition source or a larger curated Uyghur Wiktionary candidate list before revisiting adapter work.
 2. Accept curated fixtures only if at least noun/adjective/verb entries have non-placeholder Uyghur definitions and stable source metadata.
 3. Add script normalization tests for Uyghur Arabic code points, zero-width joiner/non-joiner handling, and ULY romanization only after the source decision.
 4. Keep Kaikki English-edition forms as morphology research evidence, not as display definitions.
@@ -53,6 +56,8 @@ curl --get https://api.wiktapi.dev/v1/ug/search --data-urlencode q=كىتاب --
 curl --get https://api.wiktapi.dev/v1/ug/word/كىتاب --data-urlencode lang=ug
 curl -H "User-Agent: dictionary-mobile-source-smoke/1.0 (local docs smoke)" --get https://ug.wiktionary.org/w/api.php --data-urlencode action=query --data-urlencode format=json --data-urlencode meta=siteinfo --data-urlencode "siprop=general|rightsinfo"
 curl -H "User-Agent: dictionary-mobile-source-smoke/1.0 (local docs smoke)" --get https://ug.wiktionary.org/w/api.php --data-urlencode action=query --data-urlencode format=json --data-urlencode prop=revisions --data-urlencode rvprop=content --data-urlencode rvslots=main --data-urlencode titles=ئۆي
+curl -H "User-Agent: dictionary-mobile-source-smoke/1.0 (local docs smoke)" --get https://ug.wiktionary.org/w/api.php --data-urlencode action=query --data-urlencode format=json --data-urlencode prop=revisions --data-urlencode "rvprop=ids|content" --data-urlencode rvslots=main --data-urlencode "titles=ئۆي|ياخشى|يامان|كەلمەك|يېمەك|ئوقۇماق|بارماق|ئادەم|سۇ|بالا|تىل|قۇش|كۈن|ئاي|ئاتا|ئانا|ئوقۇش|كۆرۈش|چوڭ|كىچىك"
+curl -H "User-Agent: dictionary-mobile-source-smoke/1.0 (local docs smoke)" --get https://ug.wiktionary.org/w/api.php --data-urlencode action=query --data-urlencode format=json --data-urlencode generator=allpages --data-urlencode gapnamespace=0 --data-urlencode gaplimit=80 --data-urlencode prop=revisions --data-urlencode "rvprop=ids|content" --data-urlencode rvslots=main
 ```
 
 ## Sources Checked
