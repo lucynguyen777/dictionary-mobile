@@ -1038,3 +1038,89 @@ describe('Telugu monolingual baseline and morphology', () => {
     expect(related.synonyms).toContain('మార్జాలము');
   });
 });
+
+describe('Uzbek monolingual baseline and morphology', () => {
+  it('enables the Uzbek monolingual adapter for the lookup surface', () => {
+    expect(canUseMonolingualDictionaryApi('uz')).toBe(true);
+  });
+
+  it('looks up exact Uzbek nouns, verbs, and adjectives', async () => {
+    const uy = await fetchMonolingualMeaning('uy', 'uz');
+    expect(uy.word).toBe('uy');
+    expect(uy.ipa).toBe('/uj/');
+    expect(uy.definitions[0].meaning).toContain('Kishi yashaydigan joy');
+    expect(uy.definitions[0].vietnamese).toBe('Nhà, nơi cư trú hoặc phòng ở.');
+    expect(uy.source).toContain('uzwiktionary');
+
+    const kitob = await fetchMonolingualMeaning('kitob', 'uz');
+    expect(kitob.word).toBe('kitob');
+    expect(kitob.definitions[0].meaning).toContain('Varaqlari birga tikilgan');
+
+    const qilmoq = await fetchMonolingualMeaning('qilmoq', 'uz');
+    expect(qilmoq.word).toBe('qilmoq');
+    expect(qilmoq.definitions[0].meaning).toContain('Biror ish yoki harakatni bajarmoq');
+
+    const ozbek = await fetchMonolingualMeaning('oʻzbek', 'uz');
+    expect(ozbek.word).toBe('oʻzbek');
+  });
+
+  it('resolves Uzbek noun case and plural suffixes', async () => {
+    const uylar = await fetchMonolingualMeaning('uylar', 'uz');
+    expect(uylar.word).toBe('uy');
+    expect(uylar.source).toContain('base form of uylar');
+
+    const kitobga = await fetchMonolingualMeaning('kitobga', 'uz');
+    expect(kitobga.word).toBe('kitob');
+
+    const uyning = await fetchMonolingualMeaning('uyning', 'uz');
+    expect(uyning.word).toBe('uy');
+
+    const uydan = await fetchMonolingualMeaning('uydan', 'uz');
+    expect(uydan.word).toBe('uy');
+
+    const kitoblardan = await fetchMonolingualMeaning('kitoblardan', 'uz');
+    expect(kitoblardan.word).toBe('kitob');
+  });
+
+  it('resolves Uzbek verb suffixes to the -moq lemma', async () => {
+    const qildi = await fetchMonolingualMeaning('qildi', 'uz');
+    expect(qildi.word).toBe('qilmoq');
+    expect(qildi.source).toContain('base form of qildi');
+
+    const qildim = await fetchMonolingualMeaning('qildim', 'uz');
+    expect(qildim.word).toBe('qilmoq');
+
+    const qilib = await fetchMonolingualMeaning('qilib', 'uz');
+    expect(qilib.word).toBe('qilmoq');
+  });
+
+  it('handles apostrophe orthography variants robustly', async () => {
+    const ozbek1 = await fetchMonolingualMeaning("o'zbek", 'uz');
+    expect(ozbek1.word).toBe('oʻzbek');
+
+    const ozbek2 = await fetchMonolingualMeaning('o‘zbek', 'uz');
+    expect(ozbek2.word).toBe('oʻzbek');
+
+    const ozbek3 = await fetchMonolingualMeaning('o’zbek', 'uz');
+    expect(ozbek3.word).toBe('oʻzbek');
+  });
+
+  it('transliterates Cyrillic Uzbek queries to Latin base forms', async () => {
+    const китоб = await fetchMonolingualMeaning('китоб', 'uz');
+    expect(китоб.word).toBe('kitob');
+
+    const уй = await fetchMonolingualMeaning('уй', 'uz');
+    expect(уй.word).toBe('uy');
+
+    const қилмоқ = await fetchMonolingualMeaning('қилмоқ', 'uz');
+    expect(қилмоқ.word).toBe('qilmoq');
+  });
+
+  it('fetches Uzbek local related words from base or inflected forms', async () => {
+    const related1 = await fetchRelatedWords('uy', 'uz');
+    expect(related1.synonyms).toContain('turarjoy');
+
+    const related2 = await fetchRelatedWords('uylardan', 'uz');
+    expect(related2.synonyms).toContain('turarjoy');
+  });
+});

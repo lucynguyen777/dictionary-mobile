@@ -271,6 +271,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'uz',
+    label: 'Oʻzbekcha (Uzbek)',
+    hint: 'Wiktionary preview',
+    family: 'turkic',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'uz',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'kk',
     label: 'Қазақ тілі (Kazakh)',
     hint: 'Wiktionary preview',

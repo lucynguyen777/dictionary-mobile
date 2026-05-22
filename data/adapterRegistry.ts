@@ -57,6 +57,8 @@ import {
   fetchTibetanRelatedWords,
   fetchTurkishMeaning,
   fetchTurkishRelatedWords,
+  fetchUzbekMeaning,
+  fetchUzbekRelatedWords,
   fetchVietnameseSuggestions,
   fetchWiktApiMonolingualMeaning,
   fetchWiktApiRelatedWords,
@@ -138,6 +140,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchTurkishMeaning(word),
     fetchRelatedWords: (word: string) => fetchTurkishRelatedWords(word),
+  },
+  uz: {
+    key: 'uz',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchUzbekMeaning(word),
+    fetchRelatedWords: (word: string) => fetchUzbekRelatedWords(word),
   },
   kk: {
     key: 'kk',

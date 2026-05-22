@@ -80,6 +80,8 @@ describe('adapterRegistry', () => {
     const en = getAdapterByKey('en');
     const viAdapter = getAdapterByKey('vi');
     const etAdapter = getAdapterByKey('et');
+    const trAdapter = getAdapterByKey('tr');
+    const uzAdapter = getAdapterByKey('uz');
     const kkAdapter = getAdapterByKey('kk');
     const minh = getAdapterByKey('minhqnd');
     const wikt = getAdapterByKey('wiktapi');
@@ -87,6 +89,8 @@ describe('adapterRegistry', () => {
     expect(en).toBeDefined();
     expect(viAdapter).toBeDefined();
     expect(etAdapter).toBeDefined();
+    expect(trAdapter).toBeDefined();
+    expect(uzAdapter).toBeDefined();
     expect(kkAdapter).toBeDefined();
     expect(minh).toBeDefined();
     expect(wikt).toBeDefined();
@@ -94,6 +98,8 @@ describe('adapterRegistry', () => {
     expect(en?.key).toBe('en');
     expect(viAdapter?.key).toBe('vi');
     expect(etAdapter?.key).toBe('et');
+    expect(trAdapter?.key).toBe('tr');
+    expect(uzAdapter?.key).toBe('uz');
     expect(kkAdapter?.key).toBe('kk');
     expect(minh?.key).toBe('minhqnd');
     expect(wikt?.key).toBe('wiktapi');

@@ -760,6 +760,140 @@ const kazakhDictionaryEntries: DictionaryEntry[] = [
   },
 ];
 
+const uzbekDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'uy',
+    ipa: '/uj/',
+    audio: '',
+    level: 'A1',
+    topic: 'Kodu (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'kishi yashaydigan joy, turarjoy binosi yoki xona (a dwelling or room)',
+    definitions: [
+      {
+        partOfSpeech: 'danh từ (noun)',
+        meaning: 'Kishi yashaydigan joy, turarjoy binosi yoki xona (A place where a person lives, a residential building or room).',
+        vietnamese: 'Nhà, nơi cư trú hoặc phòng ở.',
+        examples: [
+          { source: 'Biz yangi uyga koʻchdik.', translation: 'Chúng tôi đã chuyển đến nhà mới.' },
+          { source: 'U uyda kitob oʻqiyapti.', translation: 'Anh ấy đang đọc sách ở nhà.' }
+        ],
+      }
+    ],
+    synonyms: ['turarjoy', 'bino', 'xona'],
+    antonyms: [],
+    collocations: ['yangi uy', 'uyga bormoq', 'uyda qolmoq'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'uylar' },
+      { tense: 'Genitive', form: 'uyning' },
+      { tense: 'Dative', form: 'uyga' },
+      { tense: 'Locative', form: 'uyda' },
+      { tense: 'Ablative', form: 'uydan' },
+      { tense: 'Accusative', form: 'uyni' }
+    ],
+    etymology: 'Curated from Uzbek Wiktionary page "uy", CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'kitob',
+    ipa: '/kiˈtɒb/',
+    audio: '',
+    level: 'A1',
+    topic: 'Bilim (Education)',
+    vietnamese: 'sách',
+    shortDefinition: 'varaqlari birga tikilgan, muqovalangan ilmiy yoki badiiy asar (a book / bound work)',
+    definitions: [
+      {
+        partOfSpeech: 'danh từ (noun)',
+        meaning: 'Varaqlari birga tikilgan, muqovalangan ilmiy yoki badiiy asar (A scientific or literary work bound together with pages, covered).',
+        vietnamese: 'Sách, tác phẩm khoa học hoặc nghệ thuật được đóng tập.',
+        examples: [
+          { source: 'Men qiziqarli kitob sotib oldim.', translation: 'Tôi đã mua một cuốn sách thú vị.' },
+          { source: 'Kutubxonada koʻplab kitoblar bor.', translation: 'Có rất nhiều sách trong thư viện.' }
+        ],
+      }
+    ],
+    synonyms: ['asar', 'tashkilot'],
+    antonyms: [],
+    collocations: ['kitob oʻqimoq', 'darslik kitob', 'kitob doʻkoni'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'kitoblar' },
+      { tense: 'Genitive', form: 'kitobning' },
+      { tense: 'Dative', form: 'kitobga' },
+      { tense: 'Locative', form: 'kitobda' },
+      { tense: 'Ablative', form: 'kitobdan' },
+      { tense: 'Accusative', form: 'kitobni' }
+    ],
+    etymology: 'Curated from Uzbek Wiktionary page "kitob", CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'qilmoq',
+    ipa: '/qɯlˈmɒq/',
+    audio: '',
+    level: 'A1',
+    topic: 'Faoliyat (Activity)',
+    vietnamese: 'làm',
+    shortDefinition: 'biror ish yoki harakatni bajarmoq, ado etmoq (to do or perform)',
+    definitions: [
+      {
+        partOfSpeech: 'động từ (verb)',
+        meaning: 'Biror ish yoki harakatni bajarmoq, ado etmoq (To perform or complete a work or action).',
+        vietnamese: 'Làm, thực hiện một công việc hoặc hành động.',
+        examples: [
+          { source: 'Ishni tezda qilish kerak.', translation: 'Cần phải làm công việc nhanh chóng.' },
+          { source: 'U har kuni badantarbiya qiladi.', translation: 'Anh ấy tập thể dục mỗi ngày.' }
+        ],
+      }
+    ],
+    synonyms: ['bajarmoq', 'etmoq'],
+    antonyms: [],
+    collocations: ['ish qilmoq', 'tashrif qilmoq', 'harakat qilmoq'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Past 1sg', form: 'qildim' },
+      { tense: 'Past 3sg', form: 'qildi' },
+      { tense: 'Converb', form: 'qilib' },
+      { tense: 'Present 3sg', form: 'qiladi' }
+    ],
+    etymology: 'Curated from Uzbek Wiktionary page "qilmoq", CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'oʻzbek',
+    ipa: '/oʻzˈbek/',
+    audio: '',
+    level: 'A1',
+    topic: 'Millat (Nation)',
+    vietnamese: 'người / tiếng Uzbek',
+    shortDefinition: 'oʻzbek xalqiga yoki oʻzbek tiliga mansub boʻlgan (Uzbek nation or language)',
+    definitions: [
+      {
+        partOfSpeech: 'tính từ / danh từ (adjective / noun)',
+        meaning: 'Oʻzbek xalqiga yoki oʻzbek tiliga mansub boʻlgan (Belonging to the Uzbek people or the Uzbek language).',
+        vietnamese: 'Thuộc về dân tộc hoặc ngôn ngữ Uzbek.',
+        examples: [
+          { source: 'Oʻzbek mehmondoʻstligi juda mashhur.', translation: 'Sự hiếu khách của người Uzbek rất nổi tiếng.' },
+          { source: 'U oʻzbekcha gapiradi.', translation: 'Anh ấy nói tiếng Uzbek.' }
+        ],
+      }
+    ],
+    synonyms: [],
+    antonyms: [],
+    collocations: ['oʻzbek xalqi', 'oʻzbek tili', 'oʻzbek madaniyati'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'oʻzbeklar' },
+      { tense: 'Genitive', form: 'oʻzbekning' },
+      { tense: 'Locative', form: 'oʻzbekda' }
+    ],
+    etymology: 'Curated from Uzbek Wiktionary page "oʻzbek", CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  }
+];
+
 const japaneseDictionaryEntries: DictionaryEntry[] = [
   {
     word: '猫',
@@ -2564,10 +2698,28 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   te: teluguDictionaryEntries,
   kn: kannadaDictionaryEntries,
   ml: malayalamDictionaryEntries,
+  uz: uzbekDictionaryEntries,
 };
 
 export function getLocalDictionaryEntries(languageCode: string) {
   return entriesByLanguage[languageCode] ?? [];
+}
+
+const uzbekCyrillicToLatinMap: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'j', з: 'z',
+  и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+  с: 's', т: 't', у: 'u', ф: 'f', х: 'x', ц: 'ts', ч: 'ch', ш: 'sh',
+  ъ: 'ʻ', э: 'e', ю: 'yu', я: 'ya', ў: 'oʻ', қ: 'q', ғ: 'gʻ', ҳ: 'h'
+};
+
+export function transliterateUzbekCyrillicToLatin(value: string): string {
+  const normalized = value.toLowerCase().normalize('NFC');
+  let result = '';
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized[i];
+    result += uzbekCyrillicToLatinMap[char] ?? char;
+  }
+  return result;
 }
 
 export function findLocalDictionaryEntry(languageCode: string, word: string) {
@@ -2582,6 +2734,15 @@ export function findLocalDictionaryEntry(languageCode: string, word: string) {
   if (languageCode === 'et') {
     const normalizedWord = normalizeEstonianWord(word);
     return getLocalDictionaryEntries('et').find((entry) => normalizeEstonianWord(entry.word) === normalizedWord);
+  }
+  if (languageCode === 'uz') {
+    const normalizedWord = normalizeUzbekWord(word);
+    let entry = getLocalDictionaryEntries('uz').find((entry) => normalizeUzbekWord(entry.word) === normalizedWord);
+    if (!entry && /[\u0400-\u04FF]/.test(word)) {
+      const latinTransliterated = normalizeUzbekWord(transliterateUzbekCyrillicToLatin(word));
+      entry = getLocalDictionaryEntries('uz').find((entry) => normalizeUzbekWord(entry.word) === latinTransliterated);
+    }
+    return entry;
   }
   if (languageCode === 'yo') {
     const normalizedWord = normalizeYorubaWord(word);
@@ -2620,6 +2781,14 @@ export function normalizeKazakhWord(value: string) {
 
 export function normalizeEstonianWord(value: string) {
   return value.trim().normalize('NFC').toLocaleLowerCase('et-EE');
+}
+
+export function normalizeUzbekWord(value: string) {
+  return value
+    .trim()
+    .normalize('NFC')
+    .toLocaleLowerCase()
+    .replace(/['‘’´`ʻ]/g, 'ʻ');
 }
 
 export function normalizeYorubaWord(value: string) {
@@ -2689,13 +2858,22 @@ function levenshteinDistance(a: string, b: string): number {
  */
 export function getSpellingSuggestions(languageCode: string, word: string, limit = 3): string[] {
   const isTr = languageCode === 'tr';
-  const normalizedWord = isTr ? normalizeTurkishWord(word) : normalizeLookupTerm(word);
+  const isUz = languageCode === 'uz';
+  const normalizedWord = isTr
+    ? normalizeTurkishWord(word)
+    : isUz
+    ? normalizeUzbekWord(word)
+    : normalizeLookupTerm(word);
   if (!normalizedWord) return [];
 
   const entries = getLocalDictionaryEntries(languageCode);
   const scoredEntries = entries
     .map((entry) => {
-      const entryWord = isTr ? normalizeTurkishWord(entry.word) : normalizeLookupTerm(entry.word);
+      const entryWord = isTr
+        ? normalizeTurkishWord(entry.word)
+        : isUz
+        ? normalizeUzbekWord(entry.word)
+        : normalizeLookupTerm(entry.word);
       const distance = levenshteinDistance(normalizedWord, entryWord);
       return { word: entry.word, distance };
     })
