@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `efff1f0` feat(lang): add Kazakh monolingual baseline
   - `4705df8` docs(lang): smoke Kazakh source options
   - `54dfd88` feat(recognition): add capture previews
   - `81dac33` feat: add hosted offline pack smoke source
