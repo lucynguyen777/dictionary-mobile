@@ -20,6 +20,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `b838d8a` docs(lang): complete source gate unblock module
   - `ec31bd9` docs(lang): refresh language source status module
   - `adc2a84` docs(progress): define module work queue
   - `f4c5ab4` docs(lang): complete Uyghur source smoke
