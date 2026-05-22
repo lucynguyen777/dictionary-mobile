@@ -31,4 +31,4 @@ We choose **Option 1 (Public/National Open APIs)** and **Option 2 (Open Wiktiona
 - [x] Unblock Finnish monolingual dictionary adapter implementation (via `fiwiktionary` dump fixtures).
 - [x] Unblock Japanese monolingual dictionary adapter implementation (via `jawiktionary` dump fixtures).
 - [x] Unblock Korean monolingual dictionary adapter implementation (via NIKL Open API and `kowiktionary` dumps).
-- [x] Unblock Cantonese monolingual dictionary adapter implementation (via Words.hk open CC BY-SA data).
+- [!] Keep Cantonese monolingual dictionary adapter implementation blocked until a compatible full-definition source is documented. Words.hk public-domain word/pronunciation lists are acceptable for non-definition helpers, but full dictionary definitions are not approved for app fixtures or production use yet.

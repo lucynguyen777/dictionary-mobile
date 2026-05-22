@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: complete the Source gate unblock module, then continue remaining backend/source-gated work.
+- Hard next tasks: complete the Estonian monolingual baseline module, then continue remaining source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -360,6 +360,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Tibetan monolingual baseline planning: Research script-specific Tibetan segmentation and dictionary source.
   - [x] DONE [HARD]: Tibetan monolingual baseline implementation: Register Tibetan adapter, configure tokenization fallback, and add local fixtures.
   - [x] DONE [HARD]: Sino-Tibetan source/status refresh: `docs/cantonese-language-plan.md`, `docs/burmese-language-plan.md`, and `docs/tibetan-language-plan.md` now reflect Cantonese unavailable metadata, Burmese/Tibetan implemented adapters, and remaining bulk/source gates.
+  - [x] DONE [HARD]: Cantonese source unblock attempt: `docs/cantonese-source-smoke.md` confirms Words.hk public-domain word/pronunciation lists are safe for non-definition helpers, but full monolingual definitions remain blocked pending compatible permission.
   - Burmese/Tibetan: script-specific segmentation and source selection required.
 - [x] DONE [HARD]: Afro-Asiatic next-build candidates: Arabic, Hebrew, Amharic, Somali.
   - [x] DONE [HARD]: Arabic/Hebrew RTL baseline planning: source candidates, RTL UI/search implications, abjad/diacritic handling, root-pattern morphology, and adapter fixture gates documented in `docs/arabic-hebrew-rtl-plan.md`.
@@ -407,7 +408,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
   - [x] DONE [HARD]: Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
   - [x] DONE [HARD]: Uzbek monolingual baseline planning: Latin/Cyrillic script handling, apostrophe normalization, agglutinative morphology implications, source smoke, and implementation gates documented in `docs/uzbek-language-plan.md` and `docs/uzbek-source-smoke.md`.
-  - [!] BLOCKED [HARD]: Uzbek monolingual baseline implementation requires a true Uzbek-definition source with approved API/terms; Kaikki English-edition data is useful for forms but not sufficient for `uz -> uz` definitions.
+  - [ ] TODO [HARD]: Uzbek monolingual baseline implementation: tiny curated `uzwiktionary` fixtures are now source-accepted via MediaWiki API under CC BY-SA 4.0; Izoh.uz and bulk/offline Uzbek remain blocked pending terms.
   - [x] DONE [HARD]: Kazakh monolingual baseline planning: Cyrillic/Latin script duality, full vowel harmony, 7-case morphology fallbacks, source candidates (Sozdik.kz, kkwiktionary Kaikki dump), and gated implementation plan documented in `docs/kazakh-language-plan.md`.
   - [x] DONE [HARD]: Kazakh source smoke: `docs/kazakh-source-smoke.md` confirms Kaikki `kkwiktionary` raw data is not available, WiktAPI `kk` is not viable, and Kazakh Wiktionary MediaWiki API is accepted for curated CC BY-SA fixtures and adapter work.
   - [x] DONE [HARD]: Kazakh monolingual baseline implementation: register Kazakh metadata, add curated Kazakh Wiktionary fixtures with attribution, parse noun/adjective/verb definitions, and cover Cyrillic morphology fallbacks.
@@ -415,6 +416,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Uyghur source smoke: sampled `ug.wiktionary.org` MediaWiki API pages and confirmed the current candidate set is insufficient for balanced noun/adjective/verb fixtures.
   - [!] BLOCKED [HARD]: Uyghur monolingual baseline implementation requires another approved Uyghur-definition source or a larger non-placeholder Uyghur Wiktionary candidate list before fixtures or adapter code.
   - [x] DONE [HARD]: Turkic blocked-source follow-up: `docs/uzbek-language-plan.md`, `docs/uyghur-language-plan.md`, and `docs/kazakh-language-plan.md` now reflect current code status, Kazakh implemented baseline, and remaining Uzbek/Uyghur source gates.
+  - [x] DONE [HARD]: Uzbek source unblock: `docs/uzbek-source-smoke.md` confirms `uy`, `kitob`, `qilmoq`, and `oʻzbek` have native Uzbek definitions on `uz.wiktionary.org`; adapter work can proceed with tiny CC BY-SA fixtures.
+  - [x] DONE [HARD]: Uyghur source unblock attempt: `docs/uyghur-source-smoke.md` remains blocked because no new approved source or balanced non-placeholder candidate set was found.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
@@ -423,8 +426,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
   - [x] DONE [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
   - [x] DONE [HARD]: Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications in `docs/estonian-language-plan.md`.
-  - [!] BLOCKED [HARD]: Estonian monolingual baseline implementation requires a true Estonian-definition source.
-  - [x] DONE [HARD]: Uralic source/status refresh: `docs/finnish-language-plan.md`, `docs/hungarian-language-plan.md`, and `docs/estonian-language-plan.md` now reflect implemented Finnish/Hungarian adapters, Estonian blocked code status, and remaining production/bulk source gates.
+  - [ ] TODO [HARD]: Estonian monolingual baseline implementation: tiny curated `etwiktionary` fixtures are now source-accepted via MediaWiki API under CC BY-SA 4.0; Sõnaveeb/Ekilex production API remains gated by key handling.
+  - [x] DONE [HARD]: Uralic source/status refresh: `docs/finnish-language-plan.md`, `docs/hungarian-language-plan.md`, and `docs/estonian-language-plan.md` now reflect implemented Finnish/Hungarian adapters, Estonian source-gated status, and remaining production/bulk source gates.
+  - [x] DONE [HARD]: Estonian source unblock: `docs/estonian-source-smoke.md` confirms `etwiktionary` native-definition fixtures are acceptable for a tiny baseline, while Sõnaveeb/Ekilex stays as a later CC BY 4.0 API candidate.
   - Case-rich morphology and lemmatization are required before production lookup.
 - [x] DONE [HARD]: Japanese/Korean lookup track planning: script, segmentation, romanization/pronunciation, and source strategy documented before adapter implementation.
   - [x] DONE [HARD]: Japanese/Korean source smoke tests: WiktAPI `ja`/`ko` returned 404 for common headwords, and Kaikki English-Wiktionary-derived datasets do not satisfy monolingual-first by themselves.
@@ -460,31 +464,38 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Completed Work Modules
 
 **Module: Language source/status refresh** - DONE
-- Uralic: refreshed Finnish/Hungarian implemented status and Estonian source blocker.
+- Uralic: refreshed Finnish/Hungarian implemented status and Estonian source-gated status.
 - Niger-Congo: refreshed Yoruba/Zulu/Igbo implemented status and bulk/source gates.
 - Austronesian: refreshed Tagalog/Javanese/Hawaiian implemented status and production/bulk source gates.
 - Sino-Tibetan: refreshed Cantonese blocked status and Burmese/Tibetan implemented status.
 - Turkic: refreshed Uzbek/Uyghur blocked status and Kazakh implemented status.
 
+**Module: Source gate unblock** - DONE
+- Estonian: accepted tiny `etwiktionary` CC BY-SA fixture path; Sõnaveeb/Ekilex remains production/API-key gated.
+- Cantonese: kept full-definition adapter blocked; Words.hk public-domain lists are only safe for non-definition helpers.
+- Uzbek: accepted tiny `uzwiktionary` CC BY-SA fixture path; Izoh.uz and bulk/offline paths remain gated.
+- Uyghur: kept adapter blocked because the candidate set still lacks enough balanced non-placeholder native-definition fixtures.
+- Cross-family attribution: documented shared fixture/offline-pack metadata requirements in `docs/source-attribution-packaging.md`.
+
 ## Next Work Module
 
-**Module: Source gate unblock**
-- Goal: turn the refreshed blocker map into concrete source decisions or smoke artifacts for the remaining language-family gates.
-- Scope: 5 related source/license unblock tasks; complete the whole module before opening a new module.
+**Module: Estonian monolingual baseline**
+- Goal: implement the newly unblocked tiny Estonian `etwiktionary` baseline using the existing Uralic adapter patterns.
+- Scope: 5 related implementation tasks; complete the whole module before opening a new module.
 
 ### Module Completion Plan
-1. Re-read each blocker doc and the current code registration status before touching source notes.
-2. Smoke or document one legal source path per blocked family track, using source terms/API pages or raw dump availability where possible.
-3. Update the relevant language plan/source-smoke docs with accepted, rejected, or still-blocked decisions.
-4. Pick the next implementation candidate only if a source path is accepted; otherwise keep the task explicitly blocked with the next research lead.
-5. Run doc/code verification, commit the completed module, then create the next 3-5 task module.
+1. Add Estonian metadata and registry dispatch only after fixtures and source metadata are ready.
+2. Add curated `etwiktionary` local fixtures with source URL, revision id, license, and attribution fields.
+3. Add Estonian normalization and conservative fixture-backed morphology fallbacks for case-rich forms.
+4. Add dictionary API, adapter registry, and normalization tests for exact, diacritic, related-word, and fallback behavior.
+5. Update docs/progress, run verification, commit the completed module, then create the next 3-5 task module.
 
 ### Module Tasks
-1. [ ] [HARD] Estonian source unblock: smoke Sõnaveeb/EKI terms/API and Estonian Wiktionary/Kaikki options, then decide whether `et` can move from planning to fixtures.
-2. [ ] [HARD] Cantonese source unblock: evaluate Words.hk API/dump access and licensing, then decide whether `yue` can move beyond unavailable metadata.
-3. [ ] [HARD] Uzbek source unblock: verify Izoh.uz/API terms, Uzbek Wiktionary parsing viability, or another Uzbek-definition source before metadata/adapter work.
-4. [ ] [HARD] Uyghur source unblock: find another native-definition source or larger non-placeholder Uyghur Wiktionary candidate list before any `ug` adapter work.
-5. [ ] [MEDIUM] Cross-family attribution packaging: document the shared attribution/offline-bundle requirements that block bulk fixture expansion for implemented local baselines.
+1. [ ] [HARD] Estonian metadata and adapter registration: add `et` language metadata, adapter registry dispatch, and dictionary API routing.
+2. [ ] [HARD] Estonian fixture source pack: add tiny `etwiktionary` fixtures for noun/diacritic/verb coverage with attribution metadata.
+3. [ ] [HARD] Estonian normalization and morphology: preserve `ä/ö/ü/õ`, add fixture-backed case/form fallbacks, and avoid broad lemmatization.
+4. [ ] [HARD] Estonian test coverage: add dictionary API, adapter registry, normalization, missing-source, and related-word tests.
+5. [ ] [MEDIUM] Estonian docs and progress sync: update `docs/estonian-language-plan.md`, `docs/estonian-source-smoke.md`, and this progress file after verification.
 
 
 

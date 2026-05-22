@@ -14,7 +14,7 @@ Plan a monolingual Cantonese dictionary lookup (YUE→YUE).
 - Status refreshed: May 22, 2026.
 - Current code status: `yue` is registered in `data/languages.ts` as `dictionaryStatus: 'unavailable'` with no adapter key; `data/adapterRegistry.ts` has no Cantonese adapter dispatch.
 - Family context: Burmese (`my`) and Tibetan (`bo`) are implemented tiny Sino-Tibetan baselines; Cantonese remains the source-gated implementation blocker in this family.
-- Remaining gate: Words.hk API/dump access or another approved Cantonese-definition bundle path is required before adapter fixtures or runtime lookup.
+- Remaining gate: an approved Cantonese-definition bundle/API path is required before adapter fixtures or runtime lookup. Words.hk public-domain word/pronunciation lists are useful, but not sufficient for definitions; see `docs/cantonese-source-smoke.md`.
 
 ## Script And Normalization
 - Written in Han characters (Hanzi).
@@ -35,20 +35,21 @@ Cantonese is an isolating language and lacks inflectional morphology:
 
 ## Data Source Candidates & Blocker
 | Source | Type | Status | License |
-33: | WiktAPI (Cantonese Wiktionary `yue`) | REST API | **BLOCKED (404)** | N/A |
-34: | Words.hk (粵典) | API / Dump | **Candidate** | CC-BY-SA 4.0 |
-35: | Kaikki English-edition Cantonese | Offline DB | Bilingual Only | CC-BY-SA 3.0 |
+|--------|------|--------|---------|
+| WiktAPI (Cantonese Wiktionary `yue`) | REST API | **BLOCKED (404)** | N/A |
+| Words.hk (粵典) word/pronunciation lists | Public data pages | Candidate for non-definition helpers | Public domain |
+| Words.hk (粵典) full definitions | Dictionary content | **BLOCKED** pending explicit compatible permission | Not accepted for app definition fixtures |
+| Kaikki English-edition Cantonese | Offline DB | Bilingual Only | CC-BY-SA 3.0 |
 
 ### The Monolingual Blocker
 - Testing `https://api.wiktapi.dev/v1/yue/word/貓` returns a **404 error** as there is no separate Cantonese Wiktionary edition on WiktAPI.
-- **Words.hk (粵典)** is the primary active open Cantonese-monolingual dictionary project. It provides Cantonese explanations (`yue -> yue`) and English translations, making it the most viable candidate for monolingual definitions.
-- However, since there is no standard hosted public JSON API for Words.hk, we would need to request access or parse their public data dumps.
-- Until a stable hosted API is integrated or local database bundles are allowed, implementation remains blocked.
+- **Words.hk (粵典)** is still the strongest product-quality Cantonese dictionary candidate, but this module only confirmed public-domain word/pronunciation and index datasets, not an app-compatible full-definition dump.
+- Until a compatible hosted API, full-definition dump, or explicit permission is documented, implementation remains blocked.
 
 ## Implementation Plan
 1. Add `yue` language metadata to `data/languages.ts` but mark it as `dictionaryStatus: 'unavailable'` so the UI displays "Coming soon" (Sắp hỗ trợ).
-2. Keep the Cantonese adapter registration blocked until a reliable Cantonese monolingual API endpoint is confirmed.
+2. Keep the Cantonese adapter registration blocked until a reliable and legally compatible Cantonese monolingual definition source is confirmed.
 3. Ensure the word segmenter (`Intl.Segmenter`) is configured when implementing Sino-Tibetan languages in the Reader component.
 
 ## First Safe Task
-Add the language metadata to `data/languages.ts` and document the Cantonese details in the plan.
+Request/confirm a full-definition Words.hk license path or another Cantonese-definition source. Word/pronunciation list work must stay separate from dictionary definitions.

@@ -1,7 +1,9 @@
 # Uzbek Source Smoke Test
 
 ## Status
-Uzbek planning found useful morphology/script support data, but no accepted production `uz -> uz` definition source yet. Keep Uzbek adapter implementation blocked until a true Uzbek-definition source is approved.
+Run on May 21, 2026; refreshed on May 22, 2026 with Uzbek Wiktionary MediaWiki API smoke.
+
+Uzbek now has an accepted tiny-baseline source path: curated `uz.wiktionary.org` MediaWiki API fixtures under CC BY-SA 4.0. Izoh.uz remains blocked pending API/terms approval, and Kaikki English-edition Uzbek remains morphology/script support only.
 
 ## Smoke Tests
 Run on May 21, 2026.
@@ -19,18 +21,23 @@ Run on May 21, 2026.
 | Izoh.uz | public web surface | True Uzbek explanatory dictionary candidate; visible database count is large enough for a baseline. | Candidate production source only after API/terms/license approval. |
 | National Encyclopedia of Uzbekistan | OʻzME | Open-license encyclopedia signal, not a dictionary. | Potential proper-noun/encyclopedic support source, not baseline dictionary. |
 | Uzbek morphology research | UzMorphAnalyser / MorphUz | Research/tooling candidates for Uzbek morphology and spell checking. | Useful for lemmatization research only; not definition sources. |
+| Uzbek Wiktionary siteinfo | `meta=siteinfo`, `siprop=general|rightsinfo` | Site reports `wikiid = uzwiktionary`, script variants `uz-latn` and `uz-cyrl`, and Creative Commons Attribution-Share Alike 4.0. | License path is acceptable for curated fixtures with attribution. |
+| Uzbek Wiktionary page: `uy` | MediaWiki revisions API | Page contains native Uzbek definitions and examples for building/room/institution/family senses. | Accept as one candidate noun fixture. |
+| Uzbek Wiktionary page: `kitob` | MediaWiki revisions API | Page contains native Uzbek definitions and examples for book/work senses. | Accept as one candidate noun fixture. |
+| Uzbek Wiktionary page: `qilmoq` | MediaWiki revisions API | Page contains native Uzbek verb definitions, etymology, examples, and synonym data. | Accept as one candidate verb fixture. |
+| Uzbek Wiktionary page: `oʻzbek` | MediaWiki revisions API | Page contains native Uzbek noun/adjective senses for the people/language relation. | Accept as one candidate adjective/noun fixture. |
 
 ## Outcome
-- A source-backed Uzbek adapter should not be added yet.
+- A tiny source-backed Uzbek adapter can now be planned from curated Uzbek Wiktionary fixtures.
 - Kaikki English-edition Uzbek data is valuable for forms, Cyrillic/Latin variants, IPA on some words, and morphology fixtures, but it does not satisfy the monolingual-first rule because definitions are English.
 - Hosted WiktAPI currently does not provide reliable Uzbek lookups for sampled common words.
 - Izoh.uz is the most promising true Uzbek-definition candidate, but production use needs terms/API approval.
 
 ## Next Safe Work
-1. Confirm whether Izoh.uz allows API access or licensed app usage.
-2. If Izoh.uz is not usable, investigate Uzbek Wiktionary through MediaWiki API and verify that entries contain Uzbek definitions, not only translations.
-3. Add Uzbek normalization tests only after deciding whether the app will support Latin-only first or Latin plus Cyrillic fallback from day one.
-4. Keep bilingual Uzbek and committed fixtures blocked until source/license decisions are documented.
+1. Implement a tiny `uzwiktionary` fixture baseline with source URL, revision id, and CC BY-SA 4.0 attribution metadata.
+2. Add Uzbek normalization tests for Latin apostrophe variants and Cyrillic mapping before broad morphology.
+3. Keep Izoh.uz integration blocked until API/license terms are documented.
+4. Keep bilingual Uzbek and offline/bulk Uzbek packs blocked until source/license decisions are documented.
 
 ## Commands Used
 ```bash
@@ -43,6 +50,8 @@ gzip -cd /tmp/kaikki-uzbek.jsonl.gz | grep -m 1 '"word": "qilmoq"'
 gzip -cd /tmp/kaikki-uzbek.jsonl.gz | grep -m 1 '"word": "китоб"'
 curl --get https://api.wiktapi.dev/v1/uz/search --data-urlencode q=uy --data-urlencode lang=uz
 curl --get https://api.wiktapi.dev/v1/uz/word/uy --data-urlencode lang=uz
+curl -H "User-Agent: dictionary-mobile-source-smoke/1.0 (local docs smoke)" --get https://uz.wiktionary.org/w/api.php --data-urlencode action=query --data-urlencode format=json --data-urlencode meta=siteinfo --data-urlencode "siprop=general|rightsinfo"
+curl -H "User-Agent: dictionary-mobile-source-smoke/1.0 (local docs smoke)" --get https://uz.wiktionary.org/w/api.php --data-urlencode action=query --data-urlencode format=json --data-urlencode prop=revisions --data-urlencode "rvprop=ids|content" --data-urlencode rvslots=main --data-urlencode "titles=uy|kitob|qilmoq|oʻzbek|китоб"
 ```
 
 ## Sources Checked
@@ -50,6 +59,7 @@ curl --get https://api.wiktapi.dev/v1/uz/word/uy --data-urlencode lang=uz
 - Kaikki Uzbek English-edition page: https://kaikki.org/dictionary/Uzbek/index.html
 - Kaikki raw data page: https://kaikki.org/dictionary/rawdata.html
 - WiktAPI: https://wiktapi.dev/
+- Uzbek Wiktionary API: https://uz.wiktionary.org/w/api.php
 - UniMorph: https://unimorph.github.io/
 - UzMorphAnalyser: https://arxiv.org/abs/2405.14179
 - MorphUz / Uzbek morphology analyser: https://www.sciencedirect.com/science/article/pii/S2949719125000718

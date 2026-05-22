@@ -9,13 +9,14 @@
 - Baseline target: `uz -> uz` monolingual lookup before any bilingual Uzbek pair.
 
 ## Scope
-This is a planning and gate document only. Do not add Uzbek metadata or adapter code until a true Uzbek-definition source, fixture policy, and attribution/terms requirements are accepted.
+This is now an implementation-ready planning document for a tiny curated Uzbek baseline. Do not add Uzbek metadata or adapter code until the first `uzwiktionary` fixture set and attribution metadata land with tests.
 
 ## Current Code Audit
 - Status refreshed: May 22, 2026.
 - Current code status: `uz` is not registered in `data/languages.ts`, has no adapter in `data/adapterRegistry.ts`, and has no Uzbek fixture set or dictionary API dispatch.
 - Family context: Turkish and Kazakh are implemented Turkic baselines; Uyghur has completed source smoke but remains blocked. Uzbek remains blocked on a true Uzbek-definition source and accepted attribution/terms.
-- Remaining gate: choose between Izoh.uz terms/API access, Uzbek Wiktionary parsing, or another approved Uzbek-definition source before metadata, fixtures, or adapter code.
+- Source gate: DONE for tiny curated fixtures via Uzbek Wiktionary MediaWiki pages under CC BY-SA 4.0; see `docs/uzbek-source-smoke.md`.
+- Remaining gate: Izoh.uz production use still needs API/license terms before runtime integration.
 
 ## Comparison With Turkish Baseline
 - Turkish already gives the app a Turkic/agglutinative baseline, but Uzbek cannot simply reuse Turkish casing or vowel-harmony assumptions.
@@ -53,8 +54,9 @@ This is a planning and gate document only. Do not add Uzbek metadata or adapter 
    - Production use is blocked until API availability, scraping policy, and license/terms are approved.
 2. Uzbek Wiktionary edition (`uz.wiktionary.org`)
    - Uzbek-language Wiktionary exists and may contain Uzbek-definition entries.
+   - Accepted for tiny curated fixtures through the MediaWiki API under CC BY-SA 4.0.
+   - Source smoke confirmed native Uzbek definitions for `uy`, `kitob`, `qilmoq`, and `oʻzbek`.
    - Current Kaikki raw-data page does not expose an `uzwiktionary` raw dump, so a structured raw path is not yet available.
-   - MediaWiki API/HTML parsing would need a separate parser and source smoke before production use.
 3. Kaikki/Wiktextract English-edition Uzbek entries
    - Machine-readable Uzbek entries are available at `https://kaikki.org/dictionary/Uzbek/index.html`.
    - Smoke downloaded the postprocessed JSONL and found 4,230 entries with forms, IPA on some words, Latin/Cyrillic variants, and English glosses.
@@ -76,14 +78,16 @@ This is a planning and gate document only. Do not add Uzbek metadata or adapter 
 - Offline/bundled Uzbek data remains subject to `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## Implementation Plan
-1. Select and approve a true Uzbek-definition source before adding `uz` to app language metadata.
+Status: source gate is accepted for a tiny `uzwiktionary` fixture baseline; implementation remains pending.
+
+1. Select and approve a true Uzbek-definition source before adding `uz` to app language metadata: DONE for tiny curated `uzwiktionary` fixtures.
 2. Smoke source records for at least:
    - noun Latin: `uy`
    - noun Cyrillic: `китоб`
    - verb: `qilmoq`
    - apostrophe letters: `oʻzbek`, `gʻalaba`
    - inflected forms: `uyda`, `kitoblar`, `qildim`
-3. Confirm fields: headword, script, part of speech, Uzbek definitions, examples, source forms, IPA/audio if available, etymology if available, and attribution.
+3. Confirm fields: headword, script, part of speech, Uzbek definitions, examples, source forms, source URL, revision id, license, etymology if available, and attribution.
 4. Add script normalization tests for Latin apostrophe variants and Cyrillic-to-Latin fallback.
 5. Add adapter tests for monolingual lookup, source-provided form fallback, missing-source behavior, and blocked bilingual routing.
 6. Keep Uzbek bilingual lookup blocked until a trustworthy lexical bilingual source exists.
@@ -96,12 +100,12 @@ This is a planning and gate document only. Do not add Uzbek metadata or adapter 
 - Morphology fallback tests for source-provided forms before any local suffix-stripping fallback.
 
 ## Blocked Decisions
-- Production Uzbek monolingual lookup remains blocked until a true Uzbek-definition source is accepted.
-- Committed Uzbek fixtures are blocked until the chosen source's license/terms are documented.
+- Production-scale Uzbek monolingual lookup remains blocked until a larger source/API path such as Izoh.uz is accepted.
+- Tiny committed Uzbek fixtures are unblocked only for documented `uzwiktionary` pages with source URL, revision id, and CC BY-SA attribution.
 - Offline Uzbek bundle is blocked until source and ShareAlike/attribution handling are approved.
 
 ## First Safe Task
-Decide whether Izoh.uz terms/API access, Uzbek Wiktionary parsing, or another Uzbek-definition source can be used for production and tiny fixtures. Until then, only script normalization planning and non-production morphology/source smoke are safe.
+Implement a tiny `uzwiktionary` fixture baseline, then defer Izoh.uz/API production integration until terms and key/access handling are documented.
 
 ## Sources Checked
 - Izoh.uz: https://izoh.uz/

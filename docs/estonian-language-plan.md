@@ -9,13 +9,14 @@
 - Baseline target: `et -> et` monolingual lookup before any bilingual Estonian pair.
 
 ## Scope
-This is a planning and gate document only. Do not add Estonian metadata or adapter code until a true Estonian-definition source, fixture policy, and attribution requirements are accepted.
+This is now an implementation-ready planning document for a tiny curated Estonian baseline. Do not add Estonian metadata or adapter code until the first `etwiktionary` fixture set and attribution metadata land with tests.
 
 ## Current Code Audit
 - Status refreshed: May 22, 2026.
 - Current code status: `et` is not registered in `data/languages.ts`, has no adapter in `data/adapterRegistry.ts`, and has no Estonian fixture set or dictionary API dispatch.
 - Family context: Finnish and Hungarian are implemented tiny Uralic baselines; Estonian remains the next unblocked-planning/blocked-implementation slice in this family.
-- Remaining gate: select and approve a true Estonian-definition source such as Sõnaveeb/EKI terms or another usable source before metadata, fixtures, or adapter code.
+- Source gate: DONE for tiny curated fixtures via Estonian Wiktionary MediaWiki pages under CC BY-SA 4.0; see `docs/estonian-source-smoke.md`.
+- Remaining gate: Sõnaveeb/Ekilex production API use needs API key handling and endpoint parser work before runtime integration.
 
 ## Script And Normalization
 - Estonian uses the Latin alphabet with native letters `ä`, `ö`, `ü`, and `õ`.
@@ -39,34 +40,39 @@ This is a planning and gate document only. Do not add Estonian metadata or adapt
 - Do not generate IPA locally for production lookup.
 
 ## Data Source Candidates
-1. Estonian Wiktionary edition through WiktAPI
-   - Needs to be checked if `et` edition is supported by WiktAPI.
-2. Kaikki/Wiktextract Estonian entries from the English Wiktionary edition
+1. Estonian Wiktionary via MediaWiki API
+   - Accepted for tiny curated fixtures under CC BY-SA 4.0.
+   - Source smoke found native Estonian definitions for `maja`, `jää`, `öö`, and useful verb material for `sööma`.
+2. Estonian Wiktionary edition through WiktAPI
+   - Not viable. WiktAPI editions do not list `et`, and direct Estonian search returned an empty result array.
+3. Kaikki/Wiktextract Estonian entries from the English Wiktionary edition
    - Machine-readable Estonian entries are available under `https://kaikki.org/dictionary/Estonian/index.html`.
    - Useful for forms, IPA, examples, and EN glosses, but this is not an Estonian monolingual definition source.
-3. Hosted WiktAPI English edition with `lang=et`
+4. Hosted WiktAPI English edition with `lang=et`
    - Useful as a morphology/form smoke path, not an `et -> et` baseline.
-4. Sõnaveeb / EKI (Eesti Keele Instituut) API
+5. Sõnaveeb / EKI (Eesti Keele Instituut) API
    - The official dictionary of the Institute of the Estonian Language.
    - Candidate for Estonian definitions, synonyms, antonyms, examples, and related lexical fields.
-   - Needs terms/API approval for production use.
-5. UniMorph Estonian
+   - Source smoke confirms Ekilex standard license is CC BY 4.0, but API integration needs an API key and parser work.
+6. UniMorph Estonian
    - Candidate for morphology/form support only.
    - Not a definition source.
 
 ## License Risks
 - Wiktionary-derived data requires attribution and compatible use policy before committed fixtures or production integration.
-- Sõnaveeb / EKI requires terms/API approval before relying on it for production lookup.
+- Sõnaveeb / EKI requires API key handling before relying on it for production lookup.
 - Offline/bundled Estonian data remains blocked until `.docs/decisions/offline-dictionary-bundle.md` and `.docs/decisions/dictionary-source-licensing.md` are accepted.
 
 ## Implementation Plan
-1. Select a true Estonian-definition source before adding `et` to language metadata.
+Status: source gate is accepted for a tiny `etwiktionary` fixture baseline; implementation remains pending.
+
+1. Select a true Estonian-definition source before adding `et` to language metadata: DONE for tiny curated `etwiktionary` fixtures.
 2. Smoke source records for at least:
    - noun: `maja` (house)
    - verb: `sööma` (to eat)
    - diacritics: `öö` (night), `jää` (ice)
    - inflected lookup: `majas` (in the house)
-3. Confirm fields: headword, part of speech, Estonian glosses, examples, pronunciation/IPA/audio if available, forms if available, and attribution.
+3. Confirm fixture fields: headword, part of speech, Estonian glosses, examples if available, forms, source URL, revision id, and CC BY-SA 4.0 attribution.
 4. Add adapter tests for monolingual lookup, inflected-form fallback, diacritic preservation, and missing-source behavior.
 5. Keep Estonian bilingual lookup blocked until a trustworthy lexical bilingual source exists.
 
@@ -78,9 +84,9 @@ This is a planning and gate document only. Do not add Estonian metadata or adapt
 - Form lookup tests for source-provided case forms before any local suffix stripping.
 
 ## Blocked Decisions
-- Production Estonian monolingual lookup remains blocked until a true Estonian-definition source is accepted.
-- Committed fixtures or bundled data are blocked until licensing/attribution policy is accepted.
+- Production-scale Estonian monolingual lookup remains blocked until Sõnaveeb/Ekilex API key handling or a bulk source path is implemented.
+- Additional committed fixtures or bundled data must follow `docs/source-attribution-packaging.md`.
 - Offline Estonian bundle is blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Decide whether Sõnaveeb / EKI API terms or another Estonian-definition source can be used for production and fixture tests. Until then, only morphology planning and non-production source smoke are safe.
+Implement a tiny `etwiktionary` fixture baseline for `et`, then defer Sõnaveeb/Ekilex production integration until API key handling is designed.

@@ -5,6 +5,8 @@ Run on May 22, 2026; extended MediaWiki page smoke completed the same day.
 
 Uyghur has useful morphology and pronunciation support data from English Wiktionary-derived Kaikki data, and a native Uyghur Wiktionary edition exists under CC BY-SA 4.0. The extended MediaWiki API smoke did **not** find enough non-placeholder noun/adjective/verb entries to unblock a first adapter.
 
+Module refresh on May 22, 2026 kept the gate unchanged: no new approved native-definition source was identified during the Source gate unblock module.
+
 ## Smoke Tests
 
 | Source | Query | Result | Decision |
