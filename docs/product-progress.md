@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: complete the Uzbek monolingual baseline module, then continue remaining source-gated work.
+- Hard next tasks: Uzbek monolingual baseline module is DONE; next hard work is the next 3-5 task module (see Next Work Module).
 
 ## Current Baseline
 - Latest completed commits:
@@ -486,25 +486,33 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Tests: covered exact lookup, fallback lookup, missing-source behavior, related words, adapter registration, and normalization.
 - Docs/progress: updated Estonian plan, source smoke status, and this queue before verification and commit.
 
+**Module: Uzbek monolingual baseline** - DONE
+- Metadata/registry: registered `uz` in `data/languages.ts` (turkic family, LTR, monolingual-only), `data/languageNormalization.ts` (`uz-UZ` locale), `data/adapterRegistry.ts`, and `data/dictionaryApi.ts` dispatch.
+- Fixtures: added `uzbekDictionaryEntries` in `data/localLexicon.ts` for `uy`, `kitob`, `qilmoq`, and `oʻzbek` with CC BY-SA 4.0 attribution from Uzbek Wiktionary.
+- Normalization/script: implemented `normalizeUzbekWord` (apostrophe-variant normalizer) and `transliterateUzbekCyrillicToLatin` (Cyrillic→Latin fallback) in both `data/localLexicon.ts` and `data/morphology.ts`.
+- Morphology: implemented `getUzbekMorphologyCandidates` with noun case/plural and verb conjugation suffix stripping to `-moq` base form.
+- Tests: 7 new tests in `tests/dictionaryApi.test.ts` covering exact lookup, case/plural suffixes, verb suffixes, apostrophe variants, Cyrillic transliteration, related words, and adapter surface gate; adapter registry test updated.
+- Docs/progress: updated `docs/uzbek-language-plan.md`, `docs/uzbek-source-smoke.md`, and this file; full suite passes (214 tests, 19 files).
+
 ## Next Work Module
 
-**Module: Uzbek monolingual baseline**
-- Goal: implement the newly unblocked tiny Uzbek `uzwiktionary` baseline using the existing Turkic adapter patterns.
+**Module: Hindi monolingual baseline**
+- Goal: implement a tiny Hindi `hiwiktionary` baseline, the first Indic/Devanagari-script language in the app.
 - Scope: 5 related implementation tasks; complete the whole module before opening a new module.
 
 ### Module Completion Plan
-1. Add Uzbek metadata and registry dispatch only with a tiny accepted fixture set.
-2. Add curated `uzwiktionary` local fixtures for `uy`, `kitob`, `qilmoq`, and `oʻzbek` with attribution notes.
-3. Add Uzbek normalization for Latin apostrophe variants and preserve Cyrillic/native-script lookup boundaries.
-4. Add conservative Turkic morphology fallbacks for fixture-backed noun and verb forms without broad lemmatization.
-5. Update docs/progress, run verification, commit the completed module, then create the next 3-5 task module.
+1. Add Hindi language metadata (`hi`) to `data/languages.ts`, `data/languageNormalization.ts`, `data/adapterRegistry.ts`, and `data/dictionaryApi.ts`.
+2. Add curated `hiwiktionary` local fixtures for `घर` (ghar, house), `किताब` (kitaab, book), `करना` (karna, to do), and `हिंदी` (hindi, noun/adjective) with CC BY-SA 4.0 attribution.
+3. Add Hindi normalization: NFC, remove chandrabindu/anusvara display variants in lookup key, and basic Devanagari-only lookup (no transliteration required for first baseline).
+4. Add conservative Hindi morphology fallbacks: noun oblique/plural (`-ों`, `-ों को`), postposition-attached forms, and verb conjugation stripping (`-ता`, `-ती`, `-ते`, `-ा`, `-ी`) to base form.
+5. Update `docs/hindi-language-plan.md`, `docs/product-progress.md`, run full verification, and commit the completed module.
 
 ### Module Tasks
-1. [ ] [HARD] Uzbek metadata and adapter registration: add `uz` language metadata, adapter registry dispatch, and dictionary API routing.
-2. [ ] [HARD] Uzbek fixture source pack: add tiny `uzwiktionary` fixtures for noun/place/verb/demonym coverage with attribution metadata.
-3. [ ] [HARD] Uzbek normalization and script handling: normalize apostrophe variants such as `oʻ/o'/o‘`, keep Latin/Cyrillic expectations explicit, and avoid ASCII-only folding.
-4. [ ] [HARD] Uzbek morphology and test coverage: add conservative fixture-backed Turkic noun/verb form fallbacks plus dictionary API, adapter registry, normalization, missing-source, and related-word tests.
-5. [ ] [MEDIUM] Uzbek docs and progress sync: update `docs/uzbek-language-plan.md`, `docs/uzbek-source-smoke.md`, and this progress file after verification.
+1. [ ] [HARD] Hindi metadata and adapter registration: add `hi` metadata, `hi-IN` locale normalization, adapter dispatch, and dictionary API routing.
+2. [ ] [HARD] Hindi fixture source pack: add curated `hiwiktionary` fixtures for noun/verb/adjective coverage with attribution metadata.
+3. [ ] [HARD] Hindi normalization and Devanagari handling: NFC, anusvara handling, Devanagari-only lookup boundaries.
+4. [ ] [HARD] Hindi morphology and test coverage: conservative noun/verb form fallbacks plus adapter, API, normalization, and related-word tests.
+5. [ ] [MEDIUM] Hindi docs and progress sync: update `docs/hindi-language-plan.md` and this progress file after full verification.
 
 
 

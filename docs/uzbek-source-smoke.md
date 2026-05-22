@@ -3,7 +3,10 @@
 ## Status
 Run on May 21, 2026; refreshed on May 22, 2026 with Uzbek Wiktionary MediaWiki API smoke.
 
-Uzbek now has an accepted tiny-baseline source path: curated `uz.wiktionary.org` MediaWiki API fixtures under CC BY-SA 4.0. Izoh.uz remains blocked pending API/terms approval, and Kaikki English-edition Uzbek remains morphology/script support only.
+**Baseline implementation: DONE (May 22, 2026)**
+Tiny `uzwiktionary` fixture baseline has landed. `uz` is fully registered in the adapter registry and dictionary API. All 7 Uzbek lookup tests pass (exact, case/plural, verb morphology, apostrophe normalization, Cyrillic transliteration, related words). Full test suite: 214 tests, 19 files green.
+
+Uzbek Wiktionary now has an accepted tiny-baseline source path: curated `uz.wiktionary.org` MediaWiki API fixtures under CC BY-SA 4.0. Izoh.uz remains blocked pending API/terms approval, and Kaikki English-edition Uzbek remains morphology/script support only.
 
 ## Smoke Tests
 Run on May 21, 2026.
