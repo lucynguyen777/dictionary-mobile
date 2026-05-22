@@ -51,6 +51,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
   if (languageCode === 'tr') return getTurkishMorphologyCandidates(input);
+  if (languageCode === 'kk') return getKazakhMorphologyCandidates(input);
   if (languageCode === 'ja') return getJapaneseMorphologyCandidates(input);
   if (languageCode === 'ko') return getKoreanMorphologyCandidates(input);
   if (languageCode === 'sw') return getSwahiliMorphologyCandidates(input);
@@ -516,6 +517,155 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getKazakhMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = input.trim().normalize('NFC').toLocaleLowerCase('kk-KZ');
+  if (word.length < 2) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  const nounSuffixes = [
+    { suffix: 'лардың', desc: 'plural genitive (-лардың)' },
+    { suffix: 'лердің', desc: 'plural genitive (-лердің)' },
+    { suffix: 'дардың', desc: 'plural genitive (-дардың)' },
+    { suffix: 'дердің', desc: 'plural genitive (-дердің)' },
+    { suffix: 'тардың', desc: 'plural genitive (-тардың)' },
+    { suffix: 'тердің', desc: 'plural genitive (-тердің)' },
+    { suffix: 'ларға', desc: 'plural dative (-ларға)' },
+    { suffix: 'лерге', desc: 'plural dative (-лерге)' },
+    { suffix: 'дарға', desc: 'plural dative (-дарға)' },
+    { suffix: 'дерге', desc: 'plural dative (-дерге)' },
+    { suffix: 'тарға', desc: 'plural dative (-тарға)' },
+    { suffix: 'терге', desc: 'plural dative (-терге)' },
+    { suffix: 'ларды', desc: 'plural accusative (-ларды)' },
+    { suffix: 'лерді', desc: 'plural accusative (-лерді)' },
+    { suffix: 'дарды', desc: 'plural accusative (-дарды)' },
+    { suffix: 'дерді', desc: 'plural accusative (-дерді)' },
+    { suffix: 'тарды', desc: 'plural accusative (-тарды)' },
+    { suffix: 'терді', desc: 'plural accusative (-терді)' },
+    { suffix: 'ларда', desc: 'plural locative (-ларда)' },
+    { suffix: 'лерде', desc: 'plural locative (-лерде)' },
+    { suffix: 'дарда', desc: 'plural locative (-дарда)' },
+    { suffix: 'дерде', desc: 'plural locative (-дерде)' },
+    { suffix: 'тарда', desc: 'plural locative (-тарда)' },
+    { suffix: 'терде', desc: 'plural locative (-терде)' },
+    { suffix: 'лардан', desc: 'plural ablative (-лардан)' },
+    { suffix: 'лерден', desc: 'plural ablative (-лерден)' },
+    { suffix: 'дардан', desc: 'plural ablative (-дардан)' },
+    { suffix: 'дерден', desc: 'plural ablative (-дерден)' },
+    { suffix: 'тардан', desc: 'plural ablative (-тардан)' },
+    { suffix: 'терден', desc: 'plural ablative (-терден)' },
+    { suffix: 'лармен', desc: 'plural instrumental (-лармен)' },
+    { suffix: 'лермен', desc: 'plural instrumental (-лермен)' },
+    { suffix: 'дармен', desc: 'plural instrumental (-дармен)' },
+    { suffix: 'дермен', desc: 'plural instrumental (-дермен)' },
+    { suffix: 'тармен', desc: 'plural instrumental (-тармен)' },
+    { suffix: 'термен', desc: 'plural instrumental (-термен)' },
+    { suffix: 'ның', desc: 'genitive (-ның)' },
+    { suffix: 'нің', desc: 'genitive (-нің)' },
+    { suffix: 'дың', desc: 'genitive (-дың)' },
+    { suffix: 'дің', desc: 'genitive (-дің)' },
+    { suffix: 'тың', desc: 'genitive (-тың)' },
+    { suffix: 'тің', desc: 'genitive (-тің)' },
+    { suffix: 'ға', desc: 'dative (-ға)' },
+    { suffix: 'ге', desc: 'dative (-ге)' },
+    { suffix: 'қа', desc: 'dative (-қа)' },
+    { suffix: 'ке', desc: 'dative (-ке)' },
+    { suffix: 'ны', desc: 'accusative (-ны)' },
+    { suffix: 'ні', desc: 'accusative (-ні)' },
+    { suffix: 'ды', desc: 'accusative (-ды)' },
+    { suffix: 'ді', desc: 'accusative (-ді)' },
+    { suffix: 'ты', desc: 'accusative (-ты)' },
+    { suffix: 'ті', desc: 'accusative (-ті)' },
+    { suffix: 'да', desc: 'locative (-да)' },
+    { suffix: 'де', desc: 'locative (-де)' },
+    { suffix: 'та', desc: 'locative (-та)' },
+    { suffix: 'те', desc: 'locative (-те)' },
+    { suffix: 'дан', desc: 'ablative (-дан)' },
+    { suffix: 'ден', desc: 'ablative (-ден)' },
+    { suffix: 'тан', desc: 'ablative (-тан)' },
+    { suffix: 'тен', desc: 'ablative (-тен)' },
+    { suffix: 'нан', desc: 'ablative (-нан)' },
+    { suffix: 'нен', desc: 'ablative (-нен)' },
+    { suffix: 'мен', desc: 'instrumental (-мен)' },
+    { suffix: 'бен', desc: 'instrumental (-бен)' },
+    { suffix: 'пен', desc: 'instrumental (-пен)' },
+    { suffix: 'лар', desc: 'plural (-лар)' },
+    { suffix: 'лер', desc: 'plural (-лер)' },
+    { suffix: 'дар', desc: 'plural (-дар)' },
+    { suffix: 'дер', desc: 'plural (-дер)' },
+    { suffix: 'тар', desc: 'plural (-тар)' },
+    { suffix: 'тер', desc: 'plural (-тер)' },
+  ];
+
+  for (const { suffix, desc } of nounSuffixes) {
+    addKazakhStemCandidate(candidates, word, suffix, desc);
+  }
+
+  const verbSuffixes = [
+    { suffix: 'майды', desc: 'negative present (-майды)' },
+    { suffix: 'мейді', desc: 'negative present (-мейді)' },
+    { suffix: 'байды', desc: 'negative present (-байды)' },
+    { suffix: 'бейді', desc: 'negative present (-бейді)' },
+    { suffix: 'пайды', desc: 'negative present (-пайды)' },
+    { suffix: 'пейді', desc: 'negative present (-пейді)' },
+    { suffix: 'ады', desc: 'present/aorist (-ады)' },
+    { suffix: 'еді', desc: 'present/aorist (-еді)' },
+    { suffix: 'йды', desc: 'present/aorist (-йды)' },
+    { suffix: 'йді', desc: 'present/aorist (-йді)' },
+    { suffix: 'дым', desc: 'past 1sg (-дым)' },
+    { suffix: 'дім', desc: 'past 1sg (-дім)' },
+    { suffix: 'тым', desc: 'past 1sg (-тым)' },
+    { suffix: 'тім', desc: 'past 1sg (-тім)' },
+    { suffix: 'ды', desc: 'past 3sg (-ды)' },
+    { suffix: 'ді', desc: 'past 3sg (-ді)' },
+    { suffix: 'ты', desc: 'past 3sg (-ты)' },
+    { suffix: 'ті', desc: 'past 3sg (-ті)' },
+    { suffix: 'ған', desc: 'participle (-ған)' },
+    { suffix: 'ген', desc: 'participle (-ген)' },
+    { suffix: 'қан', desc: 'participle (-қан)' },
+    { suffix: 'кен', desc: 'participle (-кен)' },
+    { suffix: 'ып', desc: 'converb (-ып)' },
+    { suffix: 'іп', desc: 'converb (-іп)' },
+    { suffix: 'п', desc: 'converb (-п)' },
+  ];
+
+  for (const { suffix, desc } of verbSuffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 1) {
+      const stem = word.slice(0, -suffix.length);
+      candidates.push(createCandidate(`${stem}у`, desc));
+      if (stem.endsWith('ы') || stem.endsWith('і')) {
+        candidates.push(createCandidate(`${stem.slice(0, -1)}у`, desc));
+      }
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 6);
+}
+
+function addKazakhStemCandidate(
+  candidates: MorphologyCandidate[],
+  word: string,
+  suffix: string,
+  reason: string
+) {
+  if (!word.endsWith(suffix) || word.length <= suffix.length + 1) return;
+
+  const stem = word.slice(0, -suffix.length);
+  candidates.push(createCandidate(stem, reason));
+
+  const singularStem = stripKazakhPlural(stem);
+  if (singularStem !== stem) {
+    candidates.push(createCandidate(singularStem, reason));
+  }
+}
+
+function stripKazakhPlural(word: string) {
+  const pluralSuffixes = ['лар', 'лер', 'дар', 'дер', 'тар', 'тер'];
+  const suffix = pluralSuffixes.find((item) => word.endsWith(item));
+
+  return suffix && word.length > suffix.length + 1 ? word.slice(0, -suffix.length) : word;
 }
 
 function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {

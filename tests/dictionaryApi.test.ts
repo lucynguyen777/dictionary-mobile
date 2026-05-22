@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   canUseBilingualDictionaryApi,
+  canUseMonolingualDictionaryApi,
   isBlockedBilingualDictionaryPair,
   fetchMonolingualMeaning,
   fetchRelatedWords,
@@ -144,6 +145,66 @@ describe('Turkish monolingual baseline and morphology', () => {
     const related = await fetchRelatedWords('ev', 'tr');
     expect(related.synonyms).toContain('konut');
     expect(related.synonyms).toContain('hane');
+  });
+});
+
+describe('Kazakh monolingual baseline and morphology', () => {
+
+  it('enables the Kazakh monolingual adapter for the lookup surface', () => {
+    expect(canUseMonolingualDictionaryApi('kk')).toBe(true);
+  });
+
+  it('looks up exact Kazakh nouns, adjectives, and verbs', async () => {
+    const kitap = await fetchMonolingualMeaning('кітап', 'kk');
+    expect(kitap.word).toBe('кітап');
+    expect(kitap.ipa).toBe('/kɘ.tɑp/');
+    expect(kitap.definitions[0].meaning).toContain('түптелген басылым');
+    expect(kitap.definitions[0].vietnamese).toBe('Sách, ấn phẩm đóng tập có nội dung viết hoặc in.');
+    expect(kitap.source).toContain('CC BY-SA 4.0');
+
+    const ui = await fetchMonolingualMeaning('үй', 'kk');
+    expect(ui.word).toBe('үй');
+    expect(ui.definitions[0].meaning).toContain('баспана');
+
+    const jaqsy = await fetchMonolingualMeaning('жақсы', 'kk');
+    expect(jaqsy.word).toBe('жақсы');
+    expect(jaqsy.definitions[0].meaning).toContain('тәуір');
+
+    const aitu = await fetchMonolingualMeaning('айту', 'kk');
+    expect(aitu.word).toBe('айту');
+    expect(aitu.definitions[0].meaning).toContain('ақпаратты сөз арқылы білдіру');
+  });
+
+  it('resolves Kazakh noun case and plural suffixes', async () => {
+    const kitaptyn = await fetchMonolingualMeaning('кітаптың', 'kk');
+    expect(kitaptyn.word).toBe('кітап');
+    expect(kitaptyn.source).toContain('base form of кітаптың');
+
+    const kitaptarda = await fetchMonolingualMeaning('кітаптарда', 'kk');
+    expect(kitaptarda.word).toBe('кітап');
+
+    const uilerden = await fetchMonolingualMeaning('үйлерден', 'kk');
+    expect(uilerden.word).toBe('үй');
+  });
+
+  it('resolves Kazakh verb suffixes to the -у lemma', async () => {
+    const aitty = await fetchMonolingualMeaning('айтты', 'kk');
+    expect(aitty.word).toBe('айту');
+    expect(aitty.source).toContain('base form of айтты');
+
+    const aitady = await fetchMonolingualMeaning('айтады', 'kk');
+    expect(aitady.word).toBe('айту');
+
+    const aityp = await fetchMonolingualMeaning('айтып', 'kk');
+    expect(aityp.word).toBe('айту');
+  });
+
+  it('fetches Kazakh local synonyms and antonyms from base forms', async () => {
+    const exact = await fetchRelatedWords('жақсы', 'kk');
+    expect(exact.antonyms).toContain('жаман');
+
+    const inflected = await fetchRelatedWords('кітаптарда', 'kk');
+    expect(inflected.synonyms).toContain('басылым');
   });
 });
 

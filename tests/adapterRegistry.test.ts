@@ -69,16 +69,19 @@ describe('adapterRegistry', () => {
   it('registers core adapters and source adapters', () => {
     const en = getAdapterByKey('en');
     const viAdapter = getAdapterByKey('vi');
+    const kkAdapter = getAdapterByKey('kk');
     const minh = getAdapterByKey('minhqnd');
     const wikt = getAdapterByKey('wiktapi');
 
     expect(en).toBeDefined();
     expect(viAdapter).toBeDefined();
+    expect(kkAdapter).toBeDefined();
     expect(minh).toBeDefined();
     expect(wikt).toBeDefined();
 
     expect(en?.key).toBe('en');
     expect(viAdapter?.key).toBe('vi');
+    expect(kkAdapter?.key).toBe('kk');
     expect(minh?.key).toBe('minhqnd');
     expect(wikt?.key).toBe('wiktapi');
   });

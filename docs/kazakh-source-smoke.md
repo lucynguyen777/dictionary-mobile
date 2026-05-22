@@ -33,15 +33,15 @@ Kazakh now has an accepted small-fixture and adapter candidate through Kazakh Wi
 
 - Kazakh source smoke is complete.
 - The previous "true Kazakh-definition source" blocker is resolved for a small `kk -> kk` baseline using Kazakh Wiktionary MediaWiki API and curated CC BY-SA fixtures.
-- First implementation should prefer a tiny parser/fixture path for `кітап`, `үй`, `жақсы`, and one defined verb such as `келу` or `айту`.
+- First implementation is complete with a tiny parser/fixture path for `кітап`, `үй`, `жақсы`, and `айту`.
 - Do not add Kaikki raw-dump ingestion for Kazakh until `kkwiktionary` appears on Kaikki.
 
 ## Next Safe Work
 
-1. Add Kazakh metadata and a small Kazakh adapter backed by curated Kazakh Wiktionary fixtures.
-2. Preserve Kazakh Cyrillic letters exactly and add Latin romanization as a secondary lookup hint, not as canonical storage.
-3. Add morphology fallback tests for noun plural/cases using Kaikki English-edition forms as research evidence.
-4. Include source attribution fields in fixtures before exposing Kazakh results in the UI.
+1. Expand Latin romanization as a secondary lookup hint, not as canonical storage.
+2. Add more verb fixtures only after non-placeholder Kazakh Wiktionary definitions are sampled.
+3. Keep morphology fallback tests aligned with Kaikki English-edition forms as research evidence.
+4. Revisit bulk/offline import only after `kkwiktionary` raw data or another approved bulk source exists.
 
 ## Commands Used
 

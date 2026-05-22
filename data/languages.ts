@@ -261,6 +261,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'kk',
+    label: 'Қазақ тілі (Kazakh)',
+    hint: 'Wiktionary preview',
+    family: 'turkic',
+    script: 'cyrillic',
+    writingDirection: 'ltr',
+    adapterKey: 'kk',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'hu',
     label: 'Magyar (Hungarian)',
     hint: 'Wiktionary preview',

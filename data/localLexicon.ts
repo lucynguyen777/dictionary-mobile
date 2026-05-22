@@ -479,6 +479,160 @@ const turkishDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const kazakhDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'кітап',
+    ipa: '/kɘ.tɑp/',
+    audio: '',
+    level: 'A1',
+    topic: 'Білім (Education)',
+    vietnamese: 'sách',
+    shortDefinition: 'жазылған немесе басылған мәтіндері бар түптелген басылым (a bound written or printed work)',
+    definitions: [
+      {
+        partOfSpeech: 'зат есім (noun)',
+        meaning: 'Мәтін, сурет немесе мәлімет басылған не жазылған түптелген басылым.',
+        vietnamese: 'Sách, ấn phẩm đóng tập có nội dung viết hoặc in.',
+        examples: [
+          { source: 'Мен жаңа кітап оқып жүрмін.', translation: 'Tôi đang đọc một cuốn sách mới.' }
+        ],
+        domain: 'Білім',
+        level: 'A1',
+      },
+      {
+        partOfSpeech: 'зат есім (noun)',
+        meaning: 'Есеп-қисап немесе басқа мәлімет жазуға арналған қалың дәптер.',
+        vietnamese: 'Sổ hoặc vở dày dùng để ghi chép thông tin.',
+        examples: [
+          { source: 'Ол есеп кітапқа жазылды.', translation: 'Phép tính đó được ghi vào sổ.' }
+        ],
+        domain: 'Жазу',
+        level: 'A2',
+      },
+    ],
+    synonyms: ['басылым', 'дәптер'],
+    antonyms: [],
+    collocations: ['кітап оқу', 'оқулық кітап', 'кітап дүкені'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'кітаптар' },
+      { tense: 'Genitive', form: 'кітаптың' },
+      { tense: 'Dative', form: 'кітапқа' },
+      { tense: 'Locative', form: 'кітапта' },
+      { tense: 'Ablative', form: 'кітаптан' },
+      { tense: 'Instrumental', form: 'кітаппен' },
+    ],
+    etymology: 'Curated from Kazakh Wiktionary page “кітап”, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'үй',
+    ipa: '',
+    audio: '',
+    level: 'A1',
+    topic: 'Тұрмыс (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'адам тұратын баспана немесе бірге тұратын отбасы (dwelling or household)',
+    definitions: [
+      {
+        partOfSpeech: 'зат есім (noun)',
+        meaning: 'Адам тұратын, мекендейтін баспана.',
+        vietnamese: 'Nhà, nơi con người sinh sống.',
+        examples: [
+          { source: 'Біздің үй қала ортасында.', translation: 'Nhà của chúng tôi ở trung tâm thành phố.' }
+        ],
+        domain: 'Тұрмыс',
+        level: 'A1',
+      },
+      {
+        partOfSpeech: 'зат есім (noun)',
+        meaning: 'Бірге тұратын адамдар немесе отбасы.',
+        vietnamese: 'Những người sống cùng nhau, gia đình.',
+        examples: [
+          { source: 'Үй іші кешкі асқа жиналды.', translation: 'Cả nhà tụ họp ăn tối.' }
+        ],
+        domain: 'Отбасы',
+        level: 'A2',
+      },
+    ],
+    synonyms: ['баспана', 'шаңырақ', 'отбасы'],
+    antonyms: [],
+    collocations: ['үй іші', 'үйге бару', 'үйде тұру'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural', form: 'үйлер' },
+      { tense: 'Genitive', form: 'үйдің' },
+      { tense: 'Dative', form: 'үйге' },
+      { tense: 'Locative', form: 'үйде' },
+      { tense: 'Ablative', form: 'үйден' },
+    ],
+    etymology: 'Curated from Kazakh Wiktionary page “үй”, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'жақсы',
+    ipa: '/ʒɑq.sə/',
+    audio: '',
+    level: 'A1',
+    topic: 'Сапа (Quality)',
+    vietnamese: 'tốt',
+    shortDefinition: 'көңілге ұнайтын, оңды немесе тәуір (good, favorable)',
+    definitions: [
+      {
+        partOfSpeech: 'сын есім (adjective)',
+        meaning: 'Көңілге ұнайтын, оңды, тәуір сапаны білдіретін сөз.',
+        vietnamese: 'Tốt, dễ chịu, có phẩm chất tích cực.',
+        examples: [
+          { source: 'Бұл жақсы шешім болды.', translation: 'Đó là một quyết định tốt.' }
+        ],
+        domain: 'Сапа',
+        level: 'A1',
+      },
+    ],
+    synonyms: ['тәуір', 'оңды'],
+    antonyms: ['жаман'],
+    collocations: ['жақсы адам', 'жақсы шешім', 'жақсы көру'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Comparative', form: 'жақсырақ' },
+    ],
+    etymology: 'Curated from Kazakh Wiktionary page “жақсы”, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'айту',
+    ipa: '',
+    audio: '',
+    level: 'A1',
+    topic: 'Қарым-қатынас (Communication)',
+    vietnamese: 'nói / nói ra',
+    shortDefinition: 'өз ойын білдіру немесе ақпарат беру (to say or communicate information)',
+    definitions: [
+      {
+        partOfSpeech: 'етістік (verb)',
+        meaning: 'Өз ойын, хабарды немесе ақпаратты сөз арқылы білдіру.',
+        vietnamese: 'Nói, diễn đạt suy nghĩ hoặc truyền đạt thông tin bằng lời.',
+        examples: [
+          { source: 'Ол ойын анық айтты.', translation: 'Anh ấy nói rõ ý của mình.' }
+        ],
+        domain: 'Қарым-қатынас',
+        level: 'A1',
+      },
+    ],
+    synonyms: ['сөйлеу', 'мәлімдеу', 'білдіру'],
+    antonyms: [],
+    collocations: ['ой айту', 'шын айту', 'анық айту'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Past 3sg', form: 'айтты' },
+      { tense: 'Present 3sg', form: 'айтады' },
+      { tense: 'Converb', form: 'айтып' },
+    ],
+    etymology: 'Curated from Kazakh Wiktionary page “айту”, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+];
+
 const japaneseDictionaryEntries: DictionaryEntry[] = [
   {
     word: '猫',
@@ -2261,6 +2415,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   he: hebrewDictionaryEntries,
   fi: finnishDictionaryEntries,
   tr: turkishDictionaryEntries,
+  kk: kazakhDictionaryEntries,
   ja: japaneseDictionaryEntries,
   ko: koreanDictionaryEntries,
   sw: swahiliDictionaryEntries,
@@ -2292,6 +2447,10 @@ export function findLocalDictionaryEntry(languageCode: string, word: string) {
     const normalizedWord = normalizeTurkishWord(word);
     return getLocalDictionaryEntries('tr').find((entry) => normalizeTurkishWord(entry.word) === normalizedWord);
   }
+  if (languageCode === 'kk') {
+    const normalizedWord = normalizeKazakhWord(word);
+    return getLocalDictionaryEntries('kk').find((entry) => normalizeKazakhWord(entry.word) === normalizedWord);
+  }
   if (languageCode === 'yo') {
     const normalizedWord = normalizeYorubaWord(word);
     return getLocalDictionaryEntries('yo').find((entry) => normalizeYorubaWord(entry.word) === normalizedWord);
@@ -2321,6 +2480,10 @@ export function normalizeTurkishWord(value: string) {
   let res = value.trim();
   res = res.replace(/I/g, 'ı').replace(/İ/g, 'i');
   return res.toLocaleLowerCase('tr');
+}
+
+export function normalizeKazakhWord(value: string) {
+  return value.trim().normalize('NFC').toLocaleLowerCase('kk-KZ');
 }
 
 export function normalizeYorubaWord(value: string) {

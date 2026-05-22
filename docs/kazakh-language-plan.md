@@ -98,30 +98,28 @@ Kazakh is a **strongly agglutinative**, suffix-heavy language.
 - English Wiktionary Kazakh entries cannot substitute for native Kazakh definitions.
 - Offline Kazakh bundle remains subject to `docs/decisions/offline-dictionary-bundle.md`.
 
-## Implementation Plan (Gated)
-> Source gate status: Step 1 is complete for a small Kazakh Wiktionary MediaWiki API + curated fixture adapter. Bulk Kaikki raw-dump ingestion remains blocked.
+## Implementation Plan
+Status: first small baseline is implemented. Bulk Kaikki raw-dump ingestion remains blocked.
 
-1. **Source approval**: smoke `kkwiktionary` Kaikki raw dump and Sozdik.kz API surface; obtain license/terms decision. Status: DONE for Kazakh Wiktionary MediaWiki API and curated CC BY-SA fixtures; Kaikki raw dump and Sozdik.kz remain blocked.
-2. **Script normalization tests**: Kazakh Cyrillic extra letters, Latin digraphs, and cross-script transliteration mapping.
-3. **Metadata configuration**: register `kk` in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'kk'`.
-4. **Morphology rules** (`data/morphology.ts`): implement `getKazakhMorphologyCandidates(input)`:
+1. **Source approval**: DONE for Kazakh Wiktionary MediaWiki API and curated CC BY-SA fixtures; Kaikki raw dump and Sozdik.kz remain blocked.
+2. **Script normalization tests**: DONE for Kazakh Cyrillic extra letters and NFC/lowercase preservation. Latin↔Cyrillic transliteration remains future work.
+3. **Metadata configuration**: DONE. `kk` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'kk'`.
+4. **Morphology rules** (`data/morphology.ts`): DONE for first baseline:
    - Strip vowel-harmony-aware case endings (7 cases × harmony variants).
    - Strip plural suffix.
    - Strip verb person agreement, tense, and negation layers to recover bare stem.
-5. **Local lexicon fixtures** (`data/localLexicon.ts`): seed with CC BY-SA-attributed entries:
+5. **Local lexicon fixtures** (`data/localLexicon.ts`): DONE with CC BY-SA-attributed entries:
    - `кітап` (book — noun)
    - `үй` (house — noun)
-   - `келу` or `айту` (verb; avoid `оқу` until a non-placeholder definition is accepted)
+   - `айту` (to say — verb)
    - `жақсы` (good — adjective)
-6. **Adapter integration**: hook up `fetchKazakhMeaning` and `fetchKazakhRelatedWords` in `data/dictionaryApi.ts` and register in `data/adapterRegistry.ts`.
-7. **Unit tests**: cover exact-match, case-stripped, plural-stripped, and verb-stem lookups in `tests/dictionaryApi.test.ts`.
+6. **Adapter integration**: DONE. `fetchKazakhMeaning` and `fetchKazakhRelatedWords` are registered in `data/dictionaryApi.ts` and `data/adapterRegistry.ts`.
+7. **Unit tests**: DONE. Exact-match, case-stripped, plural-stripped, verb-stem, related-word, adapter, and normalization coverage live in `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, and `tests/languageNormalization.test.ts`.
 
 ## Tests Needed
-- `data/languages.ts` metadata test after adding `kk`.
-- `data/languageNormalization.ts` tests for Kazakh Cyrillic extra letters and Latin digraphs.
-- `data/adapterRegistry.ts` dispatch test after adapter registration.
-- Dictionary API/adapter parse tests for the accepted Kazakh source.
-- Morphology fallback tests for case, plural, and verb stem stripping.
+- Expand Latin↔Cyrillic transliteration tests only after a verified mapping table is accepted.
+- Add more verb fixtures only after sampled Kazakh Wiktionary pages provide non-placeholder definitions.
+- Add offline bundle/import tests only after a bulk source path is approved.
 
 ## Blocked Decisions
 - **Bulk source approval** remains blocked for Kaikki `kkwiktionary`, Sozdik.kz, and official/state dictionaries.
@@ -130,7 +128,7 @@ Kazakh is a **strongly agglutinative**, suffix-heavy language.
 - Latin↔Cyrillic transliteration fallback requires a verified mapping table before production use.
 
 ## First Safe Task
-Done in `docs/kazakh-source-smoke.md`. Next safe task: add a tiny Kazakh monolingual baseline adapter using curated Kazakh Wiktionary fixtures and MediaWiki-compatible attribution metadata.
+Done. The tiny Kazakh monolingual baseline adapter now uses curated Kazakh Wiktionary fixtures and MediaWiki-compatible attribution metadata.
 
 ## Sources To Check
 - Kazakh Wiktionary: https://kk.wiktionary.org/

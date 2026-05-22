@@ -162,7 +162,7 @@ const MINH_QND_SUGGEST_API_BASE = 'https://dict.minhqnd.com/api/v1/suggest';
 const WIKTAPI_BASE = 'https://api.wiktapi.dev/v1';
 
 export function canUseMonolingualDictionaryApi(languageCode: string) {
-  return ['en', 'vi', 'fr', 'es', 'ms'].includes(languageCode);
+  return ['en', 'vi', 'fr', 'es', 'ms', 'kk'].includes(languageCode);
 }
 
 export function canUseBilingualDictionaryApi(sourceLang: string, targetLang: string) {
@@ -181,6 +181,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'ms') return fetchWiktApiMonolingualMeaning(word, 'ms');
   if (languageCode === 'fi') return fetchFinnishMeaning(word);
   if (languageCode === 'tr') return fetchTurkishMeaning(word);
+  if (languageCode === 'kk') return fetchKazakhMeaning(word);
   if (languageCode === 'ja') return fetchJapaneseMeaning(word);
   if (languageCode === 'ko') return fetchKoreanMeaning(word);
   if (languageCode === 'sw') return fetchSwahiliMeaning(word);
@@ -215,6 +216,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'ms') return fetchWiktApiRelatedWords(word, 'ms');
   if (languageCode === 'fi') return fetchFinnishRelatedWords(word);
   if (languageCode === 'tr') return fetchTurkishRelatedWords(word);
+  if (languageCode === 'kk') return fetchKazakhRelatedWords(word);
   if (languageCode === 'ja') return fetchJapaneseRelatedWords(word);
   if (languageCode === 'ko') return fetchKoreanRelatedWords(word);
   if (languageCode === 'sw') return fetchSwahiliRelatedWords(word);
@@ -885,6 +887,67 @@ export async function fetchTurkishRelatedWords(word: string): Promise<ApiRelated
       antonyms: localEntry.antonyms || [],
     };
   }
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchKazakhMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = word.trim().normalize('NFC').toLocaleLowerCase('kk-KZ');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('kk', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('kk', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'kkwiktionary · CC BY-SA 4.0',
+          })),
+          source: lookupWord === normalizedWord
+            ? 'kkwiktionary · CC BY-SA 4.0'
+            : `kkwiktionary · CC BY-SA 4.0 · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Kazakh Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchKazakhRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = word.trim().normalize('NFC').toLocaleLowerCase('kk-KZ');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('kk', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  for (const lookupWord of lookupCandidates) {
+    const localEntry = findLocalDictionaryEntry('kk', lookupWord);
+    if (localEntry) {
+      return {
+        synonyms: localEntry.synonyms || [],
+        antonyms: localEntry.antonyms || [],
+      };
+    }
+  }
+
   return { synonyms: [], antonyms: [] };
 }
 

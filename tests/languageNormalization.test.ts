@@ -8,6 +8,11 @@ describe('languageNormalization', () => {
     expect(normalizeLookupInput('İSTANBUL', 'tr')).toBe('istanbul');
   });
 
+  it('preserves Kazakh Cyrillic letters while lowercasing and normalizing', () => {
+    expect(normalizeLookupInput('  ҚАЗАҚ ӘҢГІМЕ ҮЙ  ', 'kk')).toBe('қазақ әңгіме үй');
+    expect(normalizeLookupInput('КІТАП', 'kk')).toBe('кітап');
+  });
+
   it('preserves Turkish lowercase words after trimming and NFC normalization', () => {
     expect(normalizeLookupInput('  ışık  ', 'tr')).toBe('ışık');
     expect(normalizeLookupInput('I\u0307stanbul', 'tr')).toBe('istanbul');

@@ -1,4 +1,5 @@
 const LANGUAGE_LOCALES: Record<string, string> = {
+  kk: 'kk-KZ',
   tr: 'tr-TR',
 };
 

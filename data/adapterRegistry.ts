@@ -25,6 +25,8 @@ import {
   fetchJapaneseRelatedWords,
   fetchJavaneseMeaning,
   fetchJavaneseRelatedWords,
+  fetchKazakhMeaning,
+  fetchKazakhRelatedWords,
   fetchKannadaMeaning,
   fetchKannadaRelatedWords,
   fetchKoreanMeaning,
@@ -127,6 +129,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchTurkishMeaning(word),
     fetchRelatedWords: (word: string) => fetchTurkishRelatedWords(word),
+  },
+  kk: {
+    key: 'kk',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchKazakhMeaning(word),
+    fetchRelatedWords: (word: string) => fetchKazakhRelatedWords(word),
   },
   ja: {
     key: 'ja',
