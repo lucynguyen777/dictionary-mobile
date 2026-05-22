@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Kazakh source smoke, Uyghur planning, Uralic source/status refresh, and remaining backend/source-gated work.
+- Hard next tasks: Kazakh monolingual baseline implementation, Uyghur planning, Uralic source/status refresh, and remaining backend/source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -400,7 +400,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Uzbek monolingual baseline planning: Latin/Cyrillic script handling, apostrophe normalization, agglutinative morphology implications, source smoke, and implementation gates documented in `docs/uzbek-language-plan.md` and `docs/uzbek-source-smoke.md`.
   - [!] BLOCKED [HARD]: Uzbek monolingual baseline implementation requires a true Uzbek-definition source with approved API/terms; Kaikki English-edition data is useful for forms but not sufficient for `uz -> uz` definitions.
   - [x] DONE [HARD]: Kazakh monolingual baseline planning: Cyrillic/Latin script duality, full vowel harmony, 7-case morphology fallbacks, source candidates (Sozdik.kz, kkwiktionary Kaikki dump), and gated implementation plan documented in `docs/kazakh-language-plan.md`.
-  - [!] BLOCKED [HARD]: Kazakh monolingual baseline implementation requires a true Kazakh-definition source with approved license/terms before fixtures or adapter code.
+  - [x] DONE [HARD]: Kazakh source smoke: `docs/kazakh-source-smoke.md` confirms Kaikki `kkwiktionary` raw data is not available, WiktAPI `kk` is not viable, and Kazakh Wiktionary MediaWiki API is accepted for curated CC BY-SA fixtures and adapter work.
+  - [ ] TODO [HARD]: Kazakh monolingual baseline implementation: register Kazakh metadata, add curated Kazakh Wiktionary fixtures with attribution, parse noun/adjective/verb definitions, and cover Cyrillic morphology fallbacks.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
 - [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
@@ -443,7 +444,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
 
 ## Next Work Queue
-1. [ ] [HARD] Kazakh source smoke: verify kkwiktionary Kaikki raw dump for Kazakh-gloss entries and submit license/terms decision to unblock fixtures and adapter.
+1. [ ] [HARD] Kazakh monolingual baseline implementation: register Kazakh metadata, add curated Kazakh Wiktionary fixtures with attribution, parse noun/adjective/verb definitions, and cover Cyrillic morphology fallbacks.
 2. [ ] [HARD] Uyghur monolingual baseline planning: research Arabic-Perso script, agglutinative morphology, ULY Latin variant, and source candidates.
 3. [ ] [HARD] Uralic source/status refresh: review Finnish/Hungarian/Estonian implementation status, verify remaining source gates, and pick the next unblocked Uralic slice.
 
