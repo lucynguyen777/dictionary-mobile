@@ -21,17 +21,19 @@ Estonian now has an accepted tiny-baseline source path: curated `et.wiktionary.o
 | Ekilex API docs | GitHub wiki | API requires a security key from an Ekilex user profile; key must be sent as `ekilex-api-key` header. | Runtime/API integration is blocked until API key management is designed. |
 
 ## Outcome
-- Estonian adapter implementation is now unblocked for a tiny curated fixture baseline using Estonian Wiktionary MediaWiki pages.
+- Estonian adapter implementation is complete for a tiny curated fixture baseline using Estonian Wiktionary MediaWiki pages.
 - Sõnaveeb/Ekilex should remain a later production candidate because it needs API key handling and endpoint-specific parser work.
 - Hosted WiktAPI remains unsuitable for Estonian.
 - Offline Estonian packs remain blocked until attribution/offline packaging is implemented.
 
 ## Next Safe Work
-1. Add `et` metadata with `dictionaryStatus: 'monolingual'` only when the fixture adapter lands.
-2. Build tiny fixtures from `maja`, `jää`, `öö`, and one verified verb page.
-3. Add NFC/diacritic-preserving normalization for `ä`, `ö`, `ü`, and `õ`.
-4. Reuse Finnish/Hungarian Uralic morphology patterns conservatively for fixture-backed case forms only.
-5. Carry `etwiktionary`, source URL, revision id, and CC BY-SA 4.0 attribution in fixture metadata.
+1. DONE: Add `et` metadata with `dictionaryStatus: 'monolingual'`.
+2. DONE: Build tiny fixtures from `maja`, `jää`, `öö`, and `sööma`.
+3. DONE: Add NFC/diacritic-preserving normalization for `ä`, `ö`, `ü`, and `õ`.
+4. DONE: Add conservative fixture-backed case and verb-form fallbacks.
+5. DONE: Carry `etwiktionary` and CC BY-SA 4.0 attribution notes in fixture metadata.
+
+Next safe Estonian expansion is production source work: design Sõnaveeb/Ekilex API key handling, add endpoint-specific parser tests, and decide how attribution/change notes should surface in runtime UI and offline packs.
 
 ## Commands Used
 ```bash

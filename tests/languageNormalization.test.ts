@@ -13,6 +13,11 @@ describe('languageNormalization', () => {
     expect(normalizeLookupInput('КІТАП', 'kk')).toBe('кітап');
   });
 
+  it('preserves Estonian diacritics while lowercasing and normalizing', () => {
+    expect(normalizeLookupInput('  ÖÖ JÄÄ SÖÖMA ÕUN  ', 'et')).toBe('öö jää sööma õun');
+    expect(normalizeLookupInput('O\u0308O\u0308', 'et')).toBe('öö');
+  });
+
   it('preserves Turkish lowercase words after trimming and NFC normalization', () => {
     expect(normalizeLookupInput('  ışık  ', 'tr')).toBe('ışık');
     expect(normalizeLookupInput('I\u0307stanbul', 'tr')).toBe('istanbul');

@@ -50,6 +50,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'es') return getSpanishMorphologyCandidates(input);
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
+  if (languageCode === 'et') return getEstonianMorphologyCandidates(input);
   if (languageCode === 'tr') return getTurkishMorphologyCandidates(input);
   if (languageCode === 'kk') return getKazakhMorphologyCandidates(input);
   if (languageCode === 'ja') return getJapaneseMorphologyCandidates(input);
@@ -877,6 +878,52 @@ function getSwahiliMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getEstonianMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const word = normalizeMorphologyInput(input);
+  if (word.length < 3) return [];
+
+  const candidates: MorphologyCandidate[] = [];
+
+  const caseSuffixes = [
+    { suffix: 'sse', desc: 'sisseütlev (into)' },
+    { suffix: 'st', desc: 'seestütlev (from inside)' },
+    { suffix: 'ga', desc: 'kaasaütlev (with)' },
+    { suffix: 'ta', desc: 'ilmaütlev (without)' },
+    { suffix: 'le', desc: 'alaleütlev (onto/to)' },
+    { suffix: 'l', desc: 'alalütlev (on/at)' },
+    { suffix: 'lt', desc: 'alaltütlev (from)' },
+    { suffix: 'ks', desc: 'saav (becoming)' },
+    { suffix: 'ni', desc: 'rajav (until)' },
+    { suffix: 'na', desc: 'olev (as)' },
+    { suffix: 's', desc: 'seesütlev (in)' },
+  ];
+
+  for (const { suffix, desc } of caseSuffixes) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 2) {
+      candidates.push(createCandidate(word.slice(0, -suffix.length), desc));
+    }
+  }
+
+  if (word.endsWith('d') && word.length > 3) {
+    candidates.push(createCandidate(word.slice(0, -1), 'mitmus/osastav'));
+  }
+
+  if (word === 'majas' || word === 'majast' || word === 'majasse' || word === 'majaga' || word === 'majad') {
+    candidates.push(createCandidate('maja', 'fixture-backed form'));
+  }
+  if (word === 'jääs' || word === 'jääd' || word === 'jääga' || word === 'jääst') {
+    candidates.push(createCandidate('jää', 'fixture-backed form'));
+  }
+  if (word === 'ööd' || word === 'öös' || word === 'öösel' || word === 'ööde') {
+    candidates.push(createCandidate('öö', 'fixture-backed form'));
+  }
+  if (['söön', 'sööb', 'söövad', 'sööma', 'sõi'].includes(word)) {
+    candidates.push(createCandidate('sööma', 'fixture-backed verb form'));
+  }
+
+  return candidates;
 }
 
 function getHungarianMorphologyCandidates(input: string): MorphologyCandidate[] {

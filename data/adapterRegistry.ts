@@ -11,6 +11,8 @@ import {
   fetchBurmeseRelatedWords,
   fetchEnglishMeaning,
   fetchEnglishRelatedWords,
+  fetchEstonianMeaning,
+  fetchEstonianRelatedWords,
   fetchFinnishMeaning,
   fetchFinnishRelatedWords,
   fetchHawaiianMeaning,
@@ -122,6 +124,13 @@ const adapters: Record<string, LanguageAdapter> = {
     supportsBilingual: false,
     fetchMonolingualMeaning: (word: string) => fetchFinnishMeaning(word),
     fetchRelatedWords: (word: string) => fetchFinnishRelatedWords(word),
+  },
+  et: {
+    key: 'et',
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => fetchEstonianMeaning(word),
+    fetchRelatedWords: (word: string) => fetchEstonianRelatedWords(word),
   },
   tr: {
     key: 'tr',

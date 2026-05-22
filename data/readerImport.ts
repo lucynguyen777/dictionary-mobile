@@ -53,6 +53,7 @@ type PdfJsLoader = () => Promise<PdfJsModule>;
 export type ReaderPdfParser = (fileName: string, rawContent: ArrayBuffer) => Promise<ReaderPdfImportResult>;
 
 export const MAX_READER_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const PDFJS_DIST_VERSION = '5.7.284';
 
 
 export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
@@ -247,7 +248,7 @@ export async function extractPdfReaderText(
     data: new Uint8Array(arrayBuffer),
     disableWorker: true,
     isEvalSupported: false,
-    standardFontDataUrl: options.standardFontDataUrl,
+    standardFontDataUrl: options.standardFontDataUrl ?? getDefaultPdfStandardFontDataUrl(),
     useWorkerFetch: false,
   }).promise;
   const pageTexts: string[] = [];
@@ -324,6 +325,18 @@ function decodeUtf8(arrayBuffer: ArrayBuffer) {
 
 async function loadPdfJsParser(): Promise<PdfJsModule> {
   return import('pdfjs-dist/legacy/build/pdf.mjs') as Promise<PdfJsModule>;
+}
+
+function getDefaultPdfStandardFontDataUrl() {
+  try {
+    if (process.versions?.node && typeof process.cwd === 'function') {
+      return `${process.cwd()}/node_modules/pdfjs-dist/standard_fonts/`;
+    }
+  } catch {
+    // Expo web does not expose the Node process shape; use the browser-safe URL below.
+  }
+
+  return `https://unpkg.com/pdfjs-dist@${PDFJS_DIST_VERSION}/standard_fonts/`;
 }
 
 async function readZipText(zip: JSZip, path: string) {

@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: complete the Estonian monolingual baseline module, then continue remaining source-gated work.
+- Hard next tasks: complete the Uzbek monolingual baseline module, then continue remaining source-gated work.
 
 ## Current Baseline
 - Latest completed commits:
@@ -421,13 +421,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Uyghur source unblock attempt: `docs/uyghur-source-smoke.md` remains blocked because no new approved source or balanced non-placeholder candidate set was found.
   - Turkish first: agglutinative suffixes, vowel harmony, case/morphology search.
   - Uzbek/Kazakh/Uyghur need script-specific source strategy.
-- [ ] TODO [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
+- [x] DONE [HARD]: Uralic next-build candidates: Finnish, Hungarian, Estonian.
   - [x] DONE [HARD]: Finnish monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/finnish-language-plan.md`.
   - [x] DONE [HARD]: Finnish monolingual baseline implementation: Register the Finnish adapter, add tiny test fixtures under the CC BY-SA license from the community Finnish Wiktionary (`fiwiktionary`), and write morphology fallback rules for noun/verb case endings.
   - [x] DONE [HARD]: Hungarian monolingual baseline planning: source candidates, Latin-script/diacritic search implications, case-rich agglutinative morphology, vowel harmony, and adapter fixture gates documented in `docs/hungarian-language-plan.md`.
   - [x] DONE [HARD]: Hungarian monolingual baseline implementation: Register the Hungarian adapter, add tiny test fixtures under the CC BY-SA license from `huwiktionary`, and write morphology fallback rules.
   - [x] DONE [HARD]: Estonian monolingual baseline planning: compare against Finnish/Hungarian Uralic baselines, run source smoke checks, and document case-rich morphology/search implications in `docs/estonian-language-plan.md`.
-  - [ ] TODO [HARD]: Estonian monolingual baseline implementation: tiny curated `etwiktionary` fixtures are now source-accepted via MediaWiki API under CC BY-SA 4.0; Sõnaveeb/Ekilex production API remains gated by key handling.
+  - [x] DONE [HARD]: Estonian monolingual baseline implementation: register Estonian metadata and adapter dispatch, add tiny curated `etwiktionary` fixtures, preserve `ä/ö/ü/õ`, add fixture-backed case/verb fallbacks, and cover lookup behavior with tests.
   - [x] DONE [HARD]: Uralic source/status refresh: `docs/finnish-language-plan.md`, `docs/hungarian-language-plan.md`, and `docs/estonian-language-plan.md` now reflect implemented Finnish/Hungarian adapters, Estonian source-gated status, and remaining production/bulk source gates.
   - [x] DONE [HARD]: Estonian source unblock: `docs/estonian-source-smoke.md` confirms `etwiktionary` native-definition fixtures are acceptable for a tiny baseline, while Sõnaveeb/Ekilex stays as a later CC BY 4.0 API candidate.
   - Case-rich morphology and lemmatization are required before production lookup.
@@ -478,25 +478,32 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Uyghur: kept adapter blocked because the candidate set still lacks enough balanced non-placeholder native-definition fixtures.
 - Cross-family attribution: documented shared fixture/offline-pack metadata requirements in `docs/source-attribution-packaging.md`.
 
+**Module: Estonian monolingual baseline** - DONE
+- Metadata/registry: registered `et` language metadata, adapter dispatch, and dictionary API routing.
+- Fixtures: added tiny `etwiktionary`-attributed local entries for `maja`, `jää`, `öö`, and `sööma`.
+- Normalization/morphology: preserved Estonian diacritics and added conservative fixture-backed case/verb fallbacks.
+- Tests: covered exact lookup, fallback lookup, missing-source behavior, related words, adapter registration, and normalization.
+- Docs/progress: updated Estonian plan, source smoke status, and this queue before verification and commit.
+
 ## Next Work Module
 
-**Module: Estonian monolingual baseline**
-- Goal: implement the newly unblocked tiny Estonian `etwiktionary` baseline using the existing Uralic adapter patterns.
+**Module: Uzbek monolingual baseline**
+- Goal: implement the newly unblocked tiny Uzbek `uzwiktionary` baseline using the existing Turkic adapter patterns.
 - Scope: 5 related implementation tasks; complete the whole module before opening a new module.
 
 ### Module Completion Plan
-1. Add Estonian metadata and registry dispatch only after fixtures and source metadata are ready.
-2. Add curated `etwiktionary` local fixtures with source URL, revision id, license, and attribution fields.
-3. Add Estonian normalization and conservative fixture-backed morphology fallbacks for case-rich forms.
-4. Add dictionary API, adapter registry, and normalization tests for exact, diacritic, related-word, and fallback behavior.
+1. Add Uzbek metadata and registry dispatch only with a tiny accepted fixture set.
+2. Add curated `uzwiktionary` local fixtures for `uy`, `kitob`, `qilmoq`, and `oʻzbek` with attribution notes.
+3. Add Uzbek normalization for Latin apostrophe variants and preserve Cyrillic/native-script lookup boundaries.
+4. Add conservative Turkic morphology fallbacks for fixture-backed noun and verb forms without broad lemmatization.
 5. Update docs/progress, run verification, commit the completed module, then create the next 3-5 task module.
 
 ### Module Tasks
-1. [ ] [HARD] Estonian metadata and adapter registration: add `et` language metadata, adapter registry dispatch, and dictionary API routing.
-2. [ ] [HARD] Estonian fixture source pack: add tiny `etwiktionary` fixtures for noun/diacritic/verb coverage with attribution metadata.
-3. [ ] [HARD] Estonian normalization and morphology: preserve `ä/ö/ü/õ`, add fixture-backed case/form fallbacks, and avoid broad lemmatization.
-4. [ ] [HARD] Estonian test coverage: add dictionary API, adapter registry, normalization, missing-source, and related-word tests.
-5. [ ] [MEDIUM] Estonian docs and progress sync: update `docs/estonian-language-plan.md`, `docs/estonian-source-smoke.md`, and this progress file after verification.
+1. [ ] [HARD] Uzbek metadata and adapter registration: add `uz` language metadata, adapter registry dispatch, and dictionary API routing.
+2. [ ] [HARD] Uzbek fixture source pack: add tiny `uzwiktionary` fixtures for noun/place/verb/demonym coverage with attribution metadata.
+3. [ ] [HARD] Uzbek normalization and script handling: normalize apostrophe variants such as `oʻ/o'/o‘`, keep Latin/Cyrillic expectations explicit, and avoid ASCII-only folding.
+4. [ ] [HARD] Uzbek morphology and test coverage: add conservative fixture-backed Turkic noun/verb form fallbacks plus dictionary API, adapter registry, normalization, missing-source, and related-word tests.
+5. [ ] [MEDIUM] Uzbek docs and progress sync: update `docs/uzbek-language-plan.md`, `docs/uzbek-source-smoke.md`, and this progress file after verification.
 
 
 

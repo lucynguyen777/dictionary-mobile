@@ -39,6 +39,14 @@ vi.mock('../data/dictionaryApi', () => {
   }));
 
   const mockFetchEnglishRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
+  const mockFetchEstonianMeaning = vi.fn(async (word: string) => ({
+    word: `${word}-mock`,
+    ipa: '',
+    audio: '',
+    definitions: [],
+    source: 'et',
+  }));
+  const mockFetchEstonianRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
   const mockFetchMinhQndRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
   const mockFetchWiktApiRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
 
@@ -46,10 +54,12 @@ vi.mock('../data/dictionaryApi', () => {
 
   return {
     fetchEnglishMeaning: mockFetchEnglishMeaning,
+    fetchEstonianMeaning: mockFetchEstonianMeaning,
     fetchMinhQndMonolingualMeaning: mockFetchMinhQndMonolingual,
     fetchWiktApiMonolingualMeaning: mockFetchWiktApiMonolingual,
     fetchBilingualMeaning: mockFetchBilingualMeaning,
     fetchEnglishRelatedWords: mockFetchEnglishRelated,
+    fetchEstonianRelatedWords: mockFetchEstonianRelated,
     fetchMinhQndRelatedWords: mockFetchMinhQndRelated,
     fetchWiktApiRelatedWords: mockFetchWiktApiRelated,
     fetchVietnameseSuggestions: mockFetchVietnameseSuggestions,
@@ -69,18 +79,21 @@ describe('adapterRegistry', () => {
   it('registers core adapters and source adapters', () => {
     const en = getAdapterByKey('en');
     const viAdapter = getAdapterByKey('vi');
+    const etAdapter = getAdapterByKey('et');
     const kkAdapter = getAdapterByKey('kk');
     const minh = getAdapterByKey('minhqnd');
     const wikt = getAdapterByKey('wiktapi');
 
     expect(en).toBeDefined();
     expect(viAdapter).toBeDefined();
+    expect(etAdapter).toBeDefined();
     expect(kkAdapter).toBeDefined();
     expect(minh).toBeDefined();
     expect(wikt).toBeDefined();
 
     expect(en?.key).toBe('en');
     expect(viAdapter?.key).toBe('vi');
+    expect(etAdapter?.key).toBe('et');
     expect(kkAdapter?.key).toBe('kk');
     expect(minh?.key).toBe('minhqnd');
     expect(wikt?.key).toBe('wiktapi');

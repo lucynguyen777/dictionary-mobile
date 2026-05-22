@@ -9,12 +9,16 @@
 - Baseline target: `et -> et` monolingual lookup before any bilingual Estonian pair.
 
 ## Scope
-This is now an implementation-ready planning document for a tiny curated Estonian baseline. Do not add Estonian metadata or adapter code until the first `etwiktionary` fixture set and attribution metadata land with tests.
+This document tracks the implemented tiny curated Estonian baseline. The app now supports `et -> et` monolingual lookup from local `etwiktionary`-attributed fixtures, while production-scale Sõnaveeb/Ekilex and offline-pack expansion remain gated.
 
 ## Current Code Audit
 - Status refreshed: May 22, 2026.
-- Current code status: `et` is not registered in `data/languages.ts`, has no adapter in `data/adapterRegistry.ts`, and has no Estonian fixture set or dictionary API dispatch.
-- Family context: Finnish and Hungarian are implemented tiny Uralic baselines; Estonian remains the next unblocked-planning/blocked-implementation slice in this family.
+- Current code status: `et` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'`, `adapterKey: 'et'`, Uralic family metadata, Latin script, and LTR writing direction.
+- Adapter/API status: `data/adapterRegistry.ts` dispatches `et` through `fetchEstonianMeaning` and `fetchEstonianRelatedWords`; `data/dictionaryApi.ts` enables Estonian monolingual lookup and related-word routing.
+- Fixture status: `data/localLexicon.ts` includes a tiny curated Estonian fixture set for `maja`, `jää`, `öö`, and `sööma`, with local educational definitions and `etwiktionary` attribution notes.
+- Normalization/morphology status: `data/languageNormalization.ts` uses the Estonian locale; `data/morphology.ts` has conservative fixture-backed case and verb-form fallbacks.
+- Test status: `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, and `tests/languageNormalization.test.ts` cover Estonian lookup, fallback, diacritic preservation, related words, and adapter registration.
+- Family context: Finnish, Hungarian, and Estonian are now implemented tiny Uralic baselines.
 - Source gate: DONE for tiny curated fixtures via Estonian Wiktionary MediaWiki pages under CC BY-SA 4.0; see `docs/estonian-source-smoke.md`.
 - Remaining gate: Sõnaveeb/Ekilex production API use needs API key handling and endpoint parser work before runtime integration.
 
@@ -64,7 +68,7 @@ This is now an implementation-ready planning document for a tiny curated Estonia
 - Offline/bundled Estonian data remains blocked until `.docs/decisions/offline-dictionary-bundle.md` and `.docs/decisions/dictionary-source-licensing.md` are accepted.
 
 ## Implementation Plan
-Status: source gate is accepted for a tiny `etwiktionary` fixture baseline; implementation remains pending.
+Status: the tiny `etwiktionary` fixture baseline is implemented.
 
 1. Select a true Estonian-definition source before adding `et` to language metadata: DONE for tiny curated `etwiktionary` fixtures.
 2. Smoke source records for at least:
@@ -72,16 +76,16 @@ Status: source gate is accepted for a tiny `etwiktionary` fixture baseline; impl
    - verb: `sööma` (to eat)
    - diacritics: `öö` (night), `jää` (ice)
    - inflected lookup: `majas` (in the house)
-3. Confirm fixture fields: headword, part of speech, Estonian glosses, examples if available, forms, source URL, revision id, and CC BY-SA 4.0 attribution.
-4. Add adapter tests for monolingual lookup, inflected-form fallback, diacritic preservation, and missing-source behavior.
-5. Keep Estonian bilingual lookup blocked until a trustworthy lexical bilingual source exists.
+3. Confirm fixture fields: headword, part of speech, Estonian glosses, examples if available, forms, source URL, revision id, and CC BY-SA 4.0 attribution: DONE for the local fixture baseline.
+4. Add adapter tests for monolingual lookup, inflected-form fallback, diacritic preservation, and missing-source behavior: DONE.
+5. Keep Estonian bilingual lookup blocked until a trustworthy lexical bilingual source exists: STILL BLOCKED.
 
 ## Tests
-- `data/languages.ts` metadata test after adding `et`.
-- `data/adapterRegistry.ts` dispatch test after adapter registration.
-- Dictionary API parse tests for Estonian source records.
-- NFC/diacritic-preserving normalization tests for `ä`, `ö`, `ü`, `õ`, and composed/decomposed forms.
-- Form lookup tests for source-provided case forms before any local suffix stripping.
+- Adapter registry coverage confirms `et` is registered.
+- Dictionary API tests cover exact Estonian records for `maja`, `jää`, `öö`, and `sööma`.
+- NFC/diacritic-preserving normalization tests cover composed/decomposed Estonian diacritics.
+- Form lookup tests cover fixture-backed case and verb forms before any broad lemmatization.
+- Missing-source tests reject ASCII-folded lookups such as `jaa` and `oo`.
 
 ## Blocked Decisions
 - Production-scale Estonian monolingual lookup remains blocked until Sõnaveeb/Ekilex API key handling or a bulk source path is implemented.
@@ -89,4 +93,4 @@ Status: source gate is accepted for a tiny `etwiktionary` fixture baseline; impl
 - Offline Estonian bundle is blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Implement a tiny `etwiktionary` fixture baseline for `et`, then defer Sõnaveeb/Ekilex production integration until API key handling is designed.
+The tiny `etwiktionary` fixture baseline is complete. The next safe Estonian follow-up is production expansion through Sõnaveeb/Ekilex API key handling and parser work, or offline-pack attribution packaging in a later module.

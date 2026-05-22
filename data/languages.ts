@@ -251,6 +251,16 @@ export const languageOptions = [
     dictionaryStatus: 'monolingual',
   },
   {
+    code: 'et',
+    label: 'Eesti (Estonian)',
+    hint: 'Wiktionary preview',
+    family: 'uralic',
+    script: 'latin',
+    writingDirection: 'ltr',
+    adapterKey: 'et',
+    dictionaryStatus: 'monolingual',
+  },
+  {
     code: 'tr',
     label: 'Türkçe (Turkish)',
     hint: 'Wiktionary preview',

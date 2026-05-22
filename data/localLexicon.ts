@@ -342,6 +342,133 @@ const finnishDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const estonianDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'maja',
+    ipa: '',
+    audio: '',
+    level: 'A1',
+    topic: 'Kodu (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'ehitis, milles on siseruume (a building with interior rooms)',
+    definitions: [
+      {
+        partOfSpeech: 'nimisõna (noun)',
+        meaning: 'Ehitis, milles on siseruume ja mida saab kasutada elamiseks või muuks otstarbeks (A building with rooms inside, used for living or other purposes).',
+        vietnamese: 'Nhà, công trình có phòng bên trong dùng để ở hoặc phục vụ mục đích khác.',
+        examples: [
+          { source: 'Maja on suur.', translation: 'Ngôi nhà lớn.' }
+        ],
+      }
+    ],
+    synonyms: ['hoone'],
+    antonyms: [],
+    collocations: ['suur maja', 'maja uks'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Genitive', form: 'maja' },
+      { tense: 'Partitive', form: 'maja' },
+      { tense: 'Inessive', form: 'majas' },
+      { tense: 'Elative', form: 'majast' },
+      { tense: 'Illative', form: 'majasse' },
+      { tense: 'Plural nominative', form: 'majad' }
+    ],
+    etymology: 'Curated from Estonian Wiktionary page "maja", CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'jää',
+    ipa: '',
+    audio: '',
+    level: 'A1',
+    topic: 'Loodus (Nature)',
+    vietnamese: 'băng',
+    shortDefinition: 'külmunud vesi (frozen water)',
+    definitions: [
+      {
+        partOfSpeech: 'nimisõna (noun)',
+        meaning: 'Külmunud vesi ehk tahkes olekus vesi (Frozen water, water in solid form).',
+        vietnamese: 'Băng, nước ở trạng thái rắn.',
+        examples: [
+          { source: 'Järvel on jää.', translation: 'Có băng trên hồ.' }
+        ],
+      }
+    ],
+    synonyms: [],
+    antonyms: ['vesi'],
+    collocations: ['õhuke jää', 'merejää'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Genitive', form: 'jää' },
+      { tense: 'Partitive', form: 'jääd' },
+      { tense: 'Inessive', form: 'jääs' },
+      { tense: 'Elative', form: 'jääst' }
+    ],
+    etymology: 'Curated from Estonian Wiktionary page "jää", revision 1195676, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'öö',
+    ipa: '/øː/',
+    audio: '',
+    level: 'A1',
+    topic: 'Aeg (Time)',
+    vietnamese: 'đêm',
+    shortDefinition: 'ööpäeva pime osa (dark part of the day)',
+    definitions: [
+      {
+        partOfSpeech: 'nimisõna (noun)',
+        meaning: 'Ööpäeva pime osa ja öine aeg (The dark part of a day and night-time).',
+        vietnamese: 'Ban đêm, phần tối của một ngày.',
+        examples: [
+          { source: 'Öö on vaikne.', translation: 'Đêm yên tĩnh.' }
+        ],
+      }
+    ],
+    synonyms: ['öine aeg'],
+    antonyms: ['päev'],
+    collocations: ['head ööd', 'pime öö'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Genitive', form: 'öö' },
+      { tense: 'Partitive', form: 'ööd' },
+      { tense: 'Inessive', form: 'öös' }
+    ],
+    etymology: 'Curated from Estonian Wiktionary page "öö", revision 1197222, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'sööma',
+    ipa: '',
+    audio: '',
+    level: 'A1',
+    topic: 'Toit (Food)',
+    vietnamese: 'ăn',
+    shortDefinition: 'toitu tarvitama (to eat)',
+    definitions: [
+      {
+        partOfSpeech: 'tegusõna (verb)',
+        meaning: 'Toitu suhu võtma ja alla neelama (To take food into the mouth and swallow it).',
+        vietnamese: 'Ăn, đưa thức ăn vào miệng và nuốt.',
+        examples: [
+          { source: 'Ma söön leiba.', translation: 'Tôi ăn bánh mì.' }
+        ],
+      }
+    ],
+    synonyms: ['einestama'],
+    antonyms: [],
+    collocations: ['sööma hakkama', 'väljas sööma'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Present 1sg', form: 'söön' },
+      { tense: 'Present 3sg', form: 'sööb' },
+      { tense: 'Past 3sg', form: 'sõi' }
+    ],
+    etymology: 'Curated from Estonian Wiktionary page "sööma", CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  }
+];
+
 const turkishDictionaryEntries: DictionaryEntry[] = [
   {
     word: 'ev',
@@ -2414,6 +2541,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   ar: arabicDictionaryEntries,
   he: hebrewDictionaryEntries,
   fi: finnishDictionaryEntries,
+  et: estonianDictionaryEntries,
   tr: turkishDictionaryEntries,
   kk: kazakhDictionaryEntries,
   ja: japaneseDictionaryEntries,
@@ -2451,6 +2579,10 @@ export function findLocalDictionaryEntry(languageCode: string, word: string) {
     const normalizedWord = normalizeKazakhWord(word);
     return getLocalDictionaryEntries('kk').find((entry) => normalizeKazakhWord(entry.word) === normalizedWord);
   }
+  if (languageCode === 'et') {
+    const normalizedWord = normalizeEstonianWord(word);
+    return getLocalDictionaryEntries('et').find((entry) => normalizeEstonianWord(entry.word) === normalizedWord);
+  }
   if (languageCode === 'yo') {
     const normalizedWord = normalizeYorubaWord(word);
     return getLocalDictionaryEntries('yo').find((entry) => normalizeYorubaWord(entry.word) === normalizedWord);
@@ -2484,6 +2616,10 @@ export function normalizeTurkishWord(value: string) {
 
 export function normalizeKazakhWord(value: string) {
   return value.trim().normalize('NFC').toLocaleLowerCase('kk-KZ');
+}
+
+export function normalizeEstonianWord(value: string) {
+  return value.trim().normalize('NFC').toLocaleLowerCase('et-EE');
 }
 
 export function normalizeYorubaWord(value: string) {

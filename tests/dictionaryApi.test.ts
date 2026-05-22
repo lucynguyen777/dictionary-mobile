@@ -77,6 +77,56 @@ describe('Finnish monolingual baseline and morphology', () => {
   });
 });
 
+describe('Estonian monolingual baseline and morphology', () => {
+  it('enables the Estonian monolingual adapter for the lookup surface', () => {
+    expect(canUseMonolingualDictionaryApi('et')).toBe(true);
+  });
+
+  it('looks up exact Estonian nouns and verbs', async () => {
+    const maja = await fetchMonolingualMeaning('maja', 'et');
+    expect(maja.word).toBe('maja');
+    expect(maja.definitions[0].meaning).toContain('Ehitis, milles on siseruume');
+    expect(maja.definitions[0].source).toBe('etwiktionary');
+
+    const jaa = await fetchMonolingualMeaning('jää', 'et');
+    expect(jaa.word).toBe('jää');
+    expect(jaa.definitions[0].meaning).toContain('Külmunud vesi');
+
+    const ooNight = await fetchMonolingualMeaning('öö', 'et');
+    expect(ooNight.word).toBe('öö');
+    expect(ooNight.ipa).toBe('/øː/');
+
+    const sooma = await fetchMonolingualMeaning('sööma', 'et');
+    expect(sooma.word).toBe('sööma');
+    expect(sooma.definitions[0].meaning).toContain('Toitu suhu võtma');
+  });
+
+  it('resolves fixture-backed case and verb forms', async () => {
+    const majas = await fetchMonolingualMeaning('majas', 'et');
+    expect(majas.word).toBe('maja');
+    expect(majas.source).toContain('base form of majas');
+
+    const jaad = await fetchMonolingualMeaning('jääd', 'et');
+    expect(jaad.word).toBe('jää');
+
+    const ööd = await fetchMonolingualMeaning('ööd', 'et');
+    expect(ööd.word).toBe('öö');
+
+    const soon = await fetchMonolingualMeaning('söön', 'et');
+    expect(soon.word).toBe('sööma');
+  });
+
+  it('preserves Estonian diacritics and rejects ASCII-folded lookups', async () => {
+    await expect(fetchMonolingualMeaning('jaa', 'et')).rejects.toThrow('No Estonian Wiktionary meanings');
+    await expect(fetchMonolingualMeaning('oo', 'et')).rejects.toThrow('No Estonian Wiktionary meanings');
+  });
+
+  it('fetches Estonian local related words', async () => {
+    const related = await fetchRelatedWords('majas', 'et');
+    expect(related.synonyms).toContain('hoone');
+  });
+});
+
 describe('Turkish monolingual baseline and morphology', () => {
 
   it('looks up exact monolingual nouns and verbs', async () => {
