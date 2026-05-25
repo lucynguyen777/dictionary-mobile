@@ -16,10 +16,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: no unblocked hard implementation module remains after the roadmap audit; remaining hard items require provider/source/native-runtime decisions.
+- Hard next tasks: Database architecture planning is DONE; next hard work is local user-data SQLite migration readiness (see Next Work Module).
 
 ## Current Baseline
 - Latest completed commits:
+  - `342b63b` docs(progress): audit remaining roadmap blockers
   - `146d633` feat(recognition): add OCR readiness boundary
   - `51c8a97` docs(progress): set voice ocr readiness queue
   - `22d9dab` feat(lang): add Hindi monolingual baseline
@@ -523,9 +524,32 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Reclassified Voice/OCR parent row as `[!] BLOCKED` after Stage 3 readiness, with explicit blockers for native OCR and STT package/dev-client validation.
 - Docs/progress: updated this file. Verification: `git diff --check`, `npx tsc --noEmit`, and `npm run lint`.
 
+**Module: Database architecture and local-first data governance** - DONE
+- Audit: mapped current persistence surfaces across `libraryStore`, `profileStore`, `readerStore`, `storageAdapter`, local export, offline pack install state, pack downloads, and SQLite pack storage.
+- Architecture plan: added `docs/database-architecture-plan.md` for hybrid local-first data ownership, current storage inventory, target local user database boundary, and existing per-pack offline dictionary SQLite databases.
+- Governance: documented user data vs app-owned offline-pack data, schema versioning, migration, backup/export, reset/delete, storage limits, and attribution retention rules.
+- Cloud boundary: kept auth provider, backend database, cloud sync, encrypted backup, account deletion, and support-channel submission blocked until provider decisions are accepted.
+- Next candidates: selected `Local user-data SQLite migration readiness` as the next implementation module while keeping backend/auth and offline-pack expansion as alternative future modules.
+
 ## Next Work Module
 
-No active module selected. Current audit summary: 0 unblocked TODO/IN PROGRESS tasks remain; 24 blocked checklist rows remain and require external decisions before implementation. Before starting the next module, unblock one of these areas first: auth provider/account backend, support-channel destination, native OCR/STT dev-client package choice, Cantonese/Uyghur definition source, translation/backend provider, Google Sheets OAuth, pronunciation scoring engine, or production etymology/conjugation source expansion.
+**Module: Local user-data SQLite migration readiness**
+- Goal: prepare migration of user-owned local data from AsyncStorage JSON stores into a versioned local SQLite database without changing runtime storage yet.
+- Scope: 5 related planning/contract tasks; complete this readiness module before implementing the migration runtime.
+
+### Module Completion Plan
+1. Audit profile, library, flashcard, search-history, and reader entities against the new database architecture plan.
+2. Define proposed local user database tables, primary keys, timestamps, soft-delete needs, and version fields for migration readiness.
+3. Define an AsyncStorage-to-SQLite migration strategy with rollback/export safety and no backend dependency.
+4. Define test fixtures and acceptance criteria for migration, backup/export compatibility, reset behavior, and reader/library/profile parity.
+5. Update `docs/database-architecture-plan.md`, this progress file, and verification notes after doc-only checks.
+
+### Module Tasks
+1. [ ] TODO [HARD] User-data entity audit: profile, folders, saved words, flashcards/reviews, search history, reader documents, and settings.
+2. [ ] TODO [HARD] Local SQLite schema proposal: versioned tables, ownership boundaries, ids, timestamps, soft deletes, and indexes.
+3. [ ] TODO [MEDIUM] Migration strategy: AsyncStorage read/normalize/write plan, rollback safety, export safety, and idempotency rules.
+4. [ ] TODO [MEDIUM] Verification design: migration fixtures, parity checks, reset/delete behavior, and export compatibility.
+5. [ ] TODO [MEDIUM] Docs/progress sync: update database plan, this file, and run `git diff --check`, `npx tsc --noEmit`, and `npm run lint`.
 
 
 
