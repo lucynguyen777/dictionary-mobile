@@ -329,12 +329,25 @@ Acceptance criteria for the implementation module:
 - reset/delete flows clearly target user data and do not silently delete offline packs;
 - `npx tsc --noEmit`, `npm run lint`, focused migration tests, and full `npm test -- --run` pass.
 
+### Migration Bridge Implementation
+
+The first implementation bridge now exists without changing Profile, Library, or Reader runtime reads:
+
+- `data/userDatabaseSchema.ts` owns the `dictionary-mobile-user.sqlite` database name, schema version, schema SQL, Expo SQLite open/delete ports, and schema bootstrap helper.
+- `data/userDatabaseMappers.ts` serializes normalized `UserProfile`, `LibraryState`, and `ReaderState` snapshots into SQLite row shapes for profile, folders, saved words, saved-word folder membership, search history, flashcards, tombstones, reader documents, and reader settings.
+- `data/userDatabaseMigration.ts` runs export safety, reads the current AsyncStorage-backed stores, opens the user database, creates schema, replaces rows inside one SQLite transaction, and returns parity counts.
+- `tests/userDatabaseMigration.test.ts` verifies schema execution, export safety, idempotent reruns, transaction rollback, multi-folder words, flashcard sync/delete fields, deleted folder tombstones, and reader selected-document fallback with a fake SQLite harness.
+
+Runtime stores still use AsyncStorage as the source of truth. The next module should adopt the bridge behind Profile, Library, and Reader adapters only after web/native smoke proves reads, writes, export, reset, and rollback behavior.
+
 ## Verification
 
-This planning module is doc-only. Verification:
+Database planning and bridge verification:
 
 ```bash
 git diff --check
+npm test -- --run tests/userDatabaseMigration.test.ts
 npx tsc --noEmit
 npm run lint
+npm test -- --run
 ```

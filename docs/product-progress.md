@@ -15,11 +15,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
-- Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Local user-data SQLite migration readiness is DONE; next hard work is implementing the local user database migration bridge (see Next Work Module).
+- Medium next tasks: local UI/data consistency polish and future adapter implementation slices after database smoke tests.
+- Hard next tasks: Local user database migration bridge is implemented; next hard work is adopting the SQLite runtime path behind Profile, Library, and Reader adapters (see Next Work Module).
 
 ## Current Baseline
 - Latest completed commits:
+  - `8980dfc` docs(database): define user data migration readiness
   - `9084c84` docs(database): plan local-first database architecture
   - `342b63b` docs(progress): audit remaining roadmap blockers
   - `146d633` feat(recognition): add OCR readiness boundary
@@ -539,25 +540,32 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Verification design: specified fixtures for profile, library, flashcards, reader, corrupted payload fallback, reset/delete behavior, and export compatibility.
 - Docs/progress: updated `docs/database-architecture-plan.md` and this file. Verification: `git diff --check`, `npx tsc --noEmit`, and `npm run lint`.
 
+**Module: Local user database migration bridge** - DONE
+- Schema module: added `data/userDatabaseSchema.ts` with `dictionary-mobile-user.sqlite`, schema version metadata, schema SQL, Expo SQLite open/delete ports, and schema bootstrap helper.
+- Row mappers: added `data/userDatabaseMappers.ts` for profile, folders, saved words, folder membership, search history, flashcards, deleted entities, reader documents, and reader settings.
+- Migration orchestrator: added `data/userDatabaseMigration.ts` to run export safety, load AsyncStorage-backed state, write rows transactionally, close the database, and report parity counts.
+- Tests: added `tests/userDatabaseMigration.test.ts` covering fake SQLite schema setup, idempotency, rollback-on-failure, multi-folder words, flashcard sync/delete fields, deleted folder tombstones, and reader selected-document fallback.
+- Runtime boundary: existing Profile, Library, and Reader stores still read/write AsyncStorage; no backend/auth provider or offline dictionary pack schema changed.
+
 ## Next Work Module
 
-**Module: Local user database migration bridge**
-- Goal: implement the first local SQLite user database bridge and migration utilities while keeping existing AsyncStorage runtime stores as the source of truth.
-- Scope: 5 related implementation tasks; complete this bridge before switching Profile/Library/Reader runtime reads to SQLite.
+**Module: Profile/Library/Reader SQLite runtime adoption**
+- Goal: route user-owned Profile, Library, and Reader persistence through the local user SQLite database while preserving AsyncStorage export/rollback safety during the transition.
+- Scope: 5 related implementation tasks; complete adapter adoption before deleting old AsyncStorage keys.
 
 ### Module Completion Plan
-1. Add a user database schema module with SQL constants and database-open/delete ports mirroring the readiness plan.
-2. Add serializer/parser utilities for profile, library, flashcard, search-history, and reader rows without changing UI runtime behavior.
-3. Add migration orchestration that reads normalized AsyncStorage state, writes SQLite rows transactionally, and reports parity counts.
-4. Add in-memory/fake SQLite tests for idempotency, rollback-on-failure, multi-folder saved words, flashcard sync fields, reader selected-document fallback, and export compatibility assumptions.
-5. Update database docs, this progress file, and verification notes after focused/full tests.
+1. Add user database read adapters that parse SQLite rows back into `UserProfile`, `LibraryState`, and `ReaderState`.
+2. Add write adapters for profile saves, library mutations, reader imports/settings, and transaction boundaries.
+3. Add runtime fallback policy: run migration when needed, keep AsyncStorage export readable, and fall back safely if SQLite open/read fails.
+4. Update reset/export flows so user-data reset targets the SQLite user database while offline dictionary packs remain separate.
+5. Add focused adapter tests plus Profile/Library/Reader smoke verification before marking AsyncStorage cleanup as eligible.
 
 ### Module Tasks
-1. [ ] TODO [HARD] User database schema module: SQL constants, schema version metadata, and open/delete storage ports.
-2. [ ] TODO [HARD] User data row mappers: profile, folders, saved words, folder membership, search history, flashcards, deleted entities, reader documents, and reader settings.
-3. [ ] TODO [HARD] Migration orchestrator: AsyncStorage source read, transaction write, idempotency, parity result, and failure rollback behavior.
-4. [ ] TODO [MEDIUM] Focused migration tests: fake SQLite storage, representative fixtures, rollback, multi-folder words, flashcard sync states, and reader fallback.
-5. [ ] TODO [MEDIUM] Docs/progress sync: update database plan, this file, and run focused tests plus `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and `npm test -- --run`.
+1. [ ] TODO [HARD] SQLite-to-store parsers: read profile, folders, saved words, folder membership, search history, flashcards, tombstones, reader documents, and reader settings back into existing state types.
+2. [ ] TODO [HARD] Runtime storage adapters: switch profile/library/reader persistence calls behind a local user database adapter with AsyncStorage fallback still available.
+3. [ ] TODO [HARD] Migration-on-start policy: detect missing/schema-version state, run the migration bridge once, and preserve recoverable rollback behavior.
+4. [ ] TODO [MEDIUM] Reset/export boundary update: include SQLite user database in local backup/reset flows without deleting offline dictionary pack databases.
+5. [ ] TODO [MEDIUM] Verification/docs sync: add focused adapter tests, run Profile/Library/Reader smoke checks, update database plan, and run `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and `npm test -- --run`.
 
 
 
