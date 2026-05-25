@@ -143,6 +143,192 @@ When those decisions are accepted, cloud sync should use local entity ids, times
 
 Recommended next module: **Local user-data SQLite migration readiness**, because it improves local-first foundations without requiring backend/auth decisions.
 
+## Local User SQLite Migration Readiness
+
+This readiness module defines the target local user database contract only. Runtime still reads and writes the existing AsyncStorage stores until an implementation module replaces the adapters.
+
+### Entity Audit
+
+| Entity | Current source | Proposed ownership | Migration notes |
+| --- | --- | --- | --- |
+| `user_profile` | `UserProfile` in `data/profileStore.ts` | user-owned singleton | keep a stable row id such as `local-profile`; store login method as local metadata, not auth identity |
+| `notification_preferences` | nested profile object | user-owned settings | can be either a JSON column on profile or a one-row settings table; first SQLite implementation should keep it normalized as columns for validation |
+| `folders` | `Folder[]` in `LibraryState` | user-owned | preserve `favorites` virtual folder behavior outside the table; keep deleted folder ids for future sync |
+| `saved_words` | `SavedWord[]` in `LibraryState` | user-owned | words can belong to multiple folders, so folder membership must be split into a join table |
+| `saved_word_folders` | `SavedWord.folderIds[]` | user-owned relation | composite key: `(word_id, folder_id)` |
+| `search_history` | `SearchHistoryItem[]` | user-owned activity | key by normalized word plus `looked_up_at`, keeping most recent rows first in queries |
+| `flashcards` | `Flashcard[]` | user-owned learning data | preserve SM-2 fields, `syncStatus`, `lastSyncedAt`, and `version`; soft-delete is required for future sync |
+| `deleted_folder_ids` | `LibraryState.deletedFolderIds[]` | user-owned tombstones | migrate into a tombstone table so future sync can see deletes |
+| `reader_documents` | `ReaderDocument[]` | user-owned content | text can be large; keep current file-size import gates and avoid mixing with dictionary pack data |
+| `reader_settings` | `ReaderSettings` and `selectedDocumentId` | user-owned settings | singleton settings row, with selected document nullable |
+
+### Proposed Local SQLite Schema
+
+Use one app-owned user database, separate from offline dictionary pack databases:
+
+- Database name: `dictionary-mobile-user.sqlite`.
+- Schema version: start at `1` in `user_database_meta`.
+- All timestamps are ISO strings in UTC.
+- All ids are app-generated strings during the first migration; do not introduce backend ids before auth/backend decisions.
+
+```sql
+CREATE TABLE user_database_meta (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE user_profile (
+  id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  email TEXT NOT NULL DEFAULT '',
+  username TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  avatar_url TEXT NOT NULL DEFAULT '',
+  login_method TEXT NOT NULL DEFAULT 'local',
+  native_language TEXT NOT NULL,
+  learning_language TEXT NOT NULL,
+  proficiency_level TEXT NOT NULL,
+  learning_goal TEXT NOT NULL,
+  timezone TEXT NOT NULL,
+  daily_goal TEXT NOT NULL,
+  app_lock_enabled INTEGER NOT NULL DEFAULT 0,
+  daily_reminder_enabled INTEGER NOT NULL DEFAULT 1,
+  review_reminder_enabled INTEGER NOT NULL DEFAULT 1,
+  weekly_summary_enabled INTEGER NOT NULL DEFAULT 0,
+  reminder_time TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE folders (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  color TEXT NOT NULL,
+  color_note TEXT NOT NULL DEFAULT '',
+  tags_json TEXT NOT NULL DEFAULT '[]',
+  avatar_uri TEXT NOT NULL DEFAULT '',
+  is_favorite INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+
+CREATE TABLE saved_words (
+  id TEXT PRIMARY KEY,
+  word TEXT NOT NULL,
+  ipa TEXT NOT NULL DEFAULT '',
+  definition TEXT NOT NULL DEFAULT '',
+  audio TEXT NOT NULL DEFAULT '',
+  note TEXT NOT NULL DEFAULT '',
+  tags_json TEXT NOT NULL DEFAULT '[]',
+  source TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+
+CREATE TABLE saved_word_folders (
+  word_id TEXT NOT NULL,
+  folder_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (word_id, folder_id)
+);
+
+CREATE TABLE search_history (
+  id TEXT PRIMARY KEY,
+  word TEXT NOT NULL,
+  normalized_word TEXT NOT NULL,
+  looked_up_at TEXT NOT NULL
+);
+
+CREATE TABLE flashcards (
+  id TEXT PRIMARY KEY,
+  word_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  front TEXT NOT NULL,
+  back TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  review_state TEXT NOT NULL,
+  interval INTEGER NOT NULL,
+  repetition INTEGER NOT NULL,
+  efactor REAL NOT NULL,
+  due_date TEXT NOT NULL,
+  sync_status TEXT,
+  last_synced_at TEXT,
+  version INTEGER NOT NULL DEFAULT 1,
+  deleted_at TEXT
+);
+
+CREATE TABLE deleted_entities (
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  deleted_at TEXT NOT NULL,
+  PRIMARY KEY (entity_type, entity_id)
+);
+
+CREATE TABLE reader_documents (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  source_format TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+
+CREATE TABLE reader_settings (
+  id TEXT PRIMARY KEY,
+  selected_document_id TEXT,
+  font_size INTEGER NOT NULL,
+  font_family TEXT NOT NULL,
+  background_color TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX saved_words_word_idx ON saved_words(word);
+CREATE INDEX saved_word_folders_folder_idx ON saved_word_folders(folder_id);
+CREATE INDEX search_history_lookup_idx ON search_history(normalized_word, looked_up_at);
+CREATE INDEX flashcards_due_idx ON flashcards(due_date, review_state);
+CREATE INDEX reader_documents_updated_idx ON reader_documents(updated_at);
+```
+
+JSON columns are acceptable for tags in the first migration because current UI treats tags as simple arrays and does not require relational tag search yet. Do not use this schema for offline dictionary entries; those remain in per-pack databases.
+
+### Migration Strategy
+
+1. Export safety first: run the existing JSON export path before marking a migration as complete.
+2. Read current AsyncStorage payloads for profile, library, and reader.
+3. Normalize with existing store normalizers by calling current load functions or equivalent pure normalizers in the future implementation.
+4. Create/open `dictionary-mobile-user.sqlite`, write `schema_version=1`, then insert all normalized rows inside a single transaction.
+5. Verify parity counts and representative fields:
+   - one profile row;
+   - folder count excluding virtual favorites behavior;
+   - saved word count and folder membership count;
+   - flashcard count and SM-2 fields;
+   - search history count;
+   - reader document count and selected document id.
+6. Keep AsyncStorage payloads readable after first migration. Do not delete old keys until a later cleanup module proves the SQLite runtime path in web/native smoke.
+7. Make migration idempotent: re-running migration replaces rows from the same source snapshot or detects completed schema version without duplicating relations.
+8. On failure, close the database, keep AsyncStorage as source of truth, and show a recoverable error path in the future UI.
+
+### Verification Design
+
+Future migration implementation should add focused tests before switching runtime reads:
+
+- profile fixture with empty email/phone and non-default notification preferences;
+- library fixture with folders, deleted folder ids, saved words in multiple folders, tags, notes, and search history;
+- flashcard fixture with each card type, SM-2 review fields, `pending_create`, `pending_update`, `pending_delete`, and `synced` states;
+- reader fixture with multiple documents, selected document fallback, source format, and non-default settings;
+- corrupted/missing AsyncStorage payload fixture proving fallback and rollback behavior;
+- export compatibility test proving JSON export still includes the same user-owned domains after migration.
+
+Acceptance criteria for the implementation module:
+
+- no backend/auth provider required;
+- no changes to offline dictionary pack SQLite databases;
+- migration can run more than once without duplicate rows;
+- reset/delete flows clearly target user data and do not silently delete offline packs;
+- `npx tsc --noEmit`, `npm run lint`, focused migration tests, and full `npm test -- --run` pass.
+
 ## Verification
 
 This planning module is doc-only. Verification:

@@ -16,10 +16,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Database architecture planning is DONE; next hard work is local user-data SQLite migration readiness (see Next Work Module).
+- Hard next tasks: Local user-data SQLite migration readiness is DONE; next hard work is implementing the local user database migration bridge (see Next Work Module).
 
 ## Current Baseline
 - Latest completed commits:
+  - `9084c84` docs(database): plan local-first database architecture
   - `342b63b` docs(progress): audit remaining roadmap blockers
   - `146d633` feat(recognition): add OCR readiness boundary
   - `51c8a97` docs(progress): set voice ocr readiness queue
@@ -531,25 +532,32 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Cloud boundary: kept auth provider, backend database, cloud sync, encrypted backup, account deletion, and support-channel submission blocked until provider decisions are accepted.
 - Next candidates: selected `Local user-data SQLite migration readiness` as the next implementation module while keeping backend/auth and offline-pack expansion as alternative future modules.
 
+**Module: Local user-data SQLite migration readiness** - DONE
+- Entity audit: mapped profile, notification preferences, folders, saved words, saved-word folder membership, search history, flashcards/reviews, deleted folder ids, reader documents, and reader settings.
+- Schema proposal: added `dictionary-mobile-user.sqlite` readiness schema with `user_database_meta`, user profile/settings columns, folders, saved words, join tables, search history, flashcards, tombstones, reader documents, reader settings, and indexes.
+- Migration strategy: documented AsyncStorage read/normalize/write flow, transaction boundary, parity checks, idempotency, rollback safety, and export safety without backend/auth dependency.
+- Verification design: specified fixtures for profile, library, flashcards, reader, corrupted payload fallback, reset/delete behavior, and export compatibility.
+- Docs/progress: updated `docs/database-architecture-plan.md` and this file. Verification: `git diff --check`, `npx tsc --noEmit`, and `npm run lint`.
+
 ## Next Work Module
 
-**Module: Local user-data SQLite migration readiness**
-- Goal: prepare migration of user-owned local data from AsyncStorage JSON stores into a versioned local SQLite database without changing runtime storage yet.
-- Scope: 5 related planning/contract tasks; complete this readiness module before implementing the migration runtime.
+**Module: Local user database migration bridge**
+- Goal: implement the first local SQLite user database bridge and migration utilities while keeping existing AsyncStorage runtime stores as the source of truth.
+- Scope: 5 related implementation tasks; complete this bridge before switching Profile/Library/Reader runtime reads to SQLite.
 
 ### Module Completion Plan
-1. Audit profile, library, flashcard, search-history, and reader entities against the new database architecture plan.
-2. Define proposed local user database tables, primary keys, timestamps, soft-delete needs, and version fields for migration readiness.
-3. Define an AsyncStorage-to-SQLite migration strategy with rollback/export safety and no backend dependency.
-4. Define test fixtures and acceptance criteria for migration, backup/export compatibility, reset behavior, and reader/library/profile parity.
-5. Update `docs/database-architecture-plan.md`, this progress file, and verification notes after doc-only checks.
+1. Add a user database schema module with SQL constants and database-open/delete ports mirroring the readiness plan.
+2. Add serializer/parser utilities for profile, library, flashcard, search-history, and reader rows without changing UI runtime behavior.
+3. Add migration orchestration that reads normalized AsyncStorage state, writes SQLite rows transactionally, and reports parity counts.
+4. Add in-memory/fake SQLite tests for idempotency, rollback-on-failure, multi-folder saved words, flashcard sync fields, reader selected-document fallback, and export compatibility assumptions.
+5. Update database docs, this progress file, and verification notes after focused/full tests.
 
 ### Module Tasks
-1. [ ] TODO [HARD] User-data entity audit: profile, folders, saved words, flashcards/reviews, search history, reader documents, and settings.
-2. [ ] TODO [HARD] Local SQLite schema proposal: versioned tables, ownership boundaries, ids, timestamps, soft deletes, and indexes.
-3. [ ] TODO [MEDIUM] Migration strategy: AsyncStorage read/normalize/write plan, rollback safety, export safety, and idempotency rules.
-4. [ ] TODO [MEDIUM] Verification design: migration fixtures, parity checks, reset/delete behavior, and export compatibility.
-5. [ ] TODO [MEDIUM] Docs/progress sync: update database plan, this file, and run `git diff --check`, `npx tsc --noEmit`, and `npm run lint`.
+1. [ ] TODO [HARD] User database schema module: SQL constants, schema version metadata, and open/delete storage ports.
+2. [ ] TODO [HARD] User data row mappers: profile, folders, saved words, folder membership, search history, flashcards, deleted entities, reader documents, and reader settings.
+3. [ ] TODO [HARD] Migration orchestrator: AsyncStorage source read, transaction write, idempotency, parity result, and failure rollback behavior.
+4. [ ] TODO [MEDIUM] Focused migration tests: fake SQLite storage, representative fixtures, rollback, multi-folder words, flashcard sync states, and reader fallback.
+5. [ ] TODO [MEDIUM] Docs/progress sync: update database plan, this file, and run focused tests plus `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and `npm test -- --run`.
 
 
 
