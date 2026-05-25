@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Uzbek monolingual baseline module is DONE; next hard work is the next 3-5 task module (see Next Work Module).
+- Hard next tasks: Hindi monolingual baseline module is DONE; choose the next 3-5 task module after the next roadmap/code audit.
 
 ## Current Baseline
 - Latest completed commits:
@@ -350,7 +350,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Spanish monolingual baseline: WiktAPI adapter, language metadata, morphology candidates, gender labels.
 - [x] DONE [MEDIUM]: Russian monolingual baseline planning: compare against English/French/Spanish Indo-European adapters, document Cyrillic/case/aspect morphology implications, and select WiktAPI/Russian Wiktionary as the live API candidate pending endpoint smoke test.
   - [x] DONE [MEDIUM]: Russian monolingual baseline implementation: Register Russian adapter, write case/aspect morphology fallbacks, using the community Russian Wiktionary (`ruwiktionary`) CC BY-SA data.
-  - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: Implementation BLOCKED (WiktAPI 'hi' returns 404).
+  - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: original WiktAPI `hi` endpoint stayed blocked, but tiny `hiwiktionary` MediaWiki fixtures are now accepted for the local baseline.
+  - [x] DONE [HARD]: Hindi monolingual baseline implementation: register Hindi metadata/adapter routing, add curated `hiwiktionary` fixtures, normalize Devanagari variants, add conservative noun/verb morphology fallbacks, and cover lookup behavior with tests.
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
 - [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
   - [x] DONE [HARD]: Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate `Intl.Segmenter` for word segmentation, using the community Chinese Wiktionary (`zhwiktionary`) CC BY-SA data.
@@ -410,7 +411,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
   - [x] DONE [HARD]: Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
   - [x] DONE [HARD]: Uzbek monolingual baseline planning: Latin/Cyrillic script handling, apostrophe normalization, agglutinative morphology implications, source smoke, and implementation gates documented in `docs/uzbek-language-plan.md` and `docs/uzbek-source-smoke.md`.
-  - [ ] TODO [HARD]: Uzbek monolingual baseline implementation: tiny curated `uzwiktionary` fixtures are now source-accepted via MediaWiki API under CC BY-SA 4.0; Izoh.uz and bulk/offline Uzbek remain blocked pending terms.
+  - [x] DONE [HARD]: Uzbek monolingual baseline implementation: tiny curated `uzwiktionary` fixtures are source-accepted via MediaWiki API under CC BY-SA 4.0; Izoh.uz and bulk/offline Uzbek remain blocked pending terms.
   - [x] DONE [HARD]: Kazakh monolingual baseline planning: Cyrillic/Latin script duality, full vowel harmony, 7-case morphology fallbacks, source candidates (Sozdik.kz, kkwiktionary Kaikki dump), and gated implementation plan documented in `docs/kazakh-language-plan.md`.
   - [x] DONE [HARD]: Kazakh source smoke: `docs/kazakh-source-smoke.md` confirms Kaikki `kkwiktionary` raw data is not available, WiktAPI `kk` is not viable, and Kazakh Wiktionary MediaWiki API is accepted for curated CC BY-SA fixtures and adapter work.
   - [x] DONE [HARD]: Kazakh monolingual baseline implementation: register Kazakh metadata, add curated Kazakh Wiktionary fixtures with attribution, parse noun/adjective/verb definitions, and cover Cyrillic morphology fallbacks.
@@ -494,25 +495,17 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Tests: 7 new tests in `tests/dictionaryApi.test.ts` covering exact lookup, case/plural suffixes, verb suffixes, apostrophe variants, Cyrillic transliteration, related words, and adapter surface gate; adapter registry test updated.
 - Docs/progress: updated `docs/uzbek-language-plan.md`, `docs/uzbek-source-smoke.md`, and this file; full suite passes (214 tests, 19 files).
 
+**Module: Hindi monolingual baseline** - DONE
+- Metadata/registry: registered `hi` in `data/languages.ts` (Indo-Aryan, Devanagari, LTR, monolingual-only), `data/languageNormalization.ts` (`hi-IN` locale), `data/adapterRegistry.ts`, and `data/dictionaryApi.ts` dispatch.
+- Fixtures: added `hindiDictionaryEntries` in `data/localLexicon.ts` for `घर`, `किताब`, `करना`, and `हिंदी` with CC BY-SA 4.0 attribution from Hindi Wiktionary.
+- Normalization/script: implemented `normalizeHindiWord` with NFC, chandrabindu/anusvara handling, and a narrow `हिन्दी` -> `हिंदी` spelling variant while keeping Latin transliteration out of scope.
+- Morphology: implemented `getHindiMorphologyCandidates` with oblique/plural, postposition-attached noun forms, and fixture-backed `करना` verb forms.
+- Tests: new coverage in `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, and `tests/languageNormalization.test.ts` for exact lookup, form fallback, Devanagari-only behavior, related words, adapter registration, and normalization.
+- Docs/progress: updated `docs/hindi-language-plan.md` and this file; full verification passes (220 tests, 19 files).
+
 ## Next Work Module
 
-**Module: Hindi monolingual baseline**
-- Goal: implement a tiny Hindi `hiwiktionary` baseline, the first Indic/Devanagari-script language in the app.
-- Scope: 5 related implementation tasks; complete the whole module before opening a new module.
-
-### Module Completion Plan
-1. Add Hindi language metadata (`hi`) to `data/languages.ts`, `data/languageNormalization.ts`, `data/adapterRegistry.ts`, and `data/dictionaryApi.ts`.
-2. Add curated `hiwiktionary` local fixtures for `घर` (ghar, house), `किताब` (kitaab, book), `करना` (karna, to do), and `हिंदी` (hindi, noun/adjective) with CC BY-SA 4.0 attribution.
-3. Add Hindi normalization: NFC, remove chandrabindu/anusvara display variants in lookup key, and basic Devanagari-only lookup (no transliteration required for first baseline).
-4. Add conservative Hindi morphology fallbacks: noun oblique/plural (`-ों`, `-ों को`), postposition-attached forms, and verb conjugation stripping (`-ता`, `-ती`, `-ते`, `-ा`, `-ी`) to base form.
-5. Update `docs/hindi-language-plan.md`, `docs/product-progress.md`, run full verification, and commit the completed module.
-
-### Module Tasks
-1. [~] IN PROGRESS [HARD] Hindi metadata and adapter registration: add `hi` metadata, `hi-IN` locale normalization, adapter dispatch, and dictionary API routing.
-2. [~] IN PROGRESS [HARD] Hindi fixture source pack: add curated `hiwiktionary` fixtures for noun/verb/adjective coverage with attribution metadata.
-3. [~] IN PROGRESS [HARD] Hindi normalization and Devanagari handling: NFC, anusvara handling, Devanagari-only lookup boundaries.
-4. [~] IN PROGRESS [HARD] Hindi morphology and test coverage: conservative noun/verb form fallbacks plus adapter, API, normalization, and related-word tests.
-5. [~] IN PROGRESS [MEDIUM] Hindi docs and progress sync: update `docs/hindi-language-plan.md` and this progress file after full verification.
+No active module selected. Before starting the next module, audit current code and this progress file, then choose 3-5 related unblocked tasks per the Module Queue Rules below.
 
 
 

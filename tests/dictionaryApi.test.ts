@@ -127,6 +127,61 @@ describe('Estonian monolingual baseline and morphology', () => {
   });
 });
 
+describe('Hindi monolingual baseline and morphology', () => {
+  it('enables the Hindi monolingual adapter for the lookup surface', () => {
+    expect(canUseMonolingualDictionaryApi('hi')).toBe(true);
+  });
+
+  it('looks up exact Hindi nouns, verbs, and language adjective entries', async () => {
+    const ghar = await fetchMonolingualMeaning('घर', 'hi');
+    expect(ghar.word).toBe('घर');
+    expect(ghar.definitions[0].meaning).toContain('निवास या रहने का स्थान');
+    expect(ghar.definitions[0].source).toBe('hiwiktionary · CC BY-SA 4.0');
+
+    const kitab = await fetchMonolingualMeaning('किताब', 'hi');
+    expect(kitab.word).toBe('किताब');
+    expect(kitab.definitions[0].meaning).toContain('छपे हुए पन्नों का संग्रह');
+
+    const karna = await fetchMonolingualMeaning('करना', 'hi');
+    expect(karna.word).toBe('करना');
+    expect(karna.definitions[0].meaning).toContain('किसी काम');
+
+    const hindi = await fetchMonolingualMeaning('हिंदी', 'hi');
+    expect(hindi.word).toBe('हिंदी');
+    expect(hindi.definitions[0].meaning).toContain('हिंद-आर्य भाषा');
+  });
+
+  it('normalizes Devanagari variants and rejects Latin transliteration for the first baseline', async () => {
+    const variant = await fetchMonolingualMeaning('हिन्दी', 'hi');
+    expect(variant.word).toBe('हिंदी');
+
+    await expect(fetchMonolingualMeaning('hindi', 'hi')).rejects.toThrow('No Hindi Wiktionary meanings');
+  });
+
+  it('resolves conservative Hindi noun and verb forms', async () => {
+    const gharon = await fetchMonolingualMeaning('घरों', 'hi');
+    expect(gharon.word).toBe('घर');
+    expect(gharon.source).toContain('base form of घरों');
+
+    const kitabonKo = await fetchMonolingualMeaning('किताबों को', 'hi');
+    expect(kitabonKo.word).toBe('किताब');
+
+    const karta = await fetchMonolingualMeaning('करता', 'hi');
+    expect(karta.word).toBe('करना');
+
+    const kiya = await fetchMonolingualMeaning('किया', 'hi');
+    expect(kiya.word).toBe('करना');
+  });
+
+  it('fetches Hindi local related words from base forms', async () => {
+    const exact = await fetchRelatedWords('घर', 'hi');
+    expect(exact.synonyms).toContain('मकान');
+
+    const inflected = await fetchRelatedWords('किताबों को', 'hi');
+    expect(inflected.synonyms).toContain('पुस्तक');
+  });
+});
+
 describe('Turkish monolingual baseline and morphology', () => {
 
   it('looks up exact monolingual nouns and verbs', async () => {

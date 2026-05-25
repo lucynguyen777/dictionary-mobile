@@ -6,43 +6,66 @@
 - Family: Indo-European (Indo-Aryan)
 - Script: Devanagari
 - Writing direction: LTR
+- Baseline target: `hi -> hi` monolingual lookup before any bilingual Hindi pair.
 
 ## Scope
-Plan a monolingual Hindi dictionary lookup (HI→HI).
+This document tracks the implemented tiny curated Hindi baseline. The app now supports `hi -> hi` monolingual lookup from local `hiwiktionary`-attributed fixtures, while production-scale Hindi sources, transliteration search, and offline-pack expansion remain later gates.
+
+## Current Code Audit
+- Status refreshed: May 25, 2026.
+- Current code status: `hi` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'`, `adapterKey: 'hi'`, Indo-European family metadata, Devanagari script, and LTR writing direction.
+- Adapter/API status: `data/adapterRegistry.ts` dispatches `hi` through `fetchHindiMeaning` and `fetchHindiRelatedWords`; `data/dictionaryApi.ts` enables Hindi monolingual lookup and related-word routing.
+- Fixture status: `data/localLexicon.ts` includes a tiny curated Hindi fixture set for `घर`, `किताब`, `करना`, and `हिंदी`, with paraphrased local educational definitions and `hiwiktionary` attribution notes.
+- Normalization/morphology status: `data/languageNormalization.ts` uses the Hindi locale; `data/localLexicon.ts` normalizes NFC, chandrabindu/anusvara display variants, and the narrow `हिन्दी`/`हिंदी` spelling variant; `data/morphology.ts` has conservative noun/postposition and fixture-backed verb fallbacks.
+- Test status: `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, and `tests/languageNormalization.test.ts` cover Hindi lookup, fallback, Devanagari-only baseline behavior, related words, adapter registration, and normalization.
+- Source gate: DONE for tiny curated fixtures via Hindi Wiktionary MediaWiki pages under CC BY-SA 4.0.
+- Remaining gates: production-size Hindi lookup, Latin transliteration search, IPA/audio expansion, and offline packs need a separate source and attribution module.
 
 ## Script And Normalization
-- Written in Devanagari script.
-- **Casing**: Devanagari does not have upper/lower case. Case-insensitive search is irrelevant for the native script, but `.toLocaleLowerCase()` can still be safely applied without modifying Devanagari characters.
-- **Normalization**: Unicode Normalization Form C (NFC) is strictly required. Devanagari characters can be represented as pre-composed characters or as base consonant + dependent vowel signs (matras). NFC ensures consistent matching.
-- **Transliteration Strategy**: Since many users type Hindi using Latin script keyboards (e.g., typing "namaste" instead of "नमस्ते"), the app ideally needs a transliteration layer (handling IAST or common informal Romanization) to map Latin input to Devanagari before querying the dictionary. This is a complex requirement unique to non-Latin scripts.
+- Hindi uses Devanagari and has no upper/lower case distinction in the native script.
+- Normalize text to NFC and use `hi-IN` locale lowercasing for consistency with the shared lookup pipeline.
+- Preserve Devanagari characters. The first baseline does not transliterate Latin input such as `hindi` to `हिंदी`.
+- Normalize chandrabindu (`ँ`) to anusvara (`ं`) for lookup keys, and keep the spelling-variant rule for `हिन्दी` -> `हिंदी` narrow until broader orthographic normalization is source-backed.
 
 ## Morphology
-Hindi is highly inflected:
-- **Nouns**: Have gender (masculine/feminine), number (singular/plural), and case (direct/oblique/vocative). Plurals and oblique forms change the word ending (e.g., *larka* -> *larke* -> *larkon*).
-- **Verbs**: Conjugate for person, number, gender, tense, aspect, and mood.
-- A basic morphology candidate generator would strip common inflectional suffixes (e.g., `-े` (e), `-ों` (on), `-ी` (i)) to find the lemma.
+- Hindi nouns vary by gender, number, and case. The first baseline supports only conservative fixture-backed forms:
+  - oblique/plural `-ों`, such as `घरों` -> `घर` and `किताबों` -> `किताब`;
+  - postposition-attached forms, such as `किताबों को` -> `किताब`.
+- Hindi verbs are highly inflected. The first baseline handles only common local forms for `करना`, such as `करता`, `करती`, `करते`, `किया`, and `की`.
+- Broader lemmatization, compound verbs, honorific forms, and Latin transliteration remain later slices.
 
-## Pronunciation
-- Devanagari is largely phonetic.
-- IPA can be algorithmic or provided by a source.
-
-## Data Source Candidates & Blocker
-| Source | Type | Status | License |
-|--------|------|--------|---------|
-| WiktAPI (Hindi Wiktionary `hi`) | REST API | **BLOCKED (404)** | N/A |
-| WiktAPI (English Wiktionary `en`) | REST API | **Violates Rules** | CC-BY-SA 3.0 |
-| Free Dictionary API | REST API | Yes (via Google Dictionary) | N/A |
-
-### The Monolingual Blocker
-- Testing `https://api.wiktapi.dev/v1/hi/word/नमस्ते` returns a **404 error**, indicating that the `hi` edition of Wiktionary is not supported or extracted by WiktAPI.
-- While the `en` edition of WiktAPI contains Hindi words (`lang_code: hi`), it provides **English definitions**. Using this would create a bilingual (HI→EN) dictionary.
-- The **Free Dictionary API** (dictionaryapi.dev) supports Hindi, but it is notoriously unmaintained and often fails. It is also unclear if its Hindi data is strictly monolingual or bilingual.
-- The project rules strictly mandate a **monolingual-first** build (`HI→HI`). Since no reliable, structured monolingual API is available, the implementation is blocked.
+## Data Source Candidates
+1. Hindi Wiktionary via MediaWiki API
+   - Accepted for tiny curated fixtures under CC BY-SA 4.0.
+   - Source smoke confirmed useful native Hindi material for `घर`, `किताब`, `करना`, and `हिंदी`.
+2. WiktAPI Hindi edition
+   - Still not viable for the runtime adapter; previous endpoint smoke returned 404 for Hindi edition lookups.
+3. English Wiktionary Hindi entries
+   - Useful for forms or bilingual glosses, but not enough for the monolingual-first Hindi baseline.
+4. Production Hindi dictionaries or corpora
+   - Need separate licensing and attribution review before runtime integration or bundled data use.
 
 ## Implementation Plan
-1. ✅ Add `hi` language metadata to `data/languages.ts` but mark it as `dictionaryStatus: 'unavailable'` so the UI shows "Coming soon" (Sắp hỗ trợ).
-2. 🔲 Blocked: Do not register a Hindi adapter until a monolingual source is found or the monolingual-first rule is amended.
-3. 🔲 Blocked: Morphology and transliteration layers are postponed.
+Status: the tiny `hiwiktionary` fixture baseline is implemented.
 
-## First Safe Task
-Add the language metadata config as "unavailable" and document the source blocker.
+1. Add `hi` language metadata and adapter routing: DONE.
+2. Add curated `hiwiktionary` fixtures for noun, verb, and noun/adjective coverage: DONE.
+3. Add Hindi normalization and Devanagari-only lookup boundaries: DONE.
+4. Add conservative morphology fallbacks and related-word routing: DONE.
+5. Update docs/progress and run verification: DONE.
+
+## Tests
+- Adapter registry coverage confirms `hi` is registered.
+- Dictionary API tests cover exact entries for `घर`, `किताब`, `करना`, and `हिंदी`.
+- Morphology tests cover `घरों`, `किताबों को`, `करता`, and `किया`.
+- Normalization tests cover Hindi locale routing; API tests cover `हिन्दी` -> `हिंदी`.
+- Missing-source tests reject Latin transliteration input such as `hindi`.
+
+## Blocked Decisions
+- Hindi bilingual lookup remains blocked until a trustworthy bilingual lexical source exists.
+- Latin-to-Devanagari transliteration search should not ship until the supported romanization scope is defined.
+- Additional committed fixtures or bundled data must follow `docs/source-attribution-packaging.md`.
+- Offline Hindi bundles remain blocked by the offline dictionary pack attribution and production-source path.
+
+## First Safe Follow-Up
+The tiny `hiwiktionary` fixture baseline is complete. The next safe Hindi follow-up is either a transliteration-search module with explicit romanization rules, or a production-source/API-key module after source licensing review.

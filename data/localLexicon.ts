@@ -894,6 +894,133 @@ const uzbekDictionaryEntries: DictionaryEntry[] = [
   }
 ];
 
+const hindiDictionaryEntries: DictionaryEntry[] = [
+  {
+    word: 'घर',
+    ipa: '/ɡʱəɾ/',
+    audio: '',
+    level: 'A1',
+    topic: 'घर (Home)',
+    vietnamese: 'nhà',
+    shortDefinition: 'निवास या रहने का स्थान (a home or place to live)',
+    definitions: [
+      {
+        partOfSpeech: 'संज्ञा (noun)',
+        meaning: 'निवास या रहने का स्थान; ऐसा भवन या जगह जहाँ लोग रहते हैं।',
+        vietnamese: 'Nhà, nơi cư trú hoặc sinh sống.',
+        examples: [
+          { source: 'मैं शाम को घर जाऊँगा।', translation: 'Tôi sẽ về nhà vào buổi tối.' },
+          { source: 'यह मेरा घर है।', translation: 'Đây là nhà của tôi.' }
+        ],
+      }
+    ],
+    synonyms: ['मकान', 'निवास', 'आवास'],
+    antonyms: [],
+    collocations: ['घर जाना', 'नया घर', 'घर में'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural/oblique', form: 'घरों' },
+      { tense: 'Postposition', form: 'घर में' },
+      { tense: 'Postposition', form: 'घर को' },
+    ],
+    etymology: 'Curated from Hindi Wiktionary page "घर", revision 485086, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'किताब',
+    ipa: '/kɪ.taːb/',
+    audio: '',
+    level: 'A1',
+    topic: 'शिक्षा (Education)',
+    vietnamese: 'sách',
+    shortDefinition: 'अध्ययन हेतु छपे हुए पन्नों का संग्रह (a book)',
+    definitions: [
+      {
+        partOfSpeech: 'संज्ञा (noun)',
+        meaning: 'अध्ययन या पढ़ने के लिए छपे हुए पन्नों का संग्रह।',
+        vietnamese: 'Sách, tập hợp các trang in để đọc hoặc học.',
+        examples: [
+          { source: 'उसकी किताब बहुत रोचक है।', translation: 'Cuốn sách của cô ấy rất thú vị.' },
+          { source: 'मेरे पास हिंदी की किताब है।', translation: 'Tôi có một cuốn sách tiếng Hindi.' }
+        ],
+      }
+    ],
+    synonyms: ['पुस्तक', 'ग्रंथ'],
+    antonyms: [],
+    collocations: ['किताब पढ़ना', 'हिंदी किताब', 'किताबों में'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Plural/oblique', form: 'किताबों' },
+      { tense: 'Postposition', form: 'किताब में' },
+      { tense: 'Postposition', form: 'किताबों को' },
+    ],
+    etymology: 'Curated from Hindi Wiktionary page "किताब", revision 485056, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'करना',
+    ipa: '/kəɾ.naː/',
+    audio: '',
+    level: 'A1',
+    topic: 'क्रिया (Action)',
+    vietnamese: 'làm',
+    shortDefinition: 'किसी काम या क्रिया को करना (to do or perform)',
+    definitions: [
+      {
+        partOfSpeech: 'क्रिया (verb)',
+        meaning: 'किसी काम, क्रिया या कार्य को करना या पूरा करना।',
+        vietnamese: 'Làm hoặc thực hiện một công việc hay hành động.',
+        examples: [
+          { source: 'मुझे यह काम करना है।', translation: 'Tôi phải làm việc này.' },
+          { source: 'वह हर दिन अभ्यास करता है।', translation: 'Anh ấy luyện tập mỗi ngày.' }
+        ],
+      }
+    ],
+    synonyms: ['कर देना', 'निष्पादित करना'],
+    antonyms: [],
+    collocations: ['काम करना', 'अभ्यास करना', 'फैसला करना'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Habitual masc.', form: 'करता' },
+      { tense: 'Habitual fem.', form: 'करती' },
+      { tense: 'Habitual plural', form: 'करते' },
+      { tense: 'Perfective masc.', form: 'किया' },
+      { tense: 'Perfective fem.', form: 'की' },
+    ],
+    etymology: 'Curated from Hindi Wiktionary page "करना", revision 467226, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+  {
+    word: 'हिंदी',
+    ipa: '/ɦɪn.diː/',
+    audio: '',
+    level: 'A1',
+    topic: 'भाषा (Language)',
+    vietnamese: 'tiếng Hindi / thuộc Ấn Độ',
+    shortDefinition: 'भारत में बोली जाने वाली एक हिंद-आर्य भाषा (Hindi language)',
+    definitions: [
+      {
+        partOfSpeech: 'संज्ञा / विशेषण (noun / adjective)',
+        meaning: 'भारत और अन्य समुदायों में बोली जाने वाली एक हिंद-आर्य भाषा; हिंद या भारत से संबंधित।',
+        vietnamese: 'Tiếng Hindi; thuộc về Ấn Độ hoặc người Ấn.',
+        examples: [
+          { source: 'मैं हिंदी सीख रहा हूँ।', translation: 'Tôi đang học tiếng Hindi.' },
+          { source: 'यह हिंदी शब्द है।', translation: 'Đây là một từ tiếng Hindi.' }
+        ],
+      }
+    ],
+    synonyms: ['हिन्दी'],
+    antonyms: [],
+    collocations: ['हिंदी भाषा', 'हिंदी शब्द', 'हिंदी सीखना'],
+    idioms: [],
+    conjugation: [
+      { tense: 'Variant spelling', form: 'हिन्दी' },
+    ],
+    etymology: 'Curated from Hindi Wiktionary page "हिंदी", revision 486928, CC BY-SA 4.0; fixture text is paraphrased for the app baseline.',
+    pronunciationTips: [],
+  },
+];
+
 const japaneseDictionaryEntries: DictionaryEntry[] = [
   {
     word: '猫',
@@ -2676,6 +2803,7 @@ const entriesByLanguage: Record<string, DictionaryEntry[]> = {
   he: hebrewDictionaryEntries,
   fi: finnishDictionaryEntries,
   et: estonianDictionaryEntries,
+  hi: hindiDictionaryEntries,
   tr: turkishDictionaryEntries,
   kk: kazakhDictionaryEntries,
   ja: japaneseDictionaryEntries,
@@ -2744,6 +2872,10 @@ export function findLocalDictionaryEntry(languageCode: string, word: string) {
     }
     return entry;
   }
+  if (languageCode === 'hi') {
+    const normalizedWord = normalizeHindiWord(word);
+    return getLocalDictionaryEntries('hi').find((entry) => normalizeHindiWord(entry.word) === normalizedWord);
+  }
   if (languageCode === 'yo') {
     const normalizedWord = normalizeYorubaWord(word);
     return getLocalDictionaryEntries('yo').find((entry) => normalizeYorubaWord(entry.word) === normalizedWord);
@@ -2789,6 +2921,16 @@ export function normalizeUzbekWord(value: string) {
     .normalize('NFC')
     .toLocaleLowerCase()
     .replace(/['‘’´`ʻ]/g, 'ʻ');
+}
+
+export function normalizeHindiWord(value: string) {
+  return value
+    .trim()
+    .normalize('NFC')
+    .toLocaleLowerCase('hi-IN')
+    .replace(/न्(?=द)/g, '\u0902')
+    .replace(/\u0901/g, '\u0902')
+    .replace(/\u093C/g, '');
 }
 
 export function normalizeYorubaWord(value: string) {

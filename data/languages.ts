@@ -113,12 +113,12 @@ export const languageOptions = [
   {
     code: 'hi',
     label: 'हिन्दी',
-    hint: 'Sắp hỗ trợ',
+    hint: 'Wiktionary preview',
     family: 'indo-european',
     script: 'devanagari',
     writingDirection: 'ltr',
-    adapterKey: undefined,
-    dictionaryStatus: 'unavailable',
+    adapterKey: 'hi',
+    dictionaryStatus: 'monolingual',
   },
   {
     code: 'yue',

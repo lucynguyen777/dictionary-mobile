@@ -1,5 +1,6 @@
 const LANGUAGE_LOCALES: Record<string, string> = {
   et: 'et-EE',
+  hi: 'hi-IN',
   kk: 'kk-KZ',
   tr: 'tr-TR',
   uz: 'uz-UZ',

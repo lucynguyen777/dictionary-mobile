@@ -18,6 +18,11 @@ describe('languageNormalization', () => {
     expect(normalizeLookupInput('O\u0308O\u0308', 'et')).toBe('öö');
   });
 
+  it('normalizes Hindi Devanagari input with the Hindi locale', () => {
+    expect(normalizeLookupInput('  हिन्दी किताब  ', 'hi')).toBe('हिन्दी किताब');
+    expect(normalizeLookupInput('हि\u0302ंदी', 'hi')).toBe('हि\u0302ंदी');
+  });
+
   it('preserves Turkish lowercase words after trimming and NFC normalization', () => {
     expect(normalizeLookupInput('  ışık  ', 'tr')).toBe('ışık');
     expect(normalizeLookupInput('I\u0307stanbul', 'tr')).toBe('istanbul');

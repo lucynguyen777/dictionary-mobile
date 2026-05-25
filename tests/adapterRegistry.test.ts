@@ -47,6 +47,14 @@ vi.mock('../data/dictionaryApi', () => {
     source: 'et',
   }));
   const mockFetchEstonianRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
+  const mockFetchHindiMeaning = vi.fn(async (word: string) => ({
+    word: `${word}-mock`,
+    ipa: '',
+    audio: '',
+    definitions: [],
+    source: 'hi',
+  }));
+  const mockFetchHindiRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
   const mockFetchMinhQndRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
   const mockFetchWiktApiRelated = vi.fn(async (word: string) => ({ synonyms: ['s1'], antonyms: ['a1'] }));
 
@@ -55,11 +63,13 @@ vi.mock('../data/dictionaryApi', () => {
   return {
     fetchEnglishMeaning: mockFetchEnglishMeaning,
     fetchEstonianMeaning: mockFetchEstonianMeaning,
+    fetchHindiMeaning: mockFetchHindiMeaning,
     fetchMinhQndMonolingualMeaning: mockFetchMinhQndMonolingual,
     fetchWiktApiMonolingualMeaning: mockFetchWiktApiMonolingual,
     fetchBilingualMeaning: mockFetchBilingualMeaning,
     fetchEnglishRelatedWords: mockFetchEnglishRelated,
     fetchEstonianRelatedWords: mockFetchEstonianRelated,
+    fetchHindiRelatedWords: mockFetchHindiRelated,
     fetchMinhQndRelatedWords: mockFetchMinhQndRelated,
     fetchWiktApiRelatedWords: mockFetchWiktApiRelated,
     fetchVietnameseSuggestions: mockFetchVietnameseSuggestions,
@@ -80,6 +90,7 @@ describe('adapterRegistry', () => {
     const en = getAdapterByKey('en');
     const viAdapter = getAdapterByKey('vi');
     const etAdapter = getAdapterByKey('et');
+    const hiAdapter = getAdapterByKey('hi');
     const trAdapter = getAdapterByKey('tr');
     const uzAdapter = getAdapterByKey('uz');
     const kkAdapter = getAdapterByKey('kk');
@@ -89,6 +100,7 @@ describe('adapterRegistry', () => {
     expect(en).toBeDefined();
     expect(viAdapter).toBeDefined();
     expect(etAdapter).toBeDefined();
+    expect(hiAdapter).toBeDefined();
     expect(trAdapter).toBeDefined();
     expect(uzAdapter).toBeDefined();
     expect(kkAdapter).toBeDefined();
@@ -98,6 +110,7 @@ describe('adapterRegistry', () => {
     expect(en?.key).toBe('en');
     expect(viAdapter?.key).toBe('vi');
     expect(etAdapter?.key).toBe('et');
+    expect(hiAdapter?.key).toBe('hi');
     expect(trAdapter?.key).toBe('tr');
     expect(uzAdapter?.key).toBe('uz');
     expect(kkAdapter?.key).toBe('kk');

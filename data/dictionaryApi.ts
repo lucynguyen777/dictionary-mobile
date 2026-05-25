@@ -3,7 +3,7 @@ import {
   isBlockedBilingualDictionaryPair as isBlockedPair,
   isSupportedBilingualDictionaryPair,
 } from './languages';
-import { findLocalDictionaryEntry, normalizeEstonianWord, normalizeUzbekWord } from './localLexicon';
+import { findLocalDictionaryEntry, normalizeEstonianWord, normalizeHindiWord, normalizeUzbekWord } from './localLexicon';
 import { getMorphologyCandidates } from './morphology';
 
 export type ApiDefinition = {
@@ -162,7 +162,7 @@ const MINH_QND_SUGGEST_API_BASE = 'https://dict.minhqnd.com/api/v1/suggest';
 const WIKTAPI_BASE = 'https://api.wiktapi.dev/v1';
 
 export function canUseMonolingualDictionaryApi(languageCode: string) {
-  return ['en', 'vi', 'fr', 'es', 'ms', 'et', 'kk', 'uz'].includes(languageCode);
+  return ['en', 'vi', 'fr', 'es', 'ms', 'et', 'hi', 'kk', 'uz'].includes(languageCode);
 }
 
 export function canUseBilingualDictionaryApi(sourceLang: string, targetLang: string) {
@@ -181,6 +181,7 @@ export async function fetchMonolingualMeaning(word: string, languageCode: string
   if (languageCode === 'ms') return fetchWiktApiMonolingualMeaning(word, 'ms');
   if (languageCode === 'fi') return fetchFinnishMeaning(word);
   if (languageCode === 'et') return fetchEstonianMeaning(word);
+  if (languageCode === 'hi') return fetchHindiMeaning(word);
   if (languageCode === 'tr') return fetchTurkishMeaning(word);
   if (languageCode === 'uz') return fetchUzbekMeaning(word);
   if (languageCode === 'kk') return fetchKazakhMeaning(word);
@@ -218,6 +219,7 @@ export async function fetchRelatedWords(word: string, languageCode: string): Pro
   if (languageCode === 'ms') return fetchWiktApiRelatedWords(word, 'ms');
   if (languageCode === 'fi') return fetchFinnishRelatedWords(word);
   if (languageCode === 'et') return fetchEstonianRelatedWords(word);
+  if (languageCode === 'hi') return fetchHindiRelatedWords(word);
   if (languageCode === 'tr') return fetchTurkishRelatedWords(word);
   if (languageCode === 'uz') return fetchUzbekRelatedWords(word);
   if (languageCode === 'kk') return fetchKazakhRelatedWords(word);
@@ -891,6 +893,71 @@ export async function fetchEstonianRelatedWords(word: string): Promise<ApiRelate
 
   for (const lookupWord of lookupCandidates) {
     const localEntry = findLocalDictionaryEntry('et', lookupWord);
+    if (localEntry) {
+      return {
+        synonyms: localEntry.synonyms || [],
+        antonyms: localEntry.antonyms || [],
+      };
+    }
+  }
+
+  return { synonyms: [], antonyms: [] };
+}
+
+export async function fetchHindiMeaning(word: string): Promise<ApiMeaningResult> {
+  const normalizedWord = normalizeHindiWord(word);
+  if (!normalizedWord || !/[\u0900-\u097F]/.test(normalizedWord)) {
+    throw new Error(`No Hindi Wiktionary meanings found for "${normalizedWord}".`);
+  }
+
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('hi', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  const errors: unknown[] = [];
+
+  for (const lookupWord of lookupCandidates) {
+    try {
+      const localEntry = findLocalDictionaryEntry('hi', lookupWord);
+      if (localEntry) {
+        return {
+          word: localEntry.word,
+          ipa: localEntry.ipa || '',
+          audio: localEntry.audio || '',
+          definitions: localEntry.definitions.map((def) => ({
+            partOfSpeech: def.partOfSpeech,
+            meaning: def.meaning,
+            examples: def.examples,
+            synonyms: localEntry.synonyms || [],
+            antonyms: localEntry.antonyms || [],
+            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
+            level: def.level || localEntry.level,
+            vietnamese: def.vietnamese,
+            source: 'hiwiktionary · CC BY-SA 4.0',
+          })),
+          source: lookupWord === normalizedWord
+            ? 'hiwiktionary · CC BY-SA 4.0'
+            : `hiwiktionary · CC BY-SA 4.0 · base form of ${normalizedWord}`,
+        };
+      }
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw new Error(`No Hindi Wiktionary meanings found for "${normalizedWord}".`);
+}
+
+export async function fetchHindiRelatedWords(word: string): Promise<ApiRelatedWords> {
+  const normalizedWord = normalizeHindiWord(word);
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('hi', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  for (const lookupWord of lookupCandidates) {
+    const localEntry = findLocalDictionaryEntry('hi', lookupWord);
     if (localEntry) {
       return {
         synonyms: localEntry.synonyms || [],

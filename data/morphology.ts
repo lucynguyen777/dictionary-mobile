@@ -51,6 +51,7 @@ export function getMorphologyCandidates(languageCode: string, input: string): Mo
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
   if (languageCode === 'et') return getEstonianMorphologyCandidates(input);
+  if (languageCode === 'hi') return getHindiMorphologyCandidates(input);
   if (languageCode === 'tr') return getTurkishMorphologyCandidates(input);
   if (languageCode === 'uz') return getUzbekMorphologyCandidates(input);
   if (languageCode === 'kk') return getKazakhMorphologyCandidates(input);
@@ -1819,6 +1820,71 @@ function getKannadaMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function getHindiMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const word = input.trim().normalize('NFC').replace(/\u0901/g, '\u0902').replace(/\u093C/g, '');
+  if (word.length < 2) return [];
+
+  const irregularVerbForms: Record<string, string> = {
+    करता: 'करना',
+    करती: 'करना',
+    करते: 'करना',
+    किया: 'करना',
+    की: 'करना',
+    करो: 'करना',
+    करें: 'करना',
+  };
+
+  const irregularBase = irregularVerbForms[word];
+  if (irregularBase) {
+    candidates.push({ word: irregularBase, label: irregularBase, reason: 'resolved Hindi verb form' });
+  }
+
+  const postpositions = [' के लिए', ' के साथ', ' के पास', ' में', ' से', ' को', ' पर', ' का', ' की', ' के'];
+  for (const suffix of postpositions) {
+    if (word.endsWith(suffix) && word.length > suffix.length) {
+      const stem = word.slice(0, -suffix.length);
+      candidates.push({
+        word: stem,
+        label: stem,
+        reason: `stripped postposition ${suffix.trim()}`,
+      });
+      if (stem.endsWith('ों') && stem.length > 3) {
+        const obliqueStem = stem.slice(0, -2);
+        candidates.push({
+          word: obliqueStem,
+          label: obliqueStem,
+          reason: `stripped oblique plural plus postposition ${suffix.trim()}`,
+        });
+      }
+      break;
+    }
+  }
+
+  const suffixes = [
+    { suffix: 'ों', replace: '' },
+    { suffix: 'ें', replace: '' },
+    { suffix: 'ता', replace: 'ना' },
+    { suffix: 'ती', replace: 'ना' },
+    { suffix: 'ते', replace: 'ना' },
+    { suffix: 'ा', replace: 'ना' },
+    { suffix: 'ी', replace: 'ना' },
+  ];
+
+  for (const item of suffixes) {
+    if (word.endsWith(item.suffix) && word.length > item.suffix.length + 1) {
+      const stem = word.slice(0, -item.suffix.length);
+      candidates.push({
+        word: `${stem}${item.replace}`,
+        label: `${stem}${item.replace}`,
+        reason: `stripped Hindi suffix -${item.suffix}`,
+      });
+    }
+  }
+
+  return uniqueCandidates(candidates, word).slice(0, 6);
 }
 
 function getMalayalamMorphologyCandidates(input: string): MorphologyCandidate[] {
