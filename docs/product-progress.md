@@ -15,11 +15,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
-- Medium next tasks: local UI/data consistency polish and future adapter implementation slices after database smoke tests.
-- Hard next tasks: Local user database migration bridge is implemented; next hard work is adopting the SQLite runtime path behind Profile, Library, and Reader adapters (see Next Work Module).
+- Medium next tasks: local UI/data consistency polish and database smoke hardening before removing legacy storage keys.
+- Hard next tasks: Profile/Library/Reader SQLite runtime adoption is implemented; next hard work is proving smoke behavior and legacy cleanup readiness (see Next Work Module).
 
 ## Current Baseline
 - Latest completed commits:
+  - `06e4543` feat(database): add local user data migration bridge
   - `8980dfc` docs(database): define user data migration readiness
   - `9084c84` docs(database): plan local-first database architecture
   - `342b63b` docs(progress): audit remaining roadmap blockers
@@ -547,25 +548,32 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Tests: added `tests/userDatabaseMigration.test.ts` covering fake SQLite schema setup, idempotency, rollback-on-failure, multi-folder words, flashcard sync/delete fields, deleted folder tombstones, and reader selected-document fallback.
 - Runtime boundary: existing Profile, Library, and Reader stores still read/write AsyncStorage; no backend/auth provider or offline dictionary pack schema changed.
 
+**Module: Profile/Library/Reader SQLite runtime adoption** - DONE
+- SQLite-to-store parsers: added row parsers for profile, library folders/saved words/history/flashcards/tombstones, and reader documents/settings.
+- Runtime storage adapter: added `data/userDatabaseRuntime.ts` to load/write whole user-data snapshots through SQLite and switched Profile, Library, and Reader stores to SQLite-first reads/writes with AsyncStorage fallback.
+- Migration-on-start: runtime adapter detects missing schema metadata, runs the migration bridge once, and reloads from SQLite while keeping failure recovery through legacy AsyncStorage.
+- Reset/export boundary: Profile reset now clears Profile, Library, and Reader user data; offline dictionary pack state remains separate, and store writes keep AsyncStorage backup readable for existing JSON export.
+- Tests: added `tests/userDatabaseRuntime.test.ts` covering migration-on-first-read, row parsing, adapter writes, relation dedupe, and SQLite reload behavior.
+
 ## Next Work Module
 
-**Module: Profile/Library/Reader SQLite runtime adoption**
-- Goal: route user-owned Profile, Library, and Reader persistence through the local user SQLite database while preserving AsyncStorage export/rollback safety during the transition.
-- Scope: 5 related implementation tasks; complete adapter adoption before deleting old AsyncStorage keys.
+**Module: SQLite runtime smoke and legacy cleanup readiness**
+- Goal: prove the SQLite runtime path in app-facing flows and prepare a safe cleanup plan for legacy AsyncStorage keys without removing them yet.
+- Scope: 5 related validation and hardening tasks; complete smoke/readiness before deleting old Profile/Library/Reader AsyncStorage payloads.
 
 ### Module Completion Plan
-1. Add user database read adapters that parse SQLite rows back into `UserProfile`, `LibraryState`, and `ReaderState`.
-2. Add write adapters for profile saves, library mutations, reader imports/settings, and transaction boundaries.
-3. Add runtime fallback policy: run migration when needed, keep AsyncStorage export readable, and fall back safely if SQLite open/read fails.
-4. Update reset/export flows so user-data reset targets the SQLite user database while offline dictionary packs remain separate.
-5. Add focused adapter tests plus Profile/Library/Reader smoke verification before marking AsyncStorage cleanup as eligible.
+1. Add or update smoke coverage for Profile save/load, Library save/history/flashcard flows, and Reader import/settings using the SQLite runtime path.
+2. Verify reset/export behavior keeps user data coherent and preserves offline dictionary pack boundaries.
+3. Add runtime health/status hooks or diagnostics for SQLite fallback decisions if needed by smoke results.
+4. Document legacy AsyncStorage cleanup gates, rollback expectations, and release criteria.
+5. Sync docs/progress and run full verification before selecting the actual cleanup module.
 
 ### Module Tasks
-1. [ ] TODO [HARD] SQLite-to-store parsers: read profile, folders, saved words, folder membership, search history, flashcards, tombstones, reader documents, and reader settings back into existing state types.
-2. [ ] TODO [HARD] Runtime storage adapters: switch profile/library/reader persistence calls behind a local user database adapter with AsyncStorage fallback still available.
-3. [ ] TODO [HARD] Migration-on-start policy: detect missing/schema-version state, run the migration bridge once, and preserve recoverable rollback behavior.
-4. [ ] TODO [MEDIUM] Reset/export boundary update: include SQLite user database in local backup/reset flows without deleting offline dictionary pack databases.
-5. [ ] TODO [MEDIUM] Verification/docs sync: add focused adapter tests, run Profile/Library/Reader smoke checks, update database plan, and run `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and `npm test -- --run`.
+1. [ ] TODO [MEDIUM] Profile SQLite smoke: save profile preferences, reload from SQLite, and confirm AsyncStorage backup remains export-readable.
+2. [ ] TODO [MEDIUM] Library SQLite smoke: save words/folders/history/flashcards through app-facing store functions and reload without duplicate relations.
+3. [ ] TODO [MEDIUM] Reader SQLite smoke: import/select/update reader documents and settings through app-facing flows and reload selected-document fallback.
+4. [ ] TODO [MEDIUM] Reset/export smoke: clear user data without deleting offline pack metadata/databases and confirm JSON export boundary remains explicit.
+5. [ ] TODO [MEDIUM] Legacy cleanup readiness docs: update database plan and progress with cleanup gates, rollback policy, and verification results.
 
 
 

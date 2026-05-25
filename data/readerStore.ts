@@ -1,4 +1,4 @@
-import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
+import { getStoredItem, removeStoredItem, setStoredItem } from '@/data/storageAdapter';
 import type { EnabledReaderImportFormat } from '@/data/readerImport';
 
 const STORAGE_KEY = 'dictionary-mobile.reader.v1';
@@ -27,6 +27,15 @@ export type ReaderState = {
 const now = () => new Date().toISOString();
 
 export async function loadReaderState(): Promise<ReaderState> {
+  try {
+    const { loadReaderStateFromUserDatabase } = await import('./userDatabaseRuntime');
+    return await loadReaderStateFromUserDatabase();
+  } catch {
+    return loadReaderStateFromAsyncStorage();
+  }
+}
+
+export async function loadReaderStateFromAsyncStorage(): Promise<ReaderState> {
   const rawState = await getStoredItem(STORAGE_KEY);
   if (!rawState) return getDefaultReaderState();
 
@@ -101,10 +110,36 @@ export function getDefaultReaderState(): ReaderState {
 }
 
 async function saveReaderState(state: ReaderState) {
+  try {
+    const { saveReaderStateToUserDatabase } = await import('./userDatabaseRuntime');
+    await saveReaderStateToUserDatabase(state);
+  } catch {
+    // AsyncStorage remains the recoverable source when SQLite is unavailable.
+  }
+
+  await saveReaderStateToAsyncStorage(state);
+}
+
+export async function saveReaderStateToAsyncStorage(state: ReaderState) {
   await setStoredItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function normalizeReaderState(state: Partial<ReaderState>): ReaderState {
+export async function clearReaderState() {
+  try {
+    const { clearReaderStateFromUserDatabase } = await import('./userDatabaseRuntime');
+    await clearReaderStateFromUserDatabase();
+  } catch {
+    // Local reset must still work if SQLite cannot open.
+  }
+
+  await removeReaderStateFromAsyncStorage();
+}
+
+export async function removeReaderStateFromAsyncStorage() {
+  await removeStoredItem(STORAGE_KEY);
+}
+
+export function normalizeReaderState(state: Partial<ReaderState>): ReaderState {
   const defaultState = getDefaultReaderState();
   const documents = state.documents ?? [];
   const selectedDocumentId = documents.some((document) => document.id === state.selectedDocumentId)

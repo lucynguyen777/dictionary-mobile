@@ -1,10 +1,10 @@
 import { exportAllLocalData } from './exportAllData';
 import type { LibraryState } from './libraryStore';
-import { loadLibraryState } from './libraryStore';
+import { loadLibraryStateFromAsyncStorage } from './libraryStore';
 import type { UserProfile } from './profileStore';
-import { loadUserProfile } from './profileStore';
+import { loadUserProfileFromAsyncStorage } from './profileStore';
 import type { ReaderState } from './readerStore';
-import { loadReaderState } from './readerStore';
+import { loadReaderStateFromAsyncStorage } from './readerStore';
 import {
   ensureUserDatabaseSchema,
   openExpoUserDatabase,
@@ -334,8 +334,8 @@ export async function replaceUserDatabaseRows(database: UserSqliteDatabase, rows
 export function createAsyncStorageMigrationSource(): UserDatabaseMigrationSource {
   return {
     exportLocalData: exportAllLocalData,
-    loadLibrary: loadLibraryState,
-    loadProfile: loadUserProfile,
-    loadReader: loadReaderState,
+    loadLibrary: loadLibraryStateFromAsyncStorage,
+    loadProfile: loadUserProfileFromAsyncStorage,
+    loadReader: loadReaderStateFromAsyncStorage,
   };
 }

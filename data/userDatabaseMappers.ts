@@ -1,6 +1,9 @@
 import type { LibraryState } from './libraryStore';
+import { normalizeLibraryState } from './libraryStore';
 import type { UserProfile } from './profileStore';
+import { normalizeProfile } from './profileStore';
 import type { ReaderState } from './readerStore';
+import { normalizeReaderState } from './readerStore';
 
 export const USER_PROFILE_ROW_ID = 'local-profile';
 export const READER_SETTINGS_ROW_ID = 'local-reader-settings';
@@ -243,6 +246,129 @@ export function getUserDatabaseParityCounts(rows: SerializedUserDatabaseRows): U
   };
 }
 
+export function parseUserProfileFromSqliteRow(row: UserProfileRow): UserProfile {
+  return normalizeProfile({
+    appLockEnabled: Boolean(row.app_lock_enabled),
+    avatarUrl: row.avatar_url,
+    dailyGoal: row.daily_goal,
+    displayName: row.display_name,
+    email: row.email,
+    learningGoal: row.learning_goal,
+    learningLanguage: row.learning_language as UserProfile['learningLanguage'],
+    loginMethod: row.login_method as UserProfile['loginMethod'],
+    nativeLanguage: row.native_language as UserProfile['nativeLanguage'],
+    notificationPreferences: {
+      dailyReminderEnabled: Boolean(row.daily_reminder_enabled),
+      reminderTime: row.reminder_time,
+      reviewReminderEnabled: Boolean(row.review_reminder_enabled),
+      weeklySummaryEnabled: Boolean(row.weekly_summary_enabled),
+    },
+    phone: row.phone,
+    proficiencyLevel: row.proficiency_level as UserProfile['proficiencyLevel'],
+    timezone: row.timezone,
+    updatedAt: row.updated_at,
+    username: row.username,
+  });
+}
+
+export function parseLibraryStateFromSqliteRows(rows: {
+  deletedEntities: DeletedEntityRow[];
+  flashcards: FlashcardRow[];
+  folders: FolderRow[];
+  savedWordFolders: SavedWordFolderRow[];
+  savedWords: SavedWordRow[];
+  searchHistory: SearchHistoryRow[];
+}): LibraryState {
+  const folderIdsByWordId = rows.savedWordFolders.reduce((acc, row) => {
+    const folderIds = acc.get(row.word_id) ?? [];
+    folderIds.push(row.folder_id);
+    acc.set(row.word_id, folderIds);
+    return acc;
+  }, new Map<string, string[]>());
+
+  return normalizeLibraryState({
+    deletedFolderIds: rows.deletedEntities
+      .filter((row) => row.entity_type === 'folder')
+      .map((row) => row.entity_id),
+    flashcards: rows.flashcards
+      .filter((row) => !row.deleted_at || row.sync_status === 'pending_delete')
+      .map((row) => ({
+        back: row.back,
+        createdAt: row.created_at,
+        dueDate: row.due_date,
+        efactor: row.efactor,
+        front: row.front,
+        id: row.id,
+        interval: row.interval,
+        lastSyncedAt: row.last_synced_at,
+        repetition: row.repetition,
+        reviewState: row.review_state as LibraryState['flashcards'][number]['reviewState'],
+        syncStatus: row.sync_status as LibraryState['flashcards'][number]['syncStatus'],
+        type: row.type as LibraryState['flashcards'][number]['type'],
+        version: row.version,
+        wordId: row.word_id,
+      })),
+    folders: rows.folders
+      .filter((row) => !row.deleted_at)
+      .map((row) => ({
+        avatarUri: row.avatar_uri,
+        color: row.color,
+        colorNote: row.color_note,
+        createdAt: row.created_at,
+        id: row.id,
+        isFavorite: Boolean(row.is_favorite),
+        name: row.name,
+        tags: parseJsonStringArray(row.tags_json),
+        updatedAt: row.updated_at,
+      })),
+    savedWords: rows.savedWords
+      .filter((row) => !row.deleted_at)
+      .map((row) => ({
+        audio: row.audio,
+        createdAt: row.created_at,
+        definition: row.definition,
+        folderIds: Array.from(new Set(folderIdsByWordId.get(row.id) ?? [])),
+        id: row.id,
+        ipa: row.ipa,
+        note: row.note,
+        source: row.source,
+        tags: parseJsonStringArray(row.tags_json),
+        updatedAt: row.updated_at,
+        word: row.word,
+      })),
+    searchHistory: rows.searchHistory.map((row) => ({
+      lookedUpAt: row.looked_up_at,
+      word: row.word,
+    })),
+  });
+}
+
+export function parseReaderStateFromSqliteRows(rows: {
+  documents: ReaderDocumentRow[];
+  settings: ReaderSettingsRow | null;
+}): ReaderState {
+  return normalizeReaderState({
+    documents: rows.documents
+      .filter((row) => !row.deleted_at)
+      .map((row) => ({
+        content: row.content,
+        createdAt: row.created_at,
+        id: row.id,
+        sourceFormat: row.source_format as ReaderState['documents'][number]['sourceFormat'],
+        title: row.title,
+        updatedAt: row.updated_at,
+      })),
+    selectedDocumentId: rows.settings?.selected_document_id ?? '',
+    settings: rows.settings
+      ? {
+          backgroundColor: rows.settings.background_color as ReaderState['settings']['backgroundColor'],
+          fontFamily: rows.settings.font_family as ReaderState['settings']['fontFamily'],
+          fontSize: rows.settings.font_size,
+        }
+      : undefined,
+  });
+}
+
 function serializeProfile(profile: UserProfile): UserProfileRow {
   return {
     id: USER_PROFILE_ROW_ID,
@@ -292,4 +418,13 @@ function serializeReaderSettings(reader: ReaderState, migratedAt: string): Reade
 
 function normalizeLookupWord(word: string) {
   return word.trim().toLocaleLowerCase();
+}
+
+function parseJsonStringArray(value: string): string[] {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
 }

@@ -8,6 +8,8 @@ export type UserSqliteDatabase = {
   closeAsync?: () => Promise<void>;
   databasePath?: string;
   execAsync: (source: string) => Promise<void>;
+  getAllAsync?: <T>(source: string, ...params: UserSqliteBindParams) => Promise<T[]>;
+  getFirstAsync?: <T>(source: string, ...params: UserSqliteBindParams) => Promise<T | null>;
   runAsync: (source: string, ...params: UserSqliteBindParams) => Promise<unknown>;
   withTransactionAsync: (task: () => Promise<void>) => Promise<void>;
 };

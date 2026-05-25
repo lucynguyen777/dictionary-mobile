@@ -55,7 +55,7 @@ import {
     proficiencyLevels,
     saveUserProfile,
 } from '@/data/profileStore';
-import { ReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
+import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 
 const days = Array.from({ length: 84 }, (_, index) => index);
 const chartValues = [1, 1.5, 2, 2.4, 4.6, 6.4, 5.5, 7.3, 9.1, 11.2, 10.5, 13.1, 15.5, 12.6, 17.5, 16.1, 23.6];
@@ -148,10 +148,11 @@ export default function ProfileScreen() {
           text: 'Xóa tất cả',
           style: 'destructive',
           onPress: async () => {
-            await Promise.all([clearLibraryState(), clearUserProfile(), clearOfflinePackInstallState()]);
+            await Promise.all([clearLibraryState(), clearUserProfile(), clearReaderState(), clearOfflinePackInstallState()]);
             setLibraryState(getDefaultLibraryState());
             setOfflinePackInstallState(getDefaultOfflinePackInstallState());
             setProfile(getDefaultProfile());
+            setReaderState(getDefaultReaderState());
             setSaveMessage('');
             Alert.alert('Đã xóa', 'Tất cả dữ liệu local đã được xóa.');
           },

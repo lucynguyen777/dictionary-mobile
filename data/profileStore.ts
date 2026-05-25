@@ -60,6 +60,15 @@ export function getDefaultProfile(): UserProfile {
 }
 
 export async function loadUserProfile(): Promise<UserProfile> {
+  try {
+    const { loadUserProfileFromUserDatabase } = await import('./userDatabaseRuntime');
+    return await loadUserProfileFromUserDatabase();
+  } catch {
+    return loadUserProfileFromAsyncStorage();
+  }
+}
+
+export async function loadUserProfileFromAsyncStorage(): Promise<UserProfile> {
   const rawProfile = await getStoredItem(STORAGE_KEY);
   if (!rawProfile) return getDefaultProfile();
 
@@ -76,17 +85,38 @@ export async function saveUserProfile(profile: UserProfile) {
     updatedAt: new Date().toISOString(),
   });
 
-  await setStoredItem(STORAGE_KEY, JSON.stringify(nextProfile));
+  try {
+    const { saveUserProfileToUserDatabase } = await import('./userDatabaseRuntime');
+    await saveUserProfileToUserDatabase(nextProfile);
+  } catch {
+    // AsyncStorage remains the recoverable source when SQLite is unavailable.
+  }
+
+  await saveUserProfileToAsyncStorage(nextProfile);
 
   return nextProfile;
 }
 
+export async function saveUserProfileToAsyncStorage(profile: UserProfile) {
+  await setStoredItem(STORAGE_KEY, JSON.stringify(profile));
+}
+
 export async function clearUserProfile() {
+  try {
+    const { clearUserProfileFromUserDatabase } = await import('./userDatabaseRuntime');
+    await clearUserProfileFromUserDatabase();
+  } catch {
+    // Local reset must still work if SQLite cannot open.
+  }
+
+  await clearUserProfileFromAsyncStorage();
+}
+
+export async function clearUserProfileFromAsyncStorage() {
   await removeStoredItem(STORAGE_KEY);
 }
 
-
-function normalizeProfile(profile: Partial<UserProfile>): UserProfile {
+export function normalizeProfile(profile: Partial<UserProfile>): UserProfile {
   const defaultProfile = getDefaultProfile();
 
   return {

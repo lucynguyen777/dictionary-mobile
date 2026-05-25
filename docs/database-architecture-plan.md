@@ -340,6 +340,18 @@ The first implementation bridge now exists without changing Profile, Library, or
 
 Runtime stores still use AsyncStorage as the source of truth. The next module should adopt the bridge behind Profile, Library, and Reader adapters only after web/native smoke proves reads, writes, export, reset, and rollback behavior.
 
+### Runtime Adoption Implementation
+
+Profile, Library, and Reader runtime persistence now routes through the local user SQLite adapter with AsyncStorage kept as a fallback and export-compatible backup:
+
+- `data/userDatabaseRuntime.ts` loads the SQLite snapshot, runs the AsyncStorage-to-SQLite migration when `schema_version=1` is missing, parses rows back into existing `UserProfile`, `LibraryState`, and `ReaderState` types, and writes whole user-data snapshots transactionally.
+- `data/profileStore.ts`, `data/libraryStore.ts`, and `data/readerStore.ts` now attempt SQLite reads/writes first and fall back to legacy AsyncStorage when SQLite is unavailable.
+- Store writes still update legacy AsyncStorage after the SQLite attempt so existing JSON export remains readable during the transition.
+- The Profile reset flow clears Profile, Library, and Reader user data while offline dictionary pack metadata/storage remains a separate boundary.
+- `tests/userDatabaseRuntime.test.ts` covers migration-on-first-read, row parsing, adapter writes, relation dedupe, and SQLite reload behavior.
+
+Do not remove legacy AsyncStorage keys yet. A follow-up module should run web/native smoke against Profile, Library, Reader, export, reset, and offline pack preservation before old keys become cleanup candidates.
+
 ## Verification
 
 Database planning and bridge verification:

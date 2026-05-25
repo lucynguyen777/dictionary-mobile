@@ -96,6 +96,15 @@ export type ImportVocabularyTarget = {
 const now = () => new Date().toISOString();
 
 export async function loadLibraryState(): Promise<LibraryState> {
+  try {
+    const { loadLibraryStateFromUserDatabase } = await import('./userDatabaseRuntime');
+    return await loadLibraryStateFromUserDatabase();
+  } catch {
+    return loadLibraryStateFromAsyncStorage();
+  }
+}
+
+export async function loadLibraryStateFromAsyncStorage(): Promise<LibraryState> {
   const rawState = await getStoredItem(STORAGE_KEY);
 
   if (!rawState) return getDefaultLibraryState();
@@ -108,10 +117,32 @@ export async function loadLibraryState(): Promise<LibraryState> {
 }
 
 export async function saveLibraryState(state: LibraryState) {
+  try {
+    const { saveLibraryStateToUserDatabase } = await import('./userDatabaseRuntime');
+    await saveLibraryStateToUserDatabase(state);
+  } catch {
+    // AsyncStorage remains the recoverable source when SQLite is unavailable.
+  }
+
+  await saveLibraryStateToAsyncStorage(state);
+}
+
+export async function saveLibraryStateToAsyncStorage(state: LibraryState) {
   await setStoredItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 export async function clearLibraryState() {
+  try {
+    const { clearLibraryStateFromUserDatabase } = await import('./userDatabaseRuntime');
+    await clearLibraryStateFromUserDatabase();
+  } catch {
+    // Local reset must still work if SQLite cannot open.
+  }
+
+  await clearLibraryStateFromAsyncStorage();
+}
+
+export async function clearLibraryStateFromAsyncStorage() {
   await removeStoredItem(STORAGE_KEY);
 }
 
@@ -748,7 +779,7 @@ export function getFavoriteFolderId() {
   return FAVORITES_FOLDER_ID;
 }
 
-function normalizeLibraryState(state: Partial<LibraryState>): LibraryState {
+export function normalizeLibraryState(state: Partial<LibraryState>): LibraryState {
   const defaultState = getDefaultLibraryState();
   const deletedFolderIds = state.deletedFolderIds ?? [];
   const folders = mergeFolders(defaultState.folders, state.folders ?? []).filter(
