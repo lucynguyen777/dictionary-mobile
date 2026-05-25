@@ -352,6 +352,24 @@ Profile, Library, and Reader runtime persistence now routes through the local us
 
 Do not remove legacy AsyncStorage keys yet. A follow-up module should run web/native smoke against Profile, Library, Reader, export, reset, and offline pack preservation before old keys become cleanup candidates.
 
+### Runtime Smoke and Cleanup Readiness
+
+SQLite runtime smoke coverage now verifies app-facing flows before legacy AsyncStorage cleanup:
+
+- Profile smoke saves notification preferences through `saveUserProfile`, reloads through the SQLite runtime path, and verifies the AsyncStorage backup remains readable by `exportAllLocalData`.
+- Library smoke uses public store functions for folder creation, saved words, search history, and flashcard generation, then reloads from SQLite without duplicate saved-word folder relations.
+- Reader smoke imports documents, updates settings, selects a missing document id, and verifies normalized selected-document fallback after SQLite reload.
+- Reset/export smoke clears Profile, Library, and Reader user data sequentially to avoid snapshot overwrite races, confirms offline pack metadata remains separate, and verifies export output is explicit after reset.
+- `data/userDatabaseRuntime.ts` exposes `configureUserDatabaseRuntime` so tests can inject fake SQLite ports without changing production Expo SQLite behavior.
+
+Legacy cleanup gates:
+
+1. Keep Profile, Library, and Reader AsyncStorage writes enabled until at least one web smoke and one native/dev-client smoke pass with SQLite runtime enabled.
+2. Do not remove legacy keys until export/import or backup UX explicitly advertises SQLite as the primary user-data source.
+3. Cleanup must run as a separate, idempotent migration with a rollback note: if SQLite open/read fails, the app should still recover from the last retained JSON backup.
+4. Offline dictionary pack metadata and per-pack SQLite databases are not part of user-data key cleanup.
+5. Before deleting keys, run `git diff --check`, `npx tsc --noEmit`, `npm run lint`, focused database/store tests, full `npm test -- --run`, and Profile/Library/Reader smoke.
+
 ## Verification
 
 Database planning and bridge verification:

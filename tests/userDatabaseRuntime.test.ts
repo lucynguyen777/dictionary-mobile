@@ -1,10 +1,14 @@
+const writtenFiles = vi.hoisted(() => [] as string[]);
+
 vi.mock('expo-file-system', () => ({
   File: class {
     uri = 'file://backup.json';
 
     create() {}
 
-    write() {}
+    write(value: string) {
+      writtenFiles.push(value);
+    }
   },
   Paths: { document: '' },
 }));
@@ -29,12 +33,38 @@ const storageMock = vi.hoisted(() => ({
 vi.mock('@/data/storageAdapter', () => storageMock);
 vi.mock('../data/storageAdapter', () => storageMock);
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { DictionaryEntry } from '../data/dictionary';
+import { exportAllLocalData } from '../data/exportAllData';
 import type { LibraryState } from '../data/libraryStore';
+import {
+  addSearchHistory,
+  clearLibraryState,
+  createFlashcardsFromWordIds,
+  createFolder,
+  getDefaultLibraryState,
+  loadLibraryState,
+  saveWordToFolder,
+} from '../data/libraryStore';
+import {
+  getDefaultOfflinePackInstallState,
+  loadOfflinePackInstallState,
+  markOfflinePackReady,
+} from '../data/offlineDictionaryPackStore';
+import { offlineDictionaryPacks } from '../data/offlineDictionaryPacks';
 import type { UserProfile } from '../data/profileStore';
+import { clearUserProfile, loadUserProfile, saveUserProfile } from '../data/profileStore';
 import type { ReaderState } from '../data/readerStore';
 import {
+  clearReaderState,
+  importReaderText,
+  loadReaderState,
+  selectReaderDocument,
+  updateReaderSettings,
+} from '../data/readerStore';
+import {
+  configureUserDatabaseRuntime,
   loadLibraryStateFromUserDatabase,
   loadReaderStateFromUserDatabase,
   loadUserProfileFromUserDatabase,
@@ -45,9 +75,19 @@ import type { UserSqliteBindParams, UserSqliteDatabase } from '../data/userDatab
 const timestamp = '2026-05-25T12:00:00.000Z';
 
 describe('userDatabaseRuntime', () => {
+  let resetRuntimeOptions: (() => void) | null = null;
+
   beforeEach(() => {
+    resetRuntimeOptions?.();
+    resetRuntimeOptions = null;
     storage.clear();
+    writtenFiles.splice(0, writtenFiles.length);
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    resetRuntimeOptions?.();
+    resetRuntimeOptions = null;
   });
 
   it('runs the AsyncStorage migration on first read and parses all store states from SQLite rows', async () => {
@@ -112,6 +152,140 @@ describe('userDatabaseRuntime', () => {
     });
     expect(reloaded.searchHistory).toEqual([{ word: 'updated', lookedUpAt: '2026-05-25T13:00:00.000Z' }]);
     expect(harness.requireDatabase('dictionary-mobile-user.sqlite').rows.saved_word_folders).toHaveLength(2);
+  });
+
+  it('smokes Profile save/load through SQLite and keeps the AsyncStorage export backup readable', async () => {
+    const harness = createFakeUserDatabaseHarness();
+    seedAsyncStorage();
+    resetRuntimeOptions = configureUserDatabaseRuntime({
+      now: () => '2026-05-25T14:00:00.000Z',
+      openDatabase: harness.openDatabase,
+    });
+
+    const savedProfile = await saveUserProfile({
+      ...fixtureProfile,
+      displayName: 'SQLite Profile',
+      notificationPreferences: {
+        dailyReminderEnabled: false,
+        reminderTime: '08:15',
+        reviewReminderEnabled: true,
+        weeklySummaryEnabled: false,
+      },
+    });
+    storage.set('dictionary-mobile.profile.v1', JSON.stringify({ ...fixtureProfile, displayName: 'Stale backup' }));
+
+    const reloadedProfile = await loadUserProfile();
+
+    expect(savedProfile.displayName).toBe('SQLite Profile');
+    expect(reloadedProfile).toMatchObject({
+      displayName: 'SQLite Profile',
+      notificationPreferences: expect.objectContaining({ reminderTime: '08:15' }),
+    });
+
+    await saveUserProfile(savedProfile);
+    const exportResult = await exportAllLocalData();
+    const exportedPayload = JSON.parse(writtenFiles.at(-1) ?? '{}');
+
+    expect(exportResult.ok).toBe(true);
+    expect(exportedPayload.profile.displayName).toBe('SQLite Profile');
+    expect(exportedPayload.library).not.toBeUndefined();
+    expect(exportedPayload.reader).not.toBeUndefined();
+  });
+
+  it('smokes Library folder, saved-word, history, and flashcard flows through SQLite without duplicate relations', async () => {
+    const harness = createFakeUserDatabaseHarness();
+    seedAsyncStorage();
+    resetRuntimeOptions = configureUserDatabaseRuntime({
+      now: () => '2026-05-25T15:00:00.000Z',
+      openDatabase: harness.openDatabase,
+    });
+
+    let state = await loadLibraryState();
+    state = await createFolder(state, 'SQLite folder', { tags: ['sqlite'] });
+    const folderId = state.folders[state.folders.length - 1].id;
+    state = await saveWordToFolder(state, fixtureEntry, folderId, 'smoke note');
+    state = await saveWordToFolder(state, fixtureEntry, folderId, 'smoke note');
+    state = await addSearchHistory(state, 'SQLite');
+    state = await createFlashcardsFromWordIds(state, [state.savedWords[0].id], ['bilingual', 'word-definition']);
+
+    const reloaded = await loadLibraryState();
+
+    expect(reloaded.folders.find((folder) => folder.id === folderId)).toMatchObject({
+      name: 'SQLite folder',
+      tags: ['sqlite'],
+    });
+    const savedWord = reloaded.savedWords.find((word) => word.word === 'sqlite');
+    expect(savedWord).toMatchObject({
+      folderIds: [folderId],
+      note: 'smoke note',
+      tags: ['B1', 'Technology'],
+      word: 'sqlite',
+    });
+    expect(reloaded.searchHistory[0]).toEqual({ word: 'sqlite', lookedUpAt: expect.any(String) });
+    expect(reloaded.flashcards.filter((card) => card.wordId === savedWord?.id)).toHaveLength(2);
+    expect(
+      harness
+        .requireDatabase('dictionary-mobile-user.sqlite')
+        .rows.saved_word_folders.filter((row) => row.word_id === savedWord?.id)
+    ).toHaveLength(1);
+  });
+
+  it('smokes Reader import, settings, selection, and selected-document fallback through SQLite', async () => {
+    const harness = createFakeUserDatabaseHarness();
+    seedAsyncStorage();
+    resetRuntimeOptions = configureUserDatabaseRuntime({
+      now: () => '2026-05-25T16:00:00.000Z',
+      openDatabase: harness.openDatabase,
+    });
+
+    let state = await loadReaderState();
+    state = await importReaderText(state, 'SQLite Reader', 'Content for SQLite reader smoke.', 'txt');
+    state = await importReaderText(state, 'Second Reader', 'Second document.', 'txt');
+    state = await updateReaderSettings(state, {
+      backgroundColor: '#FFF7ED',
+      fontFamily: 'serif',
+      fontSize: 22,
+    });
+    state = await selectReaderDocument(state, 'missing-reader-id');
+
+    const reloaded = await loadReaderState();
+
+    expect(reloaded.documents).toHaveLength(3);
+    expect(reloaded.selectedDocumentId).toBe(reloaded.documents[0].id);
+    expect(reloaded.settings).toEqual({
+      backgroundColor: '#FFF7ED',
+      fontFamily: 'serif',
+      fontSize: 22,
+    });
+  });
+
+  it('smokes reset and export boundaries without clearing offline pack metadata', async () => {
+    const harness = createFakeUserDatabaseHarness();
+    seedAsyncStorage();
+    resetRuntimeOptions = configureUserDatabaseRuntime({
+      now: () => '2026-05-25T17:00:00.000Z',
+      openDatabase: harness.openDatabase,
+    });
+    await markOfflinePackReady(getDefaultOfflinePackInstallState(), offlineDictionaryPacks[0], () => timestamp);
+
+    await loadUserProfile();
+    await clearLibraryState();
+    await clearUserProfile();
+    await clearReaderState();
+
+    expect((await loadOfflinePackInstallState()).records).toHaveLength(1);
+    expect((await loadLibraryState()).savedWords).toHaveLength(0);
+    expect((await loadLibraryState()).flashcards).toHaveLength(0);
+    expect((await loadReaderState()).documents).toHaveLength(0);
+    expect((await loadUserProfile()).displayName).toBe('Mai Anh');
+
+    await exportAllLocalData();
+    const exportedPayload = JSON.parse(writtenFiles.at(-1) ?? '{}');
+
+    expect(exportedPayload.library).toBeNull();
+    expect(exportedPayload.reader).toBeNull();
+    expect(exportedPayload.profile).toBeNull();
+    expect(storage.get('dictionary-mobile.offline-packs.v1')).toContain(offlineDictionaryPacks[0].id);
   });
 });
 
@@ -211,6 +385,31 @@ const fixtureReader: ReaderState = {
     fontFamily: 'mono',
     fontSize: 21,
   },
+};
+
+const fixtureEntry: DictionaryEntry = {
+  antonyms: [],
+  audio: '',
+  collocations: [],
+  conjugation: [],
+  definitions: [
+    {
+      examples: [],
+      meaning: 'A database engine used by the runtime smoke.',
+      partOfSpeech: 'noun',
+      vietnamese: 'SQLite',
+    },
+  ],
+  etymology: '',
+  idioms: [],
+  ipa: '',
+  level: 'B1',
+  pronunciationTips: [],
+  shortDefinition: 'A local database engine.',
+  synonyms: [],
+  topic: 'Technology',
+  vietnamese: 'SQLite',
+  word: 'SQLite',
 };
 
 function createFakeUserDatabaseHarness() {

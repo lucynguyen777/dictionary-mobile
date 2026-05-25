@@ -148,7 +148,10 @@ export default function ProfileScreen() {
           text: 'Xóa tất cả',
           style: 'destructive',
           onPress: async () => {
-            await Promise.all([clearLibraryState(), clearUserProfile(), clearReaderState(), clearOfflinePackInstallState()]);
+            await clearLibraryState();
+            await clearUserProfile();
+            await clearReaderState();
+            await clearOfflinePackInstallState();
             setLibraryState(getDefaultLibraryState());
             setOfflinePackInstallState(getDefaultOfflinePackInstallState());
             setProfile(getDefaultProfile());

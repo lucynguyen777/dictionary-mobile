@@ -53,6 +53,16 @@ const SELECT_DELETED_ENTITIES_SQL = 'SELECT * FROM deleted_entities ORDER BY del
 const SELECT_READER_DOCUMENTS_SQL = 'SELECT * FROM reader_documents ORDER BY updated_at DESC';
 const SELECT_READER_SETTINGS_SQL = 'SELECT * FROM reader_settings WHERE id = ? LIMIT 1';
 
+let runtimeOptions: UserDatabaseRuntimeOptions = {};
+
+export function configureUserDatabaseRuntime(options: UserDatabaseRuntimeOptions = {}) {
+  runtimeOptions = options;
+
+  return () => {
+    runtimeOptions = {};
+  };
+}
+
 export async function loadUserProfileFromUserDatabase(options: UserDatabaseRuntimeOptions = {}) {
   return (await loadUserDataSnapshotFromUserDatabase(options)).profile;
 }
@@ -95,10 +105,12 @@ export async function clearReaderStateFromUserDatabase(options: UserDatabaseRunt
   await saveUserDataSnapshotToUserDatabase({ ...snapshot, reader: getDefaultReaderState() }, options);
 }
 
-export async function loadUserDataSnapshotFromUserDatabase({
-  databaseName = USER_DATABASE_NAME,
-  openDatabase = openExpoUserDatabase,
-}: UserDatabaseRuntimeOptions = {}): Promise<UserDataSnapshot> {
+export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabaseRuntimeOptions = {}): Promise<UserDataSnapshot> {
+  const {
+    databaseName = USER_DATABASE_NAME,
+    openDatabase = openExpoUserDatabase,
+  } = resolveRuntimeOptions(options);
+
   await ensureUserDatabaseMigrated({ databaseName, openDatabase });
 
   const database = await openDatabase(databaseName);
@@ -135,12 +147,14 @@ export async function loadUserDataSnapshotFromUserDatabase({
 
 export async function saveUserDataSnapshotToUserDatabase(
   snapshot: UserDataSnapshot,
-  {
+  options: UserDatabaseRuntimeOptions = {}
+) {
+  const {
     databaseName = USER_DATABASE_NAME,
     now = () => new Date().toISOString(),
     openDatabase = openExpoUserDatabase,
-  }: UserDatabaseRuntimeOptions = {}
-) {
+  } = resolveRuntimeOptions(options);
+
   await ensureUserDatabaseMigrated({ databaseName, openDatabase });
 
   const database = await openDatabase(databaseName);
@@ -160,9 +174,14 @@ export async function saveUserDataSnapshotToUserDatabase(
 }
 
 async function ensureUserDatabaseMigrated({
-  databaseName = USER_DATABASE_NAME,
-  openDatabase = openExpoUserDatabase,
+  databaseName,
+  openDatabase,
 }: Pick<UserDatabaseRuntimeOptions, 'databaseName' | 'openDatabase'> = {}) {
+  ({
+    databaseName = USER_DATABASE_NAME,
+    openDatabase = openExpoUserDatabase,
+  } = resolveRuntimeOptions({ databaseName, openDatabase }));
+
   const database = await openDatabase(databaseName);
   try {
     await ensureUserDatabaseSchema(database);
@@ -173,6 +192,13 @@ async function ensureUserDatabaseMigrated({
   }
 
   await migrateAsyncStorageToUserDatabase({ databaseName, openDatabase });
+}
+
+function resolveRuntimeOptions(options: UserDatabaseRuntimeOptions): UserDatabaseRuntimeOptions {
+  return {
+    ...runtimeOptions,
+    ...options,
+  };
 }
 
 async function getAllRequired<T>(database: UserSqliteDatabase, source: string, ...params: UserSqliteBindParams) {

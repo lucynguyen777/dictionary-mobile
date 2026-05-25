@@ -15,11 +15,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
-- Medium next tasks: local UI/data consistency polish and database smoke hardening before removing legacy storage keys.
-- Hard next tasks: Profile/Library/Reader SQLite runtime adoption is implemented; next hard work is proving smoke behavior and legacy cleanup readiness (see Next Work Module).
+- Medium next tasks: legacy AsyncStorage cleanup can be planned after SQLite smoke; keep backup/rollback behavior explicit.
+- Hard next tasks: SQLite runtime smoke and cleanup readiness is implemented; next hard work is controlled legacy user-data cleanup (see Next Work Module).
 
 ## Current Baseline
 - Latest completed commits:
+  - `06c6ccf` feat(database): adopt sqlite user runtime
   - `06e4543` feat(database): add local user data migration bridge
   - `8980dfc` docs(database): define user data migration readiness
   - `9084c84` docs(database): plan local-first database architecture
@@ -555,25 +556,32 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Reset/export boundary: Profile reset now clears Profile, Library, and Reader user data; offline dictionary pack state remains separate, and store writes keep AsyncStorage backup readable for existing JSON export.
 - Tests: added `tests/userDatabaseRuntime.test.ts` covering migration-on-first-read, row parsing, adapter writes, relation dedupe, and SQLite reload behavior.
 
+**Module: SQLite runtime smoke and legacy cleanup readiness** - DONE
+- Profile smoke: verified `saveUserProfile` persists through the SQLite runtime path, reloads from SQLite, and keeps the AsyncStorage backup readable by JSON export.
+- Library smoke: verified public store flows for folders, saved words, search history, and flashcards reload from SQLite without duplicate saved-word folder relations.
+- Reader smoke: verified import, settings update, document selection, and selected-document fallback reload correctly from SQLite.
+- Reset/export smoke: fixed user-data reset ordering to avoid parallel snapshot overwrite races, confirmed Profile/Library/Reader user data clears while offline pack metadata remains separate, and confirmed export output is explicit after reset.
+- Cleanup readiness: documented gates for legacy AsyncStorage key removal, rollback expectations, and verification requirements in `docs/database-architecture-plan.md`.
+
 ## Next Work Module
 
-**Module: SQLite runtime smoke and legacy cleanup readiness**
-- Goal: prove the SQLite runtime path in app-facing flows and prepare a safe cleanup plan for legacy AsyncStorage keys without removing them yet.
-- Scope: 5 related validation and hardening tasks; complete smoke/readiness before deleting old Profile/Library/Reader AsyncStorage payloads.
+**Module: Legacy user-data AsyncStorage cleanup**
+- Goal: remove or quarantine old Profile/Library/Reader AsyncStorage payloads only after SQLite runtime is the confirmed primary user-data source.
+- Scope: 5 related cleanup tasks; do not touch offline dictionary pack metadata or per-pack SQLite databases.
 
 ### Module Completion Plan
-1. Add or update smoke coverage for Profile save/load, Library save/history/flashcard flows, and Reader import/settings using the SQLite runtime path.
-2. Verify reset/export behavior keeps user data coherent and preserves offline dictionary pack boundaries.
-3. Add runtime health/status hooks or diagnostics for SQLite fallback decisions if needed by smoke results.
-4. Document legacy AsyncStorage cleanup gates, rollback expectations, and release criteria.
-5. Sync docs/progress and run full verification before selecting the actual cleanup module.
+1. Add a cleanup migration that detects confirmed SQLite schema/user data and removes only legacy Profile/Library/Reader AsyncStorage payloads.
+2. Preserve a rollback/export path before cleanup, either by generating a JSON backup or requiring a retained backup marker.
+3. Keep offline pack install metadata and offline pack SQLite databases untouched.
+4. Add focused cleanup tests for idempotency, missing SQLite fallback, backup marker behavior, and offline-pack preservation.
+5. Update docs/progress and run full verification before considering backup UX or cloud sync work.
 
 ### Module Tasks
-1. [ ] TODO [MEDIUM] Profile SQLite smoke: save profile preferences, reload from SQLite, and confirm AsyncStorage backup remains export-readable.
-2. [ ] TODO [MEDIUM] Library SQLite smoke: save words/folders/history/flashcards through app-facing store functions and reload without duplicate relations.
-3. [ ] TODO [MEDIUM] Reader SQLite smoke: import/select/update reader documents and settings through app-facing flows and reload selected-document fallback.
-4. [ ] TODO [MEDIUM] Reset/export smoke: clear user data without deleting offline pack metadata/databases and confirm JSON export boundary remains explicit.
-5. [ ] TODO [MEDIUM] Legacy cleanup readiness docs: update database plan and progress with cleanup gates, rollback policy, and verification results.
+1. [ ] TODO [MEDIUM] Cleanup eligibility check: verify SQLite `schema_version=1` and required Profile/Library/Reader rows before deleting legacy keys.
+2. [ ] TODO [MEDIUM] Legacy key cleanup utility: remove only `dictionary-mobile.profile.v1`, `dictionary-mobile.library.v1`, and `dictionary-mobile.reader.v1` after eligibility passes.
+3. [ ] TODO [MEDIUM] Rollback/export guard: keep or create a local JSON backup marker before cleanup and document restore expectations.
+4. [ ] TODO [MEDIUM] Offline-pack preservation tests: prove cleanup does not remove `dictionary-mobile.offline-packs.v1` or offline dictionary SQLite pack databases.
+5. [ ] TODO [MEDIUM] Verification/docs sync: update database plan, product progress, focused cleanup tests, `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and `npm test -- --run`.
 
 
 
