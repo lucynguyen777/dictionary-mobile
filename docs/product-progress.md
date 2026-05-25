@@ -16,10 +16,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Voice/OCR Stage 3 readiness module is DONE; choose the next 3-5 task module after the next roadmap/code audit.
+- Hard next tasks: no unblocked hard implementation module remains after the roadmap audit; remaining hard items require provider/source/native-runtime decisions.
 
 ## Current Baseline
 - Latest completed commits:
+  - `146d633` feat(recognition): add OCR readiness boundary
+  - `51c8a97` docs(progress): set voice ocr readiness queue
   - `22d9dab` feat(lang): add Hindi monolingual baseline
   - `3c9ddb6` feat(lang): add Estonian monolingual baseline
   - `b838d8a` docs(lang): complete source gate unblock module
@@ -176,10 +178,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
 - [x] DONE [HARD]: Word variations/morphology search for English inflections and common irregular forms (VD: "went" -> "go") (commit `3706441`).
 - [x] DONE [HARD]: Offline dictionary database bundle planning and decision accepted in `.docs/decisions/offline-dictionary-bundle.md` (Option 1: Wiktionary/Kaikki bundles with staged implementation).
-- [~] IN PROGRESS [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
+- [!] BLOCKED [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
   - [x] DONE [HARD]: Architecture/library evaluation and staged implementation plan: `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Implementation Phase 1: Word screen Voice/OCR entry points, microphone/photo-library permission flow, local audio/image capture hooks, deterministic STT/OCR prototype results, and lookup routing covered by `tests/recognition.test.ts`.
   - [x] DONE [HARD]: Implementation Phase 2: capture previews for local audio/image inputs, OCR camera preview entry, manual dev-client smoke matrix, and on-device OCR/STT engine shortlist documented in `docs/voice-ocr-plan.md`.
+  - [x] DONE [HARD]: Stage 3 readiness: package-agnostic OCR engine contract, deterministic block/line parser, selectable OCR candidates, dev-client-gated native OCR state, and `tests/ocrEngine.test.ts` coverage.
+  - [!] BLOCKED [HARD]: Real on-device OCR integration requires selecting a maintained native OCR package and validating it in an Expo dev-client/custom native build.
+  - [!] BLOCKED [HARD]: Real on-device STT integration requires selecting OS speech recognizer vs Vosk/native wrapper and validating privacy/offline behavior in a dev-client build.
 
 ### Context & Examples
 - [x] DONE [MEDIUM]: Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ) (commit `d1f96b5`).
@@ -284,11 +289,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
 - [x] DONE [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
 - [x] DONE [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
-- [ ] TODO [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
+- [!] BLOCKED [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
 - [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
-- [ ] TODO [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected.
+- [!] BLOCKED [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected.
 - [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [x] DONE [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
 - [x] DONE [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
@@ -354,7 +359,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [MEDIUM]: Hindi monolingual baseline planning: original WiktAPI `hi` endpoint stayed blocked, but tiny `hiwiktionary` MediaWiki fixtures are now accepted for the local baseline.
   - [x] DONE [HARD]: Hindi monolingual baseline implementation: register Hindi metadata/adapter routing, add curated `hiwiktionary` fixtures, normalize Devanagari variants, add conservative noun/verb morphology fallbacks, and cover lookup behavior with tests.
   - Russian: Cyrillic, case, gender, aspect, morphology fallback required.
-- [ ] TODO [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
+- [!] BLOCKED [HARD]: Sino-Tibetan next-build candidates: Cantonese, Burmese, Tibetan.
   - [x] DONE [HARD]: Mandarin monolingual baseline implementation: Register Mandarin adapter and integrate `Intl.Segmenter` for word segmentation, using the community Chinese Wiktionary (`zhwiktionary`) CC BY-SA data.
   - [x] DONE [HARD]: Cantonese monolingual baseline planning: document source candidates, Hanzi, jyutping, tones, traditional/simplified variants, and dictionary adapter fixture gates in `docs/cantonese-language-plan.md`.
   - [!] BLOCKED [HARD]: Cantonese monolingual baseline implementation requires a stable Words.hk hosted API or an approved local bundle path; keep `yue` unavailable until then.
@@ -408,7 +413,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
   - [x] DONE [HARD]: Malayalam monolingual baseline planning: Research Malayalam script, agglutinative morphology, transliteration, and source candidates.
   - [x] DONE [HARD]: Malayalam monolingual baseline implementation: Register Malayalam adapter, write suffix morphology fallbacks, and add local fixtures.
   - Requires native script support, transliteration, agglutinative morphology, lemma fallback.
-- [~] IN PROGRESS [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
+- [!] BLOCKED [HARD]: Turkic next-build candidates: Turkish, Uzbek, Kazakh, Uyghur.
   - [x] DONE [HARD]: Turkish monolingual baseline planning: source candidates, Latin-script search implications, agglutinative morphology, vowel harmony, case suffixes, and fixture/test gates documented in `docs/turkish-language-plan.md`.
   - [x] DONE [HARD]: Turkish monolingual baseline implementation: register Turkish adapter, parse suffix chains, and add a test fixture for common words.
   - [x] DONE [HARD]: Uzbek monolingual baseline planning: Latin/Cyrillic script handling, apostrophe normalization, agglutinative morphology implications, source smoke, and implementation gates documented in `docs/uzbek-language-plan.md` and `docs/uzbek-source-smoke.md`.
@@ -511,9 +516,16 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - UI readiness: updated the Word OCR modal to show local capture previews, selectable OCR lines, confidence chips, and dev-client-gated native OCR state while preserving Expo Go/Web behavior.
 - Docs/progress: updated `docs/voice-ocr-plan.md` and this file. Verification: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, focused recognition/OCR tests, and full `npm test -- --run` pass (223 tests, 20 files).
 
+**Module: Remaining roadmap audit and blocker alignment** - DONE
+- Counted remaining open roadmap lines after Voice/OCR Stage 3 readiness: 0 unblocked TODO/IN PROGRESS tasks, 24 blocked checklist rows, and 0 selected next-module tasks.
+- Reclassified stale TODO rows for real account verification and feedback submission as `[!] BLOCKED` because they explicitly require auth provider or support-channel decisions.
+- Reclassified Sino-Tibetan and Turkic parent rows as `[!] BLOCKED` because their implemented languages are done and only Cantonese/Uyghur source blockers remain.
+- Reclassified Voice/OCR parent row as `[!] BLOCKED` after Stage 3 readiness, with explicit blockers for native OCR and STT package/dev-client validation.
+- Docs/progress: updated this file. Verification: `git diff --check`, `npx tsc --noEmit`, and `npm run lint`.
+
 ## Next Work Module
 
-No active module selected. Before starting the next module, audit current code and this progress file, then choose 3-5 related unblocked tasks per the Module Queue Rules below.
+No active module selected. Current audit summary: 0 unblocked TODO/IN PROGRESS tasks remain; 24 blocked checklist rows remain and require external decisions before implementation. Before starting the next module, unblock one of these areas first: auth provider/account backend, support-channel destination, native OCR/STT dev-client package choice, Cantonese/Uyghur definition source, translation/backend provider, Google Sheets OAuth, pronunciation scoring engine, or production etymology/conjugation source expansion.
 
 
 
