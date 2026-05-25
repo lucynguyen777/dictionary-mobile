@@ -37,8 +37,10 @@ describe('recognition prototype utilities', () => {
     const result = createOcrPrototypeResult({ languageCode: 'ja', imageUri: 'file:///image.jpg' });
 
     expect(result.kind).toBe('ocr');
-    expect(result.text).toBe('猫 食べる');
-    expect(result.suggestions).toEqual(['猫 食べる', '食べる']);
+    expect(result.text).toBe('猫 食べる\n本');
+    expect(result.suggestions).toEqual(['猫 食べる 本', '猫 食べる', '本', '食べる']);
     expect(result.localUri).toBe('file:///image.jpg');
+    expect(result.engineStatus).toBe('native-unavailable');
+    expect(result.notice).toContain('dev-client OCR engine');
   });
 });

@@ -434,12 +434,8 @@ export default function WordScreen() {
     setRecognitionStatus('processing');
     setRecognitionCapturePreview(createImageCapturePreview({ uri, source: 'camera' }));
     try {
-      const ocrText = await performOCR(uri, sourceLanguage.code);
-      const prototypeResult = createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri: uri });
-      setRecognitionResult({
-        ...prototypeResult,
-        text: ocrText || prototypeResult.text,
-      });
+      const ocrResult = await performOCR(uri, sourceLanguage.code);
+      setRecognitionResult(createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri: uri, ocrResult }));
       setRecognitionStatus('ready');
       setRecognitionModalOpen(true);
     } catch {
@@ -495,7 +491,8 @@ export default function WordScreen() {
           source: 'library',
         })
       );
-      setRecognitionResult(createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri }));
+      const ocrResult = imageUri ? await performOCR(imageUri, sourceLanguage.code) : undefined;
+      setRecognitionResult(createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri, ocrResult }));
       setRecognitionStatus('ready');
     } catch (error) {
       setRecognitionStatus('error');
@@ -800,9 +797,27 @@ function RecognitionPrototypeModal({
 
           {result ? (
             <View style={styles.recognitionResultBlock}>
-              <Text style={styles.recognitionResultLabel}>Kết quả prototype</Text>
+              <Text style={styles.recognitionResultLabel}>{getRecognitionResultLabel(result)}</Text>
               <Text style={styles.recognitionResultText}>{result.text}</Text>
               <Text style={styles.recognitionNotice}>{result.notice}</Text>
+              {result.ocrResult?.blocks.length ? (
+                <View style={styles.recognitionOcrLines}>
+                  {result.ocrResult.blocks.flatMap((block) => block.lines).map((line) => (
+                    <TouchableOpacity
+                      key={line.id}
+                      activeOpacity={0.82}
+                      onPress={() => onUseText(line.text)}
+                      style={styles.recognitionOcrLine}>
+                      <Text numberOfLines={1} style={styles.recognitionOcrLineText}>
+                        {line.text}
+                      </Text>
+                      {typeof line.confidence === 'number' ? (
+                        <Text style={styles.recognitionOcrConfidence}>{Math.round(line.confidence * 100)}%</Text>
+                      ) : null}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recognitionSuggestionRow}>
                 {result.suggestions.map((suggestion) => (
                   <TouchableOpacity
@@ -1093,6 +1108,14 @@ function getRecognitionStatusTitle(mode: RecognitionKind, status: RecognitionSta
   if (status === 'error') return 'Cần thử lại';
 
   return mode === 'speech' ? 'Sẵn sàng ghi âm' : 'Sẵn sàng chọn ảnh';
+}
+
+function getRecognitionResultLabel(result: RecognitionPrototypeResult) {
+  if (result.kind === 'ocr') {
+    return result.engineStatus === 'native-ready' ? 'OCR candidates' : 'OCR readiness candidates';
+  }
+
+  return 'Kết quả prototype';
 }
 
 function getRecognitionStatusText(mode: RecognitionKind, status: RecognitionStatus) {
@@ -1590,6 +1613,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 17,
     marginTop: 7,
+  },
+  recognitionOcrLines: {
+    gap: 7,
+    marginTop: 10,
+  },
+  recognitionOcrLine: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+    minHeight: 36,
+    paddingHorizontal: 10,
+  },
+  recognitionOcrLineText: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  recognitionOcrConfidence: {
+    color: '#0F766E',
+    fontSize: 11,
+    fontWeight: '800',
   },
   recognitionSuggestionRow: {
     gap: 8,

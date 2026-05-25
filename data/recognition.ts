@@ -1,4 +1,11 @@
+import {
+  OcrEngineResult,
+  createDeterministicOcrResult,
+  extractOcrLookupCandidates,
+} from './ocrEngine';
+
 export type RecognitionKind = 'speech' | 'ocr';
+export type RecognitionEngineStatus = 'prototype' | 'native-unavailable' | 'native-ready';
 
 export type RecognitionPrototypeResult = {
   kind: RecognitionKind;
@@ -7,6 +14,8 @@ export type RecognitionPrototypeResult = {
   confidence: number;
   localUri?: string | null;
   notice: string;
+  engineStatus?: RecognitionEngineStatus;
+  ocrResult?: OcrEngineResult;
 };
 
 const PROTOTYPE_SPEECH_TEXT_BY_LANGUAGE: Record<string, string> = {
@@ -20,19 +29,6 @@ const PROTOTYPE_SPEECH_TEXT_BY_LANGUAGE: Record<string, string> = {
   ko: '사랑',
   ar: 'كتاب',
   he: 'שלום',
-};
-
-const PROTOTYPE_OCR_TEXT_BY_LANGUAGE: Record<string, string> = {
-  en: 'articulate clearly',
-  vi: 'tra từ điển',
-  fr: 'bonjour monde',
-  es: 'casa grande',
-  tr: 'ev yemek',
-  fi: 'talo käsi',
-  ja: '猫 食べる',
-  ko: '사랑 먹다',
-  ar: 'كتاب مدرسة',
-  he: 'שלום בית',
 };
 
 export function normalizeRecognizedLookupText(text: string) {
@@ -76,18 +72,22 @@ export function createSpeechToTextPrototypeResult({
 export function createOcrPrototypeResult({
   languageCode,
   imageUri,
+  ocrResult = createDeterministicOcrResult({ languageCode, imageUri }),
 }: {
   languageCode: string;
   imageUri?: string | null;
+  ocrResult?: OcrEngineResult;
 }): RecognitionPrototypeResult {
-  const text = PROTOTYPE_OCR_TEXT_BY_LANGUAGE[languageCode] ?? PROTOTYPE_OCR_TEXT_BY_LANGUAGE.en;
+  const suggestions = extractOcrLookupCandidates(ocrResult);
 
   return {
     kind: 'ocr',
-    text,
-    suggestions: splitRecognitionSuggestions(text),
-    confidence: 0.68,
+    text: ocrResult.text,
+    suggestions,
+    confidence: ocrResult.confidence ?? 0,
     localUri: imageUri,
-    notice: 'OCR prototype: image permission and picker flow are wired; on-device text extraction is still pending.',
+    notice: 'OCR readiness: capture stays local; native text extraction is gated behind a dev-client OCR engine.',
+    engineStatus: ocrResult.engine === 'native' ? 'native-ready' : 'native-unavailable',
+    ocrResult,
   };
 }

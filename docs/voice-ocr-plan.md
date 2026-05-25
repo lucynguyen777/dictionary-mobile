@@ -174,6 +174,15 @@ Exit criteria:
 - OCR returns Vietnamese/English text in basic tests.
 - Works on at least one platform in dev-client.
 
+Readiness status: DONE. The app now has a package-agnostic OCR boundary in `data/ocrEngine.ts` before a native package is selected:
+- stable result types for full text, blocks, lines, confidence, and normalized bounding boxes;
+- `OcrEngineUnavailableError` plus `createUnavailableNativeOcrEngine()` for Expo Go/Web or non-dev-client runtimes;
+- deterministic fixture OCR via `createDeterministicOcrResult()` so parsing, line selection, and lookup candidates can be tested without native OCR;
+- candidate extraction with full text, line text, and token suggestions covered by `tests/ocrEngine.test.ts`;
+- Word OCR modal readiness UI showing local capture previews, selectable OCR lines, confidence chips, and dev-client-gated native OCR copy.
+
+Native OCR integration remains pending. The next implementation slice should choose and spike a maintained ML Kit/Vision wrapper in an Expo dev-client, then adapt it behind the existing `OcrEngine` interface.
+
 ### Stage 4 — Real on-device STT (dev-client required)
 - Integrate STT module (native wrapper or Vosk).
 - Return transcript + confidence/segments if possible.
@@ -228,6 +237,10 @@ Run this before marking Stage 3 or Stage 4 implementation done:
 - Unit tests:
   - Parsing/normalization of transcript/OCR text into lookup queries.
   - Capture-preview metadata formatting for audio and image inputs.
+- Current Stage 3 readiness tests:
+  - `tests/ocrEngine.test.ts`: OCR text normalization, deterministic block/line output, lookup candidate extraction, unavailable-native-engine error.
+  - `tests/recognition.test.ts`: speech/OCR prototype result creation and suggestion routing.
+  - `tests/recognitionCapture.test.ts`: local audio/image capture preview metadata.
 - Manual smoke (required):
   - iOS dev-client: record voice → transcript; camera OCR → result.
   - Android dev-client: same.

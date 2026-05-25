@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
 - Medium next tasks: local UI/data consistency polish and future adapter implementation slices after source smoke tests.
-- Hard next tasks: Hindi monolingual baseline module is DONE; next hard work is the Voice/OCR Stage 3 readiness module (see Next Work Module).
+- Hard next tasks: Voice/OCR Stage 3 readiness module is DONE; choose the next 3-5 task module after the next roadmap/code audit.
 
 ## Current Baseline
 - Latest completed commits:
@@ -504,25 +504,16 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Tests: new coverage in `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, and `tests/languageNormalization.test.ts` for exact lookup, form fallback, Devanagari-only behavior, related words, adapter registration, and normalization.
 - Docs/progress: updated `docs/hindi-language-plan.md` and this file; full verification passes (220 tests, 19 files).
 
+**Module: Voice/OCR Stage 3 readiness** - DONE
+- Audit: reconciled `app/(tabs)/word.tsx`, `data/recognition.ts`, `data/recognitionCapture.ts`, and tests against `docs/voice-ocr-plan.md` Stage 3 expectations.
+- OCR engine contract: added `data/ocrEngine.ts` with package-agnostic result types for text, blocks, lines, confidence, bounding boxes, and unavailable-native-engine errors.
+- Parsing/tests: added deterministic OCR fixture output, lookup candidate extraction, unavailable-engine tests, and updated recognition tests without requiring native OCR.
+- UI readiness: updated the Word OCR modal to show local capture previews, selectable OCR lines, confidence chips, and dev-client-gated native OCR state while preserving Expo Go/Web behavior.
+- Docs/progress: updated `docs/voice-ocr-plan.md` and this file. Verification: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, focused recognition/OCR tests, and full `npm test -- --run` pass (223 tests, 20 files).
+
 ## Next Work Module
 
-**Module: Voice/OCR Stage 3 readiness**
-- Goal: prepare the app for real on-device OCR integration without sending images to cloud services or blocking Expo Go users.
-- Scope: 5 related tasks; finish this readiness module before attempting native OCR package integration.
-
-### Module Completion Plan
-1. Audit the current Voice/OCR code path (`app/(tabs)/word.tsx`, `data/recognition.ts`, `data/recognitionCapture.ts`, and tests) against `docs/voice-ocr-plan.md` Stage 3 expectations.
-2. Define an OCR engine boundary that can represent unavailable native engines, parsed text blocks/lines, confidence, and bounding boxes without coupling UI code to a package.
-3. Add deterministic OCR result parsing and selectable line/word candidate tests using local fixtures, keeping real native OCR behind a dev-client gate.
-4. Update the Word OCR modal copy/state so Expo Go/Web clearly show prototype capture versus native OCR unavailable, while preserving current capture-preview flow.
-5. Update `docs/voice-ocr-plan.md`, this progress file, and verification notes after focused/full tests.
-
-### Module Tasks
-1. [ ] TODO [HARD] Voice/OCR current-code audit: reconcile Stage 3 expectations with the current capture-preview implementation and existing recognition tests.
-2. [ ] TODO [HARD] OCR engine contract: add a package-agnostic OCR result/engine boundary for text, blocks, lines, confidence, bounding boxes, and unavailable-native-engine errors.
-3. [ ] TODO [MEDIUM] OCR parsing and selection tests: cover deterministic block/line normalization, query candidate extraction, and lookup routing without requiring native OCR.
-4. [ ] TODO [MEDIUM] Word OCR modal readiness UI: distinguish prototype capture, parsed OCR candidates, and dev-client-required native OCR state without breaking Expo Go/Web.
-5. [ ] TODO [MEDIUM] Voice/OCR docs and progress sync: update `docs/voice-ocr-plan.md`, this file, and run `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and focused/full tests.
+No active module selected. Before starting the next module, audit current code and this progress file, then choose 3-5 related unblocked tasks per the Module Queue Rules below.
 
 
 

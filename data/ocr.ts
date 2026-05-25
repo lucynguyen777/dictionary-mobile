@@ -1,13 +1,34 @@
+import {
+  OcrEngine,
+  OcrEngineResult,
+  createDeterministicOcrResult,
+  createUnavailableNativeOcrEngine,
+  extractOcrLookupCandidates,
+  normalizeOcrText,
+  runOcrEngine,
+} from './ocrEngine';
 
+export type { OcrBoundingBox, OcrEngine, OcrEngineResult, OcrTextBlock, OcrTextLine } from './ocrEngine';
+export {
+  OcrEngineUnavailableError,
+  createDeterministicOcrResult,
+  createUnavailableNativeOcrEngine,
+  extractOcrLookupCandidates,
+  normalizeOcrText,
+  runOcrEngine,
+} from './ocrEngine';
 
-// Placeholder OCR implementation. In a real app, replace with ML Kit, Vision, or a native module.
-// This function simulates OCR by returning a fixed string after a short delay.
-export async function performOCR(imageUri: string, languageCode: string): Promise<string> {
-  // Simulate processing time
-  await new Promise((resolve) => setTimeout(resolve, 500));
+export async function performOCR(imageUri: string, languageCode: string, engine?: OcrEngine): Promise<OcrEngineResult> {
+  if (engine) return runOcrEngine(engine, { imageUri, languageCode });
 
-  // In a real implementation, you would load the image, run it through an OCR engine,
-  // and return the recognized text.
-  // For now, return a placeholder indicating success.
-  return `OCR result for language ${languageCode}`;
+  return createDeterministicOcrResult({ imageUri, languageCode });
 }
+
+export function createOcrLookupSuggestions(result: OcrEngineResult) {
+  return extractOcrLookupCandidates({
+    ...result,
+    text: normalizeOcrText(result.text),
+  });
+}
+
+export const unavailableNativeOcrEngine = createUnavailableNativeOcrEngine();
