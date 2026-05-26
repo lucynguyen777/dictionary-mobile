@@ -14,12 +14,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: no active easy task selected; keep future easy work to copy polish and small local UI cleanup.
-- Medium next tasks: legacy AsyncStorage cleanup can be planned after SQLite smoke; keep backup/rollback behavior explicit.
-- Hard next tasks: SQLite runtime smoke and cleanup readiness is implemented; next hard work is controlled legacy user-data cleanup (see Next Work Module).
+- Easy next tasks: no active easy task selected; keep future work to copy polish and small local UI cleanup only when a concrete 3-5 task module is selected.
+- Medium next tasks: legacy AsyncStorage cleanup is implemented; no unblocked medium module is currently selected.
+- Hard next tasks: remaining hard roadmap items require backend/auth/API/resource decisions and stay blocked until decisions are accepted.
 
 ## Current Baseline
 - Latest completed commits:
+  - `a4689ef` feat(database): clean up legacy user data storage
   - `06c6ccf` feat(database): adopt sqlite user runtime
   - `06e4543` feat(database): add local user data migration bridge
   - `8980dfc` docs(database): define user data migration readiness
@@ -572,9 +573,16 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Tests: added `tests/userDataLegacyCleanup.test.ts` for successful cleanup, idempotency, missing schema/row skips, backup failure aborts, backup marker behavior, and offline-pack preservation.
 - Docs/progress: updated `docs/database-architecture-plan.md`, `.ai/context/current-product-state.md`, and this file. Verification: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, focused `npm test -- --run tests/userDataLegacyCleanup.test.ts`, and full `npm test -- --run` pass.
 
+**Module: Post-cleanup baseline and queue sync** - DONE
+- Baseline: recorded cleanup commit `a4689ef` in `Current Baseline` after it was pushed to GitHub.
+- Queue status: refreshed Difficulty Overview and Next Work Module language so cleanup is no longer presented as upcoming work.
+- Roadmap gate: confirmed there are no unblocked TODO/IN PROGRESS product tasks in `docs/product-progress.md`; blocked backend/auth/API/resource-dependent work remains blocked.
+- Context sync: kept `.ai/context/current-product-state.md` aligned with the no-active-module state.
+- Verification: docs-only sync should pass `git diff --check`, `npx tsc --noEmit`, and `npm run lint` before commit.
+
 ## Next Work Module
 
-No active next module selected. Choose the next 3-5 task module only after the legacy cleanup verification results are recorded and the code/checklist are committed.
+No active next module selected. The current roadmap has no unblocked TODO/IN PROGRESS product tasks; choose the next 3-5 task module only after a new local-first task is added or a blocked decision is accepted.
 
 
 

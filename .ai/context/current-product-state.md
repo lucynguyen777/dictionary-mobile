@@ -85,7 +85,7 @@
 - Local user-data SQLite runtime for Profile, Library, and Reader, with migration from legacy AsyncStorage and explicit legacy cleanup utility guarded by backup marker and offline-pack preservation tests
 
 ## In Progress
-- No active implementation module is selected after the legacy user-data AsyncStorage cleanup module. Use `docs/product-progress.md` as the source of truth before selecting the next 3-5 task module.
+- No active implementation module is selected after the legacy user-data AsyncStorage cleanup and post-cleanup baseline sync modules. Use `docs/product-progress.md` as the source of truth before selecting the next 3-5 task module.
 
 ## Blocked
 - Auth (Email login, password changes, account deletion, real sign out)
