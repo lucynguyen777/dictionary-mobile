@@ -563,25 +563,18 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Reset/export smoke: fixed user-data reset ordering to avoid parallel snapshot overwrite races, confirmed Profile/Library/Reader user data clears while offline pack metadata remains separate, and confirmed export output is explicit after reset.
 - Cleanup readiness: documented gates for legacy AsyncStorage key removal, rollback expectations, and verification requirements in `docs/database-architecture-plan.md`.
 
-## Next Work Module
-
-**Module: Legacy user-data AsyncStorage cleanup**
+**Module: Legacy user-data AsyncStorage cleanup** - DONE
 - Goal: remove or quarantine old Profile/Library/Reader AsyncStorage payloads only after SQLite runtime is the confirmed primary user-data source.
 - Scope: 5 related cleanup tasks; do not touch offline dictionary pack metadata or per-pack SQLite databases.
+- Cleanup utility: added `data/userDataLegacyCleanup.ts` with an explicit, idempotent cleanup function that checks SQLite `schema_version=1`, required profile and reader settings rows, and readable library tables before removing legacy keys.
+- Rollback guard: cleanup creates or reuses `dictionary-mobile.user-data-cleanup-backup.v1` after a successful `exportAllLocalData` run and before deleting legacy keys.
+- Key boundary: cleanup removes only `dictionary-mobile.profile.v1`, `dictionary-mobile.library.v1`, and `dictionary-mobile.reader.v1`; offline pack metadata and pack SQLite databases stay out of scope.
+- Tests: added `tests/userDataLegacyCleanup.test.ts` for successful cleanup, idempotency, missing schema/row skips, backup failure aborts, backup marker behavior, and offline-pack preservation.
+- Docs/progress: updated `docs/database-architecture-plan.md`, `.ai/context/current-product-state.md`, and this file. Verification: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, focused `npm test -- --run tests/userDataLegacyCleanup.test.ts`, and full `npm test -- --run` pass.
 
-### Module Completion Plan
-1. Add a cleanup migration that detects confirmed SQLite schema/user data and removes only legacy Profile/Library/Reader AsyncStorage payloads.
-2. Preserve a rollback/export path before cleanup, either by generating a JSON backup or requiring a retained backup marker.
-3. Keep offline pack install metadata and offline pack SQLite databases untouched.
-4. Add focused cleanup tests for idempotency, missing SQLite fallback, backup marker behavior, and offline-pack preservation.
-5. Update docs/progress and run full verification before considering backup UX or cloud sync work.
+## Next Work Module
 
-### Module Tasks
-1. [ ] TODO [MEDIUM] Cleanup eligibility check: verify SQLite `schema_version=1` and required Profile/Library/Reader rows before deleting legacy keys.
-2. [ ] TODO [MEDIUM] Legacy key cleanup utility: remove only `dictionary-mobile.profile.v1`, `dictionary-mobile.library.v1`, and `dictionary-mobile.reader.v1` after eligibility passes.
-3. [ ] TODO [MEDIUM] Rollback/export guard: keep or create a local JSON backup marker before cleanup and document restore expectations.
-4. [ ] TODO [MEDIUM] Offline-pack preservation tests: prove cleanup does not remove `dictionary-mobile.offline-packs.v1` or offline dictionary SQLite pack databases.
-5. [ ] TODO [MEDIUM] Verification/docs sync: update database plan, product progress, focused cleanup tests, `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and `npm test -- --run`.
+No active next module selected. Choose the next 3-5 task module only after the legacy cleanup verification results are recorded and the code/checklist are committed.
 
 
 

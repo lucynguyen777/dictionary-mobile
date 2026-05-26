@@ -370,6 +370,15 @@ Legacy cleanup gates:
 4. Offline dictionary pack metadata and per-pack SQLite databases are not part of user-data key cleanup.
 5. Before deleting keys, run `git diff --check`, `npx tsc --noEmit`, `npm run lint`, focused database/store tests, full `npm test -- --run`, and Profile/Library/Reader smoke.
 
+Legacy cleanup implementation:
+
+- `data/userDataLegacyCleanup.ts` owns the explicit cleanup utility. It is not wired into normal store reads/writes; callers must opt into cleanup after SQLite runtime verification.
+- Cleanup eligibility requires SQLite `schema_version=1`, the `local-profile` row, the `local-reader-settings` row, and readable library tables. Missing SQLite metadata or rows skips cleanup without deleting AsyncStorage data.
+- Cleanup creates or reuses `dictionary-mobile.user-data-cleanup-backup.v1` after `exportAllLocalData` succeeds and before deleting legacy keys.
+- The only removable keys are `dictionary-mobile.profile.v1`, `dictionary-mobile.library.v1`, and `dictionary-mobile.reader.v1`.
+- `dictionary-mobile.offline-packs.v1` and per-pack SQLite databases remain app-owned offline dictionary data and must be preserved.
+- `tests/userDataLegacyCleanup.test.ts` covers successful cleanup, idempotency, missing SQLite fallback, backup failure aborts, backup marker reuse, and offline-pack preservation.
+
 ## Verification
 
 Database planning and bridge verification:

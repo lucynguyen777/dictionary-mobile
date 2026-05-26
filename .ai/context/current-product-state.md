@@ -82,11 +82,10 @@
 - Local data overview showing count of saved words, folders, flashcards, reader files, and datasets
 - Export all local user data and reset/delete all local data with confirmation alert
 - Privacy copy explaining local-first storage and biometric app lock (expo-local-authentication)
+- Local user-data SQLite runtime for Profile, Library, and Reader, with migration from legacy AsyncStorage and explicit legacy cleanup utility guarded by backup marker and offline-pack preservation tests
 
 ## In Progress
-- Estonian monolingual baseline planning (case-rich morphology, source checks)
-- Voice Search / OCR implementation Phase 1 (permission flows, speech-to-text prototype, OCR image extraction)
-- Offline dictionary MVP Phase 1 (SQLite schema, JSONL-to-gzip pack builder scripts, pack status shell in Profile)
+- No active implementation module is selected after the legacy user-data AsyncStorage cleanup module. Use `docs/product-progress.md` as the source of truth before selecting the next 3-5 task module.
 
 ## Blocked
 - Auth (Email login, password changes, account deletion, real sign out)
@@ -95,8 +94,7 @@
 - Speech scoring (IPA comparison, per-phoneme scoring alignment engine)
 - AI chatbot (Real-time AI conversation, voice chatbot, persistent memory)
 - Production translation (multilingual production translation, specialized glossary translation)
-- Offline dictionary bundle Phase 2 (Runtime SQLite import, download progress, and offline lookup)
-- Hindi monolingual baseline (WiktAPI 'hi' returns 404)
 - Cantonese monolingual baseline (needs words.hk hosted API or approved local bundle path)
+- Uyghur monolingual baseline (needs enough balanced non-placeholder native-definition fixtures or another approved source)
 - VI-to-FR bilingual dictionary source selection (no machine translation allowed)
-- Production conjugation and real etymology resource paths ( UniMorph/Kaikki CC-BY-SA integration blocked until licensed offline strategy selected)
+- Production conjugation and real etymology resource paths (UniMorph/Kaikki CC-BY-SA integration blocked until licensed offline strategy selected)
