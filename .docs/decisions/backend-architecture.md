@@ -1,7 +1,7 @@
 # Decision: Backend Architecture
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 The app is currently local-first. A backend architecture decision is needed before adding server-side accounts, sync, feedback submission, AI features, shared data, or production APIs.
@@ -13,10 +13,14 @@ The app is currently local-first. A backend architecture decision is needed befo
 4. Serverless functions
 
 ## Decision
-Chosen option.
+Choose **Supabase backend**.
+
+Use Supabase as the backend architecture for account-linked data, sync tables, backend-mediated Google export, AI/translation proxy boundaries, and account deletion support. Implementation remains staged: Supabase Auth Foundation comes first, then cloud sync and proxy modules.
 
 ## Consequences
-Cost, security, implementation complexity, deployment workflow, observability, data privacy, scaling model, and long-term maintenance.
+- Backend and auth share one provider boundary.
+- Server-side policies, environment variables, observability, privacy copy, and quota/cost controls must be documented before proxy features are implemented.
+- Local-first SQLite remains the source of truth until a sync module explicitly moves data into Supabase.
 
 ## Tasks Unblocked
 - Cloud sync

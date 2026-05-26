@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future work to copy polish and small local UI cleanup only when a concrete 3-5 task module is selected.
 - Medium next tasks: legacy AsyncStorage cleanup is implemented; no unblocked medium module is currently selected.
-- Hard next tasks: remaining hard roadmap items require backend/auth/API/resource decisions and stay blocked until decisions are accepted.
+- Hard next tasks: Supabase auth/backend, DeepL/OpenAI proxy, MLKit OCR, and OS/native STT decisions are accepted; remaining hard work should advance through staged TODO modules with dependency gates, while speech scoring and unsupported language-source work stay blocked.
 
 ## Current Baseline
 - Latest completed commits:
@@ -184,13 +184,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
 - [x] DONE [HARD]: Word variations/morphology search for English inflections and common irregular forms (VD: "went" -> "go") (commit `3706441`).
 - [x] DONE [HARD]: Offline dictionary database bundle planning and decision accepted in `.docs/decisions/offline-dictionary-bundle.md` (Option 1: Wiktionary/Kaikki bundles with staged implementation).
-- [!] BLOCKED [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
+- [ ] TODO [HARD]: Voice Search / OCR Camera Lookup (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh).
   - [x] DONE [HARD]: Architecture/library evaluation and staged implementation plan: `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Implementation Phase 1: Word screen Voice/OCR entry points, microphone/photo-library permission flow, local audio/image capture hooks, deterministic STT/OCR prototype results, and lookup routing covered by `tests/recognition.test.ts`.
   - [x] DONE [HARD]: Implementation Phase 2: capture previews for local audio/image inputs, OCR camera preview entry, manual dev-client smoke matrix, and on-device OCR/STT engine shortlist documented in `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Stage 3 readiness: package-agnostic OCR engine contract, deterministic block/line parser, selectable OCR candidates, dev-client-gated native OCR state, and `tests/ocrEngine.test.ts` coverage.
-  - [!] BLOCKED [HARD]: Real on-device OCR integration requires selecting a maintained native OCR package and validating it in an Expo dev-client/custom native build.
-  - [!] BLOCKED [HARD]: Real on-device STT integration requires selecting OS speech recognizer vs Vosk/native wrapper and validating privacy/offline behavior in a dev-client build.
+  - [ ] TODO [HARD]: Real on-device OCR integration can start with a maintained MLKit Text Recognition wrapper, validated behind the existing OCR engine contract in an Expo dev-client/custom native build.
+  - [ ] TODO [HARD]: Real on-device STT integration can start with OS/native speech recognizers, validating privacy, offline behavior, and unavailable-engine fallbacks in a dev-client build.
 
 ### Context & Examples
 - [x] DONE [MEDIUM]: Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ) (commit `d1f96b5`).
@@ -214,7 +214,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Export folder to CSV.
 - [x] DONE [MEDIUM]: Export folder to Excel-compatible `.xls`.
 - [x] DONE [MEDIUM]: Anki text-only export from folder/saved words (commit `72abef2`).
-- [!] BLOCKED [HARD]: Google Sheets export, requires OAuth and Google API flow.
+- [ ] TODO [HARD]: Google Sheets export via backend-mediated Google OAuth, staged after Supabase auth/backend foundation and Google Sheets export contract docs.
 
 ### Library Folder UI/UX
 - [x] DONE [EASY]: Replace visible per-folder export tags (`CSV`, `XLS`, `Anki`) with a kebab menu button on each folder card.
@@ -295,7 +295,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
 - [x] DONE [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
 - [x] DONE [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
-- [!] BLOCKED [HARD]: Real password/email/phone verification changes require auth provider selection; keep UI clearly marked as local/coming soon until auth exists.
+- [ ] TODO [HARD]: Real password/email/phone verification changes can be planned against Supabase Auth; keep UI clearly marked as local/coming soon until auth is implemented.
 - [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
@@ -322,9 +322,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Delete/reset local user data with confirmation (commit `a9cf589`).
 - [x] DONE [EASY]: Privacy copy explaining local-first storage and what leaves the device.
 - [x] DONE [MEDIUM]: App lock or biometric lock option if native support is added (commit `1a07198`).
-- [!] BLOCKED [HARD]: Email login/auth requires choosing an auth provider.
-- [!] BLOCKED [HARD]: Cloud sync and encrypted backup require backend/auth decisions.
-- [!] BLOCKED [HARD]: Account deletion workflow requires real accounts and backend support.
+- [ ] TODO [HARD]: Email login/auth can be planned against Supabase Auth.
+- [ ] TODO [HARD]: Cloud sync and encrypted backup can be planned against Supabase auth/backend, with encrypted backup policy still staged as its own implementation decision.
+- [ ] TODO [HARD]: Account deletion workflow can be planned against Supabase account/backend support and local-data deletion contracts.
 
 ## Advanced Features
 
@@ -461,8 +461,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Translation
 - [x] DONE [MEDIUM]: Language selector and bilingual dictionary flow; supported/blocked pair rules are centralized, unsupported pair routing is guarded, and API/UI coming-soon behavior is covered by tests.
-- [!] BLOCKED [HARD]: Production multilingual translation for many language pairs needs selected API/backend.
-- [!] BLOCKED [HARD]: Specialized translation with user glossary/database needs backend, auth, and cost controls.
+- [ ] TODO [HARD]: Production multilingual translation can be planned with DeepL through a Supabase/backend proxy, quota limits, and privacy controls.
+- [ ] TODO [HARD]: Specialized translation with user glossary/database can be planned with DeepL glossary support and backend persistence after Supabase auth/backend foundation.
 
 ### Etymology And Conjugation
 - [x] DONE [HARD]: Draft etymology/conjugation source decision brief with legal structured source candidates and keep production integration blocked while decision remains Proposed.
@@ -473,8 +473,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [!] BLOCKED [HARD]: Production etymology and conjugation should not be mocked without a real resource.
 
 ### AI
-- [!] BLOCKED [HARD]: Real-time voice/text chatbot needs backend, streaming, auth, and cost controls.
-- [!] BLOCKED [HARD]: Specialized document translation with imported glossary needs backend and persistence strategy.
+- [ ] TODO [HARD]: Real-time voice/text chatbot can be planned with OpenAI through a backend proxy, streaming, auth, rate limits, and cost controls.
+- [ ] TODO [HARD]: Specialized document translation with imported glossary can be planned with DeepL/OpenAI proxy boundaries and backend persistence strategy.
 
 ## Completed Work Modules
 
@@ -523,7 +523,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Docs/progress: updated `docs/voice-ocr-plan.md` and this file. Verification: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, focused recognition/OCR tests, and full `npm test -- --run` pass (223 tests, 20 files).
 
 **Module: Remaining roadmap audit and blocker alignment** - DONE
-- Counted remaining open roadmap lines after Voice/OCR Stage 3 readiness: 0 unblocked TODO/IN PROGRESS tasks, 24 blocked checklist rows, and 0 selected next-module tasks.
+- Counted remaining open roadmap lines after Voice/OCR Stage 3 readiness: 0 unblocked product implementation TODO/IN PROGRESS tasks, 24 blocked checklist rows, and 0 selected next-module tasks; blocked decision-prep documentation modules may still be selected.
 - Reclassified stale TODO rows for real account verification and feedback submission as `[!] BLOCKED` because they explicitly require auth provider or support-channel decisions.
 - Reclassified Sino-Tibetan and Turkic parent rows as `[!] BLOCKED` because their implemented languages are done and only Cantonese/Uyghur source blockers remain.
 - Reclassified Voice/OCR parent row as `[!] BLOCKED` after Stage 3 readiness, with explicit blockers for native OCR and STT package/dev-client validation.
@@ -580,9 +580,102 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Context sync: kept `.ai/context/current-product-state.md` aligned with the no-active-module state.
 - Verification: docs-only sync should pass `git diff --check`, `npx tsc --noEmit`, and `npm run lint` before commit.
 
+**Module: Accepted blocked-decision roadmap sync** - DONE
+- Decisions accepted: Supabase Auth/backend/cloud sync direction, DeepL translation/glossary through backend proxy, OpenAI AI features through backend proxy, MLKit OCR direction, OS/native STT direction, and backend-mediated Google Sheets OAuth.
+- Roadmap status: converted accepted decision-dependent rows from `[!] BLOCKED` to staged `[ ] TODO` while keeping speech scoring, unsupported language sources, feedback support channel, and no-mock lexical production data blocked.
+- Execution order: set next module priority to lexical follow-up, recognition foundation, Supabase auth, Supabase sync, DeepL/OpenAI proxy, Google Sheets export, language source gates, then speech scoring.
+- Decision docs: updated accepted ADRs under `.docs/decisions/` and added `.docs/decisions/google-sheets-export.md`.
+- Guardrail: preserved `data/userDatabaseSchema.web.ts` and did not implement production auth, backend, cloud, AI, translation, OCR/STT, or export code in this docs sync.
+
+**Module: MLKit OCR + OS/native STT Foundation** - DONE
+- Next-module selection: selected this as the next work module after Accepted Lexical Source Follow-up because it improves lookup UX before auth/backend-heavy work.
+- Candidate refresh: updated `docs/voice-ocr-plan.md` for Expo SDK 54 with `@infinitered/react-native-mlkit-text-recognition` v5.x as the first OCR candidate and `expo-speech-recognition` as the first OS/native STT candidate.
+- Constraints: documented dev-client requirements, no-cloud privacy boundary, offline behavior caveat, Expo Go/Web fallback behavior, language/script coverage, app-size risk, permission states, and unavailable-native behavior.
+- Contracts: documented OCR and STT adapter contracts that keep native packages behind `data/ocrEngine.ts`/recognition helpers and preserve deterministic fallback behavior for CI, Expo Go, and web.
+- Validation: expanded the dev-client smoke matrix for iOS, Android, Expo web, airplane mode, CI/Expo Go fallback, native OCR, and OS/native STT.
+
+**Module: Supabase Auth Foundation** - DONE
+- Foundation doc: added `docs/supabase-auth-foundation.md` with Supabase project/env policy, redirect URL policy using the existing `dictionairemobile` scheme, and token/session adapter boundary.
+- Session lifecycle: defined unconfigured, loading, unauthenticated, needs-verification, authenticated, and error states plus email/password sign-up, sign-in, recovery, verification, and sign-out expectations.
+- Account deletion: defined local SQLite deletion scope, future Supabase remote deletion scope, offline-pack boundary, confirmation flow, and remote-failure recovery expectations.
+- UI state map: mapped current local Profile/Settings behavior to auth states without treating local profile email/phone as verified identity.
+- Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module once dependencies and token storage choice are added.
+
 ## Next Work Module
 
-No active next module selected. The current roadmap has no unblocked TODO/IN PROGRESS product tasks; choose the next 3-5 task module only after a new local-first task is added or a blocked decision is accepted.
+**Module: Supabase Cloud Sync MVP** - TODO
+- [ ] TODO [HARD]: Refresh `docs/database-architecture-plan.md` and `.docs/decisions/cloud-sync.md` with the accepted Supabase auth foundation dependency and sync MVP scope.
+- [ ] TODO [HARD]: Define Supabase sync table contract for profile, library folders, saved words, flashcards/reviews, reader documents/settings, tombstones, and per-entity timestamps/versions.
+- [ ] TODO [HARD]: Define conflict strategy for local-first writes, remote updates, deletes/tombstones, offline queue replay, and last-writer/field-merge boundaries.
+- [ ] TODO [HARD]: Define encrypted backup and restore UX as staged follow-up work that does not block a minimal sync MVP.
+- [ ] TODO [HARD]: Acceptance gate: after this sync foundation is complete, cloud sync implementation can move into a staged code module.
+
+## Blocked Module Execution Order
+
+Prioritize modules by implementation complexity, user experience impact, and dependency risk:
+
+1. **Accepted Lexical Source Follow-up** - first, because source decisions are already accepted and this improves Word detail trust/attribution without backend/auth dependencies.
+2. **MLKit OCR + OS/native STT Foundation** - second, because recognition improves lookup UX immediately while staying behind dev-client validation and existing fallback contracts.
+3. **Supabase Auth Foundation** - third, because accounts are the dependency for sync, export, AI proxy, and backend deletion semantics.
+4. **Supabase Cloud Sync MVP** - fourth, because it depends on auth and touches shared local-first user data.
+5. **DeepL + OpenAI Backend Proxy MVP** - fifth, because it needs backend auth, privacy boundaries, quota limits, and cost controls.
+6. **Google Sheets Export** - sixth, because backend-mediated OAuth should wait for Supabase auth/backend foundation.
+7. **Language Source Gates** - seventh, because these remain source/license research modules and should not block accepted platform work.
+8. **Speech Scoring** - last and still blocked, because OS/native STT does not provide reliable per-phoneme alignment or scoring.
+
+## Blocked Work Modules
+
+These modules decompose accepted, staged, and still-blocked roadmap rows. Accepted modules can become `[ ] TODO` implementation modules; still-blocked modules remain decision-prep only until their acceptance gate is met.
+
+**Module: Supabase Auth Foundation** - DONE
+- [x] DONE [HARD]: Refreshed `.docs/decisions/auth-provider.md` as `Accepted` with Supabase Auth, Expo React Native integration notes, local-first account boundaries, and `docs/supabase-auth-foundation.md`.
+- [x] DONE [HARD]: Defined Supabase session model, token storage policy, logout semantics, and local/offline fallback behavior without changing current local-only UI.
+- [x] DONE [HARD]: Defined email/password/phone verification contract, account recovery expectations, and profile-field trust model for Supabase Auth.
+- [x] DONE [HARD]: Defined account deletion contract across local SQLite data, future Supabase data, exports, and support/audit requirements.
+- [x] DONE [HARD]: Acceptance gate met for future auth implementation planning; real login code still requires dependency install and token storage choice.
+
+**Module: Supabase Cloud Sync MVP** - TODO AFTER AUTH FOUNDATION
+- [ ] TODO [HARD]: Refresh `.docs/decisions/backend-architecture.md` as `Accepted` with Supabase backend, deployment model, observability, privacy, and cost constraints.
+- [ ] TODO [HARD]: Refresh `.docs/decisions/cloud-sync.md` as `Accepted` with Supabase sync tables and a conflict strategy for profile, library, flashcards, reader, tombstones, and offline behavior.
+- [ ] TODO [HARD]: Define encrypted backup policy, restore UX, local export compatibility, and cross-device recovery boundaries as staged sync follow-up work.
+- [ ] TODO [HARD]: Define minimal Supabase sync data contract using existing local SQLite entity ids, versions, timestamps, and delete markers.
+- [ ] TODO [HARD]: Acceptance gate for implementation: cloud sync MVP may start after Supabase Auth Foundation is ready and local SQLite sync contract is documented.
+
+**Module: Google Sheets Export** - TODO AFTER SUPABASE AUTH/BACKEND
+- [ ] TODO [HARD]: Create `.docs/decisions/google-sheets-export.md` as `Accepted` for backend-mediated Google OAuth, scopes, token handling, revocation, and Expo web/native constraints.
+- [ ] TODO [HARD]: Define export destinations and API boundaries: Google Sheets through backend, manual CSV upload fallback, and local-only status quo.
+- [ ] TODO [HARD]: Define privacy/cost/error policy for spreadsheet export, including partial export, retry, rate-limit, and unsupported-platform states.
+- [ ] TODO [HARD]: Define minimal export contract from existing folder/export payloads to spreadsheet rows and metadata.
+- [ ] TODO [HARD]: Acceptance gate for implementation: Google Sheets export may start after Supabase Auth Foundation and backend proxy policies are documented.
+
+**Module: MLKit OCR + OS/native STT Foundation** - DONE
+- [x] DONE [HARD]: Refreshed `docs/voice-ocr-plan.md` with accepted MLKit OCR and OS/native speech-recognizer direction, current Expo SDK/native-module candidates, and dev-client constraints.
+- [x] DONE [HARD]: Defined OCR/STT privacy, offline, accuracy, language coverage, app-size, permission, and unavailable-engine constraints without adding cloud recognition.
+- [x] DONE [HARD]: Defined dev-client validation matrix for iOS, Android, Expo web fallback, permissions, unavailable-engine states, and artifact capture.
+- [x] DONE [HARD]: Defined minimal recognition interfaces for OCR blocks and STT transcripts using the existing OCR engine and recognition contracts; kept phoneme alignment out of scope.
+- [x] DONE [HARD]: Acceptance gate met for future native OCR/STT implementation planning; real OCR/STT can start after package install/dev-client spike is selected, while IPA/per-phoneme scoring remains `[!] BLOCKED`.
+
+**Module: DeepL + OpenAI Backend Proxy MVP** - TODO AFTER SUPABASE AUTH/BACKEND
+- [ ] TODO [HARD]: Refresh `.docs/decisions/translation-api.md` as `Accepted` for DeepL translation/glossary through backend proxy and `.docs/decisions/ai-chat-cost-control.md` as `Accepted` for OpenAI through backend proxy with quotas.
+- [ ] TODO [HARD]: Define translation/AI privacy, data-retention, moderation, streaming, glossary, rate-limit, and cost-control constraints.
+- [ ] TODO [HARD]: Define glossary persistence and document-translation contract, including imported glossary ownership, backend requirements, and unsupported offline behavior.
+- [ ] TODO [HARD]: Define AI chat proxy/session contract for streaming, voice transcript handling, abuse controls, and user-visible cost limits.
+- [ ] TODO [HARD]: Acceptance gate for implementation: proxy MVP may start after Supabase Auth Foundation, backend proxy env policy, quota model, and privacy copy are documented.
+
+**Module: Language Source Gates** - STILL BLOCKED DECISION PREP
+- [ ] TODO [HARD]: Refresh Cantonese, Uyghur, VI→FR, Basque, Ainu, and Amerind/proposed-family source status docs with current legal/source candidates and explicit unavailable states.
+- [ ] TODO [HARD]: Compare source options for each blocked language/pair: hosted APIs, Wiktionary/Kaikki/raw dumps, public-domain lists, national dictionaries, commercial licenses, and user-provided data.
+- [ ] TODO [HARD]: Define source metadata and attribution requirements for any accepted fixture or production pack, including license, revision/dump date, source URL, and user-visible label.
+- [ ] TODO [HARD]: Define minimal adapter/readiness contract for each candidate: script handling, morphology expectations, exact lookup, missing-result behavior, and blocked UI state.
+- [ ] TODO [HARD]: Acceptance gate: each language or pair has an approved full-definition/bilingual lexical source; only then can that specific implementation move from `[!] BLOCKED` to `[ ] TODO`.
+
+**Module: Accepted Lexical Source Follow-up** - DONE
+- [x] DONE [MEDIUM]: Audit current Etymology and Conjugation UI/data paths against accepted `.docs/decisions/etymology-conjugation-source.md` and existing attribution behavior.
+- [x] DONE [MEDIUM]: Define source-attribution contract for Wiktionary-derived etymology and UniMorph-style conjugation/paradigm data, including missing/partial source display.
+- [x] DONE [MEDIUM]: Define live-data fallback behavior for unavailable etymology/conjugation sources without presenting mock data as production.
+- [x] DONE [MEDIUM]: Add focused test expectations for attribution, missing source fallback, language coverage flags, and no-mock production states.
+- [x] DONE [MEDIUM]: Keep offline/bulk packaging gated by accepted dictionary/offline licensing policy and separate ShareAlike pack packaging requirements.
+- Result: `docs/etymology-conjugation-integration-plan.md` records the audit, contracts, fallback policy, test matrix, and packaging gate. Etymology/conjugation implementation can now move into a future `[ ] TODO` module that follows this plan.
 
 
 

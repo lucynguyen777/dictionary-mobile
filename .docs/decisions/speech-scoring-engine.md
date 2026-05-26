@@ -13,10 +13,14 @@ Pronunciation scoring needs a reliable speech or phoneme alignment engine. The a
 4. Manual recording playback only
 
 ## Decision
-Chosen option.
+No scoring engine is accepted yet.
+
+Related recognition decisions are accepted separately: OCR should proceed with an MLKit Text Recognition wrapper, and STT should proceed with OS/native speech recognizers after dev-client validation. These decisions do **not** unblock IPA comparison, phoneme-level alignment, or pronunciation scoring.
 
 ## Consequences
-Cost, security, implementation complexity, privacy, latency, offline support, accuracy, language coverage, and audio retention policy.
+- Pronunciation scoring remains blocked until a real scoring/alignment engine is selected.
+- Recording playback and STT transcript lookup may continue without presenting fake phoneme scores.
+- Any future scoring option must define cost, privacy, latency, offline support, accuracy, language coverage, and audio retention policy.
 
 ## Tasks Unblocked
 - IPA comparison

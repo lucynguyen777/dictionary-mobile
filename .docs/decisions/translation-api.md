@@ -1,7 +1,7 @@
 # Decision: Translation API
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 Production translation and specialized domain translation require a selected API, backend strategy, glossary handling, privacy policy, and cost model.
@@ -13,10 +13,14 @@ Production translation and specialized domain translation require a selected API
 4. Custom translation backend
 
 ## Decision
-Chosen option.
+Choose **DeepL through a backend proxy** for production translation and glossary-assisted translation.
+
+Use OpenAI only where an LLM is intentionally needed, such as AI conversation or correction flows, and keep those calls behind the same backend proxy boundary. Do not call paid translation or AI APIs directly from the mobile app.
 
 ## Consequences
-Cost, security, implementation complexity, translation quality, glossary support, data retention, rate limits, language coverage, and backend requirements.
+- DeepL glossary support becomes the default path for specialized translation.
+- Backend proxy work must define API key storage, quota/rate limits, privacy/data-retention copy, error states, and unsupported offline behavior before implementation.
+- Language-pair dictionary data still cannot be generated from machine translation and remains governed by source/licensing gates.
 
 ## Tasks Unblocked
 - Production multilingual translation
