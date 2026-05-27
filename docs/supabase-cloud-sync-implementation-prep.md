@@ -109,4 +109,6 @@ The fake client contract now adds dependency-injected pull/push orchestration in
 
 The manual smoke prep now lives in `docs/supabase-cloud-sync-manual-smoke.md`.
 
-The next module can be **Supabase Cloud Sync Runtime Adapter Draft**. It should wire a real Supabase client port behind the existing sync runner while preserving unconfigured/offline/signed-out guards. A production sync toggle, realtime, background jobs, encrypted backup, and restore UX should remain out of scope until manual smoke has actually passed.
+The runtime adapter draft now lives in `data/supabaseSyncRuntimeAdapter.ts`, with focused coverage in `tests/supabaseSyncRuntimeAdapter.test.ts`. The adapter is factory-injected so real app wiring can pass `createSupabaseAuthClient` without making tests load provider code.
+
+The next module can be **Supabase Cloud Sync Local Port Draft**. It should add local SQLite cursor/dirty-row/apply/mark-pushed boundaries for the existing sync runner. A production sync toggle, realtime, background jobs, encrypted backup, and restore UX should remain out of scope until manual smoke has actually passed.

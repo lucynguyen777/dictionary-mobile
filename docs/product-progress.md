@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Runtime Adapter Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncRuntimeAdapter.ts` to create a guarded Supabase sync client port behind injected auth client, env, session, and online checks.
+- [x] DONE [HARD]: Mapped sync domains to Supabase table names and remote query behavior without wiring UI, background jobs, or a production sync toggle.
+- [x] DONE [HARD]: Added remote pull support using `updated_at` cursors and stable remote-change summaries for the existing sync runner.
+- [x] DONE [HARD]: Added guarded upsert support that injects authenticated `user_id`, uses domain-specific conflict targets, and expects local ports to provide remote row payloads.
+- [x] DONE [HARD]: Added `tests/supabaseSyncRuntimeAdapter.test.ts` for unconfigured/offline/signed-out guards, cursor pull, authenticated upsert, and table mapping; next module is **Supabase Cloud Sync Local Port Draft**.
+
 **Module: Supabase Cloud Sync Manual Smoke Prep** - DONE
 - [x] DONE [HARD]: Added `docs/supabase-cloud-sync-manual-smoke.md` with disposable Supabase project, auth-smoke dependency, and no-secret/no-service-role rules.
 - [x] DONE [HARD]: Documented SQL migration review for table coverage, `user_id`, RLS enablement, own-row policies, and no realtime-by-default behavior.
@@ -708,7 +715,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the sync manual smoke prep. Recommended next module: **Supabase Cloud Sync Runtime Adapter Draft**, because schema, local metadata, mappers, fake-client ordering, and smoke gates now exist, but real runtime wiring must still stay behind unconfigured/offline/auth guards and avoid a production sync toggle.
+No active next implementation module selected after the runtime adapter draft. Recommended next module: **Supabase Cloud Sync Local Port Draft**, because the Supabase client port now exists but local SQLite still needs a dedicated port for cursors, dirty rows, applying remote rows, and marking pushed rows before any runtime sync is wired.
 
 ## Blocked Module Execution Order
 
@@ -846,6 +853,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Documented RLS cross-user probe matrix before runtime sync wiring.
 - [x] DONE [HARD]: Documented two-device sync smoke script covering create, update, tombstone delete, sign-out, and re-sign-in.
 - [x] DONE [HARD]: Documented failure, retry, rollback, and verification expectations without enabling production sync.
+
+**Module: Supabase Cloud Sync Runtime Adapter Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncRuntimeAdapter.ts` as the guarded real Supabase client port.
+- [x] DONE [HARD]: Added unconfigured, offline, and signed-out availability checks before sync table operations.
+- [x] DONE [HARD]: Added domain-to-table mapping and `updated_at` cursor pull behavior.
+- [x] DONE [HARD]: Added authenticated upsert behavior with domain-specific conflict targets.
+- [x] DONE [HARD]: Added focused runtime adapter tests without real Supabase network calls or UI wiring.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.

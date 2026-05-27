@@ -33,6 +33,7 @@ export type SupabaseSyncRemoteChange = {
 
 export type SupabaseSyncDirtyRow = {
   id: string;
+  remoteRow?: Record<string, unknown>;
   table: string;
   localChangeAt: string;
 };
