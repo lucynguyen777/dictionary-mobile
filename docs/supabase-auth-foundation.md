@@ -33,6 +33,7 @@ Define the auth contract before adding production login code. This foundation ac
 - Profile UI wiring now uses `data/authController.ts` to load the current auth snapshot and sign out without deleting local data.
 - Auth form shell now calls the controller for email/password sign-in, sign-up, and password recovery while keeping unconfigured environments local-first.
 - Auth callback route now lives at `app/auth/callback.tsx` and exchanges Supabase callback codes through the controller.
+- Auth refresh lifecycle now subscribes to Supabase auth events and starts/stops auto-refresh from React Native foreground/background state.
 - Auth module code must remain optional when env vars are missing. In that state the app stays local-first and shows coming-soon/unconfigured states rather than crashing.
 
 ## Redirect URL Policy
@@ -113,6 +114,7 @@ Real auth code can start after the next module agrees to:
 - use the accepted token storage decision in `.docs/decisions/auth-token-storage.md`: Expo SecureStore on native plus web fallback;
 - build on the typed auth client/session adapter instead of importing Supabase in UI components directly;
 - keep callback/deep-link handling for `dictionairemobile://auth/callback` covered by focused controller tests and manual native/web smoke;
+- keep session refresh lifecycle covered by focused controller tests and manual foreground/background smoke;
 - preserve local SQLite profile/library/reader behavior when auth is unconfigured, offline, or signed out.
 
 ## Test Expectations

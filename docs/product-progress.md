@@ -652,7 +652,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Expanded auth controller tests for callback provider errors, missing callback code, and successful code exchange.
 - [x] DONE [HARD]: Kept Profile as the return destination after callback so local profile data remains separate from cloud identity.
 
-No active next implementation module selected after this auth callback route. Recommended next module: **Supabase Auth Session Refresh Lifecycle**, because callback and form flows now exist and the next safe slice is auth state refresh/foreground handling without starting sync.
+**Module: Supabase Auth Session Refresh Lifecycle** - DONE
+- [x] DONE [HARD]: Added auth lifecycle event mapping from Supabase events to app `lastAuthEvent` values, including sign-in, sign-out, token refresh, recovery, and initial session.
+- [x] DONE [HARD]: Added `subscribeToAuthSessionChanges` to update auth snapshots from Supabase `onAuthStateChange` without touching sync or local profile persistence.
+- [x] DONE [HARD]: Added `syncAuthAutoRefreshForAppState` to start token auto-refresh while foregrounded and stop it when backgrounded.
+- [x] DONE [HARD]: Wired Profile to subscribe to auth lifecycle changes and React Native `AppState` foreground/background events.
+- [x] DONE [HARD]: Expanded focused auth controller tests for lifecycle event mapping, subscription cleanup, and auto-refresh start/stop behavior.
+
+No active next implementation module selected after this auth refresh lifecycle. Recommended next module: **Supabase Auth Manual Smoke Prep**, because auth scaffolding is now complete enough to document env setup, redirect allow-list, and manual web/native smoke steps before deeper backend sync work.
 
 ## Blocked Module Execution Order
 
@@ -713,6 +720,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Exchanged callback code for Supabase session through the auth adapter.
 - [x] DONE [HARD]: Added focused callback tests without provider/network calls.
 - [x] DONE [HARD]: Kept OAuth providers, account deletion, sync, and backend support submission out of scope.
+
+**Module: Supabase Auth Session Refresh Lifecycle** - DONE
+- [x] DONE [HARD]: Added Supabase auth lifecycle event mapping to app auth events.
+- [x] DONE [HARD]: Added auth state-change subscription helper with cleanup.
+- [x] DONE [HARD]: Added app foreground/background auto-refresh helper.
+- [x] DONE [HARD]: Wired Profile to auth lifecycle and `AppState` changes.
+- [x] DONE [HARD]: Added focused lifecycle tests without provider/network calls.
 
 **Module: Current Decision Options Docs Sync** - DONE
 - [x] DONE [HARD]: Added the current decision option summary, recommended defaults, and acceptance gates in `docs/current-decision-options.md`.

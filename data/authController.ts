@@ -1,6 +1,7 @@
 import type { AuthSession, AuthUser } from '@supabase/supabase-js';
 
 import {
+  type AuthLastEvent,
   mapAuthErrorToSnapshot,
   mapSupabaseSessionToAuthSnapshot,
   mapSupabaseUserToAuthSnapshot,
@@ -60,6 +61,17 @@ export type AuthControllerClient = {
         message: string;
       } | null;
     }>;
+    onAuthStateChange?: (
+      callback: (event: string, session: AuthSession | null) => void
+    ) => {
+      data: {
+        subscription: {
+          unsubscribe: () => void;
+        };
+      };
+    };
+    startAutoRefresh?: () => void;
+    stopAutoRefresh?: () => void;
   };
 };
 
@@ -82,6 +94,24 @@ function getFirstParamValue(value: string | string[] | undefined) {
   if (Array.isArray(value)) return value[0];
 
   return value;
+}
+
+export function mapSupabaseAuthEventToLastEvent(event: string): AuthLastEvent {
+  switch (event) {
+    case 'SIGNED_IN':
+      return 'sign-in';
+    case 'SIGNED_OUT':
+      return 'sign-out';
+    case 'TOKEN_REFRESHED':
+      return 'token-refresh';
+    case 'PASSWORD_RECOVERY':
+      return 'recovery';
+    case 'USER_UPDATED':
+    case 'INITIAL_SESSION':
+      return 'initial-session';
+    default:
+      return 'initial-session';
+  }
 }
 
 export function mapUnconfiguredAuthSnapshot(missingKeys: string[]): AuthSessionSnapshot {
@@ -231,4 +261,45 @@ export async function completeAuthCallback(
   }
 
   return mapSupabaseSessionToAuthSnapshot(data.session, 'recovery');
+}
+
+export function subscribeToAuthSessionChanges(
+  onChange: (snapshot: AuthSessionSnapshot) => void,
+  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+): () => void {
+  const result = createClient();
+
+  if (result.status === 'unconfigured') {
+    onChange(mapUnconfiguredAuthSnapshot(result.config.missingKeys));
+    return () => undefined;
+  }
+
+  if (!result.client.auth.onAuthStateChange) {
+    return () => undefined;
+  }
+
+  const { data } = result.client.auth.onAuthStateChange((event, session) => {
+    onChange(mapSupabaseSessionToAuthSnapshot(session, mapSupabaseAuthEventToLastEvent(event)));
+  });
+
+  return () => data.subscription.unsubscribe();
+}
+
+export function syncAuthAutoRefreshForAppState(
+  appState: string,
+  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+): AuthSessionSnapshot | null {
+  const result = createClient();
+
+  if (result.status === 'unconfigured') {
+    return mapUnconfiguredAuthSnapshot(result.config.missingKeys);
+  }
+
+  if (appState === 'active') {
+    result.client.auth.startAutoRefresh?.();
+  } else {
+    result.client.auth.stopAutoRefresh?.();
+  }
+
+  return null;
 }

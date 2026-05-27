@@ -4,6 +4,7 @@ import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
+  AppState,
   Image,
   Platform,
   Pressable,
@@ -24,6 +25,8 @@ import {
   signInAuthSession,
   signOutAuthSession,
   signUpAuthSession,
+  subscribeToAuthSessionChanges,
+  syncAuthAutoRefreshForAppState,
 } from '@/data/authController';
 import { type AuthSessionSnapshot } from '@/data/authSession';
 import { studyStats } from '@/data/dictionary';
@@ -150,6 +153,25 @@ export default function ProfileScreen() {
       };
     }, [])
   );
+
+  React.useEffect(() => {
+    const unsubscribeAuth = subscribeToAuthSessionChanges(setAuthSession);
+    const applyAppState = (nextState: string) => {
+      const nextAuthSession = syncAuthAutoRefreshForAppState(nextState);
+
+      if (nextAuthSession) {
+        setAuthSession(nextAuthSession);
+      }
+    };
+    const appStateSubscription = AppState.addEventListener('change', applyAppState);
+
+    applyAppState(AppState.currentState);
+
+    return () => {
+      unsubscribeAuth();
+      appStateSubscription.remove();
+    };
+  }, []);
 
   const updateProfile = <Key extends keyof UserProfile>(key: Key, value: UserProfile[Key]) => {
     setProfile((current) => ({ ...current, [key]: value }));

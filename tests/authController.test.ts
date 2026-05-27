@@ -359,4 +359,98 @@ describe('authController', () => {
     });
     expect(calls).toEqual(['auth-code']);
   });
+
+  it('maps Supabase auth lifecycle events to app events', async () => {
+    const { mapSupabaseAuthEventToLastEvent } = await import('../data/authController');
+
+    expect(mapSupabaseAuthEventToLastEvent('SIGNED_IN')).toBe('sign-in');
+    expect(mapSupabaseAuthEventToLastEvent('SIGNED_OUT')).toBe('sign-out');
+    expect(mapSupabaseAuthEventToLastEvent('TOKEN_REFRESHED')).toBe('token-refresh');
+    expect(mapSupabaseAuthEventToLastEvent('PASSWORD_RECOVERY')).toBe('recovery');
+    expect(mapSupabaseAuthEventToLastEvent('UNKNOWN')).toBe('initial-session');
+  });
+
+  it('subscribes to auth state changes and returns cleanup', async () => {
+    const { subscribeToAuthSessionChanges } = await import('../data/authController');
+    const snapshots: unknown[] = [];
+    const calls: unknown[] = [];
+
+    const unsubscribe = subscribeToAuthSessionChanges(
+      (snapshot) => snapshots.push(snapshot),
+      () => ({
+        status: 'configured',
+        config: {
+          status: 'configured',
+          url: 'https://project.supabase.co',
+          publishableKey: 'publishable-key',
+        },
+        storageKind: 'secure-store-native',
+        client: {
+          auth: {
+            getSession: async () => ({ data: { session: null }, error: null }),
+            signOut: async () => ({ error: null }),
+            signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
+            signUp: async () => ({ data: { session: null, user: null }, error: null }),
+            resetPasswordForEmail: async () => ({ data: null, error: null }),
+            exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
+            onAuthStateChange: (callback) => {
+              callback('TOKEN_REFRESHED', {
+                user: makeUser(),
+              } as AuthSession);
+              return {
+                data: {
+                  subscription: {
+                    unsubscribe: () => calls.push('unsubscribe'),
+                  },
+                },
+              };
+            },
+          },
+        },
+      })
+    );
+
+    unsubscribe();
+
+    expect(snapshots).toEqual([
+      expect.objectContaining({
+        status: 'authenticated',
+        email: 'reader@example.com',
+        lastAuthEvent: 'token-refresh',
+      }),
+    ]);
+    expect(calls).toEqual(['unsubscribe']);
+  });
+
+  it('starts and stops auth auto refresh from app state', async () => {
+    const { syncAuthAutoRefreshForAppState } = await import('../data/authController');
+    const calls: string[] = [];
+    const createClient = () =>
+      ({
+        status: 'configured' as const,
+        config: {
+          status: 'configured' as const,
+          url: 'https://project.supabase.co',
+          publishableKey: 'publishable-key',
+        },
+        storageKind: 'secure-store-native',
+        client: {
+          auth: {
+            getSession: async () => ({ data: { session: null }, error: null }),
+            signOut: async () => ({ error: null }),
+            signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
+            signUp: async () => ({ data: { session: null, user: null }, error: null }),
+            resetPasswordForEmail: async () => ({ data: null, error: null }),
+            exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
+            startAutoRefresh: () => calls.push('start'),
+            stopAutoRefresh: () => calls.push('stop'),
+          },
+        },
+      });
+
+    expect(syncAuthAutoRefreshForAppState('active', createClient)).toBeNull();
+    expect(syncAuthAutoRefreshForAppState('background', createClient)).toBeNull();
+
+    expect(calls).toEqual(['start', 'stop']);
+  });
 });
