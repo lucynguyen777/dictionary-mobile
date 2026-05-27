@@ -15,29 +15,29 @@ Accepted foundations remain accepted:
 
 | Decision | Current status | Recommended default | Implementation status |
 | --- | --- | --- | --- |
-| Speech scoring engine | Proposed | Azure AI Speech Pronunciation Assessment for MVP if cloud audio is accepted | Still blocked |
-| Language source gates | Per-language blocked/research gates | Choose one source gate at a time, starting with strongest legal source evidence | Still blocked per language/pair |
-| Support/feedback channel | Not accepted | Supabase feedback table plus Resend backend email notification | Still blocked |
-| Auth token storage | Not accepted | Hybrid adapter: SecureStore on native, AsyncStorage/localStorage fallback on web/dev | Blocks real auth code |
-| Paid add-ons for extra AI agents | Not accepted | Keep max 3 free; choose RevenueCat later for mobile subscriptions or Stripe later for web/backend billing | Billing still blocked |
+| Speech scoring engine | Accepted | Azure AI Speech Pronunciation Assessment | Staged TODO after backend upload/privacy/quota tests |
+| Language source gates | Source-gate paths accepted / production blocked | Words.hk permission path, curated `ug.wiktionary.org`, DBnary/Wiktionary VI->FR, Wiktionary/Kaikki for Basque/Ainu/Quechua/Nahuatl/Guarani | Still blocked per language/pair until source gate passes |
+| Support/feedback channel | Accepted | Supabase feedback table plus Resend backend email notification | Staged TODO after Supabase backend scaffolding |
+| Auth token storage | Accepted | Expo SecureStore native plus web fallback | Unblocks staged Supabase Auth implementation |
+| Paid add-ons for extra AI agents | Accepted | Keep max 3 free/default; no billing in MVP | Billing remains out of scope |
 
 ## Speech Scoring Engine
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Azure AI Speech Pronunciation Assessment | Cloud pronunciation scoring API | Provider-backed pronunciation, fluency, completeness, word/syllable/phoneme-level assessment in Microsoft docs | Requires cloud audio upload, backend proxy, quota, retention policy, and language coverage smoke | Best MVP default if cloud audio is acceptable |
-| Speechace Pronunciation Scoring API | Specialist pronunciation assessment API | Purpose-built word, syllable, and phoneme scoring endpoints | Third-party vendor terms, pricing, retention, latency, and backend upload path must be accepted | Strong alternative if specialist scoring quality/pricing wins |
-| Custom MFA/Kaldi-style backend | Self-managed forced-alignment research path | More control and possible offline/server-side ownership | Heavy model/dictionary pipeline; forced alignment does not provide learner scoring alone | Research only, not first MVP |
+| Azure AI Speech Pronunciation Assessment | Cloud pronunciation scoring API | Provider-backed pronunciation, fluency, completeness, word/syllable/phoneme-level assessment in Microsoft docs | Requires cloud audio upload, backend proxy, quota, retention policy, and language coverage smoke | **Accepted for first implementation path** |
+| Speechace Pronunciation Scoring API | Specialist pronunciation assessment API | Purpose-built word, syllable, and phoneme scoring endpoints | Third-party vendor terms, pricing, retention, latency, and backend upload path must be accepted | Deferred fallback |
+| Custom MFA/Kaldi-style backend | Self-managed forced-alignment research path | More control and possible offline/server-side ownership | Heavy model/dictionary pipeline; forced alignment does not provide learner scoring alone | Deferred research |
 
 Decision needed:
 
-- Pick one scoring engine for the first target language.
+- Pick one scoring engine for the first target language: **Azure AI Speech Pronunciation Assessment is selected**.
 - Accept raw-audio privacy copy, retention default, account deletion behavior, and quota limits.
 - Define fake-provider scoring tests before production UI shows scores.
 
 Acceptance gate:
 
-- `.docs/decisions/speech-scoring-engine.md` changes from `Proposed` to `Accepted`, with the chosen engine and first-language coverage recorded.
+- `.docs/decisions/speech-scoring-engine.md` is `Accepted`; implementation still needs first-language coverage smoke, backend proxy/upload, quota, privacy, retention, and fake-provider tests.
 
 Sources:
 
@@ -53,7 +53,7 @@ Keep each language or pair independent. Do not use an "Amerind" bucket as produc
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Words.hk permission/full dataset path | Best domain fit if permission is explicit | Strong Cantonese lexical dataset with definitions, Jyutping, examples, and translations | Current accepted safe path only covers public-domain helper data; full definitions need compatible permission/license | First outreach/research path |
+| Words.hk permission/full dataset path | Best domain fit if permission is explicit | Strong Cantonese lexical dataset with definitions, Jyutping, examples, and translations | Current accepted safe path only covers public-domain helper data; full definitions need compatible permission/license | **Accepted source-gate path** |
 | Cantonese Wiktionary/Kaikki smoke | Open-data path | Aligns with existing Wiktionary-derived source handling | Must prove target-language definitions and enough non-placeholder fixtures | Secondary fallback |
 | Commercial/licensed Cantonese dictionary | Production-quality source if contract works | Clearer legal contract can cover app/offline use | Cost, renewal risk, redistribution terms, and attribution must be accepted | Viable if open permission fails |
 
@@ -61,7 +61,7 @@ Keep each language or pair independent. Do not use an "Amerind" bucket as produc
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Curated `ug.wiktionary.org` MediaWiki API | Best current open path | CC BY-SA path can preserve URL/revision/attribution | Current smoke lacks enough balanced non-placeholder noun/adjective/verb entries | Continue curation before adapter |
+| Curated `ug.wiktionary.org` MediaWiki API | Best current open path | CC BY-SA path can preserve URL/revision/attribution | Current smoke lacks enough balanced non-placeholder noun/adjective/verb entries | **Accepted source-gate path** |
 | Kaikki/Wiktextract dedicated usable data | Scalable open-data path if published/usable | Easier structured extraction if a dedicated source appears | Current dedicated/bulk path is not accepted for production coverage | Recheck periodically |
 | Licensed/academic source | Could unblock quality baseline | May provide better native definitions | Terms, app use, redistribution, and data quality must be accepted | Research after Wiktionary curation stalls |
 
@@ -69,7 +69,7 @@ Keep each language or pair independent. Do not use an "Amerind" bucket as produc
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| DBnary/Wiktionary bilingual extraction | Open bilingual data candidate | Sense-linked translations may support dictionary-style entries | Must prove VI->FR coverage and preserve license/attribution | First technical smoke |
+| DBnary/Wiktionary bilingual extraction | Open bilingual data candidate | Sense-linked translations may support dictionary-style entries | Must prove VI->FR coverage and preserve license/attribution | **Accepted source-gate path** |
 | Commercial bilingual dictionary license | Clean production path if affordable | Can provide direct VI->FR dictionary entries | Cost, contract, offline rights, and attribution must be accepted | Best quality fallback |
 | User-provided import only | Safe personal-data path | Fits dataset/import feature and avoids shipping app-owned source data | Does not unblock built-in dictionary coverage | Allowed, but not built-in dictionary source |
 
@@ -77,7 +77,7 @@ Keep each language or pair independent. Do not use an "Amerind" bucket as produc
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Basque Wiktionary/Kaikki | Open-data candidate | Fits existing Wiktionary-derived attribution model | Must prove Basque definitions, morphology fields, and fixture quality | First source smoke |
+| Basque Wiktionary/Kaikki | Open-data candidate | Fits existing Wiktionary-derived attribution model | Must prove Basque definitions, morphology fields, and fixture quality | **Accepted source-gate path** |
 | Euskaltzaindia/national resource | High authority | Strong linguistic credibility | API/terms/license, rate limits, and redistribution rights must be documented | Best authority path if terms allow |
 | Commercial/open Basque lexicon | Production fallback | Contract may clarify usage | Cost and coverage risk | Use if open/national source is unsuitable |
 
@@ -85,7 +85,7 @@ Keep each language or pair independent. Do not use an "Amerind" bucket as produc
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Wiktionary/Kaikki per language | Open-data first pass | Ainu and other low-resource language pages can provide structured starting points | Many entries may be English glosses, dialect-specific, or insufficient for monolingual definitions | Start with the language that has clearest source evidence |
+| Wiktionary/Kaikki per language | Open-data first pass | Ainu and other low-resource language pages can provide structured starting points | Many entries may be English glosses, dialect-specific, or insufficient for monolingual definitions | **Accepted source-gate path** |
 | Academic/public-domain lexicons | Strong source-quality candidate | Can be better curated for endangered/low-resource languages | Terms and app redistribution may be unclear; dialect policy needed | Research before metadata/adapter work |
 | Licensed specialist/community dictionaries | Potential production-quality route | Can define rights and attribution | Cost, renewal, and community governance risk | Use only after explicit permission/contract |
 
@@ -105,13 +105,13 @@ Sources:
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Supabase feedback table plus email notification | Best first MVP | Keeps feedback tied to auth/user ids and existing backend direction; easy to test with RLS/fake email | Needs abuse throttling, support inbox, PII policy, and notification provider | Recommended default |
+| Supabase feedback table plus email notification | Best first MVP | Keeps feedback tied to auth/user ids and existing backend direction; easy to test with RLS/fake email | Needs abuse throttling, support inbox, PII policy, and notification provider | **Accepted** |
 | Resend transactional email via backend | Simple support email path | Good developer email API; no mobile key exposure if backend-only | Requires verified sender/domain and delivery/error handling | Pair with Supabase table for MVP |
 | Zendesk/Help Scout style helpdesk | Mature support workflow | Ticketing, assignment, async conversations, knowledge base integration | More cost/configuration and SDK/API surface | Later upgrade when support volume justifies it |
 
 Acceptance gate:
 
-- Select support destination, storage/retention, user-visible privacy copy, spam controls, and failure states before enabling feedback submission.
+- Support destination is accepted as Supabase feedback table plus Resend notification; implementation still needs storage/retention, user-visible privacy copy, spam controls, and failure states.
 
 Sources:
 
@@ -122,13 +122,13 @@ Sources:
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Expo SecureStore native plus web fallback | Strong mobile security | Uses iOS Keychain/Android Keystore-backed storage through Expo | Requires platform-specific adapter and web fallback behavior | Best native target |
+| Expo SecureStore native plus web fallback | Strong mobile security | Uses iOS Keychain/Android Keystore-backed storage through Expo | Requires platform-specific adapter and web fallback behavior | **Accepted** |
 | AsyncStorage everywhere | Simple Supabase React Native path | Fewer platform branches and common examples | Less appropriate for long-lived auth tokens on native | Accept only for fast dev spike |
 | Hybrid adapter | Best app fit | SecureStore on native, AsyncStorage/localStorage fallback for web/dev, adapter hides platform details | Slightly more implementation work and tests | Recommended default |
 
 Acceptance gate:
 
-- Decide adapter, package dependencies, migration behavior from old sessions, sign-out clearing behavior, and unconfigured web fallback before real auth code starts.
+- Expo SecureStore native plus web fallback is accepted; implementation still needs package dependencies, migration behavior from old sessions, sign-out clearing behavior, and unconfigured web fallback tests.
 
 Sources:
 
@@ -140,13 +140,13 @@ Sources:
 
 | Option | Fit | Pros | Constraints | Recommendation |
 | --- | --- | --- | --- | --- |
-| Keep max 3 free only | Best MVP | Avoids billing complexity while dataset-agent storage/quota is still new | No paid expansion path yet | Default until usage is proven |
+| Keep max 3 free only | Best MVP | Avoids billing complexity while dataset-agent storage/quota is still new | No paid expansion path yet | **Accepted** |
 | RevenueCat entitlements | Strong mobile subscription fit | Handles App Store/Google Play subscription entitlement logic | Needs native billing setup, products, review, and entitlement sync to backend | Prefer if mobile subscriptions are first |
 | Stripe Billing/Checkout | Strong web/backend package fit | Flexible web checkout, subscriptions, invoices, customer portal | App-store rules must be respected for mobile digital goods; backend webhook complexity | Prefer if web/backend billing is first |
 
 Acceptance gate:
 
-- Billing provider, entitlement source of truth, refund/cancel behavior, backend quota enforcement, and max-agent override rules are accepted.
+- Billing is deferred; `maxAgentsPerUser = 3` remains accepted for MVP. Future paid add-ons need a separate billing provider, entitlement source of truth, refund/cancel behavior, backend quota enforcement, and max-agent override decision.
 
 Sources:
 
@@ -156,7 +156,7 @@ Sources:
 
 ## Next Safe Work
 
-After the product owner chooses a decision:
+After the product owner chooses the next implementation module:
 
 1. update the matching `.docs/decisions/` record to `Accepted`;
 2. update `docs/product-progress.md` with a 3-5 task implementation module;

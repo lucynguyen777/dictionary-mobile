@@ -1,7 +1,7 @@
 # Decision: Speech Scoring Engine
 
 ## Status
-Proposed
+Accepted
 
 ## Context
 Pronunciation scoring needs a reliable speech or phoneme alignment engine. The app should not fake IPA comparison, phoneme-level feedback, or scoring without a real engine.
@@ -13,7 +13,7 @@ Pronunciation scoring needs a reliable speech or phoneme alignment engine. The a
 4. Manual recording playback only
 
 ## Decision
-No scoring engine is accepted yet.
+Use **Azure AI Speech Pronunciation Assessment** as the first pronunciation scoring engine.
 
 Related recognition decisions are accepted separately: OCR should proceed with an MLKit Text Recognition wrapper, and STT should proceed with OS/native speech recognizers after dev-client validation. These decisions do **not** unblock IPA comparison, phoneme-level alignment, or pronunciation scoring.
 
@@ -21,17 +21,17 @@ Foundation document: `docs/speech-scoring-engine-plan.md`.
 Current option matrix: `docs/current-decision-options.md`.
 
 ## Consequences
-- Pronunciation scoring remains blocked until a real scoring/alignment engine is selected.
+- Pronunciation scoring can move into a staged implementation-planning module for Azure-backed scoring.
 - Recording playback and STT transcript lookup may continue without presenting fake phoneme scores.
-- Any future scoring option must define cost, privacy, latency, offline support, accuracy, language coverage, and audio retention policy.
-- Azure AI Speech Pronunciation Assessment and Speechace are the strongest cloud scoring candidates to compare first, but both require backend upload, quota, privacy, and retention decisions.
+- Implementation still requires backend upload/proxy design, Azure Speech credentials, quota checks, privacy copy, audio retention policy, account deletion behavior, first-language coverage smoke, and fake-provider tests.
+- Speechace is deferred as the specialist API fallback if Azure output quality, language coverage, pricing, or latency is not acceptable.
 - Google Cloud Speech-to-Text and OS/native STT remain insufficient by themselves because transcription confidence is not pronunciation scoring.
 - Montreal Forced Aligner or Kaldi-style alignment remains a custom backend research path, not a mobile MVP scoring engine.
-- The recommended default in `docs/current-decision-options.md` is Azure AI Speech Pronunciation Assessment for MVP only if the product owner accepts cloud audio processing; this is not accepted yet.
+- Cloud audio processing is accepted only for explicit pronunciation scoring attempts; raw audio must not be uploaded silently or logged by default.
 
 ## Tasks Unblocked
-- IPA comparison
-- Phoneme-level scoring
-- Pronunciation feedback table
-- Speech practice score history
-- Visual pronunciation guidance
+- Azure pronunciation scoring implementation planning
+- Backend-mediated scoring upload/proxy contract
+- Fake Azure scoring client tests
+- Pronunciation feedback table using provider-backed rows
+- Speech practice score history with metadata-only default retention

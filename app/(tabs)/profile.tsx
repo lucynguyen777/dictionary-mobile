@@ -18,6 +18,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
+import { loadCurrentAuthSession, signOutAuthSession } from '@/data/authController';
+import { type AuthSessionSnapshot } from '@/data/authSession';
 import { studyStats } from '@/data/dictionary';
 import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
@@ -85,6 +87,15 @@ const sidebarNavItems: { key: SidebarSectionKey; label: string; icon: React.Comp
   { key: 'support', label: 'Hỗ trợ', icon: 'help-circle-outline' },
 ];
 
+const initialAuthSession: AuthSessionSnapshot = {
+  status: 'loading',
+  userId: null,
+  email: null,
+  emailVerified: false,
+  phone: null,
+  lastAuthEvent: null,
+};
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
@@ -98,19 +109,29 @@ export default function ProfileScreen() {
   const [sidebarSection, setSidebarSection] = useState<SidebarSectionKey | null>(null);
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [offlinePackBusyId, setOfflinePackBusyId] = useState<string | null>(null);
+  const [authSession, setAuthSession] = useState<AuthSessionSnapshot>(initialAuthSession);
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
 
-      Promise.all([loadUserProfile(), loadLibraryState(), loadReaderState(), loadOfflinePackInstallState()]).then(
-        ([nextProfile, nextLibraryState, nextReaderState, nextOfflinePackInstallState]) => {
+      setAuthSession(initialAuthSession);
+
+      Promise.all([
+        loadUserProfile(),
+        loadLibraryState(),
+        loadReaderState(),
+        loadOfflinePackInstallState(),
+        loadCurrentAuthSession(),
+      ]).then(
+        ([nextProfile, nextLibraryState, nextReaderState, nextOfflinePackInstallState, nextAuthSession]) => {
           if (!isMounted) return;
 
           setProfile(nextProfile);
           setLibraryState(nextLibraryState);
           setReaderState(nextReaderState);
           setOfflinePackInstallState(nextOfflinePackInstallState);
+          setAuthSession(nextAuthSession);
         }
       );
 
@@ -131,6 +152,53 @@ export default function ProfileScreen() {
       setSaveMessage('Hồ sơ đã lưu.');
       Alert.alert('Đã lưu hồ sơ', 'Hồ sơ đã được lưu trên thiết bị này.');
     });
+  };
+
+  const handleRefreshAuthSession = async () => {
+    setAuthSession(initialAuthSession);
+    const nextAuthSession = await loadCurrentAuthSession();
+    setAuthSession(nextAuthSession);
+  };
+
+  const handleAuthEntry = () => {
+    if (authSession.status === 'unconfigured') {
+      Alert.alert(
+        'Chưa cấu hình đăng nhập',
+        'Đăng nhập cloud chưa sẵn sàng trên bản cài đặt này. Bạn vẫn có thể dùng hồ sơ local.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Đăng nhập cloud',
+      'Biểu mẫu đăng nhập sẽ khả dụng sau khi bật phiên cloud cho tài khoản.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleSignOutAuth = () => {
+    if (authSession.status !== 'authenticated' && authSession.status !== 'needs_verification') {
+      Alert.alert('Đăng xuất', 'Chưa có phiên đăng nhập cloud để đăng xuất. Dữ liệu local vẫn giữ nguyên.', [{ text: 'OK' }]);
+      return;
+    }
+
+    Alert.alert('Đăng xuất', 'Đăng xuất khỏi phiên cloud? Dữ liệu local trên thiết bị sẽ không bị xóa.', [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Đăng xuất',
+        onPress: async () => {
+          const nextAuthSession = await signOutAuthSession();
+          setAuthSession(nextAuthSession);
+          Alert.alert(
+            nextAuthSession.status === 'error' ? 'Lỗi đăng xuất' : 'Đã đăng xuất',
+            nextAuthSession.status === 'error'
+              ? nextAuthSession.errorMessage ?? 'Không thể đăng xuất phiên cloud.'
+              : 'Phiên cloud đã được xóa. Hồ sơ và thư viện local vẫn được giữ nguyên.'
+          );
+        },
+      },
+    ]);
   };
 
   const handleExportAllData = async () => {
@@ -629,7 +697,7 @@ export default function ProfileScreen() {
               <View style={styles.sidebarProfileCopy}>
                 <Text style={styles.sidebarProfileName} numberOfLines={1}>{profile.displayName}</Text>
                 <Text style={styles.sidebarProfileMeta} numberOfLines={1}>
-                  {profile.username ? `@${profile.username}` : profile.email || 'Hồ sơ local'}
+                  {authSession.email ?? (profile.username ? `@${profile.username}` : profile.email || 'Hồ sơ local')}
                 </Text>
               </View>
             </View>
@@ -674,6 +742,12 @@ export default function ProfileScreen() {
               showsVerticalScrollIndicator={false}>
               {sidebarSection === 'account' ? (
               <SidebarSection title="Tài khoản">
+                <AuthStatusPanel
+                  authSession={authSession}
+                  onPrimaryPress={handleAuthEntry}
+                  onRefreshPress={handleRefreshAuthSession}
+                  onSignOutPress={handleSignOutAuth}
+                />
                 <View style={styles.sidebarAvatarBlock}>
                   <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
                   <Pressable
@@ -720,13 +794,13 @@ export default function ProfileScreen() {
                   <Text style={styles.fieldLabel}>Mật khẩu</Text>
                   <TextInput
                     editable={false}
-                    placeholder="Chưa hỗ trợ — cần đăng nhập cloud"
+                    placeholder={authSession.status === 'authenticated' ? 'Dùng email khôi phục để đổi mật khẩu' : 'Cần phiên cloud'}
                     placeholderTextColor="#94A3B8"
                     secureTextEntry
                     style={[styles.profileInput, styles.profileInputDisabled]}
                     value=""
                   />
-                  <Text style={styles.fieldHint}>Chỉ lưu local. Đổi mật khẩu sẽ có sau khi chọn nhà cung cấp đăng nhập.</Text>
+                  <Text style={styles.fieldHint}>Hồ sơ local vẫn tách khỏi danh tính cloud. Đổi mật khẩu sẽ dùng email khôi phục khi đăng nhập khả dụng.</Text>
                 </View>
                 <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="save-outline" size={16} color="#2563EB" />
@@ -810,17 +884,17 @@ export default function ProfileScreen() {
                   onPress={() => Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp sẽ mở khi chọn kênh hỗ trợ chính thức.', [{ text: 'OK' }])}
                 />
                 <SidebarActionRow
-                  badge="Sắp có"
+                  badge="Đã chọn"
                   icon="chatbox-ellipses-outline"
                   label="Gửi phản hồi"
-                  onPress={() => Alert.alert('Gửi phản hồi', 'Gửi email/helpdesk cần backend hoặc kênh hỗ trợ — hiện chỉ là UI shell.', [{ text: 'OK' }])}
+                  onPress={() => Alert.alert('Gửi phản hồi', 'Kênh phản hồi cloud đã được chọn. Biểu mẫu gửi phản hồi sẽ khả dụng sau khi bật máy chủ hỗ trợ.', [{ text: 'OK' }])}
                 />
                 <SidebarActionRow
-                  badge="Sắp có"
-                  disabled
+                  badge={authSession.status === 'authenticated' || authSession.status === 'needs_verification' ? 'Cloud' : 'Local'}
+                  disabled={authSession.status === 'loading'}
                   icon="log-out-outline"
                   label="Đăng xuất"
-                  onPress={() => Alert.alert('Đăng xuất', 'Chưa có phiên đăng nhập. Đăng xuất sẽ khả dụng sau khi bật auth.', [{ text: 'OK' }])}
+                  onPress={handleSignOutAuth}
                 />
               </SidebarSection>
               ) : null}
@@ -828,10 +902,10 @@ export default function ProfileScreen() {
               {sidebarSection === 'account' ? (
               <SidebarSection title="Bảo mật & dữ liệu">
                 <SidebarActionRow
-                  badge="Sắp có"
+                  badge={authSession.status === 'authenticated' ? 'Cloud' : 'Cần login'}
                   icon="key-outline"
                   label="Thay đổi mật khẩu"
-                  onPress={() => Alert.alert('Thay đổi mật khẩu', 'Chức năng này cần đăng nhập cloud và chưa khả dụng trên bản local.', [{ text: 'OK' }])}
+                  onPress={() => Alert.alert('Thay đổi mật khẩu', 'Khôi phục mật khẩu qua email sẽ khả dụng khi biểu mẫu đăng nhập cloud được bật.', [{ text: 'OK' }])}
                 />
                 <SidebarActionRow
                   destructive
@@ -867,6 +941,100 @@ function SidebarSection({ title, children }: { title: string; children: React.Re
     <View style={styles.sidebarSection}>
       <Text style={styles.sidebarSectionTitle}>{title}</Text>
       {children}
+    </View>
+  );
+}
+
+function getAuthStatusCopy(authSession: AuthSessionSnapshot) {
+  switch (authSession.status) {
+    case 'loading':
+      return {
+        badge: 'Đang tải',
+        description: 'Đang đọc phiên cloud được lưu an toàn.',
+        title: 'Đang kiểm tra phiên cloud',
+      };
+    case 'unconfigured':
+      return {
+        badge: 'Local',
+        description: 'Đăng nhập cloud chưa sẵn sàng trên bản cài đặt này. Hồ sơ local vẫn hoạt động.',
+        title: 'Chưa cấu hình đăng nhập',
+      };
+    case 'unauthenticated':
+      return {
+        badge: 'Chưa login',
+        description: 'Bạn có thể dùng hồ sơ local. Biểu mẫu đăng nhập cloud chưa khả dụng.',
+        title: 'Chưa có phiên cloud',
+      };
+    case 'needs_verification':
+      return {
+        badge: 'Cần xác minh',
+        description: authSession.email ? `Kiểm tra email ${authSession.email} để hoàn tất xác minh.` : 'Cần xác minh email.',
+        title: 'Tài khoản cần xác minh',
+      };
+    case 'authenticated':
+      return {
+        badge: 'Cloud',
+        description: authSession.emailVerified ? 'Email cloud đã xác minh.' : 'Phiên cloud tồn tại nhưng email chưa xác minh.',
+        title: authSession.email ?? 'Đã đăng nhập',
+      };
+    case 'error':
+      return {
+        badge: 'Lỗi',
+        description: authSession.errorMessage ?? 'Không thể đọc trạng thái đăng nhập.',
+        title: 'Lỗi phiên cloud',
+      };
+  }
+}
+
+function AuthStatusPanel({
+  authSession,
+  onPrimaryPress,
+  onRefreshPress,
+  onSignOutPress,
+}: {
+  authSession: AuthSessionSnapshot;
+  onPrimaryPress: () => void;
+  onRefreshPress: () => void;
+  onSignOutPress: () => void;
+}) {
+  const copy = getAuthStatusCopy(authSession);
+  const canSignOut = authSession.status === 'authenticated' || authSession.status === 'needs_verification';
+
+  return (
+    <View style={styles.authStatusPanel}>
+      <View style={styles.authStatusHeader}>
+        <View style={styles.authStatusIcon}>
+          <Ionicons name={canSignOut ? 'cloud-done-outline' : 'cloud-offline-outline'} size={17} color="#2563EB" />
+        </View>
+        <View style={styles.authStatusCopy}>
+          <Text style={styles.authStatusTitle} numberOfLines={1}>{copy.title}</Text>
+          <Text style={styles.authStatusText} numberOfLines={2}>{copy.description}</Text>
+        </View>
+        <Text style={styles.authStatusBadge} numberOfLines={1}>{copy.badge}</Text>
+      </View>
+      <View style={styles.authStatusActions}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={authSession.status === 'loading'}
+          onPress={canSignOut ? onSignOutPress : onPrimaryPress}
+          style={({ pressed }) => [
+            styles.authStatusButton,
+            canSignOut && styles.authStatusButtonSecondary,
+            pressed && styles.authStatusButtonPressed,
+            authSession.status === 'loading' && styles.authStatusButtonDisabled,
+          ]}>
+          <Text style={[styles.authStatusButtonText, canSignOut && styles.authStatusButtonTextSecondary]} numberOfLines={1}>
+            {canSignOut ? 'Đăng xuất cloud' : 'Thiết lập đăng nhập'}
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityLabel="Làm mới trạng thái đăng nhập"
+          accessibilityRole="button"
+          onPress={onRefreshPress}
+          style={({ pressed }) => [styles.authStatusRefreshButton, pressed && styles.authStatusButtonPressed]}>
+          <Ionicons name="refresh" size={16} color="#2563EB" />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -1184,6 +1352,94 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginBottom: 10,
     textTransform: 'uppercase',
+  },
+  authStatusPanel: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#DBEAFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 10,
+    marginBottom: 12,
+    padding: 12,
+  },
+  authStatusHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 9,
+  },
+  authStatusIcon: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 999,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  authStatusCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  authStatusTitle: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  authStatusText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 2,
+  },
+  authStatusBadge: {
+    backgroundColor: '#E0F2FE',
+    borderRadius: 999,
+    color: '#0369A1',
+    fontSize: 10,
+    fontWeight: '900',
+    maxWidth: 86,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  authStatusActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  authStatusButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 38,
+    paddingHorizontal: 10,
+  },
+  authStatusButtonSecondary: {
+    backgroundColor: '#EFF6FF',
+  },
+  authStatusButtonPressed: {
+    opacity: 0.86,
+  },
+  authStatusButtonDisabled: {
+    opacity: 0.62,
+  },
+  authStatusButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  authStatusButtonTextSecondary: {
+    color: '#2563EB',
+  },
+  authStatusRefreshButton: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#BFDBFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 38,
+    justifyContent: 'center',
+    width: 42,
   },
   sidebarAvatarBlock: {
     alignItems: 'center',

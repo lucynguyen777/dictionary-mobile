@@ -135,7 +135,7 @@ The following remain staged or blocked:
 
 - encrypted backup destination and restore UX are staged after minimal sync MVP;
 - server-side account deletion implementation depends on auth/backend code;
-- feedback/support submission destination remains blocked until support channel is selected; current options are prepared in `docs/current-decision-options.md`.
+- feedback/support submission destination is accepted as Supabase feedback table plus Resend backend notification, but implementation still needs schema/RLS, retention, spam controls, and fake email-client tests.
 
 ## Next Implementation Modules
 

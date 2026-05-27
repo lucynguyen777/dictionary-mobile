@@ -23,8 +23,14 @@ Define the auth contract before adding production login code. This foundation ac
   - `@supabase/supabase-js`
   - `react-native-url-polyfill`
   - keep existing `@react-native-async-storage/async-storage`
-  - evaluate `expo-secure-store` using the option matrix in `docs/current-decision-options.md`; the recommended default is a hybrid adapter with SecureStore on native and AsyncStorage/localStorage fallback for web/dev, but the decision is not accepted yet.
+  - `expo-secure-store` is installed for native token persistence with documented web/dev fallback.
+- Auth token adapter foundation:
+  - `data/authTokenStorage.ts` uses Expo SecureStore on native;
+  - `data/authTokenStorage.web.ts` uses localStorage on web and an SSR-safe memory fallback.
 - Supabase client must live behind a small adapter, for example `data/auth/supabaseClient.ts`, so UI and stores do not import Supabase directly.
+- Supabase client factory foundation now lives in `data/supabaseAuthClient.ts`; it stays unconfigured when public env vars are missing and uses the accepted token storage adapter.
+- Auth state mapping foundation now lives in `data/authSession.ts`; it maps Supabase session/user/error outputs into the documented app auth states.
+- Profile UI wiring now uses `data/authController.ts` to load the current auth snapshot and sign out without deleting local data.
 - Auth module code must remain optional when env vars are missing. In that state the app stays local-first and shows coming-soon/unconfigured states rather than crashing.
 
 ## Redirect URL Policy
@@ -101,9 +107,9 @@ Define the auth contract before adding production login code. This foundation ac
 ## Implementation Gate
 
 Real auth code can start after the next module agrees to:
-- add Supabase client dependencies and URL polyfill;
-- accept the token storage choice documented in `docs/current-decision-options.md`;
-- add a typed auth adapter instead of importing Supabase in UI components directly;
+- use the installed Supabase client dependencies and URL polyfill;
+- use the accepted token storage decision in `.docs/decisions/auth-token-storage.md`: Expo SecureStore on native plus web fallback;
+- build on the typed auth client/session adapter instead of importing Supabase in UI components directly;
 - add callback/deep-link handling for `dictionairemobile://auth/callback`;
 - preserve local SQLite profile/library/reader behavior when auth is unconfigured, offline, or signed out.
 

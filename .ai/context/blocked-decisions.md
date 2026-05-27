@@ -2,23 +2,25 @@
 
 Use `docs/product-progress.md` as the source of truth for the full roadmap. This file separates accepted, staged-after-dependency, and still-blocked work so agents can plan safely without implementing features whose provider/source/API/backend decision is not accepted.
 
-## Current Decision Options
-Status: Prepared in `docs/current-decision-options.md`; no new provider/source/billing/support/token decision is accepted by that document.
+## Accepted Current Decisions
+Status: Product-owner choices from `docs/current-decision-options.md` have been recorded.
 
-Prepared decisions still requiring product-owner acceptance:
-- Speech scoring engine: Azure AI Speech Pronunciation Assessment, Speechace, or custom MFA/Kaldi-style backend.
-- Language source gates: Cantonese, Uyghur, VI->FR, Basque, Ainu, Quechua, Nahuatl, and Guarani source options.
-- Support/feedback channel: Supabase feedback table plus email notification, Resend backend email, or Zendesk/Help Scout style helpdesk.
-- Auth token storage: SecureStore native plus web fallback, AsyncStorage everywhere, or hybrid adapter.
-- Paid add-ons for extra AI agents: keep max 3 free only, RevenueCat entitlements, or Stripe Billing/Checkout.
+Accepted:
+- Speech scoring engine: Azure AI Speech Pronunciation Assessment.
+- Language source-gate paths: Words.hk permission path for Cantonese, curated `ug.wiktionary.org` for Uyghur, DBnary/Wiktionary VI->FR extraction, and Wiktionary/Kaikki for Basque, Ainu, Quechua, Nahuatl, and Guarani.
+- Support/feedback channel: Supabase feedback table plus Resend backend email notification.
+- Auth token storage: Expo SecureStore on native plus web fallback.
+- Paid add-ons for extra AI agents: keep `maxAgentsPerUser = 3`; no billing in MVP.
 
 Guardrail:
-- Treat these as decision-prep notes only. Do not implement production scoring, language data, feedback submission, token persistence, or paid-agent billing until the matching decision is explicitly accepted.
+- Accepted source-gate paths are not production lexical-source approvals. Do not implement language adapters/fixtures until the dedicated source gate proves license, attribution, representative samples, and adapter readiness.
+- Do not implement production Azure scoring until backend upload/proxy, quota, privacy, retention, account deletion behavior, first-language coverage smoke, and fake-provider tests exist.
+- Do not implement paid extra-agent purchase flows in MVP.
 
 ---
 
 ## Supabase Auth Foundation
-Status: Foundation completed in `docs/supabase-auth-foundation.md`; real auth implementation can move to a staged TODO module.
+Status: Foundation completed in `docs/supabase-auth-foundation.md`; SecureStore token storage, Supabase auth session adapter, and Profile auth-state wiring are implemented; auth form shell can move to a staged TODO module.
 
 Accepted:
 - Supabase Auth provider
@@ -35,7 +37,7 @@ Allowed preparatory work:
 - Keep existing local UI placeholders clearly marked as local/coming soon
 
 Acceptance gate:
-- Real email login, verification, sign out, and account deletion can move into an implementation module once dependencies and token storage choice are accepted. Current token storage options are prepared in `docs/current-decision-options.md`; the recommended default is a hybrid adapter using SecureStore on native and AsyncStorage/localStorage fallback for web/dev.
+- Real email sign-up/sign-in/recovery can move into an implementation module using `data/authTokenStorage.ts`, `data/authTokenStorage.web.ts`, `data/authConfig.ts`, `data/authSession.ts`, `data/supabaseAuthClient.ts`, and `data/authController.ts`. Deep-link callback handling, backend account deletion, sync, and support submission are still future work.
 
 ---
 
@@ -81,14 +83,14 @@ Acceptance gate:
 ---
 
 ## MLKit OCR + OS/native STT Foundation
-Status: Foundation completed. MLKit OCR and OS/native STT are accepted directions; speech scoring remains blocked.
+Status: Foundation completed. MLKit OCR and OS/native STT are accepted directions; pronunciation scoring is staged separately behind the accepted Azure scoring decision and backend/privacy/quota gates.
 
 Accepted:
 - MLKit Text Recognition wrapper direction for OCR
 - OS/native speech recognizer direction for STT
 - Dev-client validation requirement
 
-Still blocked implementation:
+Out of OCR/STT scope:
 - IPA comparison
 - Per-phoneme scoring
 - Phoneme alignment table
@@ -102,7 +104,7 @@ Allowed preparatory work:
 - Keep cloud recognition and phoneme scoring out of scope until separately accepted
 
 Acceptance gate:
-- Future real OCR/STT implementation may start as a separate native spike module; IPA/per-phoneme scoring remains blocked until a scoring engine is accepted.
+- Future real OCR/STT implementation may start as a separate native spike module; IPA/per-phoneme scoring belongs to the Azure scoring module and remains gated by backend upload, privacy, retention, quota, first-language coverage, and fake-provider tests.
 
 ---
 
@@ -139,42 +141,42 @@ Accepted direction:
 
 Allowed preparatory work:
 - Follow `docs/deepl-openai-backend-proxy-mvp.md`
-- Follow `docs/current-decision-options.md` for paid add-on choices; max 3 active agents remains the default until billing is accepted.
+- Follow `.docs/decisions/paid-ai-agent-addons.md`; max 3 active agents is accepted for MVP and billing is deferred.
 - Define dataset upload/import contracts for CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF
 - Define editor modes for Word-like rich text, Google Docs-like surfaces, LaTeX, Markdown, and plain text
 - Keep scanned PDFs/OCR extraction out of scope until OCR implementation exists
 - Keep provider keys server-side and redact raw dataset content from logs by default
 
 Acceptance gate:
-- Implementation may start after parser fixtures, dataset validation, highlighting behavior, max-3-agent enforcement, RLS tables, quota checks, and fake-provider no-key-leak tests are planned. Paid extra-agent implementation remains blocked until a billing provider and entitlement contract are accepted.
+- Implementation may start after parser fixtures, dataset validation, highlighting behavior, max-3-agent enforcement, RLS tables, quota checks, and fake-provider no-key-leak tests are planned. Paid extra-agent implementation remains blocked by the MVP no-billing decision.
 
 ---
 
 ## Speech Scoring
-Status: Decision-prep foundation completed in `docs/speech-scoring-engine-plan.md`; option matrix prepared in `docs/current-decision-options.md`; still blocked until a real scoring/alignment engine is accepted.
+Status: Azure AI Speech Pronunciation Assessment is accepted in `.docs/decisions/speech-scoring-engine.md`; implementation is staged until backend/privacy/quota/testing gates are defined.
 
-Still blocked implementation:
-- IPA comparison
-- Per-phoneme scoring
-- Pronunciation feedback table
-- Speech practice score history
-- Visual pronunciation guidance
+Staged implementation:
+- Azure-backed IPA comparison when provider output can be aligned with source-backed IPA.
+- Per-phoneme scoring from provider output only.
+- Pronunciation feedback table.
+- Speech practice score history with metadata-only default retention.
+- Visual pronunciation guidance using provider-backed rows only.
 
 Allowed preparatory work:
 - Follow `docs/speech-scoring-engine-plan.md`
-- Follow `docs/current-decision-options.md`; Azure AI Speech Pronunciation Assessment is the recommended MVP default only if cloud audio is accepted, not an accepted decision.
-- Compare Azure AI Speech Pronunciation Assessment, Speechace, custom backend alignment, and manual playback-only fallback
+- Follow `.docs/decisions/speech-scoring-engine.md`; Azure is accepted for first implementation path.
+- Keep Speechace, custom backend alignment, and manual playback-only fallback documented as deferred/fallback options.
 - Keep Google Cloud STT and OS/native STT classified as transcription only, not scoring
 - Define raw-audio privacy, retention, quota, and unavailable-engine UI states
 - Keep recording playback honest while scoring is blocked
 
 Acceptance gate:
-- Pronunciation scoring can move to implementation only after one scoring engine, backend upload path, language coverage, raw-audio retention policy, quota model, and fake-provider scoring tests are accepted.
+- Pronunciation scoring code can start only after backend upload path, first-language coverage, raw-audio retention policy, quota model, account deletion behavior, and fake-provider scoring tests are defined.
 
 ---
 
 ## Language Source Gates
-Status: Foundation refreshed in `docs/language-source-gates.md`; option matrix prepared in `docs/current-decision-options.md`; still blocked per language/pair until an approved lexical source exists.
+Status: Source-gate paths are accepted in `docs/language-source-gates.md`; production dictionary implementation is still blocked per language/pair until the chosen path passes its dedicated source gate.
 
 Still blocked implementation:
 - Cantonese monolingual definitions
@@ -185,7 +187,7 @@ Still blocked implementation:
 
 Allowed preparatory work:
 - Follow `docs/language-source-gates.md`
-- Follow `docs/current-decision-options.md` for current candidate options; no option is accepted by default.
+- Follow the accepted path per language/pair in `docs/current-decision-options.md`.
 - Create dedicated source gate docs for VI->FR, Basque, Ainu, Quechua, Nahuatl, or Guarani before implementation
 - Compare hosted APIs, Wiktionary/Kaikki/raw dumps, public-domain lists, national dictionaries, commercial licenses, and user-provided data
 - Preserve source metadata, attribution, script/morphology requirements, and adapter readiness contracts

@@ -16,7 +16,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ## Difficulty Overview
 - Easy next tasks: no active easy task selected; keep future work to copy polish and small local UI cleanup only when a concrete 3-5 task module is selected.
 - Medium next tasks: legacy AsyncStorage cleanup is implemented; no unblocked medium module is currently selected.
-- Hard next tasks: Supabase auth/backend, DeepL/OpenAI proxy, MLKit OCR, and OS/native STT decisions are accepted; remaining hard work should advance through staged TODO modules with dependency gates, while speech scoring and unsupported language-source work stay blocked.
+- Hard next tasks: Supabase auth/backend, DeepL/OpenAI proxy, MLKit OCR, OS/native STT, Azure speech scoring, support feedback, and auth token storage decisions are accepted; remaining hard work should advance through staged TODO modules with dependency gates, while language-source production work stays blocked until source gates pass.
 
 ## Current Baseline
 - Latest completed commits:
@@ -299,7 +299,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
-- [!] BLOCKED [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected; options are prepared in `docs/current-decision-options.md`.
+- [ ] TODO [HARD]: Feedback submission can be planned with Supabase feedback table plus Resend backend email notification after Supabase backend scaffolding, RLS, retention, spam controls, and fake email-client tests are defined.
 - [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [x] DONE [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
 - [x] DONE [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
@@ -599,7 +599,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Session lifecycle: defined unconfigured, loading, unauthenticated, needs-verification, authenticated, and error states plus email/password sign-up, sign-in, recovery, verification, and sign-out expectations.
 - Account deletion: defined local SQLite deletion scope, future Supabase remote deletion scope, offline-pack boundary, confirmation flow, and remote-failure recovery expectations.
 - UI state map: mapped current local Profile/Settings behavior to auth states without treating local profile email/phone as verified identity.
-- Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module once dependencies and token storage choice are added.
+- Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
 
@@ -610,7 +610,35 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented support/feedback channel, auth token storage, and paid add-on/billing options with recommended defaults and explicit acceptance gates.
 - [x] DONE [HARD]: Synced blocked-decision guardrails so production implementation remains blocked until the matching decision record changes to `Accepted`.
 
-No active next implementation module selected after this docs sync. The next safe work is for the product owner to accept one decision from `docs/current-decision-options.md`, then create a 3-5 task implementation module for that accepted decision.
+**Module: Accepted Product Decisions Sync** - DONE
+- [x] DONE [HARD]: Accepted Azure AI Speech Pronunciation Assessment as the first speech scoring engine while keeping backend upload, privacy, retention, quota, language coverage, and fake-provider tests as implementation gates.
+- [x] DONE [HARD]: Accepted language source-gate paths: Words.hk permission path for Cantonese, curated `ug.wiktionary.org` for Uyghur, DBnary/Wiktionary extraction for VI->FR, and Wiktionary/Kaikki for Basque, Ainu, Quechua, Nahuatl, and Guarani.
+- [x] DONE [HARD]: Accepted Supabase feedback table plus Resend backend notification for support/feedback submission.
+- [x] DONE [HARD]: Accepted Expo SecureStore on native plus web fallback for Supabase Auth token storage.
+- [x] DONE [HARD]: Accepted `maxAgentsPerUser = 3` for MVP and deferred paid add-ons/billing.
+
+**Module: Supabase Auth SecureStore Foundation** - DONE
+- [x] DONE [HARD]: Installed `expo-secure-store` and registered the Expo config plugin for SDK 54 native token storage.
+- [x] DONE [HARD]: Added `data/authTokenStorage.ts` as the native SecureStore-backed auth token adapter for future Supabase Auth sessions.
+- [x] DONE [HARD]: Added `data/authTokenStorage.web.ts` as the Expo web/dev fallback with localStorage and SSR-safe memory fallback.
+- [x] DONE [HARD]: Added focused adapter coverage in `tests/authTokenStorage.test.ts` without wiring real Supabase login or storing production tokens.
+- [x] DONE [HARD]: Preserved local-first profile/library/reader behavior; real auth UI remains a future staged module.
+
+**Module: Supabase Auth Session Adapter** - DONE
+- [x] DONE [HARD]: Installed `@supabase/supabase-js` and `react-native-url-polyfill` for the accepted Supabase Auth path.
+- [x] DONE [HARD]: Added `data/authConfig.ts` to keep missing `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` env state local-first and non-crashing.
+- [x] DONE [HARD]: Added `data/authSession.ts` to map Supabase session/user/error outputs into the documented app auth states without treating local profile fields as verified identity.
+- [x] DONE [HARD]: Added `data/supabaseAuthClient.ts` to create a typed Supabase client behind an adapter with SecureStore/web fallback persistence, PKCE, disabled URL auto-detection, and no UI imports.
+- [x] DONE [HARD]: Added focused tests for config, session mapping, and client factory behavior without requiring a real Supabase project or network call.
+
+**Module: Supabase Auth Profile UI Wiring** - DONE
+- [x] DONE [HARD]: Added `data/authController.ts` to load the current Supabase auth session and sign out through the adapter without deleting local profile/library/reader data.
+- [x] DONE [HARD]: Added focused controller tests for unconfigured, authenticated, and sign-out states without a real Supabase project or network call.
+- [x] DONE [HARD]: Wired Profile focus loading to read the current auth snapshot alongside local profile/library/reader/offline-pack state.
+- [x] DONE [HARD]: Added a Profile account auth status panel for loading, unconfigured, unauthenticated, needs-verification, authenticated, and error states.
+- [x] DONE [HARD]: Updated Profile support/account actions so feedback, password, and sign-out copy reflect accepted cloud decisions while preserving local-first behavior.
+
+No active next implementation module selected after this Profile auth wiring. Recommended next module: **Supabase Auth Form Shell**, because Profile can now show auth state and the next safe slice is email sign-up/sign-in/recovery UI wired to the adapter with unconfigured fallbacks.
 
 ## Blocked Module Execution Order
 
@@ -623,18 +651,46 @@ Prioritize modules by implementation complexity, user experience impact, and dep
 5. **DeepL + OpenAI Backend Proxy MVP** - fifth, because it needs backend auth, privacy boundaries, quota limits, and cost controls.
 6. **Specialized Translation Dataset Agents** - sixth, because it builds on the DeepL/OpenAI proxy foundation and needs dataset storage, retrieval, quota, and privacy contracts before production AI behavior.
 7. **Google Sheets Export** - seventh, because backend-mediated OAuth should wait for Supabase auth/backend foundation.
-8. **Language Source Gates** - eighth, because these remain source/license research modules and should not block accepted platform work.
-9. **Speech Scoring** - last and still blocked, because OS/native STT does not provide reliable per-phoneme alignment or scoring.
+8. **Language Source Gates** - eighth, because source-gate paths are accepted but production adapters remain blocked until license/sample/readiness gates pass.
+9. **Speech Scoring** - last, because Azure is accepted but implementation depends on backend upload, privacy, quota, retention, first-language coverage, and fake-provider tests.
 
 ## Blocked Work Modules
 
 These modules decompose accepted, staged, and still-blocked roadmap rows. Accepted modules can become `[ ] TODO` implementation modules; still-blocked modules remain decision-prep only until their acceptance gate is met.
 
+**Module: Accepted Product Decisions Sync** - DONE
+- [x] DONE [HARD]: Updated `.docs/decisions/speech-scoring-engine.md` to `Accepted` with Azure AI Speech Pronunciation Assessment.
+- [x] DONE [HARD]: Added `.docs/decisions/support-feedback-channel.md` for Supabase feedback table plus Resend backend notification.
+- [x] DONE [HARD]: Added `.docs/decisions/auth-token-storage.md` for Expo SecureStore native token storage plus web fallback.
+- [x] DONE [HARD]: Added `.docs/decisions/paid-ai-agent-addons.md` to keep three active agents as the MVP limit and defer billing.
+- [x] DONE [HARD]: Synced `docs/language-source-gates.md`, `docs/current-decision-options.md`, and `.ai/context/blocked-decisions.md` with accepted source-gate paths and implementation guardrails.
+
+**Module: Supabase Auth SecureStore Foundation** - DONE
+- [x] DONE [HARD]: Installed `expo-secure-store` and added the Expo config plugin.
+- [x] DONE [HARD]: Added native SecureStore and web fallback auth token adapters.
+- [x] DONE [HARD]: Added focused test coverage for auth token set/get/remove semantics.
+- [x] DONE [HARD]: Kept Supabase client/session UI out of scope until the next auth session module.
+- [x] DONE [HARD]: Updated roadmap status so future auth work can rely on accepted token storage.
+
+**Module: Supabase Auth Session Adapter** - DONE
+- [x] DONE [HARD]: Installed Supabase client and React Native URL polyfill dependencies.
+- [x] DONE [HARD]: Added unconfigured-env guard for public Supabase URL/key.
+- [x] DONE [HARD]: Added auth session/user/error state mapping helpers.
+- [x] DONE [HARD]: Added Supabase client factory using the auth token storage adapter and PKCE session persistence.
+- [x] DONE [HARD]: Added focused auth adapter tests that avoid real network/provider calls.
+
+**Module: Supabase Auth Profile UI Wiring** - DONE
+- [x] DONE [HARD]: Added auth controller load/sign-out helpers above the Supabase adapter.
+- [x] DONE [HARD]: Added focused auth controller tests for unconfigured, authenticated, and sign-out states.
+- [x] DONE [HARD]: Wired Profile screen focus loading to auth state without changing local profile persistence.
+- [x] DONE [HARD]: Added auth status panel and refresh/sign-out actions for Profile account settings.
+- [x] DONE [HARD]: Kept email/password form, account deletion backend work, sync, and support submission as future staged modules.
+
 **Module: Current Decision Options Docs Sync** - DONE
 - [x] DONE [HARD]: Added the current decision option summary, recommended defaults, and acceptance gates in `docs/current-decision-options.md`.
-- [x] DONE [HARD]: Kept Speech Scoring Engine as `Proposed`; Azure, Speechace, and custom MFA/Kaldi-style backend are options only.
-- [x] DONE [HARD]: Kept Language Source Gates blocked per language/pair; source options require dedicated gate docs before implementation.
-- [x] DONE [HARD]: Kept support/feedback channel, auth token storage, and paid add-on/billing decisions unaccepted until the product owner chooses them.
+- [x] DONE [HARD]: Prepared Speech Scoring Engine options; Azure was later accepted in the Accepted Product Decisions Sync module.
+- [x] DONE [HARD]: Prepared Language Source Gate options; chosen source-gate paths were later accepted while production adapters remain gated.
+- [x] DONE [HARD]: Prepared support/feedback channel, auth token storage, and paid add-on/billing options; selected choices were later accepted.
 - [x] DONE [HARD]: Preserved accepted foundations for Supabase, DeepL/OpenAI proxy, MLKit OCR, and OS/native STT.
 
 **Module: Supabase Auth Foundation** - DONE
@@ -642,7 +698,7 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined Supabase session model, token storage policy, logout semantics, and local/offline fallback behavior without changing current local-only UI.
 - [x] DONE [HARD]: Defined email/password/phone verification contract, account recovery expectations, and profile-field trust model for Supabase Auth.
 - [x] DONE [HARD]: Defined account deletion contract across local SQLite data, future Supabase data, exports, and support/audit requirements.
-- [x] DONE [HARD]: Acceptance gate met for future auth implementation planning; real login code still requires dependency install and token storage choice.
+- [x] DONE [HARD]: Acceptance gate met for future auth implementation planning; real login code now follows accepted `expo-secure-store` native token storage plus web fallback and still requires dependency install, adapter tests, and deep-link callback code.
 
 **Module: Supabase Cloud Sync MVP** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/cloud-sync.md` and `docs/database-architecture-plan.md` with the completed Supabase Auth Foundation dependency and sync MVP scope.
@@ -663,7 +719,7 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined OCR/STT privacy, offline, accuracy, language coverage, app-size, permission, and unavailable-engine constraints without adding cloud recognition.
 - [x] DONE [HARD]: Defined dev-client validation matrix for iOS, Android, Expo web fallback, permissions, unavailable-engine states, and artifact capture.
 - [x] DONE [HARD]: Defined minimal recognition interfaces for OCR blocks and STT transcripts using the existing OCR engine and recognition contracts; kept phoneme alignment out of scope.
-- [x] DONE [HARD]: Acceptance gate met for future native OCR/STT implementation planning; real OCR/STT can start after package install/dev-client spike is selected, while IPA/per-phoneme scoring remains `[!] BLOCKED`.
+- [x] DONE [HARD]: Acceptance gate met for future native OCR/STT implementation planning; real OCR/STT can start after package install/dev-client spike is selected, while IPA/per-phoneme scoring is now staged behind the accepted Azure scoring path and backend/privacy/quota gates.
 
 **Module: DeepL + OpenAI Backend Proxy MVP** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/translation-api.md` and `.docs/decisions/ai-chat-cost-control.md` with completed Supabase auth/sync foundations and `docs/deepl-openai-backend-proxy-mvp.md`.
@@ -679,19 +735,19 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [ ] TODO [HARD]: Define per-user context agents: max 3 active agents by default, each bound to one dataset/context; future extra agents require paid package/add-on decision.
 - [ ] TODO [HARD]: Define editor modes: Word-like rich text, Google Docs-like collaborative-ready surface, LaTeX, Markdown, and plain text, with export/import boundaries and unsupported feature states.
 
-**Module: Speech Scoring** - DONE DECISION PREP / STILL BLOCKED
+**Module: Speech Scoring** - DONE DECISION PREP / AZURE ACCEPTED
 - [x] DONE [HARD]: Refreshed `.docs/decisions/speech-scoring-engine.md` with current scoring/alignment candidates and clarified why OS/native STT does not satisfy scoring.
 - [x] DONE [HARD]: Compared cloud pronunciation scoring APIs, on-device alignment options, custom backend pipelines, and manual playback-only fallback in `docs/speech-scoring-engine-plan.md`.
 - [x] DONE [HARD]: Defined privacy, latency, language coverage, cost, retention, and raw-audio handling constraints.
 - [x] DONE [HARD]: Defined minimal scoring interface for IPA alignment, per-phoneme rows, score history, and unavailable-engine UI states without fake scores.
-- [x] DONE [HARD]: Acceptance gate documented: pronunciation scoring remains `[!] BLOCKED` until a real scoring/alignment engine is accepted.
+- [x] DONE [HARD]: Acceptance gate updated: Azure AI Speech Pronunciation Assessment is accepted, while production scoring code remains staged until backend upload/proxy, quota, privacy, retention, first-language coverage, and fake-provider tests exist.
 
-**Module: Language Source Gates** - DONE
+**Module: Language Source Gates** - DONE SOURCE-GATE PATHS ACCEPTED
 - [x] DONE [HARD]: Refreshed Cantonese and Uyghur source status docs and added `docs/language-source-gates.md` for Cantonese, Uyghur, VI→FR, Basque, Ainu, Quechua, Nahuatl, and Guarani gates with explicit unavailable/research states.
 - [x] DONE [HARD]: Compared source options for blocked languages/pairs: hosted APIs, Wiktionary/Kaikki/raw dumps, public-domain lists, national dictionaries, commercial licenses, and user-provided data.
 - [x] DONE [HARD]: Defined source metadata and attribution requirements for any accepted fixture or production pack, including license, revision/dump date, source URL, user-visible label, and packaging obligations.
 - [x] DONE [HARD]: Defined minimal adapter/readiness contract for candidates: script handling, morphology expectations, exact lookup, missing-result behavior, and blocked UI state.
-- [x] DONE [HARD]: Acceptance gate documented: each language or pair remains `[!] BLOCKED` until it has an approved full-definition/bilingual lexical source; no implementation was unblocked by this refresh.
+- [x] DONE [HARD]: Acceptance gate updated: chosen source-gate paths are accepted, but each language or pair remains production-blocked until its dedicated source gate proves license, attribution, representative samples, and adapter readiness.
 
 **Module: Accepted Lexical Source Follow-up** - DONE
 - [x] DONE [MEDIUM]: Audit current Etymology and Conjugation UI/data paths against accepted `.docs/decisions/etymology-conjugation-source.md` and existing attribution behavior.

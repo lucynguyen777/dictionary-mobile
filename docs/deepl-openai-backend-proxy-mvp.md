@@ -189,9 +189,9 @@ Each agent is bound to:
 - usage counters;
 - active/archived state.
 
-Future extra agents require a paid package/add-on decision. Billing, top-up packages, and purchasable extra agents are out of scope for this MVP foundation.
+Future extra agents require a later paid package/add-on decision. Billing, top-up packages, and purchasable extra agents are out of scope for this MVP foundation.
 
-The current paid-agent option matrix is prepared in `docs/current-decision-options.md`. Until the product owner accepts a billing provider and entitlement contract, the default limit stays at `maxAgentsPerUser = 3`.
+The accepted MVP decision in `.docs/decisions/paid-ai-agent-addons.md` keeps the default limit at `maxAgentsPerUser = 3` and defers billing.
 
 ### Editor Environment Modes
 

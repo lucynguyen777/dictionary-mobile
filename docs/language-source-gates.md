@@ -12,14 +12,14 @@ The current cross-decision option matrix lives in `docs/current-decision-options
 
 | Language / pair | Current status | Best current candidate | Decision |
 | --- | --- | --- | --- |
-| Cantonese `yue -> yue` | Blocked | Words.hk public-domain word/pronunciation lists plus possible future permission for full definitions | Keep `yue` unavailable; word/pronunciation helper data is not enough for definitions. |
-| Uyghur `ug -> ug` | Blocked | `ug.wiktionary.org` MediaWiki API under CC BY-SA 4.0 | Keep adapter blocked until a balanced non-placeholder noun/adjective/verb candidate set is accepted. |
-| Vietnamese -> French `vi -> fr` | Blocked | DBnary/Wiktionary-derived bilingual extraction, commercial dictionary license, or user-provided dictionary import | Do not use machine translation as dictionary data. |
-| Basque `eu -> eu` | Research gate | Basque Wiktionary / Kaikki / national Basque lexical resources | Needs source smoke, license check, and morphology contract before TODO. |
-| Ainu `ain -> ain` | Research gate | Ainu Wiktionary material, academic/public-domain lists, or licensed specialist resources | Needs source availability proof before metadata or fixtures. |
-| Quechua `qu -> qu` | Research gate | Quechua Wiktionary / Kaikki / national or academic resources | Treat independently; do not group under a production "Amerind" taxonomy. |
-| Nahuatl `nah -> nah` | Research gate | Nahuatl Wiktionary / Kaikki / academic or community resources | Treat independently; no adapter until source/license smoke passes. |
-| Guarani `gn -> gn` | Research gate | Guarani Wiktionary / Kaikki / national or academic resources | Treat independently; no adapter until source/license smoke passes. |
+| Cantonese `yue -> yue` | Accepted source-gate path / production blocked | Words.hk permission/full dataset path | Pursue Words.hk permission for full definitions first; keep `yue` unavailable until compatible permission/license is documented. |
+| Uyghur `ug -> ug` | Accepted source-gate path / production blocked | Curated `ug.wiktionary.org` MediaWiki API under CC BY-SA 4.0 | Continue curated native-definition candidate set; keep adapter blocked until balanced non-placeholder noun/adjective/verb entries are accepted. |
+| Vietnamese -> French `vi -> fr` | Accepted source-gate path / production blocked | DBnary/Wiktionary-derived bilingual extraction | Run DBnary/Wiktionary bilingual smoke first; do not use machine translation as dictionary data. |
+| Basque `eu -> eu` | Accepted source-gate path / production blocked | Basque Wiktionary / Kaikki | Run Basque Wiktionary/Kaikki source smoke first; source/license and morphology contract still required before TODO. |
+| Ainu `ain -> ain` | Accepted source-gate path / production blocked | Ainu Wiktionary / Kaikki | Run per-language Wiktionary/Kaikki source smoke first; source availability proof still required before metadata or fixtures. |
+| Quechua `qu -> qu` | Accepted source-gate path / production blocked | Quechua Wiktionary / Kaikki | Treat independently; no adapter until source/license smoke passes. |
+| Nahuatl `nah -> nah` | Accepted source-gate path / production blocked | Nahuatl Wiktionary / Kaikki | Treat independently; no adapter until source/license smoke passes. |
+| Guarani `gn -> gn` | Accepted source-gate path / production blocked | Guarani Wiktionary / Kaikki | Treat independently; no adapter until source/license smoke passes. |
 
 ## Candidate Source Classes
 
@@ -97,14 +97,15 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
 ### Cantonese
 
 - Current docs: `docs/cantonese-language-plan.md`, `docs/cantonese-source-smoke.md`.
+- Accepted source-gate path: pursue Words.hk permission/full dataset path first.
 - Safe helper path: Words.hk public-domain word/pronunciation data after endpoint stability is verified.
-- Still blocked: full monolingual definitions from Words.hk or another source without explicit compatible permission.
+- Still blocked: full monolingual definitions until explicit compatible permission/license is documented.
 - Adapter readiness: Traditional Hanzi, Cantonese vernacular characters, Jyutping, tones, exact lookup, no morphology stemming, segmentation support.
 
 ### Uyghur
 
 - Current docs: `docs/uyghur-language-plan.md`, `docs/uyghur-source-smoke.md`.
-- Best candidate: curated `ug.wiktionary.org` entries under CC BY-SA 4.0.
+- Accepted source-gate path: curated `ug.wiktionary.org` entries under CC BY-SA 4.0.
 - Still blocked: current smoke did not find enough balanced non-placeholder noun/adjective/verb entries.
 - Adapter readiness: RTL Uyghur Arabic script, NFC normalization, invisible/bidi character policy, optional ULY fallback after mapping table, Turkic suffix handling only after source evidence.
 
@@ -113,9 +114,9 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
 - Existing app supports FR->VI, VI-VI, and FR-FR paths, but not a trusted VI->FR bilingual dictionary.
 - DeepL/OpenAI translation decisions do not unblock VI->FR dictionary data because machine translation output is not dictionary source data.
 - Candidate paths:
-  - Wiktionary/DBnary bilingual extraction if Vietnamese-to-French translations are structured enough and license/attribution are preserved;
-  - commercial bilingual dictionary license;
-  - user-provided import as personal data only.
+  - accepted source-gate path: Wiktionary/DBnary bilingual extraction if Vietnamese-to-French translations are structured enough and license/attribution are preserved;
+  - deferred fallback: commercial bilingual dictionary license;
+  - personal-data-only fallback: user-provided import.
 - First safe task: create a dedicated `docs/vi-fr-source-gate.md` after probing structured bilingual extraction candidates.
 
 ### Basque
@@ -123,24 +124,25 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
 - Basque is a strong research candidate because script support is Latin and the app already handles Indo-European Latin-script adapters.
 - Source and morphology still need proof: Basque is morphologically rich and cannot reuse simple Spanish/French assumptions.
 - Candidate paths:
-  - Basque Wiktionary / Kaikki extraction;
-  - national Basque resources if license/API allows app use;
-  - commercial/open lexicon with full definitions.
+  - accepted source-gate path: Basque Wiktionary / Kaikki extraction;
+  - deferred authority fallback: national Basque resources if license/API allows app use;
+  - deferred production fallback: commercial/open lexicon with full definitions.
 - First safe task: create `docs/basque-source-gate.md` with license/API smoke.
 
 ### Ainu
 
 - Ainu source availability is the primary blocker.
 - Candidate paths:
-  - Wiktionary-derived entries if target-language definitions exist;
-  - public-domain or academic lexicons with explicit app-compatible terms;
-  - licensed specialist dictionary.
+  - accepted source-gate path: Wiktionary/Kaikki-derived entries if target-language definitions exist;
+  - deferred fallback: public-domain or academic lexicons with explicit app-compatible terms;
+  - deferred production fallback: licensed specialist dictionary.
 - First safe task: create `docs/ainu-source-gate.md` before adding metadata.
 
 ### Quechua, Nahuatl, Guarani
 
 - Do not implement an "Amerind" family as a production taxonomy. Treat each language independently.
 - Each language needs its own source smoke, orthography/dialect policy, and morphology/readiness contract.
+- Accepted source-gate path: start with Wiktionary/Kaikki per language for Quechua, Nahuatl, and Guarani.
 - Machine translation, English gloss lists, and generic wordlists are not enough for dictionary definitions.
 - First safe task: create one source gate at a time, starting with the language that has the clearest source/license path.
 
