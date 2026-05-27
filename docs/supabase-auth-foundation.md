@@ -31,6 +31,7 @@ Define the auth contract before adding production login code. This foundation ac
 - Supabase client factory foundation now lives in `data/supabaseAuthClient.ts`; it stays unconfigured when public env vars are missing and uses the accepted token storage adapter.
 - Auth state mapping foundation now lives in `data/authSession.ts`; it maps Supabase session/user/error outputs into the documented app auth states.
 - Profile UI wiring now uses `data/authController.ts` to load the current auth snapshot and sign out without deleting local data.
+- Auth form shell now calls the controller for email/password sign-in, sign-up, and password recovery while keeping unconfigured environments local-first.
 - Auth module code must remain optional when env vars are missing. In that state the app stays local-first and shows coming-soon/unconfigured states rather than crashing.
 
 ## Redirect URL Policy

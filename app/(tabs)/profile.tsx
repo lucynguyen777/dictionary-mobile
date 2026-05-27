@@ -18,7 +18,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
-import { loadCurrentAuthSession, signOutAuthSession } from '@/data/authController';
+import {
+  loadCurrentAuthSession,
+  sendPasswordRecoveryEmail,
+  signInAuthSession,
+  signOutAuthSession,
+  signUpAuthSession,
+} from '@/data/authController';
 import { type AuthSessionSnapshot } from '@/data/authSession';
 import { studyStats } from '@/data/dictionary';
 import { exportAllLocalData } from '@/data/exportAllData';
@@ -110,6 +116,9 @@ export default function ProfileScreen() {
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [offlinePackBusyId, setOfflinePackBusyId] = useState<string | null>(null);
   const [authSession, setAuthSession] = useState<AuthSessionSnapshot>(initialAuthSession);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusyAction, setAuthBusyAction] = useState<'sign-in' | 'sign-up' | 'recovery' | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -132,6 +141,7 @@ export default function ProfileScreen() {
           setReaderState(nextReaderState);
           setOfflinePackInstallState(nextOfflinePackInstallState);
           setAuthSession(nextAuthSession);
+          setAuthEmail((current) => current || nextAuthSession.email || nextProfile.email || '');
         }
       );
 
@@ -175,6 +185,92 @@ export default function ProfileScreen() {
       'Biểu mẫu đăng nhập sẽ khả dụng sau khi bật phiên cloud cho tài khoản.',
       [{ text: 'OK' }]
     );
+  };
+
+  const validateAuthEmail = () => {
+    const email = authEmail.trim();
+
+    if (!email) {
+      Alert.alert('Thiếu email', 'Nhập email để dùng đăng nhập cloud.', [{ text: 'OK' }]);
+      return null;
+    }
+
+    return email;
+  };
+
+  const validateAuthCredentials = () => {
+    const email = validateAuthEmail();
+
+    if (!email) return null;
+
+    if (!authPassword) {
+      Alert.alert('Thiếu mật khẩu', 'Nhập mật khẩu để tiếp tục.', [{ text: 'OK' }]);
+      return null;
+    }
+
+    return {
+      email,
+      password: authPassword,
+    };
+  };
+
+  const handleSignInAuth = async () => {
+    const credentials = validateAuthCredentials();
+    if (!credentials) return;
+
+    setAuthBusyAction('sign-in');
+    const nextAuthSession = await signInAuthSession(credentials);
+    setAuthBusyAction(null);
+    setAuthSession(nextAuthSession);
+
+    if (nextAuthSession.status === 'error' || nextAuthSession.status === 'unconfigured') {
+      Alert.alert('Chưa đăng nhập', nextAuthSession.errorMessage ?? 'Không thể đăng nhập cloud.', [{ text: 'OK' }]);
+      return;
+    }
+
+    setAuthPassword('');
+    Alert.alert('Đã đăng nhập', 'Phiên cloud đã sẵn sàng. Dữ liệu local vẫn được giữ nguyên.', [{ text: 'OK' }]);
+  };
+
+  const handleSignUpAuth = async () => {
+    const credentials = validateAuthCredentials();
+    if (!credentials) return;
+
+    setAuthBusyAction('sign-up');
+    const nextAuthSession = await signUpAuthSession(credentials);
+    setAuthBusyAction(null);
+    setAuthSession(nextAuthSession);
+
+    if (nextAuthSession.status === 'error' || nextAuthSession.status === 'unconfigured') {
+      Alert.alert('Chưa tạo tài khoản', nextAuthSession.errorMessage ?? 'Không thể tạo tài khoản cloud.', [{ text: 'OK' }]);
+      return;
+    }
+
+    setAuthPassword('');
+    Alert.alert(
+      nextAuthSession.status === 'needs_verification' ? 'Kiểm tra email' : 'Tài khoản đã sẵn sàng',
+      nextAuthSession.status === 'needs_verification'
+        ? 'Mở email xác minh để hoàn tất đăng ký cloud.'
+        : 'Phiên cloud đã sẵn sàng. Dữ liệu local vẫn được giữ nguyên.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handlePasswordRecovery = async () => {
+    const email = validateAuthEmail();
+    if (!email) return;
+
+    setAuthBusyAction('recovery');
+    const nextAuthSession = await sendPasswordRecoveryEmail(email);
+    setAuthBusyAction(null);
+    setAuthSession(nextAuthSession);
+
+    if (nextAuthSession.status === 'error' || nextAuthSession.status === 'unconfigured') {
+      Alert.alert('Chưa gửi được email', nextAuthSession.errorMessage ?? 'Không thể gửi email khôi phục.', [{ text: 'OK' }]);
+      return;
+    }
+
+    Alert.alert('Đã gửi email', 'Kiểm tra hộp thư để tiếp tục khôi phục mật khẩu.', [{ text: 'OK' }]);
   };
 
   const handleSignOutAuth = () => {
@@ -748,6 +844,17 @@ export default function ProfileScreen() {
                   onRefreshPress={handleRefreshAuthSession}
                   onSignOutPress={handleSignOutAuth}
                 />
+                <AuthFormShell
+                  authBusyAction={authBusyAction}
+                  authEmail={authEmail}
+                  authPassword={authPassword}
+                  authSession={authSession}
+                  onChangeEmail={setAuthEmail}
+                  onChangePassword={setAuthPassword}
+                  onPasswordRecovery={handlePasswordRecovery}
+                  onSignIn={handleSignInAuth}
+                  onSignUp={handleSignUpAuth}
+                />
                 <View style={styles.sidebarAvatarBlock}>
                   <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
                   <Pressable
@@ -1035,6 +1142,98 @@ function AuthStatusPanel({
           <Ionicons name="refresh" size={16} color="#2563EB" />
         </Pressable>
       </View>
+    </View>
+  );
+}
+
+function AuthFormShell({
+  authBusyAction,
+  authEmail,
+  authPassword,
+  authSession,
+  onChangeEmail,
+  onChangePassword,
+  onPasswordRecovery,
+  onSignIn,
+  onSignUp,
+}: {
+  authBusyAction: 'sign-in' | 'sign-up' | 'recovery' | null;
+  authEmail: string;
+  authPassword: string;
+  authSession: AuthSessionSnapshot;
+  onChangeEmail: (value: string) => void;
+  onChangePassword: (value: string) => void;
+  onPasswordRecovery: () => void;
+  onSignIn: () => void;
+  onSignUp: () => void;
+}) {
+  const isBusy = Boolean(authBusyAction);
+  const isUnconfigured = authSession.status === 'unconfigured';
+
+  return (
+    <View style={styles.authFormPanel}>
+      <Text style={styles.sidebarGroupLabel}>Đăng nhập cloud</Text>
+      <TextInput
+        autoCapitalize="none"
+        editable={!isBusy}
+        keyboardType="email-address"
+        onChangeText={onChangeEmail}
+        placeholder="you@example.com"
+        placeholderTextColor="#94A3B8"
+        style={[styles.profileInput, isBusy && styles.profileInputDisabled]}
+        value={authEmail}
+      />
+      <TextInput
+        editable={!isBusy}
+        onChangeText={onChangePassword}
+        placeholder="Mật khẩu"
+        placeholderTextColor="#94A3B8"
+        secureTextEntry
+        style={[styles.profileInput, styles.authPasswordInput, isBusy && styles.profileInputDisabled]}
+        value={authPassword}
+      />
+      <View style={styles.authFormButtonRow}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={isBusy}
+          onPress={onSignIn}
+          style={({ pressed }) => [styles.authFormButton, pressed && styles.authStatusButtonPressed, isBusy && styles.authStatusButtonDisabled]}>
+          <Ionicons name="log-in-outline" size={15} color="#FFFFFF" />
+          <Text style={styles.authFormButtonText} numberOfLines={1}>
+            {authBusyAction === 'sign-in' ? 'Đang vào' : 'Đăng nhập'}
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          disabled={isBusy}
+          onPress={onSignUp}
+          style={({ pressed }) => [
+            styles.authFormButton,
+            styles.authFormButtonSecondary,
+            pressed && styles.authStatusButtonPressed,
+            isBusy && styles.authStatusButtonDisabled,
+          ]}>
+          <Ionicons name="person-add-outline" size={15} color="#2563EB" />
+          <Text style={[styles.authFormButtonText, styles.authFormButtonTextSecondary]} numberOfLines={1}>
+            {authBusyAction === 'sign-up' ? 'Đang tạo' : 'Tạo tài khoản'}
+          </Text>
+        </Pressable>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        disabled={isBusy}
+        onPress={onPasswordRecovery}
+        style={({ pressed }) => [styles.authRecoveryButton, pressed && styles.authStatusButtonPressed, isBusy && styles.authStatusButtonDisabled]}>
+        <Ionicons name="mail-outline" size={15} color="#2563EB" />
+        <Text style={styles.authRecoveryButtonText} numberOfLines={1}>
+          {authBusyAction === 'recovery' ? 'Đang gửi email' : 'Gửi email khôi phục'}
+        </Text>
+      </Pressable>
+      <Text style={styles.fieldHint}>
+        {isUnconfigured
+          ? 'Cloud chưa sẵn sàng trên bản cài đặt này; hồ sơ local vẫn dùng bình thường.'
+          : 'Phiên cloud không xóa hoặc ghi đè hồ sơ local hiện có.'}
+      </Text>
     </View>
   );
 }
@@ -1440,6 +1639,61 @@ const styles = StyleSheet.create({
     height: 38,
     justifyContent: 'center',
     width: 42,
+  },
+  authFormPanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+    padding: 12,
+  },
+  authPasswordInput: {
+    marginTop: 8,
+  },
+  authFormButtonRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  authFormButton: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 8,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    minHeight: 38,
+    paddingHorizontal: 10,
+  },
+  authFormButtonSecondary: {
+    backgroundColor: '#EFF6FF',
+  },
+  authFormButtonText: {
+    color: '#FFFFFF',
+    flexShrink: 1,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  authFormButtonTextSecondary: {
+    color: '#2563EB',
+  },
+  authRecoveryButton: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    marginTop: 8,
+    minHeight: 34,
+    paddingHorizontal: 10,
+  },
+  authRecoveryButtonText: {
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: '900',
   },
   sidebarAvatarBlock: {
     alignItems: 'center',

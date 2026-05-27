@@ -20,7 +20,7 @@ Guardrail:
 ---
 
 ## Supabase Auth Foundation
-Status: Foundation completed in `docs/supabase-auth-foundation.md`; SecureStore token storage, Supabase auth session adapter, and Profile auth-state wiring are implemented; auth form shell can move to a staged TODO module.
+Status: Foundation completed in `docs/supabase-auth-foundation.md`; SecureStore token storage, Supabase auth session adapter, Profile auth-state wiring, and email/password auth form shell are implemented; callback route handling can move to a staged TODO module.
 
 Accepted:
 - Supabase Auth provider
@@ -37,7 +37,7 @@ Allowed preparatory work:
 - Keep existing local UI placeholders clearly marked as local/coming soon
 
 Acceptance gate:
-- Real email sign-up/sign-in/recovery can move into an implementation module using `data/authTokenStorage.ts`, `data/authTokenStorage.web.ts`, `data/authConfig.ts`, `data/authSession.ts`, `data/supabaseAuthClient.ts`, and `data/authController.ts`. Deep-link callback handling, backend account deletion, sync, and support submission are still future work.
+- Real email sign-up/sign-in/recovery now uses `data/authTokenStorage.ts`, `data/authTokenStorage.web.ts`, `data/authConfig.ts`, `data/authSession.ts`, `data/supabaseAuthClient.ts`, and `data/authController.ts`. Deep-link callback handling for `dictionairemobile://auth/callback`, backend account deletion, sync, and support submission are still future work.
 
 ---
 

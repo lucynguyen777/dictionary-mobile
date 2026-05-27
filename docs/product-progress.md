@@ -638,7 +638,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Added a Profile account auth status panel for loading, unconfigured, unauthenticated, needs-verification, authenticated, and error states.
 - [x] DONE [HARD]: Updated Profile support/account actions so feedback, password, and sign-out copy reflect accepted cloud decisions while preserving local-first behavior.
 
-No active next implementation module selected after this Profile auth wiring. Recommended next module: **Supabase Auth Form Shell**, because Profile can now show auth state and the next safe slice is email sign-up/sign-in/recovery UI wired to the adapter with unconfigured fallbacks.
+**Module: Supabase Auth Form Shell** - DONE
+- [x] DONE [HARD]: Extended `data/authController.ts` with email/password sign-in, sign-up, and password recovery helpers through the Supabase adapter.
+- [x] DONE [HARD]: Added password recovery redirect policy using `dictionairemobile://auth/callback` without adding OAuth or callback route handling yet.
+- [x] DONE [HARD]: Wired Profile account settings with email/password inputs, sign-in, create-account, and password-recovery actions that preserve local profile/library/reader data.
+- [x] DONE [HARD]: Kept unconfigured Supabase env safe: auth form actions return local-first unconfigured state instead of crashing or faking login.
+- [x] DONE [HARD]: Expanded focused auth controller tests for sign-in, sign-up needing verification, and password recovery callback options.
+
+No active next implementation module selected after this auth form shell. Recommended next module: **Supabase Auth Callback Route**, because sign-up/recovery can now request email links and the next safe slice is callback handling for `dictionairemobile://auth/callback`.
 
 ## Blocked Module Execution Order
 
@@ -685,6 +692,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Wired Profile screen focus loading to auth state without changing local profile persistence.
 - [x] DONE [HARD]: Added auth status panel and refresh/sign-out actions for Profile account settings.
 - [x] DONE [HARD]: Kept email/password form, account deletion backend work, sync, and support submission as future staged modules.
+
+**Module: Supabase Auth Form Shell** - DONE
+- [x] DONE [HARD]: Added auth controller helpers for sign-in, sign-up, and password recovery.
+- [x] DONE [HARD]: Added `dictionairemobile://auth/callback` recovery redirect option.
+- [x] DONE [HARD]: Added Profile account email/password form shell with sign-in, create-account, and recovery actions.
+- [x] DONE [HARD]: Preserved unconfigured/local-first and no-local-data-delete behavior.
+- [x] DONE [HARD]: Expanded focused auth tests to cover form action controller paths.
 
 **Module: Current Decision Options Docs Sync** - DONE
 - [x] DONE [HARD]: Added the current decision option summary, recommended defaults, and acceptance gates in `docs/current-decision-options.md`.
