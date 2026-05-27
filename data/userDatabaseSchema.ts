@@ -1,5 +1,16 @@
 export const USER_DATABASE_NAME = 'dictionary-mobile-user.sqlite';
 export const USER_DATABASE_SCHEMA_VERSION = 1;
+export const USER_SYNC_DOMAINS = [
+  'profile',
+  'folders',
+  'saved_words',
+  'saved_word_folders',
+  'flashcards',
+  'reader_documents',
+  'reader_settings',
+  'search_history',
+  'tombstones',
+] as const;
 
 export type UserSqliteBindValue = string | number | null | boolean | Uint8Array;
 export type UserSqliteBindParams = UserSqliteBindValue[];
@@ -41,7 +52,11 @@ export const USER_DATABASE_SCHEMA_SQL = [
     review_reminder_enabled INTEGER NOT NULL DEFAULT 1,
     weekly_summary_enabled INTEGER NOT NULL DEFAULT 0,
     reminder_time TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    sync_status TEXT NOT NULL DEFAULT 'clean',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS folders (
     id TEXT PRIMARY KEY,
@@ -53,7 +68,11 @@ export const USER_DATABASE_SCHEMA_SQL = [
     is_favorite INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    deleted_at TEXT
+    deleted_at TEXT,
+    sync_status TEXT NOT NULL DEFAULT 'clean',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS saved_words (
     id TEXT PRIMARY KEY,
@@ -66,19 +85,36 @@ export const USER_DATABASE_SCHEMA_SQL = [
     source TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    deleted_at TEXT
+    deleted_at TEXT,
+    sync_status TEXT NOT NULL DEFAULT 'clean',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS saved_word_folders (
     word_id TEXT NOT NULL,
     folder_id TEXT NOT NULL,
     created_at TEXT NOT NULL,
+    updated_at TEXT,
+    deleted_at TEXT,
+    sync_status TEXT NOT NULL DEFAULT 'clean',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT,
     PRIMARY KEY (word_id, folder_id)
   )`,
   `CREATE TABLE IF NOT EXISTS search_history (
     id TEXT PRIMARY KEY,
     word TEXT NOT NULL,
     normalized_word TEXT NOT NULL,
-    looked_up_at TEXT NOT NULL
+    looked_up_at TEXT NOT NULL,
+    created_at TEXT,
+    updated_at TEXT,
+    deleted_at TEXT,
+    sync_status TEXT NOT NULL DEFAULT 'clean',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS flashcards (
     id TEXT PRIMARY KEY,
@@ -95,12 +131,18 @@ export const USER_DATABASE_SCHEMA_SQL = [
     sync_status TEXT,
     last_synced_at TEXT,
     version INTEGER NOT NULL DEFAULT 1,
-    deleted_at TEXT
+    deleted_at TEXT,
+    remote_version INTEGER,
+    last_local_change_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS deleted_entities (
     entity_type TEXT NOT NULL,
     entity_id TEXT NOT NULL,
     deleted_at TEXT NOT NULL,
+    sync_status TEXT NOT NULL DEFAULT 'deleting',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT,
     PRIMARY KEY (entity_type, entity_id)
   )`,
   `CREATE TABLE IF NOT EXISTS reader_documents (
@@ -110,7 +152,11 @@ export const USER_DATABASE_SCHEMA_SQL = [
     source_format TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    deleted_at TEXT
+    deleted_at TEXT,
+    sync_status TEXT NOT NULL DEFAULT 'clean',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS reader_settings (
     id TEXT PRIMARY KEY,
@@ -118,6 +164,17 @@ export const USER_DATABASE_SCHEMA_SQL = [
     font_size INTEGER NOT NULL,
     font_family TEXT NOT NULL,
     background_color TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    sync_status TEXT NOT NULL DEFAULT 'clean',
+    remote_version INTEGER,
+    last_synced_at TEXT,
+    last_local_change_at TEXT
+  )`,
+  `CREATE TABLE IF NOT EXISTS user_sync_cursors (
+    domain TEXT PRIMARY KEY,
+    last_successful_sync_at TEXT,
+    last_pull_cursor TEXT,
+    last_push_cursor TEXT,
     updated_at TEXT NOT NULL
   )`,
   'CREATE INDEX IF NOT EXISTS saved_words_word_idx ON saved_words(word)',
@@ -125,6 +182,10 @@ export const USER_DATABASE_SCHEMA_SQL = [
   'CREATE INDEX IF NOT EXISTS search_history_lookup_idx ON search_history(normalized_word, looked_up_at)',
   'CREATE INDEX IF NOT EXISTS flashcards_due_idx ON flashcards(due_date, review_state)',
   'CREATE INDEX IF NOT EXISTS reader_documents_updated_idx ON reader_documents(updated_at)',
+  'CREATE INDEX IF NOT EXISTS folders_sync_status_idx ON folders(sync_status, updated_at)',
+  'CREATE INDEX IF NOT EXISTS saved_words_sync_status_idx ON saved_words(sync_status, updated_at)',
+  'CREATE INDEX IF NOT EXISTS flashcards_sync_status_idx ON flashcards(sync_status, due_date)',
+  'CREATE INDEX IF NOT EXISTS reader_documents_sync_status_idx ON reader_documents(sync_status, updated_at)',
 ] as const;
 
 export async function ensureUserDatabaseSchema(database: UserSqliteDatabase) {

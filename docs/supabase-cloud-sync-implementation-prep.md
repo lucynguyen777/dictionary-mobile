@@ -101,4 +101,6 @@ Cloud sync can become a production implementation module only after:
 
 The SQL/RLS migration draft now lives in `supabase/migrations/001_cloud_sync_mvp.sql`, with migration-shape coverage in `tests/supabaseCloudSyncMigration.test.ts`.
 
-The next code module should be **Supabase Cloud Sync Local Metadata Draft**. It should add local SQLite sync metadata and focused schema/migration tests only. Runtime sync, realtime, encrypted backup, and restore UX should remain out of scope until the local metadata slice passes review.
+The local metadata draft now adds domain constants, row sync metadata, per-domain cursors, and schema-shape coverage.
+
+The next code module should be **Supabase Cloud Sync Mapper Contract Draft**. It should add pure local-to-remote and remote-to-local row contracts with focused tests only. Runtime sync, realtime, encrypted backup, and restore UX should remain out of scope until the mapper slice passes review.

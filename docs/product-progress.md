@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Local Metadata Draft** - DONE
+- [x] DONE [HARD]: Added `USER_SYNC_DOMAINS` to the local user database schema as the cursor domain contract for future sync.
+- [x] DONE [HARD]: Added local sync metadata columns for profile, folders, saved words, memberships, search history, flashcards, tombstones, reader documents, and reader settings.
+- [x] DONE [HARD]: Added `user_sync_cursors` for per-domain pull/push checkpoints without adding runtime sync or background jobs.
+- [x] DONE [HARD]: Added dirty-row indexes for high-churn domains so future sync can query pending local work efficiently.
+- [x] DONE [HARD]: Added `tests/userDatabaseSyncMetadata.test.ts` to verify cursor domains, metadata columns, and indexes while keeping production sync disabled.
+
 **Module: Supabase Cloud Sync SQL/RLS Migration Draft** - DONE
 - [x] DONE [HARD]: Added `supabase/migrations/001_cloud_sync_mvp.sql` with the MVP sync tables for profile, folders, saved words, memberships, search history, flashcards, tombstones, reader documents, and reader settings.
 - [x] DONE [HARD]: Preserved local-first ids, timestamps, versions, soft deletes, JSON tag/preference fields, and auth-owned `user_id` scope in the migration draft.
@@ -680,7 +687,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the SQL/RLS migration draft. Recommended next module: **Supabase Cloud Sync Local Metadata Draft**, because the remote schema now exists as a reviewed draft and local rows need explicit sync metadata before runtime pull/push code.
+No active next implementation module selected after the local metadata draft. Recommended next module: **Supabase Cloud Sync Mapper Contract Draft**, because remote SQL and local metadata now exist but pure local-to-remote and remote-to-local row contracts still need focused tests before runtime sync.
 
 ## Blocked Module Execution Order
 
@@ -790,6 +797,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Enabled RLS and authenticated own-row CRUD policies for every MVP sync table.
 - [x] DONE [HARD]: Added migration-shape tests in `tests/supabaseCloudSyncMigration.test.ts`.
 - [x] DONE [HARD]: Left runtime sync, realtime, encrypted backup, restore UX, and production sync enablement for later modules.
+
+**Module: Supabase Cloud Sync Local Metadata Draft** - DONE
+- [x] DONE [HARD]: Added local sync domain constants for profile, folders, saved words, memberships, flashcards, reader, search history, and tombstones.
+- [x] DONE [HARD]: Added sync status, remote version, last synced, and local change metadata columns to all local syncable tables.
+- [x] DONE [HARD]: Added per-domain sync cursor table for future pull/push checkpoints.
+- [x] DONE [HARD]: Added dirty-row indexes for folders, saved words, flashcards, and reader documents.
+- [x] DONE [HARD]: Added schema-shape coverage in `tests/userDatabaseSyncMetadata.test.ts` without enabling runtime cloud sync.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.
