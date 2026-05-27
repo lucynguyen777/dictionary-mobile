@@ -52,6 +52,14 @@ export type AuthControllerClient = {
         message: string;
       } | null;
     }>;
+    exchangeCodeForSession: (code: string) => Promise<{
+      data: {
+        session: AuthSession | null;
+      };
+      error: {
+        message: string;
+      } | null;
+    }>;
   };
 };
 
@@ -63,6 +71,18 @@ export type AuthCredentials = {
 };
 
 export const AUTH_CALLBACK_URL = 'dictionairemobile://auth/callback';
+
+export type AuthCallbackParams = {
+  code?: string | string[];
+  error?: string | string[];
+  error_description?: string | string[];
+};
+
+function getFirstParamValue(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0];
+
+  return value;
+}
 
 export function mapUnconfiguredAuthSnapshot(missingKeys: string[]): AuthSessionSnapshot {
   return {
@@ -180,4 +200,35 @@ export async function sendPasswordRecoveryEmail(
     phone: null,
     lastAuthEvent: 'recovery',
   };
+}
+
+export async function completeAuthCallback(
+  params: AuthCallbackParams,
+  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+): Promise<AuthSessionSnapshot> {
+  const result = createClient();
+
+  if (result.status === 'unconfigured') {
+    return mapUnconfiguredAuthSnapshot(result.config.missingKeys);
+  }
+
+  const callbackError = getFirstParamValue(params.error_description) ?? getFirstParamValue(params.error);
+
+  if (callbackError) {
+    return mapAuthErrorToSnapshot(callbackError, 'recovery');
+  }
+
+  const code = getFirstParamValue(params.code);
+
+  if (!code) {
+    return mapAuthErrorToSnapshot('Missing auth callback code.', 'recovery');
+  }
+
+  const { data, error } = await result.client.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    return mapAuthErrorToSnapshot(error.message, 'recovery');
+  }
+
+  return mapSupabaseSessionToAuthSnapshot(data.session, 'recovery');
 }

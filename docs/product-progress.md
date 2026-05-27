@@ -645,7 +645,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Kept unconfigured Supabase env safe: auth form actions return local-first unconfigured state instead of crashing or faking login.
 - [x] DONE [HARD]: Expanded focused auth controller tests for sign-in, sign-up needing verification, and password recovery callback options.
 
-No active next implementation module selected after this auth form shell. Recommended next module: **Supabase Auth Callback Route**, because sign-up/recovery can now request email links and the next safe slice is callback handling for `dictionairemobile://auth/callback`.
+**Module: Supabase Auth Callback Route** - DONE
+- [x] DONE [HARD]: Extended `data/authController.ts` with `completeAuthCallback` for Supabase callback `code`, provider error, missing-code, and unconfigured states.
+- [x] DONE [HARD]: Added `app/auth/callback.tsx` route for `dictionairemobile://auth/callback` with loading, success, local-first, unauthenticated, and error states.
+- [x] DONE [HARD]: Wired callback exchange through `exchangeCodeForSession` without adding OAuth providers, account deletion, sync, or backend support submission.
+- [x] DONE [HARD]: Expanded auth controller tests for callback provider errors, missing callback code, and successful code exchange.
+- [x] DONE [HARD]: Kept Profile as the return destination after callback so local profile data remains separate from cloud identity.
+
+No active next implementation module selected after this auth callback route. Recommended next module: **Supabase Auth Session Refresh Lifecycle**, because callback and form flows now exist and the next safe slice is auth state refresh/foreground handling without starting sync.
 
 ## Blocked Module Execution Order
 
@@ -699,6 +706,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added Profile account email/password form shell with sign-in, create-account, and recovery actions.
 - [x] DONE [HARD]: Preserved unconfigured/local-first and no-local-data-delete behavior.
 - [x] DONE [HARD]: Expanded focused auth tests to cover form action controller paths.
+
+**Module: Supabase Auth Callback Route** - DONE
+- [x] DONE [HARD]: Added callback controller handling for `code`, provider error, missing-code, and unconfigured states.
+- [x] DONE [HARD]: Added Expo Router callback screen at `app/auth/callback.tsx`.
+- [x] DONE [HARD]: Exchanged callback code for Supabase session through the auth adapter.
+- [x] DONE [HARD]: Added focused callback tests without provider/network calls.
+- [x] DONE [HARD]: Kept OAuth providers, account deletion, sync, and backend support submission out of scope.
 
 **Module: Current Decision Options Docs Sync** - DONE
 - [x] DONE [HARD]: Added the current decision option summary, recommended defaults, and acceptance gates in `docs/current-decision-options.md`.

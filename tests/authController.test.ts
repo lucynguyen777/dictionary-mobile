@@ -70,6 +70,7 @@ describe('authController', () => {
             signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
             signUp: async () => ({ data: { session: null, user: null }, error: null }),
             resetPasswordForEmail: async () => ({ data: null, error: null }),
+            exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
           },
         },
       }))
@@ -101,6 +102,7 @@ describe('authController', () => {
             signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
             signUp: async () => ({ data: { session: null, user: null }, error: null }),
             resetPasswordForEmail: async () => ({ data: null, error: null }),
+            exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
           },
         },
       }))
@@ -146,6 +148,7 @@ describe('authController', () => {
             },
             signUp: async () => ({ data: { session: null, user: null }, error: null }),
             resetPasswordForEmail: async () => ({ data: null, error: null }),
+            exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
           },
         },
       }))
@@ -190,6 +193,7 @@ describe('authController', () => {
                 error: null,
               }),
               resetPasswordForEmail: async () => ({ data: null, error: null }),
+              exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
             },
           },
         })
@@ -224,6 +228,7 @@ describe('authController', () => {
               calls.push([email, options]);
               return { data: null, error: null };
             },
+            exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
           },
         },
       }))
@@ -233,5 +238,125 @@ describe('authController', () => {
       lastAuthEvent: 'recovery',
     });
     expect(calls).toEqual([['reader@example.com', { redirectTo: AUTH_CALLBACK_URL }]]);
+  });
+
+  it('maps callback provider errors without exchanging a code', async () => {
+    const { completeAuthCallback } = await import('../data/authController');
+    const calls: unknown[] = [];
+
+    await expect(
+      completeAuthCallback(
+        {
+          error_description: 'Expired link',
+        },
+        () => ({
+          status: 'configured',
+          config: {
+            status: 'configured',
+            url: 'https://project.supabase.co',
+            publishableKey: 'publishable-key',
+          },
+          storageKind: 'secure-store-native',
+          client: {
+            auth: {
+              getSession: async () => ({ data: { session: null }, error: null }),
+              signOut: async () => ({ error: null }),
+              signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
+              signUp: async () => ({ data: { session: null, user: null }, error: null }),
+              resetPasswordForEmail: async () => ({ data: null, error: null }),
+              exchangeCodeForSession: async (code) => {
+                calls.push(code);
+                return { data: { session: null }, error: null };
+              },
+            },
+          },
+        })
+      )
+    ).resolves.toMatchObject({
+      status: 'error',
+      errorMessage: 'Expired link',
+      lastAuthEvent: 'recovery',
+    });
+    expect(calls).toEqual([]);
+  });
+
+  it('requires a callback code before exchanging a session', async () => {
+    const { completeAuthCallback } = await import('../data/authController');
+
+    await expect(
+      completeAuthCallback(
+        {},
+        () => ({
+          status: 'configured',
+          config: {
+            status: 'configured',
+            url: 'https://project.supabase.co',
+            publishableKey: 'publishable-key',
+          },
+          storageKind: 'secure-store-native',
+          client: {
+            auth: {
+              getSession: async () => ({ data: { session: null }, error: null }),
+              signOut: async () => ({ error: null }),
+              signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
+              signUp: async () => ({ data: { session: null, user: null }, error: null }),
+              resetPasswordForEmail: async () => ({ data: null, error: null }),
+              exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
+            },
+          },
+        })
+      )
+    ).resolves.toMatchObject({
+      status: 'error',
+      errorMessage: 'Missing auth callback code.',
+      lastAuthEvent: 'recovery',
+    });
+  });
+
+  it('exchanges callback code for a Supabase session', async () => {
+    const { completeAuthCallback } = await import('../data/authController');
+    const calls: unknown[] = [];
+
+    await expect(
+      completeAuthCallback(
+        {
+          code: ['auth-code'],
+        },
+        () => ({
+          status: 'configured',
+          config: {
+            status: 'configured',
+            url: 'https://project.supabase.co',
+            publishableKey: 'publishable-key',
+          },
+          storageKind: 'secure-store-native',
+          client: {
+            auth: {
+              getSession: async () => ({ data: { session: null }, error: null }),
+              signOut: async () => ({ error: null }),
+              signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
+              signUp: async () => ({ data: { session: null, user: null }, error: null }),
+              resetPasswordForEmail: async () => ({ data: null, error: null }),
+              exchangeCodeForSession: async (code) => {
+                calls.push(code);
+                return {
+                  data: {
+                    session: {
+                      user: makeUser(),
+                    } as AuthSession,
+                  },
+                  error: null,
+                };
+              },
+            },
+          },
+        })
+      )
+    ).resolves.toMatchObject({
+      status: 'authenticated',
+      email: 'reader@example.com',
+      lastAuthEvent: 'recovery',
+    });
+    expect(calls).toEqual(['auth-code']);
   });
 });
