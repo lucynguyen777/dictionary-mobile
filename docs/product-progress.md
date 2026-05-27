@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync MVP Implementation Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-implementation-prep.md` to convert the accepted sync MVP into an implementation slice order without enabling production sync.
+- [x] DONE [HARD]: Defined the SQL/RLS migration contract, table list, policy rules, and service-role-key boundary for the future Supabase sync schema.
+- [x] DONE [HARD]: Defined local SQLite sync metadata requirements for dirty rows, remote versions, per-domain cursors, tombstones, and sign-out preservation.
+- [x] DONE [HARD]: Defined the sync client adapter boundary and fake-client test expectations for pull-before-push, offline/unconfigured states, conflicts, and export compatibility.
+- [x] DONE [HARD]: Set the next code candidate to **Supabase Cloud Sync SQL/RLS Migration Draft** while keeping realtime, encrypted backup, restore UX, and production sync out of scope.
+
 **Module: Current Decision Options Docs Sync** - DONE
 - [x] DONE [HARD]: Created `docs/current-decision-options.md` with option matrices, recommendations, blocker status, acceptance gates, and source links for the remaining product-owner decisions.
 - [x] DONE [HARD]: Documented at least three viable options for Speech Scoring Engine, with Azure AI Speech Pronunciation Assessment as the recommended MVP default if cloud audio is accepted.
@@ -666,7 +673,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after this auth manual smoke prep. Recommended next module: **Supabase Cloud Sync MVP Implementation Prep**, because auth scaffolding is ready enough to plan sync schema/RLS implementation without starting production sync blindly.
+No active next implementation module selected after the sync implementation prep. Recommended next module: **Supabase Cloud Sync SQL/RLS Migration Draft**, because the implementation prep now defines the table, policy, and test boundary needed before any runtime sync code.
 
 ## Blocked Module Execution Order
 
@@ -762,6 +769,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined conflict strategy for local-first writes, remote updates, deletes/tombstones, offline queue replay, and last-writer/field-merge boundaries.
 - [x] DONE [HARD]: Defined encrypted backup and restore UX as staged follow-up work that does not block a minimal sync MVP.
 - [x] DONE [HARD]: Acceptance gate met for future cloud sync implementation planning; code still requires auth implementation/dependencies, SQL migrations with RLS, and local sync metadata.
+
+**Module: Supabase Cloud Sync MVP Implementation Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-implementation-prep.md` for SQL/RLS, local metadata, adapter boundary, test, and manual smoke gates.
+- [x] DONE [HARD]: Confirmed implementation starts with SQL/RLS migration draft and migration-shape tests before runtime sync code.
+- [x] DONE [HARD]: Defined local metadata fields and per-domain cursors needed for dirty rows, tombstones, remote versions, and sign-out preservation.
+- [x] DONE [HARD]: Defined fake Supabase client coverage for pull-before-push, offline/unconfigured states, retries, conflicts, and export compatibility.
+- [x] DONE [HARD]: Kept realtime, encrypted backup, restore UX, and production sync enablement out of scope.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.

@@ -42,7 +42,7 @@ Acceptance gate:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; cloud sync implementation can move to a staged TODO module after auth dependencies are installed.
+Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`. The next staged TODO is SQL/RLS migration draft plus migration-shape tests only.
 
 Accepted:
 - Supabase backend architecture
@@ -52,13 +52,16 @@ Accepted:
 
 Allowed preparatory work:
 - Follow `docs/supabase-cloud-sync-mvp.md`
+- Follow `docs/supabase-cloud-sync-implementation-prep.md`
 - Keep RLS enabled on sync tables and scope rows with `auth.uid() = user_id`
 - Preserve existing local SQLite ids, timestamps, versions, and tombstones
+- Add SQL/RLS migration drafts and tests before runtime sync code
+- Add local sync metadata and fake-client contracts before a production sync toggle
 - Keep encrypted backup/restore UX as staged follow-up work
 - Keep offline dictionary packs out of sync MVP scope
 
 Acceptance gate:
-- Cloud sync code may start after auth implementation/dependencies exist, SQL migrations are added, and local sync metadata is introduced.
+- Runtime cloud sync code may start after SQL/RLS migration drafts, migration-shape tests, local sync metadata, fake Supabase client tests, and auth manual smoke gates exist.
 
 ---
 
