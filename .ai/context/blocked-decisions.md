@@ -25,7 +25,7 @@ Acceptance gate:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Accepted direction; implementation is staged after Supabase Auth Foundation.
+Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; cloud sync implementation can move to a staged TODO module after auth dependencies are installed.
 
 Accepted:
 - Supabase backend architecture
@@ -34,32 +34,34 @@ Accepted:
 - Backend-backed account deletion direction
 
 Allowed preparatory work:
-- Refresh `.docs/decisions/backend-architecture.md` and `.docs/decisions/cloud-sync.md` as `Accepted`
-- Define sync conflict strategy for profile, library, flashcards, reader, tombstones, and offline behavior
-- Define encrypted backup/restore UX as staged follow-up work
-- Define minimal Supabase sync API/data contract using existing local ids, timestamps, versions, and tombstones
+- Follow `docs/supabase-cloud-sync-mvp.md`
+- Keep RLS enabled on sync tables and scope rows with `auth.uid() = user_id`
+- Preserve existing local SQLite ids, timestamps, versions, and tombstones
+- Keep encrypted backup/restore UX as staged follow-up work
+- Keep offline dictionary packs out of sync MVP scope
 
 Acceptance gate:
-- Implementation may start after Supabase Auth Foundation is ready and local SQLite sync contract is documented.
+- Cloud sync code may start after auth implementation/dependencies exist, SQL migrations are added, and local sync metadata is introduced.
 
 ---
 
 ## Google Sheets Export
-Status: Staged after dependency; backend-mediated Google OAuth direction is selected, but implementation waits for Supabase auth/backend foundation.
+Status: Foundation completed in `docs/google-sheets-export-mvp.md`; implementation can move to a staged code module after backend OAuth routes, token storage, and fake Google client tests are added.
 
-Staged after dependency:
+Accepted/staged:
 - Real Google Sheets export
 - Token-backed spreadsheet sync
 - Spreadsheet creation/update through backend-mediated Google OAuth
 
 Allowed preparatory work:
-- Create `.docs/decisions/google-sheets-export.md` as `Accepted` for backend-mediated Google OAuth
-- Define manual CSV upload fallback and local-only status quo
-- Define scopes, token storage, revocation, rate-limit, retry, and unsupported-platform behavior
-- Define row/export contract from existing local folder exports
+- Follow `docs/google-sheets-export-mvp.md`
+- Prefer least-privilege `drive.file` scope and add `spreadsheets` only if required
+- Keep Google refresh tokens server-side and encrypted/tokenized
+- Reuse existing folder export columns: word, ipa, definition, note, folder, tags, createdAt
+- Keep CSV/XLS/Anki and manual CSV upload fallback available
 
 Acceptance gate:
-- Implementation may start after Supabase Auth Foundation and backend proxy policies are documented.
+- Implementation may start after OAuth state validation, token revocation, row mapping, provider retry, and partial export behavior are covered by tests.
 
 ---
 
@@ -90,7 +92,7 @@ Acceptance gate:
 ---
 
 ## DeepL + OpenAI Backend Proxy MVP
-Status: Accepted direction; implementation is staged after Supabase auth/backend foundation.
+Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; translation/AI implementation can move to staged code modules after backend routes, RLS tables, and provider env vars are added.
 
 Accepted:
 - DeepL translation and glossary support through backend proxy
@@ -98,17 +100,42 @@ Accepted:
 - Quotas, rate limits, privacy policy, and cost controls as required backend contracts
 
 Allowed preparatory work:
-- Refresh `.docs/decisions/translation-api.md` and `.docs/decisions/ai-chat-cost-control.md` as `Accepted`
-- Define glossary persistence, streaming, privacy, moderation, rate-limit, and cost-control contracts
-- Define backend proxy env policy and user-visible limits
+- Follow `docs/deepl-openai-backend-proxy-mvp.md`
+- Keep DeepL and OpenAI keys server-side only
+- Add quota checks before provider calls
+- Redact source text, translations, prompts, transcripts, glossary entries, and provider keys from logs by default
+- Keep machine translation output out of dictionary/source data
 
 Acceptance gate:
-- Implementation may start after Supabase Auth Foundation, backend proxy env policy, quota model, and privacy copy are documented.
+- Implementation may start after backend proxy routes, RLS-protected usage/glossary tables, env vars, and fake-provider tests are added.
+
+---
+
+## Specialized Translation Dataset Agents
+Status: Staged TODO after DeepL/OpenAI proxy foundation. Production implementation is blocked until backend storage, parser validation, quota, privacy, and no-key-leak tests are defined.
+
+Accepted direction:
+- User-uploaded specialized translation datasets
+- Editable dataset rows/terms/segments
+- Smart term/phrase recognition and highlighting
+- Dataset-grounded context agents, not model fine-tuning
+- Maximum 3 active agents per user by default
+- Future paid packages/add-ons can raise the limit after a billing decision
+
+Allowed preparatory work:
+- Follow `docs/deepl-openai-backend-proxy-mvp.md`
+- Define dataset upload/import contracts for CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF
+- Define editor modes for Word-like rich text, Google Docs-like surfaces, LaTeX, Markdown, and plain text
+- Keep scanned PDFs/OCR extraction out of scope until OCR implementation exists
+- Keep provider keys server-side and redact raw dataset content from logs by default
+
+Acceptance gate:
+- Implementation may start after parser fixtures, dataset validation, highlighting behavior, max-3-agent enforcement, RLS tables, quota checks, and fake-provider no-key-leak tests are planned.
 
 ---
 
 ## Language Source Gates
-Status: Blocked per language/pair until an approved lexical source exists.
+Status: Foundation refreshed in `docs/language-source-gates.md`; still blocked per language/pair until an approved lexical source exists.
 
 Still blocked implementation:
 - Cantonese monolingual definitions
@@ -118,9 +145,11 @@ Still blocked implementation:
 - Any bilingual dictionary that would rely on machine translation as dictionary data
 
 Allowed preparatory work:
-- Refresh Cantonese, Uyghur, VI->FR, Basque, Ainu, Quechua, Nahuatl, and Guarani source status docs
+- Follow `docs/language-source-gates.md`
+- Create dedicated source gate docs for VI->FR, Basque, Ainu, Quechua, Nahuatl, or Guarani before implementation
 - Compare hosted APIs, Wiktionary/Kaikki/raw dumps, public-domain lists, national dictionaries, commercial licenses, and user-provided data
-- Define source metadata, attribution, script/morphology requirements, and adapter readiness contracts
+- Preserve source metadata, attribution, script/morphology requirements, and adapter readiness contracts
+- Keep machine translation output out of dictionary/source data
 
 Acceptance gate:
 - The specific language or pair has an approved full-definition or bilingual lexical source.

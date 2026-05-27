@@ -17,10 +17,13 @@ Choose **backend proxy with quotas** using OpenAI for AI chat, correction, and v
 
 All OpenAI usage must go through a backend proxy with server-side API keys, per-user limits, abuse controls, privacy policy coverage, and user-visible cost/usage boundaries.
 
+Foundation document: `docs/deepl-openai-backend-proxy-mvp.md`.
+
 ## Consequences
 - Supabase Auth Foundation and backend proxy policy are dependencies before production AI implementation.
 - The app must not ship direct client-side OpenAI API keys.
-- Streaming, moderation, transcript handling, retention, telemetry, and failure states must be specified before enabling real AI chat or voice feedback.
+- Streaming, moderation, transcript handling, retention, telemetry, quota checks, and failure states are specified in `docs/deepl-openai-backend-proxy-mvp.md` before enabling real AI chat or voice feedback.
+- Voice-feedback MVP may use transcript text but must not upload raw audio or claim IPA/per-phoneme pronunciation scoring.
 
 ## Tasks Unblocked
 - Real-time AI chatbot

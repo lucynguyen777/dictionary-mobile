@@ -6,7 +6,8 @@ Dictionary Mobile uses a hybrid local-first database strategy:
 
 - local app data stays usable without accounts or network access;
 - offline dictionary packs use dedicated SQLite databases per language pack;
-- backend database, auth identity, cloud sync, and encrypted backup remain blocked until provider decisions are accepted.
+- Supabase Auth/backend/cloud sync decisions are accepted, with sync implementation staged behind `docs/supabase-auth-foundation.md` and `docs/supabase-cloud-sync-mvp.md`;
+- encrypted backup remains a follow-up module after the minimal sync MVP.
 
 This plan documents the current storage map, target ownership model, lifecycle rules, and next implementation modules. It does not migrate existing user data or change runtime schemas.
 
@@ -61,7 +62,8 @@ Local language fixtures, dictionary samples, source metadata, and hosted develop
    - Offline pack deletion should be explicit and separate from user data reset unless the UI says "all local data".
 
 4. **Future sync/backend layer**
-   - Blocked until auth provider, backend architecture, and cloud sync decisions are accepted.
+   - Accepted direction: Supabase Auth, Supabase backend, and Supabase sync tables.
+   - Contract: `docs/supabase-auth-foundation.md` and `docs/supabase-cloud-sync-mvp.md`.
    - Must be additive to local-first behavior. The app should remain useful without account login.
 
 ## Database Domains
@@ -121,23 +123,26 @@ Local language fixtures, dictionary samples, source metadata, and hosted develop
 
 ## Cloud Boundary
 
-The following remain blocked and must not be implied as selected by this plan:
+The following are accepted directions:
 
-- auth provider;
-- backend architecture;
-- cloud sync database;
-- encrypted backup destination;
-- server-side account deletion;
-- feedback/support submission destination.
+- auth provider: Supabase Auth;
+- backend architecture: Supabase backend;
+- cloud sync database: Supabase sync tables;
+- sync ownership: `user_id` scoped to Supabase Auth users, protected by Row Level Security;
+- sync identity: preserve local SQLite entity ids, timestamps, versions, and soft-delete metadata.
 
-When those decisions are accepted, cloud sync should use local entity ids, timestamps, versions, and soft-delete metadata already present or introduced by the local user database migration module.
+The following remain staged or blocked:
+
+- encrypted backup destination and restore UX are staged after minimal sync MVP;
+- server-side account deletion implementation depends on auth/backend code;
+- feedback/support submission destination remains blocked until support channel is selected.
 
 ## Next Implementation Modules
 
 1. **Local user-data SQLite migration readiness**
    - Define local user database schema, entity ownership, migration plan from AsyncStorage, and focused tests.
-2. **Backend/auth database decision**
-   - Choose auth/backend/cloud sync provider and update decision docs before implementing server-side data.
+2. **Supabase Cloud Sync MVP**
+   - Follow `docs/supabase-cloud-sync-mvp.md` to create RLS-protected Supabase sync tables, local sync metadata, conflict resolution, and offline replay behavior.
 3. **Offline pack storage management expansion**
    - Add storage limits, installed-size reporting, update checks, and deletion UX around existing pack SQLite databases.
 
@@ -378,6 +383,46 @@ Legacy cleanup implementation:
 - The only removable keys are `dictionary-mobile.profile.v1`, `dictionary-mobile.library.v1`, and `dictionary-mobile.reader.v1`.
 - `dictionary-mobile.offline-packs.v1` and per-pack SQLite databases remain app-owned offline dictionary data and must be preserved.
 - `tests/userDataLegacyCleanup.test.ts` covers successful cleanup, idempotency, missing SQLite fallback, backup failure aborts, backup marker reuse, and offline-pack preservation.
+
+## Supabase Cloud Sync MVP Contract
+
+The cloud sync foundation is documented in `docs/supabase-cloud-sync-mvp.md`. It selects a minimal sync scope that mirrors the current local SQLite user database without changing offline dictionary pack storage.
+
+### Supabase-Owned Tables
+
+The MVP sync tables are:
+
+- `user_profiles`
+- `library_folders`
+- `saved_words`
+- `saved_word_folders`
+- `search_history`
+- `flashcards`
+- `deleted_entities`
+- `reader_documents`
+- `reader_settings`
+
+Each table must include `user_id`, local entity id or singleton primary key, `created_at`, `updated_at`, `deleted_at` where applicable, and `version` where conflict resolution needs it. RLS must be enabled before the mobile client can read or write these tables, with policies scoped to `auth.uid() = user_id`.
+
+### Local-First Sync Rules
+
+- Local SQLite remains the source of truth for offline use.
+- Sync is disabled when Supabase env vars or auth session are unavailable.
+- Pull remote tombstones before applying remote creates/updates.
+- Push local dirty rows after remote merge succeeds.
+- Record `lastSuccessfulSyncAt` per domain only after pull and push both succeed.
+- Sign out stops sync subscriptions but does not delete local data.
+
+### Conflict Rules
+
+- Profile and reader settings use field-level or row-level latest timestamp merge as defined in `docs/supabase-cloud-sync-mvp.md`.
+- Folders, saved words, reader documents, and memberships preserve local ids and use latest timestamp, with `deleted_at` winning over older/equal updates.
+- Flashcards use higher `version` first, then newer `updated_at`; winning rows preserve SM-2 review fields.
+- Tombstones must be retained until a backend retention policy proves all clients have observed them.
+
+### Encrypted Backup Boundary
+
+Encrypted backup and restore are not part of the sync MVP. A later module must define client/server encryption responsibility, key recovery, restore UX, backup manifest, retention, and account-deletion behavior before the app claims encrypted cloud backup support.
 
 ## Verification
 

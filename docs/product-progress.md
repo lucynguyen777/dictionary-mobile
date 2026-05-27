@@ -603,12 +603,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
-**Module: Supabase Cloud Sync MVP** - TODO
-- [ ] TODO [HARD]: Refresh `docs/database-architecture-plan.md` and `.docs/decisions/cloud-sync.md` with the accepted Supabase auth foundation dependency and sync MVP scope.
-- [ ] TODO [HARD]: Define Supabase sync table contract for profile, library folders, saved words, flashcards/reviews, reader documents/settings, tombstones, and per-entity timestamps/versions.
-- [ ] TODO [HARD]: Define conflict strategy for local-first writes, remote updates, deletes/tombstones, offline queue replay, and last-writer/field-merge boundaries.
-- [ ] TODO [HARD]: Define encrypted backup and restore UX as staged follow-up work that does not block a minimal sync MVP.
-- [ ] TODO [HARD]: Acceptance gate: after this sync foundation is complete, cloud sync implementation can move into a staged code module.
+**Module: Speech Scoring** - BLOCKED DECISION PREP
+- [ ] TODO [HARD]: Refresh `.docs/decisions/speech-scoring-engine.md` with current scoring/alignment candidates and clarify why OS/native STT does not satisfy scoring.
+- [ ] TODO [HARD]: Compare cloud pronunciation scoring APIs, on-device alignment options, custom backend pipelines, and manual playback-only fallback.
+- [ ] TODO [HARD]: Define privacy, latency, language coverage, cost, retention, and raw-audio handling constraints.
+- [ ] TODO [HARD]: Define minimal scoring interface for IPA alignment, per-phoneme rows, score history, and unavailable-engine UI states without fake scores.
+- [ ] TODO [HARD]: Acceptance gate: pronunciation scoring can move from `[!] BLOCKED` to `[ ] TODO` only after a real scoring/alignment engine is accepted.
 
 ## Blocked Module Execution Order
 
@@ -619,9 +619,10 @@ Prioritize modules by implementation complexity, user experience impact, and dep
 3. **Supabase Auth Foundation** - third, because accounts are the dependency for sync, export, AI proxy, and backend deletion semantics.
 4. **Supabase Cloud Sync MVP** - fourth, because it depends on auth and touches shared local-first user data.
 5. **DeepL + OpenAI Backend Proxy MVP** - fifth, because it needs backend auth, privacy boundaries, quota limits, and cost controls.
-6. **Google Sheets Export** - sixth, because backend-mediated OAuth should wait for Supabase auth/backend foundation.
-7. **Language Source Gates** - seventh, because these remain source/license research modules and should not block accepted platform work.
-8. **Speech Scoring** - last and still blocked, because OS/native STT does not provide reliable per-phoneme alignment or scoring.
+6. **Specialized Translation Dataset Agents** - sixth, because it builds on the DeepL/OpenAI proxy foundation and needs dataset storage, retrieval, quota, and privacy contracts before production AI behavior.
+7. **Google Sheets Export** - seventh, because backend-mediated OAuth should wait for Supabase auth/backend foundation.
+8. **Language Source Gates** - eighth, because these remain source/license research modules and should not block accepted platform work.
+9. **Speech Scoring** - last and still blocked, because OS/native STT does not provide reliable per-phoneme alignment or scoring.
 
 ## Blocked Work Modules
 
@@ -634,19 +635,19 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined account deletion contract across local SQLite data, future Supabase data, exports, and support/audit requirements.
 - [x] DONE [HARD]: Acceptance gate met for future auth implementation planning; real login code still requires dependency install and token storage choice.
 
-**Module: Supabase Cloud Sync MVP** - TODO AFTER AUTH FOUNDATION
-- [ ] TODO [HARD]: Refresh `.docs/decisions/backend-architecture.md` as `Accepted` with Supabase backend, deployment model, observability, privacy, and cost constraints.
-- [ ] TODO [HARD]: Refresh `.docs/decisions/cloud-sync.md` as `Accepted` with Supabase sync tables and a conflict strategy for profile, library, flashcards, reader, tombstones, and offline behavior.
-- [ ] TODO [HARD]: Define encrypted backup policy, restore UX, local export compatibility, and cross-device recovery boundaries as staged sync follow-up work.
-- [ ] TODO [HARD]: Define minimal Supabase sync data contract using existing local SQLite entity ids, versions, timestamps, and delete markers.
-- [ ] TODO [HARD]: Acceptance gate for implementation: cloud sync MVP may start after Supabase Auth Foundation is ready and local SQLite sync contract is documented.
+**Module: Supabase Cloud Sync MVP** - DONE
+- [x] DONE [HARD]: Refreshed `.docs/decisions/cloud-sync.md` and `docs/database-architecture-plan.md` with the completed Supabase Auth Foundation dependency and sync MVP scope.
+- [x] DONE [HARD]: Defined Supabase sync table contract for profile, library folders, saved words, folder membership, search history, flashcards/reviews, reader documents/settings, tombstones, and per-entity timestamps/versions in `docs/supabase-cloud-sync-mvp.md`.
+- [x] DONE [HARD]: Defined conflict strategy for local-first writes, remote updates, deletes/tombstones, offline queue replay, and last-writer/field-merge boundaries.
+- [x] DONE [HARD]: Defined encrypted backup and restore UX as staged follow-up work that does not block a minimal sync MVP.
+- [x] DONE [HARD]: Acceptance gate met for future cloud sync implementation planning; code still requires auth implementation/dependencies, SQL migrations with RLS, and local sync metadata.
 
-**Module: Google Sheets Export** - TODO AFTER SUPABASE AUTH/BACKEND
-- [ ] TODO [HARD]: Create `.docs/decisions/google-sheets-export.md` as `Accepted` for backend-mediated Google OAuth, scopes, token handling, revocation, and Expo web/native constraints.
-- [ ] TODO [HARD]: Define export destinations and API boundaries: Google Sheets through backend, manual CSV upload fallback, and local-only status quo.
-- [ ] TODO [HARD]: Define privacy/cost/error policy for spreadsheet export, including partial export, retry, rate-limit, and unsupported-platform states.
-- [ ] TODO [HARD]: Define minimal export contract from existing folder/export payloads to spreadsheet rows and metadata.
-- [ ] TODO [HARD]: Acceptance gate for implementation: Google Sheets export may start after Supabase Auth Foundation and backend proxy policies are documented.
+**Module: Google Sheets Export** - DONE
+- [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.
+- [x] DONE [HARD]: Defined backend-mediated Google OAuth route contract, scopes, token storage/revocation policy, and unsupported-platform behavior.
+- [x] DONE [HARD]: Defined folder/export row contract from existing CSV/XLS/Anki payloads to spreadsheet rows, metadata, and sheet naming rules.
+- [x] DONE [HARD]: Defined privacy/cost/error policy for partial export, retry, rate-limit, duplicate spreadsheet handling, and provider failure states.
+- [x] DONE [HARD]: Acceptance gate met for future Google Sheets implementation planning; code still requires OAuth routes, encrypted token storage, row mapping tests, fake Google client tests, and local export regression checks.
 
 **Module: MLKit OCR + OS/native STT Foundation** - DONE
 - [x] DONE [HARD]: Refreshed `docs/voice-ocr-plan.md` with accepted MLKit OCR and OS/native speech-recognizer direction, current Expo SDK/native-module candidates, and dev-client constraints.
@@ -655,19 +656,26 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined minimal recognition interfaces for OCR blocks and STT transcripts using the existing OCR engine and recognition contracts; kept phoneme alignment out of scope.
 - [x] DONE [HARD]: Acceptance gate met for future native OCR/STT implementation planning; real OCR/STT can start after package install/dev-client spike is selected, while IPA/per-phoneme scoring remains `[!] BLOCKED`.
 
-**Module: DeepL + OpenAI Backend Proxy MVP** - TODO AFTER SUPABASE AUTH/BACKEND
-- [ ] TODO [HARD]: Refresh `.docs/decisions/translation-api.md` as `Accepted` for DeepL translation/glossary through backend proxy and `.docs/decisions/ai-chat-cost-control.md` as `Accepted` for OpenAI through backend proxy with quotas.
-- [ ] TODO [HARD]: Define translation/AI privacy, data-retention, moderation, streaming, glossary, rate-limit, and cost-control constraints.
-- [ ] TODO [HARD]: Define glossary persistence and document-translation contract, including imported glossary ownership, backend requirements, and unsupported offline behavior.
-- [ ] TODO [HARD]: Define AI chat proxy/session contract for streaming, voice transcript handling, abuse controls, and user-visible cost limits.
-- [ ] TODO [HARD]: Acceptance gate for implementation: proxy MVP may start after Supabase Auth Foundation, backend proxy env policy, quota model, and privacy copy are documented.
+**Module: DeepL + OpenAI Backend Proxy MVP** - DONE
+- [x] DONE [HARD]: Refreshed `.docs/decisions/translation-api.md` and `.docs/decisions/ai-chat-cost-control.md` with completed Supabase auth/sync foundations and `docs/deepl-openai-backend-proxy-mvp.md`.
+- [x] DONE [HARD]: Defined backend proxy env policy, secret storage, request routing, quota/rate-limit model, privacy copy, and logging/redaction rules.
+- [x] DONE [HARD]: Defined DeepL translation/glossary contract for text translation, specialized glossary use, unsupported language pairs, and error states.
+- [x] DONE [HARD]: Defined OpenAI AI chat/voice-feedback contract for streaming, transcript handling, moderation, abuse controls, and user-visible usage limits.
+- [x] DONE [HARD]: Acceptance gate met for future translation/AI implementation planning; code still requires backend routes, RLS tables, provider env vars, quota checks, and fake-provider tests.
 
-**Module: Language Source Gates** - STILL BLOCKED DECISION PREP
-- [ ] TODO [HARD]: Refresh Cantonese, Uyghur, VI→FR, Basque, Ainu, and Amerind/proposed-family source status docs with current legal/source candidates and explicit unavailable states.
-- [ ] TODO [HARD]: Compare source options for each blocked language/pair: hosted APIs, Wiktionary/Kaikki/raw dumps, public-domain lists, national dictionaries, commercial licenses, and user-provided data.
-- [ ] TODO [HARD]: Define source metadata and attribution requirements for any accepted fixture or production pack, including license, revision/dump date, source URL, and user-visible label.
-- [ ] TODO [HARD]: Define minimal adapter/readiness contract for each candidate: script handling, morphology expectations, exact lookup, missing-result behavior, and blocked UI state.
-- [ ] TODO [HARD]: Acceptance gate: each language or pair has an approved full-definition/bilingual lexical source; only then can that specific implementation move from `[!] BLOCKED` to `[ ] TODO`.
+**Module: Specialized Translation Dataset Agents** - TODO AFTER DEEPL/OPENAI PROXY
+- [ ] TODO [HARD]: Define dataset upload/import contract for common formats: CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF; scanned PDF/OCR remains separate.
+- [ ] TODO [HARD]: Define editable dataset model: terms, phrases, source segments, translations, notes, tags, domain/topic, confidence, duplicate/conflict states, and revision history.
+- [ ] TODO [HARD]: Define smart recognition/highlighting: match dataset terms/phrases in source text, show terminology chips, conflicts, missing translations, and suggested glossary candidates.
+- [ ] TODO [HARD]: Define per-user context agents: max 3 active agents by default, each bound to one dataset/context; future extra agents require paid package/add-on decision.
+- [ ] TODO [HARD]: Define editor modes: Word-like rich text, Google Docs-like collaborative-ready surface, LaTeX, Markdown, and plain text, with export/import boundaries and unsupported feature states.
+
+**Module: Language Source Gates** - DONE
+- [x] DONE [HARD]: Refreshed Cantonese and Uyghur source status docs and added `docs/language-source-gates.md` for Cantonese, Uyghur, VI→FR, Basque, Ainu, Quechua, Nahuatl, and Guarani gates with explicit unavailable/research states.
+- [x] DONE [HARD]: Compared source options for blocked languages/pairs: hosted APIs, Wiktionary/Kaikki/raw dumps, public-domain lists, national dictionaries, commercial licenses, and user-provided data.
+- [x] DONE [HARD]: Defined source metadata and attribution requirements for any accepted fixture or production pack, including license, revision/dump date, source URL, user-visible label, and packaging obligations.
+- [x] DONE [HARD]: Defined minimal adapter/readiness contract for candidates: script handling, morphology expectations, exact lookup, missing-result behavior, and blocked UI state.
+- [x] DONE [HARD]: Acceptance gate documented: each language or pair remains `[!] BLOCKED` until it has an approved full-definition/bilingual lexical source; no implementation was unblocked by this refresh.
 
 **Module: Accepted Lexical Source Follow-up** - DONE
 - [x] DONE [MEDIUM]: Audit current Etymology and Conjugation UI/data paths against accepted `.docs/decisions/etymology-conjugation-source.md` and existing attribution behavior.

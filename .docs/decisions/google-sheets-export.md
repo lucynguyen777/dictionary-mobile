@@ -17,9 +17,12 @@ Choose **backend-mediated Google OAuth**.
 
 Use the Supabase/backend boundary to mediate Google OAuth, protect tokens, apply scopes, and execute spreadsheet creation/update requests. Keep manual CSV/XLS/Anki export available as the fallback path.
 
+Foundation document: `docs/google-sheets-export-mvp.md`.
+
 ## Consequences
 - Supabase Auth Foundation and backend proxy policy are dependencies before implementation.
-- Token storage, revocation, spreadsheet scopes, rate limits, retry behavior, partial export states, and unsupported-platform copy must be documented before code work.
+- OAuth should use least-privilege scopes, preferring `drive.file` for app-created/opened files and adding `spreadsheets` only if implementation proves it is required.
+- Token storage, revocation, spreadsheet scopes, rate limits, retry behavior, partial export states, and unsupported-platform copy are documented in `docs/google-sheets-export-mvp.md`.
 - The mobile app should send the existing folder/export payload to the backend and should not need to persist long-lived Google tokens locally.
 
 ## Tasks Unblocked

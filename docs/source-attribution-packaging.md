@@ -27,6 +27,7 @@ Each committed dictionary fixture entry must preserve:
 - Cantonese: Words.hk public-domain word/pronunciation lists are acceptable for non-definition helpers; full definitions remain blocked until compatible permission is confirmed.
 - Uzbek: tiny baseline can use curated Uzbek Wiktionary pages under CC BY-SA 4.0; Izoh.uz remains blocked until terms/API permission are documented.
 - Uyghur: remains blocked because the current candidate set does not provide enough balanced non-placeholder native-definition fixtures.
+- Language Source Gates refresh: `docs/language-source-gates.md` is the current cross-language gate for Cantonese, Uyghur, VI->FR, Basque, Ainu, Quechua, Nahuatl, and Guarani.
 
 ## Acceptance Criteria Before Bulk Expansion
 1. Credits screen or Profile attribution surface is implemented and browser-smoked.

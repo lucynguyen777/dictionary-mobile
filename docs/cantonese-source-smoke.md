@@ -1,7 +1,7 @@
 # Cantonese Source Smoke Test
 
 ## Status
-Run on May 22, 2026.
+Run on May 22, 2026. Gate refreshed on May 27, 2026 in `docs/language-source-gates.md`.
 
 Cantonese remains blocked for monolingual dictionary definitions. Words.hk exposes useful public-domain word/pronunciation datasets, but the currently confirmed public-domain pages are not full `yue -> yue` dictionary definitions. Do not build a Cantonese definition adapter until a definition source license is accepted.
 
@@ -22,6 +22,7 @@ Cantonese remains blocked for monolingual dictionary definitions. Words.hk expos
 - Words.hk public-domain word/pronunciation lists can support future segmentation, Jyutping display, or suggestions after endpoint stability is verified.
 - Full dictionary definitions from Words.hk must not be bundled, scraped, or committed unless explicit compatible permission is documented.
 - The prior decision note that Cantonese was unblocked by Words.hk open CC BY-SA data is stale and has been corrected in `.docs/decisions/dictionary-source-licensing.md`.
+- May 27, 2026 refresh: no new accepted full-definition source is recorded; `yue` remains unavailable until a compatible Cantonese definition source is accepted.
 
 ## Next Safe Work
 1. Contact/request Words.hk permission or locate a confirmed open full-definition dump.

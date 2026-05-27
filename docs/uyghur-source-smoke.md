@@ -1,7 +1,7 @@
 # Uyghur Source Smoke Test
 
 ## Status
-Run on May 22, 2026; extended MediaWiki page smoke completed the same day.
+Run on May 22, 2026; extended MediaWiki page smoke completed the same day. Gate refreshed on May 27, 2026 in `docs/language-source-gates.md`.
 
 Uyghur has useful morphology and pronunciation support data from English Wiktionary-derived Kaikki data, and a native Uyghur Wiktionary edition exists under CC BY-SA 4.0. The extended MediaWiki API smoke did **not** find enough non-placeholder noun/adjective/verb entries to unblock a first adapter.
 
@@ -38,6 +38,7 @@ Module refresh on May 22, 2026 kept the gate unchanged: no new approved native-d
 - Uyghur source smoke is complete for the current candidate set.
 - Uyghur adapter implementation remains blocked because the sampled `ug.wiktionary.org` entries do not provide enough non-placeholder noun/adjective/verb definitions.
 - The app should not add `ug` metadata yet because the first user-visible baseline needs more native-definition evidence and RTL UI smoke with Uyghur-specific text.
+- May 27, 2026 refresh: no new accepted source or larger balanced non-placeholder candidate list is recorded; Uyghur remains source-gated.
 
 ## Next Safe Work
 
