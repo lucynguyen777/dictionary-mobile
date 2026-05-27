@@ -111,4 +111,6 @@ The manual smoke prep now lives in `docs/supabase-cloud-sync-manual-smoke.md`.
 
 The runtime adapter draft now lives in `data/supabaseSyncRuntimeAdapter.ts`, with focused coverage in `tests/supabaseSyncRuntimeAdapter.test.ts`. The adapter is factory-injected so real app wiring can pass `createSupabaseAuthClient` without making tests load provider code.
 
-The next module can be **Supabase Cloud Sync Local Port Draft**. It should add local SQLite cursor/dirty-row/apply/mark-pushed boundaries for the existing sync runner. A production sync toggle, realtime, background jobs, encrypted backup, and restore UX should remain out of scope until manual smoke has actually passed.
+The local port draft now lives in `data/supabaseSyncLocalPort.ts`, with focused coverage in `tests/supabaseSyncLocalPort.test.ts`.
+
+The next module can be **Supabase Cloud Sync Runner Wiring Draft**. It should compose the runtime adapter and local port behind explicit auth/env/offline guards, without adding a production sync toggle, realtime, background jobs, encrypted backup, or restore UX.

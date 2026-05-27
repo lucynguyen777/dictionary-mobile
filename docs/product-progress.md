@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Local Port Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncLocalPort.ts` as the SQLite local-port boundary for the existing sync runner.
+- [x] DONE [HARD]: Added per-domain cursor load/record behavior using `user_sync_cursors`.
+- [x] DONE [HARD]: Added dirty-row discovery for all sync domains using sync status metadata and deterministic local-change ordering.
+- [x] DONE [HARD]: Added mark-pushed metadata updates and remote tombstone soft-delete application without deleting local data.
+- [x] DONE [HARD]: Added `tests/supabaseSyncLocalPort.test.ts` for cursors, dirty rows, mark-pushed, and tombstone behavior; next module is **Supabase Cloud Sync Runner Wiring Draft**.
+
 **Module: Supabase Cloud Sync Runtime Adapter Draft** - DONE
 - [x] DONE [HARD]: Added `data/supabaseSyncRuntimeAdapter.ts` to create a guarded Supabase sync client port behind injected auth client, env, session, and online checks.
 - [x] DONE [HARD]: Mapped sync domains to Supabase table names and remote query behavior without wiring UI, background jobs, or a production sync toggle.
@@ -715,7 +722,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the runtime adapter draft. Recommended next module: **Supabase Cloud Sync Local Port Draft**, because the Supabase client port now exists but local SQLite still needs a dedicated port for cursors, dirty rows, applying remote rows, and marking pushed rows before any runtime sync is wired.
+No active next implementation module selected after the local port draft. Recommended next module: **Supabase Cloud Sync Runner Wiring Draft**, because the Supabase runtime adapter and local SQLite port now exist but the app still needs a guarded composition point before any manual smoke or production toggle.
 
 ## Blocked Module Execution Order
 
@@ -860,6 +867,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added domain-to-table mapping and `updated_at` cursor pull behavior.
 - [x] DONE [HARD]: Added authenticated upsert behavior with domain-specific conflict targets.
 - [x] DONE [HARD]: Added focused runtime adapter tests without real Supabase network calls or UI wiring.
+
+**Module: Supabase Cloud Sync Local Port Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncLocalPort.ts` for local SQLite cursor, dirty-row, mark-pushed, and tombstone boundaries.
+- [x] DONE [HARD]: Added per-domain cursor load/record helpers over `user_sync_cursors`.
+- [x] DONE [HARD]: Added dirty-row discovery by sync status for profile, library, flashcards, reader, search history, memberships, and tombstones.
+- [x] DONE [HARD]: Added pushed-row metadata cleanup and remote tombstone soft-delete application.
+- [x] DONE [HARD]: Added focused local-port tests without wiring runtime sync into app lifecycle.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.
