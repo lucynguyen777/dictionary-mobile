@@ -603,12 +603,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
-**Module: Speech Scoring** - BLOCKED DECISION PREP
-- [ ] TODO [HARD]: Refresh `.docs/decisions/speech-scoring-engine.md` with current scoring/alignment candidates and clarify why OS/native STT does not satisfy scoring.
-- [ ] TODO [HARD]: Compare cloud pronunciation scoring APIs, on-device alignment options, custom backend pipelines, and manual playback-only fallback.
-- [ ] TODO [HARD]: Define privacy, latency, language coverage, cost, retention, and raw-audio handling constraints.
-- [ ] TODO [HARD]: Define minimal scoring interface for IPA alignment, per-phoneme rows, score history, and unavailable-engine UI states without fake scores.
-- [ ] TODO [HARD]: Acceptance gate: pronunciation scoring can move from `[!] BLOCKED` to `[ ] TODO` only after a real scoring/alignment engine is accepted.
+No active next implementation module selected. Speech scoring decision-prep is complete, but pronunciation scoring remains blocked until a real scoring/alignment engine is accepted. The next safe work should either select a new 3-5 task documentation module or accept a provider/source/API decision before implementation.
 
 ## Blocked Module Execution Order
 
@@ -669,6 +664,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [ ] TODO [HARD]: Define smart recognition/highlighting: match dataset terms/phrases in source text, show terminology chips, conflicts, missing translations, and suggested glossary candidates.
 - [ ] TODO [HARD]: Define per-user context agents: max 3 active agents by default, each bound to one dataset/context; future extra agents require paid package/add-on decision.
 - [ ] TODO [HARD]: Define editor modes: Word-like rich text, Google Docs-like collaborative-ready surface, LaTeX, Markdown, and plain text, with export/import boundaries and unsupported feature states.
+
+**Module: Speech Scoring** - DONE DECISION PREP / STILL BLOCKED
+- [x] DONE [HARD]: Refreshed `.docs/decisions/speech-scoring-engine.md` with current scoring/alignment candidates and clarified why OS/native STT does not satisfy scoring.
+- [x] DONE [HARD]: Compared cloud pronunciation scoring APIs, on-device alignment options, custom backend pipelines, and manual playback-only fallback in `docs/speech-scoring-engine-plan.md`.
+- [x] DONE [HARD]: Defined privacy, latency, language coverage, cost, retention, and raw-audio handling constraints.
+- [x] DONE [HARD]: Defined minimal scoring interface for IPA alignment, per-phoneme rows, score history, and unavailable-engine UI states without fake scores.
+- [x] DONE [HARD]: Acceptance gate documented: pronunciation scoring remains `[!] BLOCKED` until a real scoring/alignment engine is accepted.
 
 **Module: Language Source Gates** - DONE
 - [x] DONE [HARD]: Refreshed Cantonese and Uyghur source status docs and added `docs/language-source-gates.md` for Cantonese, Uyghur, VI→FR, Basque, Ainu, Quechua, Nahuatl, and Guarani gates with explicit unavailable/research states.

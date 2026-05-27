@@ -134,6 +134,28 @@ Acceptance gate:
 
 ---
 
+## Speech Scoring
+Status: Decision-prep foundation completed in `docs/speech-scoring-engine-plan.md`; still blocked until a real scoring/alignment engine is accepted.
+
+Still blocked implementation:
+- IPA comparison
+- Per-phoneme scoring
+- Pronunciation feedback table
+- Speech practice score history
+- Visual pronunciation guidance
+
+Allowed preparatory work:
+- Follow `docs/speech-scoring-engine-plan.md`
+- Compare Azure AI Speech Pronunciation Assessment, Speechace, custom backend alignment, and manual playback-only fallback
+- Keep Google Cloud STT and OS/native STT classified as transcription only, not scoring
+- Define raw-audio privacy, retention, quota, and unavailable-engine UI states
+- Keep recording playback honest while scoring is blocked
+
+Acceptance gate:
+- Pronunciation scoring can move to implementation only after one scoring engine, backend upload path, language coverage, raw-audio retention policy, quota model, and fake-provider scoring tests are accepted.
+
+---
+
 ## Language Source Gates
 Status: Foundation refreshed in `docs/language-source-gates.md`; still blocked per language/pair until an approved lexical source exists.
 
