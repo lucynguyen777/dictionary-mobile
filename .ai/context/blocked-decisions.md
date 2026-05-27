@@ -42,7 +42,7 @@ Acceptance gate:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`. The next staged TODO is SQL/RLS migration draft plus migration-shape tests only.
+Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`. The next staged TODO is local sync metadata only.
 
 Accepted:
 - Supabase backend architecture
@@ -55,13 +55,13 @@ Allowed preparatory work:
 - Follow `docs/supabase-cloud-sync-implementation-prep.md`
 - Keep RLS enabled on sync tables and scope rows with `auth.uid() = user_id`
 - Preserve existing local SQLite ids, timestamps, versions, and tombstones
-- Add SQL/RLS migration drafts and tests before runtime sync code
-- Add local sync metadata and fake-client contracts before a production sync toggle
+- Keep migration-shape tests for table, RLS, policy, auth ownership, and service-role boundaries
+- Add local sync metadata and fake-client contracts before runtime sync code or a production sync toggle
 - Keep encrypted backup/restore UX as staged follow-up work
 - Keep offline dictionary packs out of sync MVP scope
 
 Acceptance gate:
-- Runtime cloud sync code may start after SQL/RLS migration drafts, migration-shape tests, local sync metadata, fake Supabase client tests, and auth manual smoke gates exist.
+- Runtime cloud sync code may start after local sync metadata, fake Supabase client tests, and auth manual smoke gates exist.
 
 ---
 

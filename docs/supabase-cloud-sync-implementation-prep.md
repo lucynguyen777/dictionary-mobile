@@ -99,4 +99,6 @@ Cloud sync can become a production implementation module only after:
 
 ## Next Code Module Candidate
 
-The next code module should be **Supabase Cloud Sync SQL/RLS Migration Draft**. It should add migration files and migration-shape tests only. Runtime sync, realtime, encrypted backup, and restore UX should remain out of scope until that migration slice passes review.
+The SQL/RLS migration draft now lives in `supabase/migrations/001_cloud_sync_mvp.sql`, with migration-shape coverage in `tests/supabaseCloudSyncMigration.test.ts`.
+
+The next code module should be **Supabase Cloud Sync Local Metadata Draft**. It should add local SQLite sync metadata and focused schema/migration tests only. Runtime sync, realtime, encrypted backup, and restore UX should remain out of scope until the local metadata slice passes review.

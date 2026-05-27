@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync SQL/RLS Migration Draft** - DONE
+- [x] DONE [HARD]: Added `supabase/migrations/001_cloud_sync_mvp.sql` with the MVP sync tables for profile, folders, saved words, memberships, search history, flashcards, tombstones, reader documents, and reader settings.
+- [x] DONE [HARD]: Preserved local-first ids, timestamps, versions, soft deletes, JSON tag/preference fields, and auth-owned `user_id` scope in the migration draft.
+- [x] DONE [HARD]: Enabled RLS on every sync table and added authenticated own-row select, insert, update, and delete policies scoped with `auth.uid() = user_id`.
+- [x] DONE [HARD]: Added `tests/supabaseCloudSyncMigration.test.ts` to verify table coverage, RLS policy coverage, auth ownership, no service-role leakage, and metadata fields.
+- [x] DONE [HARD]: Kept runtime sync, realtime subscriptions, encrypted backup, restore UX, and production sync toggles out of scope; next module is **Supabase Cloud Sync Local Metadata Draft**.
+
 **Module: Supabase Cloud Sync MVP Implementation Prep** - DONE
 - [x] DONE [HARD]: Added `docs/supabase-cloud-sync-implementation-prep.md` to convert the accepted sync MVP into an implementation slice order without enabling production sync.
 - [x] DONE [HARD]: Defined the SQL/RLS migration contract, table list, policy rules, and service-role-key boundary for the future Supabase sync schema.
@@ -673,7 +680,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the sync implementation prep. Recommended next module: **Supabase Cloud Sync SQL/RLS Migration Draft**, because the implementation prep now defines the table, policy, and test boundary needed before any runtime sync code.
+No active next implementation module selected after the SQL/RLS migration draft. Recommended next module: **Supabase Cloud Sync Local Metadata Draft**, because the remote schema now exists as a reviewed draft and local rows need explicit sync metadata before runtime pull/push code.
 
 ## Blocked Module Execution Order
 
@@ -776,6 +783,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined local metadata fields and per-domain cursors needed for dirty rows, tombstones, remote versions, and sign-out preservation.
 - [x] DONE [HARD]: Defined fake Supabase client coverage for pull-before-push, offline/unconfigured states, retries, conflicts, and export compatibility.
 - [x] DONE [HARD]: Kept realtime, encrypted backup, restore UX, and production sync enablement out of scope.
+
+**Module: Supabase Cloud Sync SQL/RLS Migration Draft** - DONE
+- [x] DONE [HARD]: Added first Supabase sync migration draft in `supabase/migrations/001_cloud_sync_mvp.sql`.
+- [x] DONE [HARD]: Created all MVP sync tables with auth user ownership, preserved local ids, versions, timestamps, soft deletes, and tombstones.
+- [x] DONE [HARD]: Enabled RLS and authenticated own-row CRUD policies for every MVP sync table.
+- [x] DONE [HARD]: Added migration-shape tests in `tests/supabaseCloudSyncMigration.test.ts`.
+- [x] DONE [HARD]: Left runtime sync, realtime, encrypted backup, restore UX, and production sync enablement for later modules.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.
