@@ -107,4 +107,6 @@ The mapper contract draft now adds pure local-to-remote and remote-to-local row 
 
 The fake client contract now adds dependency-injected pull/push orchestration in `data/supabaseSyncClient.ts`, with focused coverage in `tests/supabaseSyncClient.test.ts`.
 
-The next module should be **Supabase Cloud Sync Manual Smoke Prep**. It should document auth/schema setup, SQL migration review, two-device smoke, and rollback expectations only. Real Supabase calls, runtime sync toggles, realtime, encrypted backup, and restore UX should remain out of scope until that smoke prep is accepted.
+The manual smoke prep now lives in `docs/supabase-cloud-sync-manual-smoke.md`.
+
+The next module can be **Supabase Cloud Sync Runtime Adapter Draft**. It should wire a real Supabase client port behind the existing sync runner while preserving unconfigured/offline/signed-out guards. A production sync toggle, realtime, background jobs, encrypted backup, and restore UX should remain out of scope until manual smoke has actually passed.

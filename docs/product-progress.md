@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Manual Smoke Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-manual-smoke.md` with disposable Supabase project, auth-smoke dependency, and no-secret/no-service-role rules.
+- [x] DONE [HARD]: Documented SQL migration review for table coverage, `user_id`, RLS enablement, own-row policies, and no realtime-by-default behavior.
+- [x] DONE [HARD]: Documented RLS cross-user probes for own-row insert/select plus blocked cross-user select/update/delete and signed-out access.
+- [x] DONE [HARD]: Documented two-device create, update, delete/tombstone, sign-out, and re-sign-in smoke flow for future runtime sync.
+- [x] DONE [HARD]: Documented failure/rollback expectations and verification commands while keeping real Supabase calls, realtime, background jobs, encrypted backup, restore UX, and production sync toggles out of scope; next module is **Supabase Cloud Sync Runtime Adapter Draft**.
+
 **Module: Supabase Cloud Sync Fake Client Contract** - DONE
 - [x] DONE [HARD]: Added `data/supabaseSyncClient.ts` with a dependency-injected sync runner contract for fake client/local ports.
 - [x] DONE [HARD]: Defined deterministic domain ordering and explicit unconfigured, offline, signed-out, synced, and failed result states.
@@ -701,7 +708,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the fake client contract. Recommended next module: **Supabase Cloud Sync Manual Smoke Prep**, because SQL/RLS, local metadata, mappers, and fake-client ordering now exist but production sync still needs manual auth/schema smoke gates before real runtime wiring.
+No active next implementation module selected after the sync manual smoke prep. Recommended next module: **Supabase Cloud Sync Runtime Adapter Draft**, because schema, local metadata, mappers, fake-client ordering, and smoke gates now exist, but real runtime wiring must still stay behind unconfigured/offline/auth guards and avoid a production sync toggle.
 
 ## Blocked Module Execution Order
 
@@ -832,6 +839,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added pull-before-push ordering, per-domain cursor recording, and mark-pushed behavior after successful pushes.
 - [x] DONE [HARD]: Added fake-client tests in `tests/supabaseSyncClient.test.ts` for ordering, retry safety, unavailable states, and no-dirty domains.
 - [x] DONE [HARD]: Left real Supabase calls, realtime, background jobs, encrypted backup, restore UX, and production sync toggles for later modules.
+
+**Module: Supabase Cloud Sync Manual Smoke Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-manual-smoke.md` with auth dependency, disposable project, no-secret, and no-service-role rules.
+- [x] DONE [HARD]: Documented SQL/RLS review gates for sync table coverage and own-row policies.
+- [x] DONE [HARD]: Documented RLS cross-user probe matrix before runtime sync wiring.
+- [x] DONE [HARD]: Documented two-device sync smoke script covering create, update, tombstone delete, sign-out, and re-sign-in.
+- [x] DONE [HARD]: Documented failure, retry, rollback, and verification expectations without enabling production sync.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.

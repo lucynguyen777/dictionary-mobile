@@ -42,7 +42,7 @@ Acceptance gate:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`; fake-client contract added in `data/supabaseSyncClient.ts`. The next staged TODO is manual sync smoke prep only.
+Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`; fake-client contract added in `data/supabaseSyncClient.ts`; manual smoke prep added in `docs/supabase-cloud-sync-manual-smoke.md`. The next staged TODO can be a guarded runtime adapter draft only.
 
 Accepted:
 - Supabase backend architecture
@@ -59,12 +59,13 @@ Allowed preparatory work:
 - Keep local sync metadata and per-domain cursor tests in place
 - Keep pure mapper contract tests in place
 - Keep fake-client ordering, retry, unavailable-state, and sign-out tests in place
-- Add manual smoke prep before runtime sync code or a production sync toggle
+- Follow `docs/supabase-cloud-sync-manual-smoke.md`
+- Add a guarded runtime adapter draft behind unconfigured/offline/signed-out checks
 - Keep encrypted backup/restore UX as staged follow-up work
 - Keep offline dictionary packs out of sync MVP scope
 
 Acceptance gate:
-- Runtime cloud sync code may start after sync manual smoke gates exist and auth smoke has passed on the target platform.
+- Runtime adapter draft may start after sync manual smoke gates exist; a production sync toggle still requires actual auth/schema/two-device smoke passing on the target platforms.
 
 ---
 
