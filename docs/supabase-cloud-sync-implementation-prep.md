@@ -105,4 +105,6 @@ The local metadata draft now adds domain constants, row sync metadata, per-domai
 
 The mapper contract draft now adds pure local-to-remote and remote-to-local row contracts in `data/supabaseSyncMappers.ts`, with focused coverage in `tests/supabaseSyncMappers.test.ts`.
 
-The next code module should be **Supabase Cloud Sync Fake Client Contract**. It should add fake pull/push ordering, retry, unconfigured/offline, and sign-out preservation tests only. Real Supabase calls, runtime sync toggles, realtime, encrypted backup, and restore UX should remain out of scope until the fake-client slice passes review.
+The fake client contract now adds dependency-injected pull/push orchestration in `data/supabaseSyncClient.ts`, with focused coverage in `tests/supabaseSyncClient.test.ts`.
+
+The next module should be **Supabase Cloud Sync Manual Smoke Prep**. It should document auth/schema setup, SQL migration review, two-device smoke, and rollback expectations only. Real Supabase calls, runtime sync toggles, realtime, encrypted backup, and restore UX should remain out of scope until that smoke prep is accepted.
