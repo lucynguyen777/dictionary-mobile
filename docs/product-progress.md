@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Mapper Contract Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncMappers.ts` with pure local-to-remote and remote-to-local row contracts for all MVP sync domains.
+- [x] DONE [HARD]: Mapped profile, notification preferences, folders, saved words, memberships, search history, flashcards, tombstones, reader documents, and reader settings without adding runtime sync.
+- [x] DONE [HARD]: Preserved local-first ids, soft-delete timestamps, versions, JSON tag parsing, and auth-owned `user_id` in remote payloads.
+- [x] DONE [HARD]: Added `tests/supabaseSyncMappers.test.ts` for mapper round trips, timestamp fallbacks, tombstones, singleton ids, and malformed tag filtering.
+- [x] DONE [HARD]: Kept Supabase network calls, fake-client retry behavior, realtime, encrypted backup, restore UX, and production sync toggles out of scope; next module is **Supabase Cloud Sync Fake Client Contract**.
+
 **Module: Supabase Cloud Sync Local Metadata Draft** - DONE
 - [x] DONE [HARD]: Added `USER_SYNC_DOMAINS` to the local user database schema as the cursor domain contract for future sync.
 - [x] DONE [HARD]: Added local sync metadata columns for profile, folders, saved words, memberships, search history, flashcards, tombstones, reader documents, and reader settings.
@@ -687,7 +694,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the local metadata draft. Recommended next module: **Supabase Cloud Sync Mapper Contract Draft**, because remote SQL and local metadata now exist but pure local-to-remote and remote-to-local row contracts still need focused tests before runtime sync.
+No active next implementation module selected after the mapper contract draft. Recommended next module: **Supabase Cloud Sync Fake Client Contract**, because pure row contracts now exist and the next safe step is fake pull/push ordering before runtime sync or real Supabase calls.
 
 ## Blocked Module Execution Order
 
@@ -804,6 +811,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added per-domain sync cursor table for future pull/push checkpoints.
 - [x] DONE [HARD]: Added dirty-row indexes for folders, saved words, flashcards, and reader documents.
 - [x] DONE [HARD]: Added schema-shape coverage in `tests/userDatabaseSyncMetadata.test.ts` without enabling runtime cloud sync.
+
+**Module: Supabase Cloud Sync Mapper Contract Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncMappers.ts` with pure row contracts for all MVP cloud sync domains.
+- [x] DONE [HARD]: Added local-to-remote mapping with `user_id`, local ids, timestamps, versions, soft deletes, JSON tag arrays, and singleton ids.
+- [x] DONE [HARD]: Added remote-to-local mapping for profile, library, history, flashcards, tombstones, and reader rows.
+- [x] DONE [HARD]: Added focused mapper tests in `tests/supabaseSyncMappers.test.ts`.
+- [x] DONE [HARD]: Left fake-client retries, real Supabase calls, runtime sync toggles, realtime, encrypted backup, and restore UX for later modules.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.

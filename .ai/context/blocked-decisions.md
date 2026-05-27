@@ -42,7 +42,7 @@ Acceptance gate:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`. The next staged TODO is pure mapper contracts only.
+Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`. The next staged TODO is fake-client pull/push ordering only.
 
 Accepted:
 - Supabase backend architecture
@@ -57,12 +57,13 @@ Allowed preparatory work:
 - Preserve existing local SQLite ids, timestamps, versions, and tombstones
 - Keep migration-shape tests for table, RLS, policy, auth ownership, and service-role boundaries
 - Keep local sync metadata and per-domain cursor tests in place
-- Add pure mapper contracts and fake-client contracts before runtime sync code or a production sync toggle
+- Keep pure mapper contract tests in place
+- Add fake-client contracts before runtime sync code or a production sync toggle
 - Keep encrypted backup/restore UX as staged follow-up work
 - Keep offline dictionary packs out of sync MVP scope
 
 Acceptance gate:
-- Runtime cloud sync code may start after pure mapper contracts, fake Supabase client tests, and auth manual smoke gates exist.
+- Runtime cloud sync code may start after fake Supabase client tests and auth manual smoke gates exist.
 
 ---
 

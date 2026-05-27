@@ -103,4 +103,6 @@ The SQL/RLS migration draft now lives in `supabase/migrations/001_cloud_sync_mvp
 
 The local metadata draft now adds domain constants, row sync metadata, per-domain cursors, and schema-shape coverage.
 
-The next code module should be **Supabase Cloud Sync Mapper Contract Draft**. It should add pure local-to-remote and remote-to-local row contracts with focused tests only. Runtime sync, realtime, encrypted backup, and restore UX should remain out of scope until the mapper slice passes review.
+The mapper contract draft now adds pure local-to-remote and remote-to-local row contracts in `data/supabaseSyncMappers.ts`, with focused coverage in `tests/supabaseSyncMappers.test.ts`.
+
+The next code module should be **Supabase Cloud Sync Fake Client Contract**. It should add fake pull/push ordering, retry, unconfigured/offline, and sign-out preservation tests only. Real Supabase calls, runtime sync toggles, realtime, encrypted backup, and restore UX should remain out of scope until the fake-client slice passes review.
