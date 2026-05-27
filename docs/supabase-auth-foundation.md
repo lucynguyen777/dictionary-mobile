@@ -23,7 +23,7 @@ Define the auth contract before adding production login code. This foundation ac
   - `@supabase/supabase-js`
   - `react-native-url-polyfill`
   - keep existing `@react-native-async-storage/async-storage`
-  - evaluate `expo-secure-store` only if the implementation module chooses a secure token storage adapter instead of Supabase's documented AsyncStorage/localStorage path.
+  - evaluate `expo-secure-store` using the option matrix in `docs/current-decision-options.md`; the recommended default is a hybrid adapter with SecureStore on native and AsyncStorage/localStorage fallback for web/dev, but the decision is not accepted yet.
 - Supabase client must live behind a small adapter, for example `data/auth/supabaseClient.ts`, so UI and stores do not import Supabase directly.
 - Auth module code must remain optional when env vars are missing. In that state the app stays local-first and shows coming-soon/unconfigured states rather than crashing.
 
@@ -102,7 +102,7 @@ Define the auth contract before adding production login code. This foundation ac
 
 Real auth code can start after the next module agrees to:
 - add Supabase client dependencies and URL polyfill;
-- decide whether to use documented AsyncStorage/localStorage persistence first or introduce `expo-secure-store`;
+- accept the token storage choice documented in `docs/current-decision-options.md`;
 - add a typed auth adapter instead of importing Supabase in UI components directly;
 - add callback/deep-link handling for `dictionairemobile://auth/callback`;
 - preserve local SQLite profile/library/reader behavior when auth is unconfigured, offline, or signed out.

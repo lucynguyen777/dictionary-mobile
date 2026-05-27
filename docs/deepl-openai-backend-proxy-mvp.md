@@ -191,6 +191,8 @@ Each agent is bound to:
 
 Future extra agents require a paid package/add-on decision. Billing, top-up packages, and purchasable extra agents are out of scope for this MVP foundation.
 
+The current paid-agent option matrix is prepared in `docs/current-decision-options.md`. Until the product owner accepts a billing provider and entitlement contract, the default limit stays at `maxAgentsPerUser = 3`.
+
 ### Editor Environment Modes
 
 The editor should support mode-specific import/export boundaries:

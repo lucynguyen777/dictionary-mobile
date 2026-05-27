@@ -6,6 +6,8 @@ Keep blocked language and bilingual dictionary work honest: no adapter, fixture,
 
 This document is a decision-prep gate, not an implementation plan.
 
+The current cross-decision option matrix lives in `docs/current-decision-options.md`. That document prepares source choices for the product owner, but it does not accept any source by itself.
+
 ## Current Status Summary
 
 | Language / pair | Current status | Best current candidate | Decision |
@@ -157,6 +159,7 @@ Until then, runtime metadata should remain unavailable or blocked, and UI should
 
 ## Sources To Recheck
 
+- Current option matrix: `docs/current-decision-options.md`
 - Words.hk data pages: https://words.hk/faiman/analysis/
 - Kaikki raw data index: https://kaikki.org/dictionary/rawdata.html
 - Wikimedia API/siteinfo and User-Agent policy for each Wiktionary edition

@@ -135,7 +135,7 @@ The following remain staged or blocked:
 
 - encrypted backup destination and restore UX are staged after minimal sync MVP;
 - server-side account deletion implementation depends on auth/backend code;
-- feedback/support submission destination remains blocked until support channel is selected.
+- feedback/support submission destination remains blocked until support channel is selected; current options are prepared in `docs/current-decision-options.md`.
 
 ## Next Implementation Modules
 

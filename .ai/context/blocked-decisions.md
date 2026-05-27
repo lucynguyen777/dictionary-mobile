@@ -2,6 +2,21 @@
 
 Use `docs/product-progress.md` as the source of truth for the full roadmap. This file separates accepted, staged-after-dependency, and still-blocked work so agents can plan safely without implementing features whose provider/source/API/backend decision is not accepted.
 
+## Current Decision Options
+Status: Prepared in `docs/current-decision-options.md`; no new provider/source/billing/support/token decision is accepted by that document.
+
+Prepared decisions still requiring product-owner acceptance:
+- Speech scoring engine: Azure AI Speech Pronunciation Assessment, Speechace, or custom MFA/Kaldi-style backend.
+- Language source gates: Cantonese, Uyghur, VI->FR, Basque, Ainu, Quechua, Nahuatl, and Guarani source options.
+- Support/feedback channel: Supabase feedback table plus email notification, Resend backend email, or Zendesk/Help Scout style helpdesk.
+- Auth token storage: SecureStore native plus web fallback, AsyncStorage everywhere, or hybrid adapter.
+- Paid add-ons for extra AI agents: keep max 3 free only, RevenueCat entitlements, or Stripe Billing/Checkout.
+
+Guardrail:
+- Treat these as decision-prep notes only. Do not implement production scoring, language data, feedback submission, token persistence, or paid-agent billing until the matching decision is explicitly accepted.
+
+---
+
 ## Supabase Auth Foundation
 Status: Foundation completed in `docs/supabase-auth-foundation.md`; real auth implementation can move to a staged TODO module.
 
@@ -20,7 +35,7 @@ Allowed preparatory work:
 - Keep existing local UI placeholders clearly marked as local/coming soon
 
 Acceptance gate:
-- Real email login, verification, sign out, and account deletion can move into an implementation module once dependencies and token storage choice are added.
+- Real email login, verification, sign out, and account deletion can move into an implementation module once dependencies and token storage choice are accepted. Current token storage options are prepared in `docs/current-decision-options.md`; the recommended default is a hybrid adapter using SecureStore on native and AsyncStorage/localStorage fallback for web/dev.
 
 ---
 
@@ -124,18 +139,19 @@ Accepted direction:
 
 Allowed preparatory work:
 - Follow `docs/deepl-openai-backend-proxy-mvp.md`
+- Follow `docs/current-decision-options.md` for paid add-on choices; max 3 active agents remains the default until billing is accepted.
 - Define dataset upload/import contracts for CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF
 - Define editor modes for Word-like rich text, Google Docs-like surfaces, LaTeX, Markdown, and plain text
 - Keep scanned PDFs/OCR extraction out of scope until OCR implementation exists
 - Keep provider keys server-side and redact raw dataset content from logs by default
 
 Acceptance gate:
-- Implementation may start after parser fixtures, dataset validation, highlighting behavior, max-3-agent enforcement, RLS tables, quota checks, and fake-provider no-key-leak tests are planned.
+- Implementation may start after parser fixtures, dataset validation, highlighting behavior, max-3-agent enforcement, RLS tables, quota checks, and fake-provider no-key-leak tests are planned. Paid extra-agent implementation remains blocked until a billing provider and entitlement contract are accepted.
 
 ---
 
 ## Speech Scoring
-Status: Decision-prep foundation completed in `docs/speech-scoring-engine-plan.md`; still blocked until a real scoring/alignment engine is accepted.
+Status: Decision-prep foundation completed in `docs/speech-scoring-engine-plan.md`; option matrix prepared in `docs/current-decision-options.md`; still blocked until a real scoring/alignment engine is accepted.
 
 Still blocked implementation:
 - IPA comparison
@@ -146,6 +162,7 @@ Still blocked implementation:
 
 Allowed preparatory work:
 - Follow `docs/speech-scoring-engine-plan.md`
+- Follow `docs/current-decision-options.md`; Azure AI Speech Pronunciation Assessment is the recommended MVP default only if cloud audio is accepted, not an accepted decision.
 - Compare Azure AI Speech Pronunciation Assessment, Speechace, custom backend alignment, and manual playback-only fallback
 - Keep Google Cloud STT and OS/native STT classified as transcription only, not scoring
 - Define raw-audio privacy, retention, quota, and unavailable-engine UI states
@@ -157,7 +174,7 @@ Acceptance gate:
 ---
 
 ## Language Source Gates
-Status: Foundation refreshed in `docs/language-source-gates.md`; still blocked per language/pair until an approved lexical source exists.
+Status: Foundation refreshed in `docs/language-source-gates.md`; option matrix prepared in `docs/current-decision-options.md`; still blocked per language/pair until an approved lexical source exists.
 
 Still blocked implementation:
 - Cantonese monolingual definitions
@@ -168,6 +185,7 @@ Still blocked implementation:
 
 Allowed preparatory work:
 - Follow `docs/language-source-gates.md`
+- Follow `docs/current-decision-options.md` for current candidate options; no option is accepted by default.
 - Create dedicated source gate docs for VI->FR, Basque, Ainu, Quechua, Nahuatl, or Guarani before implementation
 - Compare hosted APIs, Wiktionary/Kaikki/raw dumps, public-domain lists, national dictionaries, commercial licenses, and user-provided data
 - Preserve source metadata, attribution, script/morphology requirements, and adapter readiness contracts

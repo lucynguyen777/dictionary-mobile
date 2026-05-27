@@ -299,7 +299,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
-- [!] BLOCKED [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected.
+- [!] BLOCKED [HARD]: Feedback submission to backend/email/helpdesk is blocked until support channel is selected; options are prepared in `docs/current-decision-options.md`.
 - [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [x] DONE [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
 - [x] DONE [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
@@ -603,7 +603,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
-No active next implementation module selected. Speech scoring decision-prep is complete, but pronunciation scoring remains blocked until a real scoring/alignment engine is accepted. The next safe work should either select a new 3-5 task documentation module or accept a provider/source/API decision before implementation.
+**Module: Current Decision Options Docs Sync** - DONE
+- [x] DONE [HARD]: Created `docs/current-decision-options.md` with option matrices, recommendations, blocker status, acceptance gates, and source links for the remaining product-owner decisions.
+- [x] DONE [HARD]: Documented at least three viable options for Speech Scoring Engine, with Azure AI Speech Pronunciation Assessment as the recommended MVP default if cloud audio is accepted.
+- [x] DONE [HARD]: Documented per-language source options for Cantonese, Uyghur, VI->FR, Basque, Ainu, Quechua, Nahuatl, and Guarani without accepting any source or using machine translation as dictionary data.
+- [x] DONE [HARD]: Documented support/feedback channel, auth token storage, and paid add-on/billing options with recommended defaults and explicit acceptance gates.
+- [x] DONE [HARD]: Synced blocked-decision guardrails so production implementation remains blocked until the matching decision record changes to `Accepted`.
+
+No active next implementation module selected after this docs sync. The next safe work is for the product owner to accept one decision from `docs/current-decision-options.md`, then create a 3-5 task implementation module for that accepted decision.
 
 ## Blocked Module Execution Order
 
@@ -622,6 +629,13 @@ Prioritize modules by implementation complexity, user experience impact, and dep
 ## Blocked Work Modules
 
 These modules decompose accepted, staged, and still-blocked roadmap rows. Accepted modules can become `[ ] TODO` implementation modules; still-blocked modules remain decision-prep only until their acceptance gate is met.
+
+**Module: Current Decision Options Docs Sync** - DONE
+- [x] DONE [HARD]: Added the current decision option summary, recommended defaults, and acceptance gates in `docs/current-decision-options.md`.
+- [x] DONE [HARD]: Kept Speech Scoring Engine as `Proposed`; Azure, Speechace, and custom MFA/Kaldi-style backend are options only.
+- [x] DONE [HARD]: Kept Language Source Gates blocked per language/pair; source options require dedicated gate docs before implementation.
+- [x] DONE [HARD]: Kept support/feedback channel, auth token storage, and paid add-on/billing decisions unaccepted until the product owner chooses them.
+- [x] DONE [HARD]: Preserved accepted foundations for Supabase, DeepL/OpenAI proxy, MLKit OCR, and OS/native STT.
 
 **Module: Supabase Auth Foundation** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/auth-provider.md` as `Accepted` with Supabase Auth, Expo React Native integration notes, local-first account boundaries, and `docs/supabase-auth-foundation.md`.
