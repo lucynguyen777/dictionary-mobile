@@ -659,7 +659,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Wired Profile to subscribe to auth lifecycle changes and React Native `AppState` foreground/background events.
 - [x] DONE [HARD]: Expanded focused auth controller tests for lifecycle event mapping, subscription cleanup, and auto-refresh start/stop behavior.
 
-No active next implementation module selected after this auth refresh lifecycle. Recommended next module: **Supabase Auth Manual Smoke Prep**, because auth scaffolding is now complete enough to document env setup, redirect allow-list, and manual web/native smoke steps before deeper backend sync work.
+**Module: Supabase Auth Manual Smoke Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-auth-manual-smoke.md` with local env setup, secret boundaries, and no-service-role-key rules.
+- [x] DONE [HARD]: Documented Supabase Dashboard email/password and redirect allow-list setup for `dictionairemobile://auth/callback` plus local web callback smoke.
+- [x] DONE [HARD]: Documented Expo web, Expo Go/native, dev-client/native, callback, foreground/background, and sign-out smoke scenarios.
+- [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
+- [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
+
+No active next implementation module selected after this auth manual smoke prep. Recommended next module: **Supabase Cloud Sync MVP Implementation Prep**, because auth scaffolding is ready enough to plan sync schema/RLS implementation without starting production sync blindly.
 
 ## Blocked Module Execution Order
 
@@ -727,6 +734,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added app foreground/background auto-refresh helper.
 - [x] DONE [HARD]: Wired Profile to auth lifecycle and `AppState` changes.
 - [x] DONE [HARD]: Added focused lifecycle tests without provider/network calls.
+
+**Module: Supabase Auth Manual Smoke Prep** - DONE
+- [x] DONE [HARD]: Added manual auth smoke prep doc with env and secret handling rules.
+- [x] DONE [HARD]: Added Supabase Dashboard setup and redirect allow-list guidance.
+- [x] DONE [HARD]: Added web/native/dev-client smoke matrix.
+- [x] DONE [HARD]: Added local-first/no-data-delete smoke expectations.
+- [x] DONE [HARD]: Added auth verification command list.
 
 **Module: Current Decision Options Docs Sync** - DONE
 - [x] DONE [HARD]: Added the current decision option summary, recommended defaults, and acceptance gates in `docs/current-decision-options.md`.

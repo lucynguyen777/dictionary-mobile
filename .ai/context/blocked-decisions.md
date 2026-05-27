@@ -20,7 +20,7 @@ Guardrail:
 ---
 
 ## Supabase Auth Foundation
-Status: Foundation completed in `docs/supabase-auth-foundation.md`; SecureStore token storage, Supabase auth session adapter, Profile auth-state wiring, email/password auth form shell, callback route handling, and session refresh lifecycle are implemented; manual auth smoke prep can move to a staged TODO module.
+Status: Foundation completed in `docs/supabase-auth-foundation.md`; SecureStore token storage, Supabase auth session adapter, Profile auth-state wiring, email/password auth form shell, callback route handling, session refresh lifecycle, and manual auth smoke prep are implemented.
 
 Accepted:
 - Supabase Auth provider
@@ -37,7 +37,7 @@ Allowed preparatory work:
 - Keep existing local UI placeholders clearly marked as local/coming soon
 
 Acceptance gate:
-- Real email sign-up/sign-in/recovery now uses `data/authTokenStorage.ts`, `data/authTokenStorage.web.ts`, `data/authConfig.ts`, `data/authSession.ts`, `data/supabaseAuthClient.ts`, `data/authController.ts`, and `app/auth/callback.tsx`. Backend account deletion, sync, support submission, and manual Supabase project smoke are still future work.
+- Real email sign-up/sign-in/recovery now uses `data/authTokenStorage.ts`, `data/authTokenStorage.web.ts`, `data/authConfig.ts`, `data/authSession.ts`, `data/supabaseAuthClient.ts`, `data/authController.ts`, and `app/auth/callback.tsx`. Follow `docs/supabase-auth-manual-smoke.md` before promoting auth-dependent work. Backend account deletion, sync, and support submission are still future work.
 
 ---
 
