@@ -168,8 +168,6 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### UI & Copy Polish
 - [x] DONE [EASY]: Localized small UI strings and polished lookup error presentation (commit `a6f1c79`).
 - [x] DONE [EASY]: Add bottom-right scroll-to-top controls on long lookup and folder pages.
-- [x] DONE [EASY]: Compact Profile tab into a learning-dashboard layout with hero summary, quick settings actions, concise route/data cards, and moved detailed editing into the settings drawer.
-- [x] DONE [EASY]: Adopt `DESIGN.md` as the UI reference source, adapt its rules into app-specific UI/UX guidance, and require feature-preservation smoke checks for UI refactors.
 
 
 ### Dictionary Lookup
@@ -620,54 +618,26 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Set the next implementation module to **Activity Streak Foundation** after this roadmap sync is verified.
 - [x] DONE [EASY]: Verified docs-only changes with `git diff --check`, `npx tsc --noEmit`, and `npm run lint`; next module is **Activity Streak Foundation**.
 
-**Module: Activity Streak Foundation** - TODO
-- [ ] TODO [MEDIUM]: Add `data/activityStore.ts` for local app-open day tracking, current streak, longest streak, and active-day aggregates.
-- [ ] TODO [MEDIUM]: Hook `recordAppOpen()` after the app unlocks/loads so each local date is recorded once.
-- [ ] TODO [MEDIUM]: Add focused tests for same-day dedupe, consecutive streaks, broken streaks, and longest-streak retention.
-- [ ] TODO [MEDIUM]: Keep the activity store local-first and out of cloud sync for this module.
-- [ ] TODO [MEDIUM]: Verify with `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and focused activity tests before commit.
+**Module: Activity Streak Foundation** - DONE
+- [x] DONE [MEDIUM]: Added `data/activityStore.ts` for local app-open day tracking, current streak, longest streak, and active-day aggregates.
+- [x] DONE [MEDIUM]: Hooked `recordAppOpen()` after the app unlocks/loads so each local date is recorded once.
+- [x] DONE [MEDIUM]: Added focused tests for same-day dedupe, consecutive streaks, broken streaks, and longest-streak retention.
+- [x] DONE [MEDIUM]: Kept the activity store local-first and out of cloud sync for this module.
+- [x] DONE [MEDIUM]: Verified with `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and `npm test -- --run tests/activityStore.test.ts`; next module is **Profile Dashboard Refactor**.
 
-**Module: DeepL + OpenAI Proxy Request Validation Draft** - DONE
-- [x] DONE [HARD]: Added `backend/proxyRequestValidation.ts` as a pure validation boundary for translation, glossary, AI chat, voice feedback, and user-provider connection requests without provider calls.
-- [x] DONE [HARD]: Added translation text guards for trimming, Unicode code-point size checks, required target language, and glossary source-language requirements.
-- [x] DONE [HARD]: Added glossary sanitizer rules for explicit language pairs, entry limits, trimmed terms, control-character rejection, source-term dedupe, and safe validation errors.
-- [x] DONE [HARD]: Added AI/voice guards for bounded chat messages, supported roles/goals, transcript-only voice feedback, and no raw audio upload in this MVP.
-- [x] DONE [HARD]: Added provider-connection request validation before encrypted user API key storage; next module is **DeepL + OpenAI Proxy Quota Guard Draft**.
+**Module: Profile Dashboard Refactor** - DONE
+- [x] DONE [MEDIUM]: Removed duplicated main Profile settings/action blocks while preserving the settings sidebar entry point.
+- [x] DONE [MEDIUM]: Added saved-word activity chart ranges for day, month, and year using `savedWords.createdAt`.
+- [x] DONE [MEDIUM]: Replaced the yearly study calendar with app-open streak metrics and heatmap data from `activityStore`.
+- [x] DONE [MEDIUM]: Verified Profile sidebar still exposes account, privacy, support, export/reset, and offline-pack actions.
+- [x] DONE [MEDIUM]: Ran Expo web mobile/desktop smoke plus static checks; next module is **Flashcard Analytics Data Model**.
 
-**Module: User-Provided Provider Secret Encryption Foundation** - DONE
-- [x] DONE [HARD]: Added `docs/user-provided-provider-secrets.md` to define the product boundary: the app provides dataset-agent workspace/setup, while users can optionally supply provider API keys through backend-only handling.
-- [x] DONE [HARD]: Added `backend/userProviderSecrets.ts` to read a backend-only `USER_PROVIDER_SECRET_ENCRYPTION_KEY` without exposing user API keys to Expo/mobile clients.
-- [x] DONE [HARD]: Added AES-256-GCM encryption envelopes for user provider secrets, bound to user id, provider, purpose, and key version as authenticated data.
-- [x] DONE [HARD]: Added safe unconfigured-state handling and focused tests in `tests/userProviderSecrets.test.ts` for missing config, invalid key size, encryption/decryption, wrong-scope rejection, key-version mismatch, and empty-secret rejection.
-- [x] DONE [HARD]: Synced `docs/deepl-openai-backend-proxy-mvp.md` and `.ai/context/blocked-decisions.md`; next module is **DeepL + OpenAI Proxy Request Validation Draft**.
-
-**Module: DeepL + OpenAI Backend Proxy Env Guard Draft** - DONE
-- [x] DONE [HARD]: Added `backend/proxyConfig.ts` to read backend-only DeepL/OpenAI env configuration without exposing provider keys to Expo/mobile clients.
-- [x] DONE [HARD]: Added required env validation for `DEEPL_API_KEY`, allowed DeepL base URL, `OPENAI_API_KEY`, and `OPENAI_TEXT_MODEL`.
-- [x] DONE [HARD]: Added conservative quota/cost-control defaults for translation characters, AI requests, text input size, glossary entries, and log retention.
-- [x] DONE [HARD]: Added provider-unconfigured response mapping and structured log redaction for source text, translations, prompts, transcripts, glossary entries, messages, and provider keys.
-- [x] DONE [HARD]: Added `tests/backendProxyConfig.test.ts`; next module is **DeepL + OpenAI Proxy Request Validation Draft**.
-
-**Module: Supabase Cloud Sync Manual Smoke Execution Prep** - DONE
-- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-manual-smoke-execution.md` with the execution order for static verification, auth smoke, SQL/RLS review, RLS probes, runtime harness smoke, two-device smoke, and rollback checks.
-- [x] DONE [HARD]: Added a local-only result template that avoids committing project URLs, user ids, emails, tokens, screenshots, or service-role secrets.
-- [x] DONE [HARD]: Documented pass criteria for auth, RLS, harness safety, two-device create/update/delete/tombstone flow, sign-out preservation, export readability, and no-secret handling.
-- [x] DONE [HARD]: Documented failure handling that keeps production sync blocked and requires focused follow-up modules.
-- [x] DONE [HARD]: Linked the execution prep from `docs/supabase-cloud-sync-manual-smoke.md`; next module is **Supabase Cloud Sync Smoke Result Review** after a real disposable-project smoke run exists.
-
-**Module: Supabase Cloud Sync Production Toggle Decision Prep** - DONE
-- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-production-toggle-decision.md` to define the gate before any production sync UI, lifecycle hook, or background sync.
-- [x] DONE [HARD]: Documented current implemented sync foundations and explicitly listed still-missing production pieces.
-- [x] DONE [HARD]: Compared manual harness only, Settings beta toggle, auto foreground sync, and background/realtime sync options.
-- [x] DONE [HARD]: Recommended a Profile/Settings opt-in beta toggle only after auth, SQL/RLS, and two-device manual smoke pass.
-- [x] DONE [HARD]: Documented acceptance gates and the first post-acceptance module, **Supabase Cloud Sync Profile Beta Toggle Shell**, while keeping production sync blocked.
-
-**Module: Supabase Cloud Sync Manual Runtime Smoke Harness** - DONE
-- [x] DONE [HARD]: Added `data/supabaseSyncSmokeHarness.ts` as an explicit opt-in manual harness for disposable Supabase sync smoke.
-- [x] DONE [HARD]: Kept the harness skipped by default so it does not open SQLite or call Supabase without `enabled: true`.
-- [x] DONE [HARD]: Required an injected Supabase client factory or client port before the harness can run.
-- [x] DONE [HARD]: Added `tests/supabaseSyncSmokeHarness.test.ts` for default skip, missing-client skip, and injected-port run behavior.
-- [x] DONE [HARD]: Updated manual smoke docs while keeping Profile UI, app lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles out of scope; next module is **Supabase Cloud Sync Production Toggle Decision Prep**.
+**Module: Flashcard Analytics Data Model** - TODO
+- [ ] TODO [HARD]: Extend flashcard state with final status and completed date while normalizing legacy cards.
+- [ ] TODO [HARD]: Add review events and learning settings to the local-first library model.
+- [ ] TODO [HARD]: Update `reviewFlashcard()` to append review events and apply completion thresholds.
+- [ ] TODO [HARD]: Update SQLite schema/mappers/runtime tests for analytics fields and review events.
+- [ ] TODO [HARD]: Verify focused library/runtime/migration tests plus static checks before commit.
 
 **Module: Supabase Cloud Sync Runner Wiring Draft** - DONE
 - [x] DONE [HARD]: Added `data/supabaseSyncRunner.ts` as the guarded composition point for the sync runner, runtime adapter, and local SQLite port.
@@ -795,7 +765,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active Supabase Cloud Sync implementation module selected after the manual smoke execution prep because **Supabase Cloud Sync Smoke Result Review** requires a real disposable-project smoke run. Recommended active module is **DeepL + OpenAI Proxy Quota Guard Draft**, continuing the accepted backend proxy path without provider calls after env, encrypted-secret, and request-validation foundations.
+No active next implementation module selected after the runner wiring draft. Recommended next module: **Supabase Cloud Sync Manual Runtime Smoke Harness**, because the guarded runner now exists but should be exposed only through a developer/manual harness before any app lifecycle or production toggle.
 
 ## Blocked Module Execution Order
 
@@ -806,7 +776,7 @@ Prioritize modules by implementation complexity, user experience impact, and dep
 3. **Supabase Auth Foundation** - third, because accounts are the dependency for sync, export, AI proxy, and backend deletion semantics.
 4. **Supabase Cloud Sync MVP** - fourth, because it depends on auth and touches shared local-first user data.
 5. **DeepL + OpenAI Backend Proxy MVP** - fifth, because it needs backend auth, privacy boundaries, quota limits, and cost controls.
-6. **Specialized Translation Dataset Agents** - sixth, because it builds on the DeepL/OpenAI proxy foundation and needs encrypted user-provider secret storage, dataset storage, retrieval, quota, and privacy contracts before production AI behavior.
+6. **Specialized Translation Dataset Agents** - sixth, because it builds on the DeepL/OpenAI proxy foundation and needs dataset storage, retrieval, quota, and privacy contracts before production AI behavior.
 7. **Google Sheets Export** - seventh, because backend-mediated OAuth should wait for Supabase auth/backend foundation.
 8. **Language Source Gates** - eighth, because source-gate paths are accepted but production adapters remain blocked until license/sample/readiness gates pass.
 9. **Speech Scoring** - last, because Azure is accepted but implementation depends on backend upload, privacy, quota, retention, first-language coverage, and fake-provider tests.
@@ -955,34 +925,6 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added focused runner wiring tests in `tests/supabaseSyncRunner.test.ts`.
 - [x] DONE [HARD]: Left UI, lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles for later modules.
 
-**Module: Supabase Cloud Sync Manual Runtime Smoke Harness** - DONE
-- [x] DONE [HARD]: Added `data/supabaseSyncSmokeHarness.ts` for explicit developer/manual sync smoke runs.
-- [x] DONE [HARD]: Kept harness execution disabled by default and safe when no client boundary is injected.
-- [x] DONE [HARD]: Added injected-port smoke run support for selected domains and deterministic clocks.
-- [x] DONE [HARD]: Added focused harness tests in `tests/supabaseSyncSmokeHarness.test.ts`.
-- [x] DONE [HARD]: Updated `docs/supabase-cloud-sync-manual-smoke.md` with harness guardrails.
-
-**Module: Supabase Cloud Sync Production Toggle Decision Prep** - DONE
-- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-production-toggle-decision.md` for production sync UI/lifecycle gating.
-- [x] DONE [HARD]: Documented remaining missing pieces before production sync can be exposed.
-- [x] DONE [HARD]: Compared production toggle options and recommended Profile/Settings opt-in beta after manual smoke.
-- [x] DONE [HARD]: Documented required product decisions for first surface, opt-in policy, states, domain scope, conflict detail, and failure reporting.
-- [x] DONE [HARD]: Kept production sync UI/lifecycle implementation blocked until acceptance gates pass.
-
-**Module: Supabase Cloud Sync Manual Smoke Execution Prep** - DONE
-- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-manual-smoke-execution.md` for real smoke execution order and local-only result capture.
-- [x] DONE [HARD]: Documented required disposable-project inputs and no-secret rules.
-- [x] DONE [HARD]: Added pass criteria for static verification, auth smoke, SQL/RLS probes, harness behavior, two-device sync, export, and rollback.
-- [x] DONE [HARD]: Added failure handling rules that keep production sync blocked.
-- [x] DONE [HARD]: Linked execution prep from the manual smoke guide.
-
-**Module: DeepL + OpenAI Backend Proxy Env Guard Draft** - DONE
-- [x] DONE [HARD]: Added backend-only env config reader in `backend/proxyConfig.ts`.
-- [x] DONE [HARD]: Added allowed DeepL base URL and required DeepL/OpenAI key/model validation.
-- [x] DONE [HARD]: Added quota/cost-control defaults for proxy usage.
-- [x] DONE [HARD]: Added provider-unconfigured response mapping and safe structured log redaction.
-- [x] DONE [HARD]: Added focused env/redaction tests in `tests/backendProxyConfig.test.ts`.
-
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.
 - [x] DONE [HARD]: Defined backend-mediated Google OAuth route contract, scopes, token storage/revocation policy, and unsupported-platform behavior.
@@ -1006,7 +948,7 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 
 **Module: Specialized Translation Dataset Agents** - TODO AFTER DEEPL/OPENAI PROXY
 - [ ] TODO [HARD]: Define dataset upload/import contract for common formats: CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF; scanned PDF/OCR remains separate.
-- [ ] TODO [HARD]: Define editable dataset model: terms, phrases, source segments, translations, notes, tags, domain/topic, confidence, duplicate/conflict states, and revision history.
+- [ ] TODO [HARD]: Define editable dataset model: terms, phrases, source segments, translations, notes, tags, domain/toptiêic, confidence, duplicate/conflict states, and revision history.
 - [ ] TODO [HARD]: Define smart recognition/highlighting: match dataset terms/phrases in source text, show terminology chips, conflicts, missing translations, and suggested glossary candidates.
 - [ ] TODO [HARD]: Define per-user context agents: max 3 active agents by default, each bound to one dataset/context; future extra agents require paid package/add-on decision.
 - [ ] TODO [HARD]: Define editor modes: Word-like rich text, Google Docs-like collaborative-ready surface, LaTeX, Markdown, and plain text, with export/import boundaries and unsupported feature states.
