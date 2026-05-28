@@ -122,7 +122,7 @@ Acceptance gate:
 ---
 
 ## DeepL + OpenAI Backend Proxy MVP
-Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; backend env guard draft added in `backend/proxyConfig.ts`; user-provided provider secret encryption foundation added in `backend/userProviderSecrets.ts` and `docs/user-provided-provider-secrets.md`. Translation/AI implementation can move through staged backend modules, but production provider calls remain blocked until backend routes, RLS tables, quota checks, and fake-provider tests are added.
+Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; backend env guard draft added in `backend/proxyConfig.ts`; user-provided provider secret encryption foundation added in `backend/userProviderSecrets.ts` and `docs/user-provided-provider-secrets.md`; request validation draft added in `backend/proxyRequestValidation.ts`. Translation/AI implementation can move through staged backend modules, but production provider calls remain blocked until backend routes, RLS tables, quota checks, and fake-provider tests are added.
 
 Accepted:
 - DeepL translation and glossary support through backend proxy
@@ -135,12 +135,13 @@ Allowed preparatory work:
 - Keep backend env validation and redacted logging tests in place
 - Keep user-provided API keys backend-only and encrypt them before persistence
 - Bind encrypted user-provider secrets to user id, provider, purpose, and key version
+- Validate translation, glossary, AI chat, voice feedback, and provider-connection requests before route/provider work
 - Add quota checks before provider calls
 - Redact source text, translations, prompts, transcripts, glossary entries, and provider keys from logs by default
 - Keep machine translation output out of dictionary/source data
 
 Acceptance gate:
-- Request validation may start next; production provider calls require backend proxy routes, RLS-protected usage/glossary/provider-connection tables, quota checks, encrypted-secret no-key-leak tests, and fake-provider tests.
+- Quota guard may start next; production provider calls require backend proxy routes, RLS-protected usage/glossary/provider-connection tables, quota checks, encrypted-secret no-key-leak tests, and fake-provider tests.
 
 ---
 

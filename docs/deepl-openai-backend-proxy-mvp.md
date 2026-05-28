@@ -76,6 +76,20 @@ Track quota per Supabase user id and feature:
 
 Default MVP limits should be conservative and configurable through backend env vars. When limits are exceeded, return `429 quota_exceeded` with remaining reset time and do not call the provider.
 
+## Request Validation Boundary
+
+`backend/proxyRequestValidation.ts` defines pure request guards before any provider call:
+
+- translation text is trimmed, counted by Unicode code point, and rejected with `text_too_large` before provider use;
+- translation requests require an explicit target language;
+- glossary-backed translation requires explicit source and target language;
+- glossary entries are trimmed, control-character blocked, size bounded, and deduped by source term;
+- AI chat accepts a bounded recent message list with supported roles and safe default goals;
+- voice feedback accepts transcript text only and rejects raw audio in this MVP;
+- user provider connection setup validates provider/purpose/API-key shape before handing plaintext to encrypted storage.
+
+Validation errors must be structured and must not echo source text, prompts, transcripts, glossary entries, or user API keys.
+
 ## DeepL Translation And Glossary Contract
 
 ### Text Translation
@@ -341,7 +355,13 @@ Translation/AI code can start when the next module agrees to:
 - ciphertext envelopes do not include plaintext secrets;
 - focused tests cover missing config, invalid key size, decrypt round trip, wrong user/key-version rejection, and empty-secret rejection.
 
-Next staged module: **DeepL + OpenAI Proxy Request Validation Draft**.
+**DeepL + OpenAI Proxy Request Validation Draft** is complete:
+
+- `backend/proxyRequestValidation.ts` validates translation, glossary, AI chat, voice feedback, and user-provider connection requests before provider routes exist;
+- oversized text, missing language pairs, glossary mismatch, duplicate/invalid glossary entries, raw voice-feedback audio, invalid AI messages, and invalid provider secrets return safe structured errors;
+- validation tests prove request guards do not need live provider keys or network calls.
+
+Next staged module: **DeepL + OpenAI Proxy Quota Guard Draft**.
 
 ## Test Expectations
 
