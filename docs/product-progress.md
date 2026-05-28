@@ -265,6 +265,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Add richer review scheduling after local MVP is stable (commit `66c5dd0`).
 - [x] DONE [HARD]: Implement offline sync state management for Flashcards: track version, syncStatus (pending_create, pending_update, pending_delete), and lastSyncedAt for background sync.
 
+### Profile And Flashcard Analytics Dashboard
+- [x] DONE [EASY]: Roadmap Sync For Dashboard Analytics - split the dashboard/analytics work into staged modules, keep analytics local-first, and preserve Profile sidebar account/privacy/support/export/reset/offline-pack actions.
+- [ ] TODO [MEDIUM]: Activity Streak Foundation - add local app-open day tracking, current/longest streak calculations, and focused streak tests without cloud sync.
+- [ ] TODO [MEDIUM]: Profile Dashboard Refactor - turn Profile into an activity dashboard, remove duplicated main-screen settings actions, add saved-word chart ranges, and replace yearly study calendar with login/app-open streak stats.
+- [ ] TODO [HARD]: Flashcard Analytics Data Model - add review events, completion thresholds, final status, completed date, and SQLite/legacy normalization coverage before building analytics UI.
+- [ ] TODO [MEDIUM]: Flashcard Dashboard And Completion Settings - add overview stats, status pie/donut chart, and user-controlled completed thresholds inside Flashcard.
+- [ ] TODO [MEDIUM]: Flashcard UX Polish Inspired By Anki/Quizlet - split Flashcard into Dashboard, Study, and Manage modes while preserving create, filter, review, and Anki export flows.
+
 ### Import Dataset
 - [x] DONE: CSV import MVP.
 - [x] DONE: Basic field mapping by recognized headers: `word`, `definition`, `ipa`, `note`, `tags`.
@@ -604,6 +612,20 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: Roadmap Sync For Dashboard Analytics** - DONE
+- [x] DONE [EASY]: Added the Profile/Flashcard analytics roadmap as local-first staged work.
+- [x] DONE [EASY]: Recorded that Profile sidebar account, privacy, support, export/reset, and offline-pack actions must remain reachable while the main Profile tab becomes a dashboard.
+- [x] DONE [EASY]: Recorded that Flashcard dashboard implementation depends on review events and completion settings before analytics UI is treated as real.
+- [x] DONE [EASY]: Set the next implementation module to **Activity Streak Foundation** after this roadmap sync is verified.
+- [x] DONE [EASY]: Verified docs-only changes with `git diff --check`, `npx tsc --noEmit`, and `npm run lint`; next module is **Activity Streak Foundation**.
+
+**Module: Activity Streak Foundation** - TODO
+- [ ] TODO [MEDIUM]: Add `data/activityStore.ts` for local app-open day tracking, current streak, longest streak, and active-day aggregates.
+- [ ] TODO [MEDIUM]: Hook `recordAppOpen()` after the app unlocks/loads so each local date is recorded once.
+- [ ] TODO [MEDIUM]: Add focused tests for same-day dedupe, consecutive streaks, broken streaks, and longest-streak retention.
+- [ ] TODO [MEDIUM]: Keep the activity store local-first and out of cloud sync for this module.
+- [ ] TODO [MEDIUM]: Verify with `git diff --check`, `npx tsc --noEmit`, `npm run lint`, and focused activity tests before commit.
 
 **Module: DeepL + OpenAI Proxy Request Validation Draft** - DONE
 - [x] DONE [HARD]: Added `backend/proxyRequestValidation.ts` as a pure validation boundary for translation, glossary, AI chat, voice feedback, and user-provider connection requests without provider calls.
