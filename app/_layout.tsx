@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 
+import { recordAppOpen } from '@/data/activityStore';
 import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -59,6 +60,14 @@ export default function RootLayout() {
   useEffect(() => {
     unlockApp();
   }, [unlockApp]);
+
+  useEffect(() => {
+    if (appLockState !== 'unlocked') return;
+
+    recordAppOpen().catch(() => {
+      // Activity tracking should never block app entry.
+    });
+  }, [appLockState]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

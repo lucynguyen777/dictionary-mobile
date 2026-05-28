@@ -267,7 +267,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Profile And Flashcard Analytics Dashboard
 - [x] DONE [EASY]: Roadmap Sync For Dashboard Analytics - split the dashboard/analytics work into staged modules, keep analytics local-first, and preserve Profile sidebar account/privacy/support/export/reset/offline-pack actions.
-- [ ] TODO [MEDIUM]: Activity Streak Foundation - add local app-open day tracking, current/longest streak calculations, and focused streak tests without cloud sync.
+- [x] DONE [MEDIUM]: Activity Streak Foundation - added local app-open day tracking, current/longest streak calculations, and focused streak tests without cloud sync.
 - [ ] TODO [MEDIUM]: Profile Dashboard Refactor - turn Profile into an activity dashboard, remove duplicated main-screen settings actions, add saved-word chart ranges, and replace yearly study calendar with login/app-open streak stats.
 - [ ] TODO [HARD]: Flashcard Analytics Data Model - add review events, completion thresholds, final status, completed date, and SQLite/legacy normalization coverage before building analytics UI.
 - [ ] TODO [MEDIUM]: Flashcard Dashboard And Completion Settings - add overview stats, status pie/donut chart, and user-controlled completed thresholds inside Flashcard.
