@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Camera, CameraView, type CameraType } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+import { Camera, CameraView, type CameraType } from 'expo-camera';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type VoiceCapturePreviewProps = {
   visible: boolean;
@@ -60,50 +60,50 @@ export default function VoiceCapturePreview({ visible, onClose, onCapture }: Voi
 }
 
 const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  camera: {
-    width: '100%',
-    height: '100%',
-  },
-  controls: {
-    position: 'absolute',
-    bottom: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '80%',
-  },
-  controlButton: {
-    backgroundColor: '#0F766E',
-    padding: 12,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 12,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-  },
-  error: {
-    color: '#DC2626',
-    marginBottom: 16,
-    fontSize: 16,
-  },
   button: {
     backgroundColor: '#2563EB',
+    borderRadius: 6,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 6,
   },
   buttonText: {
     color: '#FFF',
     fontSize: 16,
+  },
+  camera: {
+    height: '100%',
+    width: '100%',
+  },
+  centered: {
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    backgroundColor: '#000',
+    justifyContent: 'center',
+  },
+  controlButton: {
+    alignItems: 'center',
+    backgroundColor: '#0F766E',
+    borderRadius: 30,
+    justifyContent: 'center',
+    marginHorizontal: 12,
+    padding: 12,
+  },
+  controls: {
+    bottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    position: 'absolute',
+    width: '80%',
+  },
+  error: {
+    color: '#DC2626',
+    fontSize: 16,
+    marginBottom: 16,
   },
 });

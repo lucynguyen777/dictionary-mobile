@@ -168,6 +168,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### UI & Copy Polish
 - [x] DONE [EASY]: Localized small UI strings and polished lookup error presentation (commit `a6f1c79`).
 - [x] DONE [EASY]: Add bottom-right scroll-to-top controls on long lookup and folder pages.
+- [x] DONE [EASY]: Compact Profile tab into a learning-dashboard layout with hero summary, quick settings actions, concise route/data cards, and moved detailed editing into the settings drawer.
 
 
 ### Dictionary Lookup

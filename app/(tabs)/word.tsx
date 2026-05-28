@@ -5,7 +5,7 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from 'expo-audio';
-import VoiceCapturePreview from '@/app/(tabs)/voiceCapturePreview';
+import VoiceCapturePreview from '@/components/word/VoiceCapturePreview';
 import { performOCR } from '@/data/ocr';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';

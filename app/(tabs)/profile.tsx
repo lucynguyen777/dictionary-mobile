@@ -55,15 +55,12 @@ import {
   offlineDictionaryPacks,
 } from '@/data/offlineDictionaryPacks';
 import {
-    LoginMethod,
     NotificationPreferences,
-    ProficiencyLevel,
     UserProfile,
     clearUserProfile,
     getDefaultProfile,
     loadUserProfile,
     loginMethodOptions,
-    proficiencyLevels,
     saveUserProfile,
 } from '@/data/profileStore';
 import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
@@ -489,179 +486,136 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const authCopy = getAuthStatusCopy(authSession);
+  const totalLocalItems =
+    libraryState.folders.length +
+    libraryState.savedWords.length +
+    libraryState.flashcards.length +
+    readerState.documents.length;
+  const importedWordCount = libraryState.savedWords.filter((word) => word.source === 'import').length;
+  const openSidebarSection = (section: SidebarSectionKey | null = null) => {
+    setSidebarSection(section);
+    setSidebarOpen(true);
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.topBar}>
-          <Pressable
-            accessibilityLabel="Mở cài đặt"
-            accessibilityRole="button"
-            onPress={() => {
-              setSidebarSection(null);
-              setSidebarOpen(true);
-            }}
-            style={({ pressed }) => [styles.settingsButton, pressed && styles.settingsButtonPressed]}>
-            <Ionicons name="settings-outline" size={20} color="#0F172A" />
-            <Text style={styles.settingsButtonText}>Cài đặt</Text>
-          </Pressable>
-          <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={styles.saveProfileButton}>
-            <Ionicons name="save-outline" size={18} color="#2563EB" />
-            <Text style={styles.saveProfileText}>Lưu</Text>
-          </TouchableOpacity>
+        <View style={styles.profileHero}>
+          <View style={styles.heroTopRow}>
+            <Image source={{ uri: avatarUri }} style={styles.heroAvatar} />
+            <View style={styles.heroIdentity}>
+              <Text style={styles.heroEyebrow}>Hồ sơ học tập</Text>
+              <Text style={styles.heroName} numberOfLines={1}>{profile.displayName}</Text>
+              <Text style={styles.heroMeta} numberOfLines={2}>
+                {nativeLanguage?.label ?? profile.nativeLanguage} → {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityLabel="Mở cài đặt"
+              accessibilityRole="button"
+              onPress={() => openSidebarSection()}
+              style={({ pressed }) => [styles.heroIconButton, pressed && styles.settingsButtonPressed]}>
+              <Ionicons name="settings-outline" size={20} color="#0F172A" />
+            </Pressable>
+          </View>
+
+          <View style={styles.heroGoalRow}>
+            <View style={styles.goalBadge}>
+              <Ionicons name="flame-outline" size={16} color="#EA580C" />
+              <Text style={styles.goalBadgeText} numberOfLines={1}>{profile.dailyGoal}</Text>
+            </View>
+            <Text style={styles.goalText} numberOfLines={2}>{profile.learningGoal}</Text>
+          </View>
+
+          <View style={styles.heroMetricRow}>
+            <ProfileMetric value={studyStats.mastered} label="Đã nhớ" />
+            <ProfileMetric value={studyStats.dueToday} label="Cần ôn" />
+            <ProfileMetric value={studyStats.listeningScore} label="Phát âm" />
+          </View>
+
+          <View style={styles.heroActionRow}>
+            <TouchableOpacity activeOpacity={0.84} onPress={() => openSidebarSection('account')} style={styles.primaryHeroAction}>
+              <Ionicons name="person-circle-outline" size={17} color="#FFFFFF" />
+              <Text style={styles.primaryHeroActionText} numberOfLines={1}>Chỉnh hồ sơ</Text>
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.84} onPress={handleSaveProfile} style={styles.secondaryHeroAction}>
+              <Ionicons name="save-outline" size={16} color="#2563EB" />
+              <Text style={styles.secondaryHeroActionText} numberOfLines={1}>Lưu</Text>
+            </TouchableOpacity>
+          </View>
+          {saveMessage ? <Text style={styles.saveMessage}>{saveMessage}</Text> : null}
         </View>
 
-        <Image source={{ uri: avatarUri }} style={styles.avatar} />
-        <Text style={styles.userName}>{profile.displayName}</Text>
-        <Text style={styles.userMeta}>
-          {nativeLanguage?.label ?? profile.nativeLanguage} → {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel} ·{' '}
-          {profile.dailyGoal}
-        </Text>
-        {saveMessage ? <Text style={styles.saveMessage}>{saveMessage}</Text> : null}
+        <View style={styles.quickActionGrid}>
+          <QuickAction
+            icon="shield-checkmark-outline"
+            label="Riêng tư"
+            detail={profile.appLockEnabled ? 'Đã khóa app' : 'Local-first'}
+            onPress={() => openSidebarSection('privacy')}
+          />
+          <QuickAction
+            icon="cloud-outline"
+            label="Cloud"
+            detail={authCopy.badge}
+            onPress={() => openSidebarSection('account')}
+          />
+          <QuickAction
+            icon="download-outline"
+            label="Offline"
+            detail={`${offlinePackInstallSummary.readyCount}/${offlinePackSummary.packCount} gói`}
+            onPress={() => openSidebarSection('privacy')}
+          />
+          <QuickAction
+            icon="help-circle-outline"
+            label="Hỗ trợ"
+            detail="Phản hồi"
+            onPress={() => openSidebarSection('support')}
+          />
+        </View>
 
-        <View style={styles.metricRow}>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>{studyStats.mastered}</Text>
-            <Text style={styles.metricLabel}>Đã nhớ</Text>
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderCopy}>
+              <Text style={styles.cardTitle}>Lộ trình hiện tại</Text>
+              <Text style={styles.cardSubtitle}>Mục tiêu và dữ liệu học được gom lại để xem nhanh.</Text>
+            </View>
+            <TouchableOpacity activeOpacity={0.82} onPress={() => openSidebarSection('account')} style={styles.inlineEditButton}>
+              <Ionicons name="create-outline" size={14} color="#2563EB" />
+              <Text style={styles.inlineEditText}>Sửa</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>{studyStats.dueToday}</Text>
-            <Text style={styles.metricLabel}>Cần ôn</Text>
-          </View>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>{studyStats.listeningScore}</Text>
-            <Text style={styles.metricLabel}>Phát âm</Text>
+          <View style={styles.summaryList}>
+            <SummaryRow icon="language-outline" label="Cặp ngôn ngữ" value={`${nativeLanguage?.label ?? profile.nativeLanguage} → ${learningLanguage?.label ?? profile.learningLanguage}`} />
+            <SummaryRow icon="barbell-outline" label="Trình độ" value={profile.proficiencyLevel} />
+            <SummaryRow icon="time-outline" label="Giờ nhắc" value={`${profile.notificationPreferences.reminderTime} · ${profile.timezone}`} />
+            <SummaryRow icon="key-outline" label="Đăng nhập" value={loginMethodOptions.find((option) => option.value === profile.loginMethod)?.label ?? profile.loginMethod} />
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Thông tin cơ bản</Text>
-          <ProfileInput
-            label="Tên hiển thị"
-            onChangeText={(value) => updateProfile('displayName', value)}
-            placeholder="Tên của bạn"
-            value={profile.displayName}
-          />
-          <ProfileInput
-            autoCapitalize="none"
-            keyboardType="email-address"
-            label="Email"
-            onChangeText={(value) => updateProfile('email', value)}
-            placeholder="you@example.com"
-            value={profile.email}
-          />
-          <Text style={styles.fieldLabel}>Phương thức đăng nhập</Text>
-          <View style={styles.chipRow}>
-            {loginMethodOptions.map((option) => (
-              <OptionChip
-                key={option.value}
-                isSelected={profile.loginMethod === option.value}
-                label={option.label}
-                onPress={() => updateProfile('loginMethod', option.value as LoginMethod)}
-              />
-            ))}
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderCopy}>
+              <Text style={styles.cardTitle}>Dữ liệu trên thiết bị</Text>
+              <Text style={styles.cardSubtitle}>{totalLocalItems} mục local, chưa tự động đồng bộ cloud.</Text>
+            </View>
+            <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={styles.inlineEditButton}>
+              <Ionicons name="cloud-upload-outline" size={14} color="#2563EB" />
+              <Text style={styles.inlineEditText}>Xuất</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Ngôn ngữ và trình độ</Text>
-          <Text style={styles.fieldLabel}>Ngôn ngữ mẹ đẻ</Text>
-          <View style={styles.chipRow}>
-            {languageOptions.map((language) => (
-              <OptionChip
-                key={language.code}
-                isSelected={profile.nativeLanguage === language.code}
-                label={language.label}
-                onPress={() => updateProfile('nativeLanguage', language.code)}
-              />
-            ))}
+          <View style={styles.compactDataRow}>
+            <DataStat label="Bộ từ" value={libraryState.folders.length} />
+            <DataStat label="Từ" value={libraryState.savedWords.length} />
+            <DataStat label="Thẻ" value={libraryState.flashcards.length} />
+            <DataStat label="Reader" value={readerState.documents.length} />
           </View>
-          <Text style={styles.fieldLabel}>Ngôn ngữ đang học</Text>
-          <View style={styles.chipRow}>
-            {languageOptions.map((language) => (
-              <OptionChip
-                key={language.code}
-                isSelected={profile.learningLanguage === language.code}
-                label={language.label}
-                onPress={() => updateProfile('learningLanguage', language.code)}
-              />
-            ))}
-          </View>
-          <Text style={styles.fieldLabel}>Trình độ hiện tại</Text>
-          <View style={styles.chipRow}>
-            {proficiencyLevels.map((level) => (
-              <OptionChip
-                key={level}
-                isSelected={profile.proficiencyLevel === level}
-                label={level}
-                onPress={() => updateProfile('proficiencyLevel', level as ProficiencyLevel)}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Mục tiêu học</Text>
-          <ProfileInput
-            label="Mục tiêu"
-            onChangeText={(value) => updateProfile('learningGoal', value)}
-            placeholder="Ví dụ: IELTS, công việc, giao tiếp"
-            value={profile.learningGoal}
-          />
-          <ProfileInput
-            autoCapitalize="none"
-            label="Timezone"
-            onChangeText={(value) => updateProfile('timezone', value)}
-            placeholder="Asia/Ho_Chi_Minh"
-            value={profile.timezone}
-          />
-          <ProfileInput
-            label="Daily goal"
-            onChangeText={(value) => updateProfile('dailyGoal', value)}
-            placeholder="15 words/day"
-            value={profile.dailyGoal}
-          />
           <View style={styles.privacyNote}>
             <Ionicons name="lock-closed-outline" size={18} color="#2563EB" />
             <Text style={styles.privacyText}>
-              Hồ sơ này đang lưu local trên thiết bị. Email chỉ dùng để chuẩn bị UI, chưa đăng nhập hoặc đồng bộ cloud.
+              Có {importedWordCount} từ từ import. Quản lý khóa app, thông báo, xuất hoặc xóa dữ liệu trong mục Riêng tư.
             </Text>
           </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Dữ liệu local</Text>
-          <Text style={styles.cardSubtitle}>Các dữ liệu này đang lưu trên thiết bị, chưa đồng bộ cloud.</Text>
-          <View style={styles.securityRow}>
-            <View style={styles.securityCopy}>
-              <Text style={styles.securityTitle}>Khóa ứng dụng</Text>
-              <Text style={styles.securityText}>Yêu cầu Face ID, vân tay hoặc mã thiết bị khi mở app.</Text>
-            </View>
-            <Switch
-              onValueChange={handleToggleAppLock}
-              thumbColor={profile.appLockEnabled ? '#FFFFFF' : '#FFFFFF'}
-              trackColor={{ false: '#CBD5E1', true: '#2563EB' }}
-              value={profile.appLockEnabled}
-            />
-          </View>
-          <View style={styles.dataGrid}>
-            <DataStat label="Bộ từ" value={libraryState.folders.length} />
-            <DataStat label="Từ đã lưu" value={libraryState.savedWords.length} />
-            <DataStat label="Flashcard" value={libraryState.flashcards.length} />
-            <DataStat label="Lịch sử tra" value={libraryState.searchHistory.length} />
-            <DataStat label="Reader files" value={readerState.documents.length} />
-            <DataStat
-              label="Import"
-              value={libraryState.savedWords.filter((word) => word.source === 'import').length}
-            />
-          </View>
-          <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, { marginTop: 12 }]}>
-            <Ionicons name="cloud-upload-outline" size={16} color="#2563EB" />
-            <Text style={styles.saveProfileText}>Xuất dữ liệu</Text>
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, { marginTop: 10 }]}>
-            <Ionicons name="trash-outline" size={16} color="#DC2626" />
-            <Text style={styles.clearDataText}>Xóa tất cả dữ liệu</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.card}>
@@ -1361,11 +1315,56 @@ function ProfileInput({
   );
 }
 
-function OptionChip({ isSelected, label, onPress }: { isSelected: boolean; label: string; onPress: () => void }) {
+function ProfileMetric({ label, value }: { label: string; value: number }) {
   return (
-    <TouchableOpacity activeOpacity={0.78} onPress={onPress} style={[styles.optionChip, isSelected && styles.optionChipActive]}>
-      <Text style={[styles.optionChipText, isSelected && styles.optionChipTextActive]}>{label}</Text>
+    <View style={styles.profileMetric}>
+      <Text style={styles.profileMetricValue}>{value}</Text>
+      <Text style={styles.profileMetricLabel} numberOfLines={1}>{label}</Text>
+    </View>
+  );
+}
+
+function QuickAction({
+  detail,
+  icon,
+  label,
+  onPress,
+}: {
+  detail: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.quickAction}>
+      <View style={styles.quickActionIcon}>
+        <Ionicons name={icon} size={17} color="#2563EB" />
+      </View>
+      <View style={styles.quickActionCopy}>
+        <Text style={styles.quickActionLabel} numberOfLines={1}>{label}</Text>
+        <Text style={styles.quickActionDetail} numberOfLines={1}>{detail}</Text>
+      </View>
     </TouchableOpacity>
+  );
+}
+
+function SummaryRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.summaryRow}>
+      <View style={styles.summaryIcon}>
+        <Ionicons name={icon} size={16} color="#2563EB" />
+      </View>
+      <Text style={styles.summaryLabel} numberOfLines={1}>{label}</Text>
+      <Text style={styles.summaryValue} numberOfLines={1}>{value}</Text>
+    </View>
   );
 }
 
@@ -1383,6 +1382,261 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
     paddingHorizontal: 16,
     paddingTop: 20,
+  },
+  profileHero: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 14,
+    marginBottom: 12,
+    padding: 14,
+  },
+  heroTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  heroAvatar: {
+    borderRadius: 30,
+    height: 60,
+    width: 60,
+  },
+  heroIdentity: {
+    flex: 1,
+    minWidth: 0,
+  },
+  heroEyebrow: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  heroName: {
+    color: '#0F172A',
+    fontSize: 22,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  heroMeta: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 3,
+  },
+  heroIconButton: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  heroGoalRow: {
+    alignItems: 'center',
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 10,
+  },
+  goalBadge: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 5,
+    maxWidth: 140,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+  },
+  goalBadgeText: {
+    color: '#9A3412',
+    flexShrink: 1,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  goalText: {
+    color: '#9A3412',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
+    minWidth: 0,
+  },
+  heroMetricRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  profileMetric: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    paddingVertical: 10,
+  },
+  profileMetricValue: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  profileMetricLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  heroActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  primaryHeroAction: {
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 999,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 7,
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  primaryHeroActionText: {
+    color: '#FFFFFF',
+    flexShrink: 1,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  secondaryHeroAction: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    minHeight: 42,
+    minWidth: 92,
+    paddingHorizontal: 12,
+  },
+  secondaryHeroActionText: {
+    color: '#2563EB',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  quickActionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
+  },
+  quickAction: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    minHeight: 58,
+    padding: 10,
+    width: '48%',
+  },
+  quickActionIcon: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 999,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  quickActionCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  quickActionLabel: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  quickActionDetail: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  cardHeaderCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  inlineEditButton: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    minHeight: 32,
+    paddingHorizontal: 10,
+  },
+  inlineEditText: {
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  summaryList: {
+    gap: 8,
+    marginTop: 12,
+  },
+  summaryRow: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    minHeight: 44,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  summaryIcon: {
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 999,
+    height: 30,
+    justifyContent: 'center',
+    width: 30,
+  },
+  summaryLabel: {
+    color: '#64748B',
+    flexShrink: 0,
+    fontSize: 12,
+    fontWeight: '900',
+    width: 92,
+  },
+  summaryValue: {
+    color: '#0F172A',
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '900',
+    minWidth: 0,
+    textAlign: 'right',
+  },
+  compactDataRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 12,
   },
   topBar: {
     alignItems: 'center',
