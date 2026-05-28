@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, type Href } from 'expo-router';
 import { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 
 import Screen from '@/components/app/Screen';
 import {
@@ -19,6 +20,7 @@ import {
   getDefaultLibraryState,
   loadLibraryState,
   reviewFlashcard,
+  saveLibraryState,
 } from '@/data/libraryStore';
 
 const flashcardOptions: { type: FlashcardType; label: string; description: string }[] = [
@@ -221,6 +223,7 @@ export default function AdvancedScreen() {
     const now = new Date();
     return libraryState.flashcards.filter((card) => new Date(card.dueDate) <= now || card.reviewState !== 'reviewed').length;
   }, [libraryState.flashcards]);
+  const flashcardAnalytics = useMemo(() => getFlashcardAnalytics(libraryState, dueFlashcards), [dueFlashcards, libraryState]);
 
   const activeCard = filteredFlashcards[activeCardIndex];
   const activeTool = activeToolId ? learningTools.find((tool) => tool.id === activeToolId) ?? null : null;
@@ -276,6 +279,26 @@ export default function AdvancedScreen() {
     });
   };
 
+  const handleUpdateCompletionSetting = (
+    key: 'completionMinAverageQuality' | 'completionMinReviewCount',
+    value: string
+  ) => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return;
+
+    const nextState: LibraryState = {
+      ...libraryState,
+      flashcardLearningSettings: {
+        completionMinAverageQuality: libraryState.flashcardLearningSettings?.completionMinAverageQuality ?? 4,
+        completionMinReviewCount: libraryState.flashcardLearningSettings?.completionMinReviewCount ?? 3,
+        [key]: key === 'completionMinReviewCount' ? Math.max(1, Math.round(numericValue)) : Math.max(1, Math.min(5, numericValue)),
+      },
+    };
+
+    setLibraryState(nextState);
+    saveLibraryState(nextState);
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -326,6 +349,51 @@ export default function AdvancedScreen() {
             </View>
             <View style={styles.savedWordPill}>
               <Text style={styles.savedWordPillText}>{libraryState.savedWords.length} từ</Text>
+            </View>
+          </View>
+
+          <View style={styles.flashcardAnalyticsGrid}>
+            <AnalyticsStat label="Tổng thẻ" value={flashcardAnalytics.totalCards} />
+            <AnalyticsStat label="Đến hạn" value={flashcardAnalytics.dueToday} />
+            <AnalyticsStat label="Lượt test" value={flashcardAnalytics.totalReviews} />
+            <AnalyticsStat label="Điểm TB" value={flashcardAnalytics.averageScoreLabel} />
+          </View>
+
+          <View style={styles.flashcardStatusPanel}>
+            <FlashcardStatusDonut
+              completed={flashcardAnalytics.completed}
+              inProgress={flashcardAnalytics.inProgress}
+              started={flashcardAnalytics.started}
+            />
+            <View style={styles.flashcardStatusCopy}>
+              <Text style={styles.flashcardStatusTitle}>Final status</Text>
+              <Text style={styles.flashcardStatusText}>
+                {flashcardAnalytics.completed} completed · {flashcardAnalytics.inProgress} in progress · {flashcardAnalytics.started} started
+              </Text>
+              <Text style={styles.flashcardStatusText}>
+                Trung bình {flashcardAnalytics.averageDaysToCompleteLabel} ngày để hoàn thành.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.flashcardSettingsPanel}>
+            <View style={styles.settingInputGroup}>
+              <Text style={styles.filterLabel}>Điểm TB để completed</Text>
+              <TextInput
+                keyboardType="numeric"
+                onChangeText={(value) => handleUpdateCompletionSetting('completionMinAverageQuality', value)}
+                style={styles.settingInput}
+                value={`${libraryState.flashcardLearningSettings?.completionMinAverageQuality ?? 4}`}
+              />
+            </View>
+            <View style={styles.settingInputGroup}>
+              <Text style={styles.filterLabel}>Số lần test tối thiểu</Text>
+              <TextInput
+                keyboardType="numeric"
+                onChangeText={(value) => handleUpdateCompletionSetting('completionMinReviewCount', value)}
+                style={styles.settingInput}
+                value={`${libraryState.flashcardLearningSettings?.completionMinReviewCount ?? 3}`}
+              />
             </View>
           </View>
 
@@ -1298,6 +1366,95 @@ function getToolRoadmapText(toolId: LearningToolId) {
   return 'Chuẩn hóa xuất CSV/Excel/Anki text; Google Sheets vẫn cần OAuth, còn Anki .apkg cần parser/package riêng.';
 }
 
+function AnalyticsStat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <View style={styles.analyticsStat}>
+      <Text style={styles.analyticsStatValue}>{value}</Text>
+      <Text style={styles.analyticsStatLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function FlashcardStatusDonut({
+  completed,
+  inProgress,
+  started,
+}: {
+  completed: number;
+  inProgress: number;
+  started: number;
+}) {
+  const total = Math.max(1, completed + inProgress + started);
+  const radius = 34;
+  const circumference = 2 * Math.PI * radius;
+  const segments = [
+    { color: '#16A34A', value: completed },
+    { color: '#2563EB', value: inProgress },
+    { color: '#F59E0B', value: started },
+  ];
+  let offset = 0;
+
+  return (
+    <View style={styles.donutWrap}>
+      <Svg height={86} width={86} viewBox="0 0 86 86">
+        <Circle cx="43" cy="43" fill="none" r={radius} stroke="#E2E8F0" strokeWidth="10" />
+        {segments.map((segment) => {
+          const dash = (segment.value / total) * circumference;
+          const strokeDashoffset = -offset;
+          offset += dash;
+
+          return (
+            <Circle
+              key={segment.color}
+              cx="43"
+              cy="43"
+              fill="none"
+              r={radius}
+              rotation="-90"
+              origin="43,43"
+              stroke={segment.color}
+              strokeDasharray={`${dash} ${circumference - dash}`}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              strokeWidth="10"
+            />
+          );
+        })}
+      </Svg>
+      <Text style={styles.donutCenter}>{completed}</Text>
+    </View>
+  );
+}
+
+function getFlashcardAnalytics(state: LibraryState, dueToday: number) {
+  const reviewEvents = state.flashcardReviewEvents ?? [];
+  const totalReviews = reviewEvents.length;
+  const averageScore = totalReviews ? reviewEvents.reduce((sum, event) => sum + event.quality, 0) / totalReviews : 0;
+  const completedCards = state.flashcards.filter((card) => card.finalStatus === 'completed');
+  const completedDurations = completedCards.flatMap((card) => {
+    if (!card.completedAt) return [];
+    const createdAt = new Date(card.createdAt).getTime();
+    const completedAt = new Date(card.completedAt).getTime();
+    if (!Number.isFinite(createdAt) || !Number.isFinite(completedAt)) return [];
+
+    return [Math.max(0, Math.ceil((completedAt - createdAt) / 86_400_000))];
+  });
+  const averageDaysToComplete = completedDurations.length
+    ? completedDurations.reduce((sum, value) => sum + value, 0) / completedDurations.length
+    : 0;
+
+  return {
+    averageDaysToCompleteLabel: completedDurations.length ? averageDaysToComplete.toFixed(1) : '0',
+    averageScoreLabel: totalReviews ? averageScore.toFixed(1) : '0',
+    completed: completedCards.length,
+    dueToday,
+    inProgress: state.flashcards.filter((card) => card.finalStatus === 'in_progress').length,
+    started: state.flashcards.filter((card) => !card.finalStatus || card.finalStatus === 'started').length,
+    totalCards: state.flashcards.length,
+    totalReviews,
+  };
+}
+
 function formatFlashcardType(type: FlashcardType) {
   const option = flashcardOptions.find((item) => item.type === type);
 
@@ -1399,6 +1556,98 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontSize: 12,
     fontWeight: '900',
+  },
+  flashcardAnalyticsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 14,
+  },
+  analyticsStat: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: '45%',
+    padding: 10,
+  },
+  analyticsStatValue: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  analyticsStatLabel: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 4,
+    textTransform: 'uppercase',
+  },
+  flashcardStatusPanel: {
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+    padding: 12,
+  },
+  flashcardStatusCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  flashcardStatusTitle: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  flashcardStatusText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 4,
+  },
+  donutWrap: {
+    alignItems: 'center',
+    height: 86,
+    justifyContent: 'center',
+    width: 86,
+  },
+  donutCenter: {
+    color: '#0F172A',
+    fontSize: 20,
+    fontWeight: '900',
+    position: 'absolute',
+  },
+  flashcardSettingsPanel: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+    padding: 10,
+  },
+  settingInputGroup: {
+    flex: 1,
+    minWidth: 0,
+  },
+  settingInput: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FDBA74',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '900',
+    marginTop: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
   checklist: {
     gap: 8,

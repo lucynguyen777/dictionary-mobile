@@ -270,7 +270,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Activity Streak Foundation - added local app-open day tracking, current/longest streak calculations, and focused streak tests without cloud sync.
 - [x] DONE [MEDIUM]: Profile Dashboard Refactor - turned Profile into an activity dashboard, removed duplicated main-screen settings actions, added saved-word chart ranges, and replaced yearly study calendar with login/app-open streak stats.
 - [x] DONE [HARD]: Flashcard Analytics Data Model - added review events, completion thresholds, final status, completed date, and SQLite/legacy normalization coverage before building analytics UI.
-- [ ] TODO [MEDIUM]: Flashcard Dashboard And Completion Settings - add overview stats, status pie/donut chart, and user-controlled completed thresholds inside Flashcard.
+- [x] DONE [MEDIUM]: Flashcard Dashboard And Completion Settings - added overview stats, status pie/donut chart, and user-controlled completed thresholds inside Flashcard.
 - [ ] TODO [MEDIUM]: Flashcard UX Polish Inspired By Anki/Quizlet - split Flashcard into Dashboard, Study, and Manage modes while preserving create, filter, review, and Anki export flows.
 
 ### Import Dataset
