@@ -335,6 +335,15 @@ When adding or changing behavior:
 - Smoke on a narrow mobile viewport and Expo web.
 - Confirm long text wraps or truncates without overlap.
 - Keep Vietnamese UI copy consistent with nearby screens.
+- When using `DESIGN.md` as reference, adapt its tokens to app screens: 8px buttons/inputs, 12px cards, purple only for primary actions, warm neutral surfaces, and no marketing-page hero decoration in functional workflows.
+
+### UI Refactor Feature Preservation
+- Inventory the actions that existed before the visual change and confirm they remain reachable afterward.
+- Check touched drawer, modal, tab, and action-menu sections still open and close.
+- Verify empty, loading, error, success, disabled, and coming-soon states stay honest and do not imply blocked features are live.
+- Confirm destructive actions still show confirmation and local-first/privacy copy remains accurate.
+- Smoke narrow mobile and desktop Expo web for clipping, overlap, hidden controls, text overflow, and inaccessible fixed actions.
+- For Profile changes specifically, verify settings drawer sections, auth shell, privacy/app lock, notifications, local export/reset, support/legal links, and offline pack install/delete controls still exist.
 
 ### Data Stores And Local Persistence
 - Verify create, update, delete, reload, and reset behavior.

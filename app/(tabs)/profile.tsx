@@ -516,7 +516,7 @@ export default function ProfileScreen() {
               accessibilityRole="button"
               onPress={() => openSidebarSection()}
               style={({ pressed }) => [styles.heroIconButton, pressed && styles.settingsButtonPressed]}>
-              <Ionicons name="settings-outline" size={20} color="#0F172A" />
+              <Ionicons name="settings-outline" size={20} color="#1A1A1A" />
             </Pressable>
           </View>
 
@@ -540,7 +540,7 @@ export default function ProfileScreen() {
               <Text style={styles.primaryHeroActionText} numberOfLines={1}>Chỉnh hồ sơ</Text>
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.84} onPress={handleSaveProfile} style={styles.secondaryHeroAction}>
-              <Ionicons name="save-outline" size={16} color="#2563EB" />
+              <Ionicons name="save-outline" size={16} color="#0075DE" />
               <Text style={styles.secondaryHeroActionText} numberOfLines={1}>Lưu</Text>
             </TouchableOpacity>
           </View>
@@ -581,7 +581,7 @@ export default function ProfileScreen() {
               <Text style={styles.cardSubtitle}>Mục tiêu và dữ liệu học được gom lại để xem nhanh.</Text>
             </View>
             <TouchableOpacity activeOpacity={0.82} onPress={() => openSidebarSection('account')} style={styles.inlineEditButton}>
-              <Ionicons name="create-outline" size={14} color="#2563EB" />
+              <Ionicons name="create-outline" size={14} color="#0075DE" />
               <Text style={styles.inlineEditText}>Sửa</Text>
             </TouchableOpacity>
           </View>
@@ -600,7 +600,7 @@ export default function ProfileScreen() {
               <Text style={styles.cardSubtitle}>{totalLocalItems} mục local, chưa tự động đồng bộ cloud.</Text>
             </View>
             <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={styles.inlineEditButton}>
-              <Ionicons name="cloud-upload-outline" size={14} color="#2563EB" />
+              <Ionicons name="cloud-upload-outline" size={14} color="#0075DE" />
               <Text style={styles.inlineEditText}>Xuất</Text>
             </TouchableOpacity>
           </View>
@@ -611,7 +611,7 @@ export default function ProfileScreen() {
             <DataStat label="Reader" value={readerState.documents.length} />
           </View>
           <View style={styles.privacyNote}>
-            <Ionicons name="lock-closed-outline" size={18} color="#2563EB" />
+            <Ionicons name="lock-closed-outline" size={18} color="#0075DE" />
             <Text style={styles.privacyText}>
               Có {importedWordCount} từ từ import. Quản lý khóa app, thông báo, xuất hoặc xóa dữ liệu trong mục Riêng tư.
             </Text>
@@ -661,7 +661,7 @@ export default function ProfileScreen() {
                       disabled={!canInstall}
                       onPress={() => handleInstallOfflinePack(pack)}
                       style={[styles.offlinePackActionButton, !canInstall && styles.offlinePackActionButtonDisabled]}>
-                      <Ionicons name="download-outline" size={14} color={canInstall ? '#2563EB' : '#94A3B8'} />
+                      <Ionicons name="download-outline" size={14} color={canInstall ? '#0075DE' : '#A4A097'} />
                       <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
                         {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
                       </Text>
@@ -686,7 +686,7 @@ export default function ProfileScreen() {
             );
           })}
           <View style={styles.privacyNote}>
-            <Ionicons name="information-circle-outline" size={18} color="#2563EB" />
+            <Ionicons name="information-circle-outline" size={18} color="#0075DE" />
             <Text style={styles.privacyText}>
               Chưa tải dữ liệu offline trong bản này. Pack sẽ cần xác nhận dung lượng, attribution và license trước khi bật.
             </Text>
@@ -698,7 +698,7 @@ export default function ProfileScreen() {
             <Text style={styles.cardTitle}>Lịch học năm nay</Text>
             <View style={styles.yearPill}>
               <Text style={styles.yearText}>2026</Text>
-              <Ionicons name="caret-down" size={14} color="#64748B" />
+              <Ionicons name="caret-down" size={14} color="#5D5B54" />
             </View>
           </View>
           <View style={styles.heatmapRow}>
@@ -761,7 +761,7 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 onPress={() => setSidebarOpen(false)}
                 style={({ pressed }) => [styles.sidebarCloseButton, pressed && styles.sidebarCloseButtonPressed]}>
-                <Ionicons name="close" size={20} color="#64748B" />
+                <Ionicons name="close" size={20} color="#5D5B54" />
               </Pressable>
             </View>
             <View style={styles.sidebarProfileCard}>
@@ -781,7 +781,7 @@ export default function ProfileScreen() {
                   accessibilityRole="button"
                   onPress={() => setSidebarSection(null)}
                   style={({ pressed }) => [styles.sidebarBackButton, pressed && styles.sidebarBackButtonPressed]}>
-                  <Ionicons name="chevron-back" size={18} color="#2563EB" />
+                  <Ionicons name="chevron-back" size={18} color="#0075DE" />
                 </Pressable>
                 <Text style={styles.sidebarDetailTitle} numberOfLines={1}>{activeSidebarItem.label}</Text>
               </View>
@@ -797,7 +797,7 @@ export default function ProfileScreen() {
                         styles.sidebarNavItem,
                         pressed && styles.sidebarNavItemPressed,
                       ]}>
-                      <Ionicons name={item.icon} size={15} color="#64748B" />
+                      <Ionicons name={item.icon} size={15} color="#5D5B54" />
                       <Text numberOfLines={1} style={styles.sidebarNavItemText}>
                         {item.label}
                       </Text>
@@ -886,7 +886,7 @@ export default function ProfileScreen() {
                   <Text style={styles.fieldHint}>Hồ sơ local vẫn tách khỏi danh tính cloud. Đổi mật khẩu sẽ dùng email khôi phục khi đăng nhập khả dụng.</Text>
                 </View>
                 <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
-                  <Ionicons name="save-outline" size={16} color="#2563EB" />
+                  <Ionicons name="save-outline" size={16} color="#0075DE" />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Lưu thay đổi</Text>
                 </TouchableOpacity>
               </SidebarSection>
@@ -895,7 +895,7 @@ export default function ProfileScreen() {
               {sidebarSection === 'privacy' ? (
               <SidebarSection title="Riêng tư & dữ liệu">
                 <View style={styles.privacyNote}>
-                  <Ionicons name="lock-closed-outline" size={18} color="#2563EB" />
+                  <Ionicons name="lock-closed-outline" size={18} color="#0075DE" />
                   <Text style={styles.privacyText}>
                     Dữ liệu học tập, hồ sơ và file Reader đang lưu local trên thiết bị. Chưa đồng bộ cloud trừ khi bạn bật đăng nhập sau này.
                   </Text>
@@ -908,7 +908,7 @@ export default function ProfileScreen() {
                   <Switch
                     onValueChange={handleToggleAppLock}
                     thumbColor="#FFFFFF"
-                    trackColor={{ false: '#CBD5E1', true: '#2563EB' }}
+                    trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
                     value={profile.appLockEnabled}
                   />
                 </View>
@@ -949,7 +949,7 @@ export default function ProfileScreen() {
                   </View>
                 </View>
                 <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
-                  <Ionicons name="cloud-upload-outline" size={16} color="#2563EB" />
+                  <Ionicons name="cloud-upload-outline" size={16} color="#0075DE" />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Xuất dữ liệu local</Text>
                 </TouchableOpacity>
                 <TouchableOpacity activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
@@ -1006,7 +1006,7 @@ export default function ProfileScreen() {
                     key={item.title}
                     onPress={() => Alert.alert(item.title, item.message, [{ text: 'OK' }])}
                     style={({ pressed }) => [styles.sidebarLegalLink, pressed && styles.sidebarLegalLinkPressed]}>
-                    <Ionicons name={item.icon} size={15} color="#64748B" />
+                    <Ionicons name={item.icon} size={15} color="#5D5B54" />
                     <Text style={styles.sidebarLegalLinkText}>{item.title}</Text>
                   </Pressable>
                 ))}
@@ -1087,7 +1087,7 @@ function AuthStatusPanel({
     <View style={styles.authStatusPanel}>
       <View style={styles.authStatusHeader}>
         <View style={styles.authStatusIcon}>
-          <Ionicons name={canSignOut ? 'cloud-done-outline' : 'cloud-offline-outline'} size={17} color="#2563EB" />
+          <Ionicons name={canSignOut ? 'cloud-done-outline' : 'cloud-offline-outline'} size={17} color="#0075DE" />
         </View>
         <View style={styles.authStatusCopy}>
           <Text style={styles.authStatusTitle} numberOfLines={1}>{copy.title}</Text>
@@ -1115,7 +1115,7 @@ function AuthStatusPanel({
           accessibilityRole="button"
           onPress={onRefreshPress}
           style={({ pressed }) => [styles.authStatusRefreshButton, pressed && styles.authStatusButtonPressed]}>
-          <Ionicons name="refresh" size={16} color="#2563EB" />
+          <Ionicons name="refresh" size={16} color="#0075DE" />
         </Pressable>
       </View>
     </View>
@@ -1189,7 +1189,7 @@ function AuthFormShell({
             pressed && styles.authStatusButtonPressed,
             isBusy && styles.authStatusButtonDisabled,
           ]}>
-          <Ionicons name="person-add-outline" size={15} color="#2563EB" />
+          <Ionicons name="person-add-outline" size={15} color="#0075DE" />
           <Text style={[styles.authFormButtonText, styles.authFormButtonTextSecondary]} numberOfLines={1}>
             {authBusyAction === 'sign-up' ? 'Đang tạo' : 'Tạo tài khoản'}
           </Text>
@@ -1200,7 +1200,7 @@ function AuthFormShell({
         disabled={isBusy}
         onPress={onPasswordRecovery}
         style={({ pressed }) => [styles.authRecoveryButton, pressed && styles.authStatusButtonPressed, isBusy && styles.authStatusButtonDisabled]}>
-        <Ionicons name="mail-outline" size={15} color="#2563EB" />
+        <Ionicons name="mail-outline" size={15} color="#0075DE" />
         <Text style={styles.authRecoveryButtonText} numberOfLines={1}>
           {authBusyAction === 'recovery' ? 'Đang gửi email' : 'Gửi email khôi phục'}
         </Text>
@@ -1229,7 +1229,7 @@ function SidebarActionRow({
   label: string;
   onPress: () => void;
 }) {
-  const iconColor = destructive ? '#DC2626' : disabled ? '#94A3B8' : '#64748B';
+  const iconColor = destructive ? '#DC2626' : disabled ? '#A4A097' : '#5D5B54';
 
   return (
     <Pressable
@@ -1277,7 +1277,7 @@ function NotificationPreferenceRow({
       <Switch
         onValueChange={onValueChange}
         thumbColor="#FFFFFF"
-        trackColor={{ false: '#CBD5E1', true: '#2563EB' }}
+        trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
         value={value}
       />
     </View>
@@ -1338,7 +1338,7 @@ function QuickAction({
   return (
     <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.quickAction}>
       <View style={styles.quickActionIcon}>
-        <Ionicons name={icon} size={17} color="#2563EB" />
+        <Ionicons name={icon} size={17} color="#0075DE" />
       </View>
       <View style={styles.quickActionCopy}>
         <Text style={styles.quickActionLabel} numberOfLines={1}>{label}</Text>
@@ -1360,7 +1360,7 @@ function SummaryRow({
   return (
     <View style={styles.summaryRow}>
       <View style={styles.summaryIcon}>
-        <Ionicons name={icon} size={16} color="#2563EB" />
+        <Ionicons name={icon} size={16} color="#0075DE" />
       </View>
       <Text style={styles.summaryLabel} numberOfLines={1}>{label}</Text>
       <Text style={styles.summaryValue} numberOfLines={1}>{value}</Text>
@@ -1385,8 +1385,8 @@ const styles = StyleSheet.create({
   },
   profileHero: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     gap: 14,
     marginBottom: 12,
@@ -1407,19 +1407,19 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   heroEyebrow: {
-    color: '#64748B',
+    color: '#787671',
     fontSize: 11,
     fontWeight: '900',
     textTransform: 'uppercase',
   },
   heroName: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 22,
     fontWeight: '900',
     marginTop: 2,
   },
   heroMeta: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 18,
@@ -1427,8 +1427,8 @@ const styles = StyleSheet.create({
   },
   heroIconButton: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#F6F5F4',
+    borderColor: '#E5E3DF',
     borderRadius: 999,
     borderWidth: 1,
     height: 40,
@@ -1475,20 +1475,20 @@ const styles = StyleSheet.create({
   },
   profileMetric: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#FAFAF9',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flex: 1,
     paddingVertical: 10,
   },
   profileMetricValue: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 20,
     fontWeight: '900',
   },
   profileMetricLabel: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 11,
     fontWeight: '900',
     marginTop: 2,
@@ -1499,8 +1499,8 @@ const styles = StyleSheet.create({
   },
   primaryHeroAction: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
-    borderRadius: 999,
+    backgroundColor: '#5645D4',
+    borderRadius: 8,
     flex: 1,
     flexDirection: 'row',
     gap: 7,
@@ -1516,9 +1516,9 @@ const styles = StyleSheet.create({
   },
   secondaryHeroAction: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-    borderRadius: 999,
+    backgroundColor: 'transparent',
+    borderColor: '#C8C4BE',
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
@@ -1528,7 +1528,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   secondaryHeroActionText: {
-    color: '#2563EB',
+    color: '#0075DE',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -1541,8 +1541,8 @@ const styles = StyleSheet.create({
   quickAction: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 9,
@@ -1552,7 +1552,7 @@ const styles = StyleSheet.create({
   },
   quickActionIcon: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#DCECFA',
     borderRadius: 999,
     height: 34,
     justifyContent: 'center',
@@ -1563,12 +1563,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   quickActionLabel: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 13,
     fontWeight: '900',
   },
   quickActionDetail: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 11,
     fontWeight: '800',
     marginTop: 2,
@@ -1579,9 +1579,9 @@ const styles = StyleSheet.create({
   },
   inlineEditButton: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-    borderRadius: 999,
+    backgroundColor: 'transparent',
+    borderColor: '#C8C4BE',
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 5,
@@ -1589,7 +1589,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   inlineEditText: {
-    color: '#2563EB',
+    color: '#0075DE',
     fontSize: 12,
     fontWeight: '900',
   },
@@ -1599,9 +1599,9 @@ const styles = StyleSheet.create({
   },
   summaryRow: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#FAFAF9',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 9,
@@ -1611,21 +1611,21 @@ const styles = StyleSheet.create({
   },
   summaryIcon: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#DCECFA',
     borderRadius: 999,
     height: 30,
     justifyContent: 'center',
     width: 30,
   },
   summaryLabel: {
-    color: '#64748B',
+    color: '#5D5B54',
     flexShrink: 0,
     fontSize: 12,
     fontWeight: '900',
     width: 92,
   },
   summaryValue: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     flex: 1,
     fontSize: 13,
     fontWeight: '900',
@@ -1646,8 +1646,8 @@ const styles = StyleSheet.create({
   settingsButton: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 999,
+    borderColor: '#E5E3DF',
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
@@ -1655,12 +1655,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   settingsButtonPressed: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F6F5F4',
+    borderColor: '#C8C4BE',
     transform: [{ scale: 0.98 }],
   },
   settingsButtonText: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -1684,7 +1684,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#00000066',
   },
   sidebarSheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAFAF9',
     bottom: 0,
     elevation: 22,
     left: 0,
@@ -1710,18 +1710,18 @@ const styles = StyleSheet.create({
     width: 36,
   },
   sidebarCloseButtonPressed: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F0EEEC',
   },
   sidebarTitle: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 16,
     fontWeight: '900',
   },
   sidebarProfileCard: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
@@ -1738,18 +1738,18 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   sidebarProfileName: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 14,
     fontWeight: '900',
   },
   sidebarProfileMeta: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 12,
     fontWeight: '700',
     marginTop: 2,
   },
   sidebarGroupLabel: {
-    color: '#94A3B8',
+    color: '#787671',
     fontSize: 10,
     fontWeight: '900',
     marginBottom: 7,
@@ -1761,8 +1761,8 @@ const styles = StyleSheet.create({
   },
   sidebarNavItem: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E3DF',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -1772,25 +1772,25 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   sidebarNavItemActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#E6E0F5',
+    borderColor: '#D6B6F6',
   },
   sidebarNavItemPressed: {
     opacity: 0.88,
   },
   sidebarNavItemText: {
-    color: '#64748B',
+    color: '#5D5B54',
     flex: 1,
     fontSize: 13,
     fontWeight: '900',
     minWidth: 0,
   },
   sidebarNavItemTextActive: {
-    color: '#2563EB',
+    color: '#391C57',
   },
   sidebarDetailHeader: {
     alignItems: 'center',
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#E5E3DF',
     borderBottomWidth: 1,
     flexDirection: 'row',
     gap: 8,
@@ -1805,10 +1805,10 @@ const styles = StyleSheet.create({
     width: 34,
   },
   sidebarBackButtonPressed: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F0EEEC',
   },
   sidebarDetailTitle: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     flex: 1,
     fontSize: 15,
     fontWeight: '900',
@@ -1821,7 +1821,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   sidebarSectionTitle: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 0.4,
@@ -1829,9 +1829,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   authStatusPanel: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#DBEAFE',
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     gap: 10,
     marginBottom: 12,
@@ -1844,7 +1844,7 @@ const styles = StyleSheet.create({
   },
   authStatusIcon: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#DCECFA',
     borderRadius: 999,
     height: 34,
     justifyContent: 'center',
@@ -1855,12 +1855,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   authStatusTitle: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 13,
     fontWeight: '900',
   },
   authStatusText: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
@@ -1882,7 +1882,7 @@ const styles = StyleSheet.create({
   },
   authStatusButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#5645D4',
     borderRadius: 8,
     flex: 1,
     justifyContent: 'center',
@@ -1890,7 +1890,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   authStatusButtonSecondary: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#E6E0F5',
   },
   authStatusButtonPressed: {
     opacity: 0.86,
@@ -1904,12 +1904,12 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   authStatusButtonTextSecondary: {
-    color: '#2563EB',
+    color: '#391C57',
   },
   authStatusRefreshButton: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#BFDBFE',
+    borderColor: '#C8C4BE',
     borderRadius: 8,
     borderWidth: 1,
     height: 38,
@@ -1918,8 +1918,8 @@ const styles = StyleSheet.create({
   },
   authFormPanel: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     marginBottom: 12,
     padding: 12,
@@ -1934,7 +1934,7 @@ const styles = StyleSheet.create({
   },
   authFormButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#5645D4',
     borderRadius: 8,
     flex: 1,
     flexDirection: 'row',
@@ -1944,7 +1944,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   authFormButtonSecondary: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#C8C4BE',
+    borderWidth: 1,
   },
   authFormButtonText: {
     color: '#FFFFFF',
@@ -1953,7 +1955,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   authFormButtonTextSecondary: {
-    color: '#2563EB',
+    color: '#0075DE',
   },
   authRecoveryButton: {
     alignItems: 'center',
@@ -1967,7 +1969,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   authRecoveryButtonText: {
-    color: '#2563EB',
+    color: '#0075DE',
     fontSize: 12,
     fontWeight: '900',
   },
@@ -1981,16 +1983,16 @@ const styles = StyleSheet.create({
     width: 72,
   },
   sidebarAvatarAction: {
-    borderRadius: 999,
+    borderRadius: 8,
     marginTop: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   sidebarAvatarActionPressed: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F6F5F4',
   },
   sidebarAvatarActionText: {
-    color: '#2563EB',
+    color: '#0075DE',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -2001,8 +2003,8 @@ const styles = StyleSheet.create({
   },
   sidebarActionRow: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E3DF',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2013,18 +2015,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   sidebarActionRowPressed: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F6F5F4',
   },
   sidebarActionRowDestructive: {
     backgroundColor: '#FEF2F2',
     borderColor: '#FECACA',
   },
   sidebarActionRowDisabled: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F6F5F4',
     opacity: 0.82,
   },
   sidebarActionText: {
-    color: '#334155',
+    color: '#37352F',
     flex: 1,
     fontSize: 13,
     fontWeight: '800',
@@ -2035,12 +2037,12 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   sidebarActionTextDisabled: {
-    color: '#94A3B8',
+    color: '#A4A097',
   },
   sidebarActionBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F0EEEC',
     borderRadius: 999,
-    color: '#94A3B8',
+    color: '#787671',
     fontSize: 11,
     fontWeight: '900',
     maxWidth: 74,
@@ -2048,7 +2050,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   sidebarLegalFooter: {
-    borderTopColor: '#E2E8F0',
+    borderTopColor: '#E5E3DF',
     borderTopWidth: 1,
     gap: 6,
     marginTop: 6,
@@ -2063,21 +2065,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   sidebarLegalLinkPressed: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F6F5F4',
   },
   sidebarLegalLinkText: {
-    color: '#64748B',
+    color: '#5D5B54',
     flex: 1,
     fontSize: 12,
     fontWeight: '800',
     minWidth: 0,
   },
   profileInputDisabled: {
-    backgroundColor: '#F1F5F9',
-    color: '#94A3B8',
+    backgroundColor: '#F0EEEC',
+    color: '#A4A097',
   },
   fieldHint: {
-    color: '#94A3B8',
+    color: '#787671',
     fontSize: 11,
     fontWeight: '700',
     lineHeight: 16,
@@ -2085,15 +2087,17 @@ const styles = StyleSheet.create({
   },
   saveProfileButton: {
     alignItems: 'center',
-    backgroundColor: '#EAF1FF',
-    borderRadius: 999,
+    backgroundColor: 'transparent',
+    borderColor: '#C8C4BE',
+    borderRadius: 8,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
     paddingHorizontal: 13,
     paddingVertical: 9,
   },
   saveProfileText: {
-    color: '#2563EB',
+    color: '#0075DE',
     flexShrink: 1,
     fontSize: 13,
     fontWeight: '900',
@@ -2107,21 +2111,21 @@ const styles = StyleSheet.create({
   },
   userName: {
     alignSelf: 'center',
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 22,
     fontWeight: '900',
     marginTop: 16,
   },
   userMeta: {
     alignSelf: 'center',
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 13,
     fontWeight: '700',
     marginTop: 5,
   },
   saveMessage: {
     alignSelf: 'center',
-    color: '#166534',
+    color: '#1AAE39',
     fontSize: 12,
     fontWeight: '800',
     marginTop: 8,
@@ -2135,24 +2139,26 @@ const styles = StyleSheet.create({
   metricCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 12,
     flex: 1,
     paddingVertical: 14,
   },
   metricValue: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 22,
     fontWeight: '900',
   },
   metricLabel: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 11,
     fontWeight: '800',
     marginTop: 4,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
+    borderWidth: 1,
     marginBottom: 12,
     overflow: 'hidden',
     padding: 14,
@@ -2163,12 +2169,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   cardTitle: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 15,
     fontWeight: '900',
   },
   cardSubtitle: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
@@ -2178,18 +2184,18 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   fieldLabel: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 11,
     fontWeight: '900',
     marginTop: 12,
     textTransform: 'uppercase',
   },
   profileInput: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#C8C4BE',
     borderRadius: 8,
     borderWidth: 1,
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 14,
     fontWeight: '800',
     marginTop: 7,
@@ -2203,36 +2209,36 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   optionChip: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E3DF',
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 11,
     paddingVertical: 8,
   },
   optionChipActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    backgroundColor: '#E6E0F5',
+    borderColor: '#5645D4',
   },
   optionChipText: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 12,
     fontWeight: '900',
   },
   optionChipTextActive: {
-    color: '#2563EB',
+    color: '#391C57',
   },
   privacyNote: {
     alignItems: 'flex-start',
-    backgroundColor: '#EFF6FF',
-    borderRadius: 8,
+    backgroundColor: '#DCECFA',
+    borderRadius: 12,
     flexDirection: 'row',
     gap: 9,
     marginTop: 12,
     padding: 11,
   },
   privacyText: {
-    color: '#475569',
+    color: '#37352F',
     flex: 1,
     fontSize: 12,
     fontWeight: '700',
@@ -2240,9 +2246,9 @@ const styles = StyleSheet.create({
   },
   securityRow: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
@@ -2254,21 +2260,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   securityTitle: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 13,
     fontWeight: '900',
   },
   securityText: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 3,
   },
   notificationPanel: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#F6F5F4',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     gap: 8,
     marginTop: 8,
@@ -2277,8 +2283,8 @@ const styles = StyleSheet.create({
   notificationRow: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
@@ -2289,19 +2295,19 @@ const styles = StyleSheet.create({
   notificationTimeRow: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
     padding: 10,
   },
   notificationTimeInput: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#C8C4BE',
     borderRadius: 8,
     borderWidth: 1,
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 13,
     fontWeight: '900',
     paddingHorizontal: 10,
@@ -2323,9 +2329,9 @@ const styles = StyleSheet.create({
   },
   offlinePackRow: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#FAFAF9',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
@@ -2349,7 +2355,7 @@ const styles = StyleSheet.create({
     maxWidth: 156,
   },
   offlinePackRuntimeText: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 10,
     fontWeight: '800',
     lineHeight: 13,
@@ -2370,8 +2376,8 @@ const styles = StyleSheet.create({
   },
   offlinePackActionButton: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#C8C4BE',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2381,16 +2387,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   offlinePackActionButtonDisabled: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
+    backgroundColor: '#F0EEEC',
+    borderColor: '#E5E3DF',
   },
   offlinePackActionText: {
-    color: '#2563EB',
+    color: '#0075DE',
     fontSize: 11,
     fontWeight: '900',
   },
   offlinePackActionTextDisabled: {
-    color: '#94A3B8',
+    color: '#A4A097',
   },
   offlinePackDeleteButton: {
     alignItems: 'center',
@@ -2410,20 +2416,20 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   dataStat: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#FAFAF9',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
     borderWidth: 1,
     padding: 11,
     width: '48%',
   },
   dataStatValue: {
-    color: '#0F172A',
+    color: '#1A1A1A',
     fontSize: 20,
     fontWeight: '900',
   },
   dataStatLabel: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 11,
     fontWeight: '900',
     marginTop: 4,
@@ -2433,7 +2439,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FEF2F2',
     borderColor: '#FECACA',
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
@@ -2448,7 +2454,7 @@ const styles = StyleSheet.create({
   },
   yearPill: {
     alignItems: 'center',
-    borderColor: '#E2E8F0',
+    borderColor: '#E5E3DF',
     borderRadius: 13,
     borderWidth: 1,
     flexDirection: 'row',
@@ -2457,7 +2463,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
   },
   yearText: {
-    color: '#64748B',
+    color: '#5D5B54',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -2480,16 +2486,16 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   square: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E5E3DF',
     borderRadius: 2,
     height: 8,
     width: 8,
   },
   squareStrong: {
-    backgroundColor: '#93C5FD',
+    backgroundColor: '#DCECFA',
   },
   squareDark: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#5645D4',
   },
   legend: {
     alignItems: 'center',
@@ -2502,7 +2508,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   legendSquare: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E5E3DF',
     borderRadius: 2,
     height: 8,
     marginHorizontal: 1,
@@ -2523,7 +2529,7 @@ const styles = StyleSheet.create({
     width: 32,
   },
   gridRule: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#E5E3DF',
     flex: 1,
     height: 1,
   },
@@ -2535,7 +2541,7 @@ const styles = StyleSheet.create({
     top: 6,
   },
   lineDot: {
-    backgroundColor: '#2F70FF',
+    backgroundColor: '#5645D4',
     borderRadius: 4,
     height: 8,
     marginLeft: -4,

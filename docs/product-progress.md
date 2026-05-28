@@ -169,6 +169,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Localized small UI strings and polished lookup error presentation (commit `a6f1c79`).
 - [x] DONE [EASY]: Add bottom-right scroll-to-top controls on long lookup and folder pages.
 - [x] DONE [EASY]: Compact Profile tab into a learning-dashboard layout with hero summary, quick settings actions, concise route/data cards, and moved detailed editing into the settings drawer.
+- [x] DONE [EASY]: Adopt `DESIGN.md` as the UI reference source, adapt its rules into app-specific UI/UX guidance, and require feature-preservation smoke checks for UI refactors.
 
 
 ### Dictionary Lookup
