@@ -117,4 +117,6 @@ The runner wiring draft now lives in `data/supabaseSyncRunner.ts`, with focused 
 
 The manual runtime smoke harness now lives in `data/supabaseSyncSmokeHarness.ts`, with focused coverage in `tests/supabaseSyncSmokeHarness.test.ts`.
 
-The next module can be **Supabase Cloud Sync Production Toggle Decision Prep**. Production UI actions, lifecycle/background sync, realtime, encrypted backup, and restore UX remain out of scope until the product gate is accepted after manual smoke.
+The production toggle decision prep now lives in `docs/supabase-cloud-sync-production-toggle-decision.md`.
+
+The next module can be **Supabase Cloud Sync Manual Smoke Execution Prep**. Production UI actions, lifecycle/background sync, realtime, encrypted backup, and restore UX remain out of scope until auth smoke, SQL/RLS probes, two-device manual sync smoke, and product toggle acceptance are complete.

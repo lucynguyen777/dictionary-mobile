@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Production Toggle Decision Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-production-toggle-decision.md` to define the gate before any production sync UI, lifecycle hook, or background sync.
+- [x] DONE [HARD]: Documented current implemented sync foundations and explicitly listed still-missing production pieces.
+- [x] DONE [HARD]: Compared manual harness only, Settings beta toggle, auto foreground sync, and background/realtime sync options.
+- [x] DONE [HARD]: Recommended a Profile/Settings opt-in beta toggle only after auth, SQL/RLS, and two-device manual smoke pass.
+- [x] DONE [HARD]: Documented acceptance gates and the first post-acceptance module, **Supabase Cloud Sync Profile Beta Toggle Shell**, while keeping production sync blocked.
+
 **Module: Supabase Cloud Sync Manual Runtime Smoke Harness** - DONE
 - [x] DONE [HARD]: Added `data/supabaseSyncSmokeHarness.ts` as an explicit opt-in manual harness for disposable Supabase sync smoke.
 - [x] DONE [HARD]: Kept the harness skipped by default so it does not open SQLite or call Supabase without `enabled: true`.
@@ -736,7 +743,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the manual runtime smoke harness. Recommended next module: **Supabase Cloud Sync Production Toggle Decision Prep**, because manual smoke can now be run explicitly but production UI/lifecycle sync still needs a separate accepted gate.
+No active next implementation module selected after the production toggle decision prep. Recommended next module: **Supabase Cloud Sync Manual Smoke Execution Prep**, because the production toggle remains blocked until auth smoke, SQL/RLS probes, and two-device manual sync smoke are actually run and recorded.
 
 ## Blocked Module Execution Order
 
@@ -902,6 +909,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added injected-port smoke run support for selected domains and deterministic clocks.
 - [x] DONE [HARD]: Added focused harness tests in `tests/supabaseSyncSmokeHarness.test.ts`.
 - [x] DONE [HARD]: Updated `docs/supabase-cloud-sync-manual-smoke.md` with harness guardrails.
+
+**Module: Supabase Cloud Sync Production Toggle Decision Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-production-toggle-decision.md` for production sync UI/lifecycle gating.
+- [x] DONE [HARD]: Documented remaining missing pieces before production sync can be exposed.
+- [x] DONE [HARD]: Compared production toggle options and recommended Profile/Settings opt-in beta after manual smoke.
+- [x] DONE [HARD]: Documented required product decisions for first surface, opt-in policy, states, domain scope, conflict detail, and failure reporting.
+- [x] DONE [HARD]: Kept production sync UI/lifecycle implementation blocked until acceptance gates pass.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.
