@@ -113,4 +113,6 @@ The runtime adapter draft now lives in `data/supabaseSyncRuntimeAdapter.ts`, wit
 
 The local port draft now lives in `data/supabaseSyncLocalPort.ts`, with focused coverage in `tests/supabaseSyncLocalPort.test.ts`.
 
-The next module can be **Supabase Cloud Sync Runner Wiring Draft**. It should compose the runtime adapter and local port behind explicit auth/env/offline guards, without adding a production sync toggle, realtime, background jobs, encrypted backup, or restore UX.
+The runner wiring draft now lives in `data/supabaseSyncRunner.ts`, with focused coverage in `tests/supabaseSyncRunner.test.ts`.
+
+The next module can be **Supabase Cloud Sync Manual Runtime Smoke Harness**. It should expose the guarded runner only through a developer/manual harness for disposable-project smoke. UI actions, lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles remain out of scope.

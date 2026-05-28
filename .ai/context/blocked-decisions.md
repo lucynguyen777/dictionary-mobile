@@ -42,7 +42,7 @@ Acceptance gate:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`; fake-client contract added in `data/supabaseSyncClient.ts`; manual smoke prep added in `docs/supabase-cloud-sync-manual-smoke.md`; guarded runtime adapter draft added in `data/supabaseSyncRuntimeAdapter.ts`; local SQLite sync port draft added in `data/supabaseSyncLocalPort.ts`. The next staged TODO can be guarded runner wiring only.
+Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`; fake-client contract added in `data/supabaseSyncClient.ts`; manual smoke prep added in `docs/supabase-cloud-sync-manual-smoke.md`; guarded runtime adapter draft added in `data/supabaseSyncRuntimeAdapter.ts`; local SQLite sync port draft added in `data/supabaseSyncLocalPort.ts`; guarded runner wiring added in `data/supabaseSyncRunner.ts`. The next staged TODO can be a manual runtime smoke harness only.
 
 Accepted:
 - Supabase backend architecture
@@ -62,12 +62,13 @@ Allowed preparatory work:
 - Follow `docs/supabase-cloud-sync-manual-smoke.md`
 - Keep guarded runtime adapter tests for unconfigured, offline, signed-out, cursor pull, and authenticated upsert behavior
 - Keep local SQLite sync port tests for cursor, dirty-row, mark-pushed, and tombstone behavior
-- Add guarded runner wiring before any UI or production sync toggle
+- Keep guarded runner wiring tests for default unconfigured safety and selected-domain orchestration
+- Add a manual runtime smoke harness before any UI or production sync toggle
 - Keep encrypted backup/restore UX as staged follow-up work
 - Keep offline dictionary packs out of sync MVP scope
 
 Acceptance gate:
-- Guarded runner wiring may start after the local SQLite sync port exists; a production sync toggle still requires actual auth/schema/two-device smoke passing on the target platforms.
+- Manual runtime smoke harness may start after guarded runner wiring exists; a production sync toggle still requires actual auth/schema/two-device smoke passing on the target platforms.
 
 ---
 

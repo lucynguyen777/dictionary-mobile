@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Runner Wiring Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncRunner.ts` as the guarded composition point for the sync runner, runtime adapter, and local SQLite port.
+- [x] DONE [HARD]: Kept default runner state unconfigured unless a real Supabase auth client factory is injected by later app wiring.
+- [x] DONE [HARD]: Added selected-domain and per-run clock overrides for manual smoke and focused sync tests.
+- [x] DONE [HARD]: Added `tests/supabaseSyncRunner.test.ts` for default unconfigured safety, injected port orchestration, and per-run override behavior.
+- [x] DONE [HARD]: Kept UI actions, app lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles out of scope; next module is **Supabase Cloud Sync Manual Runtime Smoke Harness**.
+
 **Module: Supabase Cloud Sync Local Port Draft** - DONE
 - [x] DONE [HARD]: Added `data/supabaseSyncLocalPort.ts` as the SQLite local-port boundary for the existing sync runner.
 - [x] DONE [HARD]: Added per-domain cursor load/record behavior using `user_sync_cursors`.
@@ -722,7 +729,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the local port draft. Recommended next module: **Supabase Cloud Sync Runner Wiring Draft**, because the Supabase runtime adapter and local SQLite port now exist but the app still needs a guarded composition point before any manual smoke or production toggle.
+No active next implementation module selected after the runner wiring draft. Recommended next module: **Supabase Cloud Sync Manual Runtime Smoke Harness**, because the guarded runner now exists but should be exposed only through a developer/manual harness before any app lifecycle or production toggle.
 
 ## Blocked Module Execution Order
 
@@ -874,6 +881,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added dirty-row discovery by sync status for profile, library, flashcards, reader, search history, memberships, and tombstones.
 - [x] DONE [HARD]: Added pushed-row metadata cleanup and remote tombstone soft-delete application.
 - [x] DONE [HARD]: Added focused local-port tests without wiring runtime sync into app lifecycle.
+
+**Module: Supabase Cloud Sync Runner Wiring Draft** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncRunner.ts` to compose the sync runner, runtime adapter, and local SQLite port.
+- [x] DONE [HARD]: Kept the default runner unconfigured until app wiring injects the real Supabase auth client factory.
+- [x] DONE [HARD]: Added selected-domain and per-run clock override support for manual smoke paths.
+- [x] DONE [HARD]: Added focused runner wiring tests in `tests/supabaseSyncRunner.test.ts`.
+- [x] DONE [HARD]: Left UI, lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles for later modules.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.
