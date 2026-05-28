@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Manual Runtime Smoke Harness** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncSmokeHarness.ts` as an explicit opt-in manual harness for disposable Supabase sync smoke.
+- [x] DONE [HARD]: Kept the harness skipped by default so it does not open SQLite or call Supabase without `enabled: true`.
+- [x] DONE [HARD]: Required an injected Supabase client factory or client port before the harness can run.
+- [x] DONE [HARD]: Added `tests/supabaseSyncSmokeHarness.test.ts` for default skip, missing-client skip, and injected-port run behavior.
+- [x] DONE [HARD]: Updated manual smoke docs while keeping Profile UI, app lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles out of scope; next module is **Supabase Cloud Sync Production Toggle Decision Prep**.
+
 **Module: Supabase Cloud Sync Runner Wiring Draft** - DONE
 - [x] DONE [HARD]: Added `data/supabaseSyncRunner.ts` as the guarded composition point for the sync runner, runtime adapter, and local SQLite port.
 - [x] DONE [HARD]: Kept default runner state unconfigured unless a real Supabase auth client factory is injected by later app wiring.
@@ -729,7 +736,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the runner wiring draft. Recommended next module: **Supabase Cloud Sync Manual Runtime Smoke Harness**, because the guarded runner now exists but should be exposed only through a developer/manual harness before any app lifecycle or production toggle.
+No active next implementation module selected after the manual runtime smoke harness. Recommended next module: **Supabase Cloud Sync Production Toggle Decision Prep**, because manual smoke can now be run explicitly but production UI/lifecycle sync still needs a separate accepted gate.
 
 ## Blocked Module Execution Order
 
@@ -888,6 +895,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Added selected-domain and per-run clock override support for manual smoke paths.
 - [x] DONE [HARD]: Added focused runner wiring tests in `tests/supabaseSyncRunner.test.ts`.
 - [x] DONE [HARD]: Left UI, lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles for later modules.
+
+**Module: Supabase Cloud Sync Manual Runtime Smoke Harness** - DONE
+- [x] DONE [HARD]: Added `data/supabaseSyncSmokeHarness.ts` for explicit developer/manual sync smoke runs.
+- [x] DONE [HARD]: Kept harness execution disabled by default and safe when no client boundary is injected.
+- [x] DONE [HARD]: Added injected-port smoke run support for selected domains and deterministic clocks.
+- [x] DONE [HARD]: Added focused harness tests in `tests/supabaseSyncSmokeHarness.test.ts`.
+- [x] DONE [HARD]: Updated `docs/supabase-cloud-sync-manual-smoke.md` with harness guardrails.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.

@@ -115,4 +115,6 @@ The local port draft now lives in `data/supabaseSyncLocalPort.ts`, with focused 
 
 The runner wiring draft now lives in `data/supabaseSyncRunner.ts`, with focused coverage in `tests/supabaseSyncRunner.test.ts`.
 
-The next module can be **Supabase Cloud Sync Manual Runtime Smoke Harness**. It should expose the guarded runner only through a developer/manual harness for disposable-project smoke. UI actions, lifecycle/background sync, realtime, encrypted backup, restore UX, and production sync toggles remain out of scope.
+The manual runtime smoke harness now lives in `data/supabaseSyncSmokeHarness.ts`, with focused coverage in `tests/supabaseSyncSmokeHarness.test.ts`.
+
+The next module can be **Supabase Cloud Sync Production Toggle Decision Prep**. Production UI actions, lifecycle/background sync, realtime, encrypted backup, and restore UX remain out of scope until the product gate is accepted after manual smoke.

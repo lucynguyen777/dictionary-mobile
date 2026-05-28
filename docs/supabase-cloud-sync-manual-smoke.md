@@ -91,7 +91,7 @@ Run before committing sync smoke-related changes:
 
 ```bash
 git diff --check
-npm test -- --run tests/supabaseSyncClient.test.ts tests/supabaseSyncMappers.test.ts tests/userDatabaseSyncMetadata.test.ts tests/supabaseCloudSyncMigration.test.ts
+npm test -- --run tests/supabaseSyncSmokeHarness.test.ts tests/supabaseSyncRunner.test.ts tests/supabaseSyncClient.test.ts tests/supabaseSyncMappers.test.ts tests/userDatabaseSyncMetadata.test.ts tests/supabaseCloudSyncMigration.test.ts
 npx tsc --noEmit
 npm run lint
 ```
@@ -103,6 +103,19 @@ npm run web
 ```
 
 Then run auth smoke first, SQL/RLS probes second, and the two-device sync script only after runtime sync wiring exists.
+
+## Manual Runtime Harness
+
+`data/supabaseSyncSmokeHarness.ts` provides an explicit opt-in manual harness for disposable-project smoke. By default it returns `skipped` and does not open SQLite or call Supabase.
+
+The harness may run only when:
+
+- `enabled: true` is passed by a developer/manual smoke path;
+- a Supabase client factory or test client port is injected;
+- local env values are uncommitted;
+- auth smoke and SQL/RLS review have already passed.
+
+Do not call this harness from app startup, Profile UI, background jobs, or production settings until the two-device manual smoke has passed and a separate production toggle module is accepted.
 
 ## Acceptance Gate
 
