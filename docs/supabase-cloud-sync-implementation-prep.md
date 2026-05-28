@@ -119,4 +119,6 @@ The manual runtime smoke harness now lives in `data/supabaseSyncSmokeHarness.ts`
 
 The production toggle decision prep now lives in `docs/supabase-cloud-sync-production-toggle-decision.md`.
 
-The next module can be **Supabase Cloud Sync Manual Smoke Execution Prep**. Production UI actions, lifecycle/background sync, realtime, encrypted backup, and restore UX remain out of scope until auth smoke, SQL/RLS probes, two-device manual sync smoke, and product toggle acceptance are complete.
+The manual smoke execution prep now lives in `docs/supabase-cloud-sync-manual-smoke-execution.md`.
+
+The next module can be **Supabase Cloud Sync Smoke Result Review** only after a real disposable-project smoke run exists. Production UI actions, lifecycle/background sync, realtime, encrypted backup, and restore UX remain out of scope until auth smoke, SQL/RLS probes, two-device manual sync smoke, and product toggle acceptance are complete.

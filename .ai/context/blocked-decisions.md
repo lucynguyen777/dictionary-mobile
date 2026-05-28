@@ -42,7 +42,7 @@ Acceptance gate:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`; fake-client contract added in `data/supabaseSyncClient.ts`; manual smoke prep added in `docs/supabase-cloud-sync-manual-smoke.md`; guarded runtime adapter draft added in `data/supabaseSyncRuntimeAdapter.ts`; local SQLite sync port draft added in `data/supabaseSyncLocalPort.ts`; guarded runner wiring added in `data/supabaseSyncRunner.ts`; manual runtime smoke harness added in `data/supabaseSyncSmokeHarness.ts`; production toggle decision prep added in `docs/supabase-cloud-sync-production-toggle-decision.md`. Production toggle remains gated.
+Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`; fake-client contract added in `data/supabaseSyncClient.ts`; manual smoke prep added in `docs/supabase-cloud-sync-manual-smoke.md`; guarded runtime adapter draft added in `data/supabaseSyncRuntimeAdapter.ts`; local SQLite sync port draft added in `data/supabaseSyncLocalPort.ts`; guarded runner wiring added in `data/supabaseSyncRunner.ts`; manual runtime smoke harness added in `data/supabaseSyncSmokeHarness.ts`; production toggle decision prep added in `docs/supabase-cloud-sync-production-toggle-decision.md`; manual smoke execution prep added in `docs/supabase-cloud-sync-manual-smoke-execution.md`. Production toggle remains gated.
 
 Accepted:
 - Supabase backend architecture
@@ -65,12 +65,13 @@ Allowed preparatory work:
 - Keep guarded runner wiring tests for default unconfigured safety and selected-domain orchestration
 - Keep manual runtime smoke harness tests for default skip and explicit opt-in behavior
 - Follow `docs/supabase-cloud-sync-production-toggle-decision.md`
-- Prepare manual smoke execution notes before any UI, lifecycle, background, or production sync toggle
+- Follow `docs/supabase-cloud-sync-manual-smoke-execution.md`
+- Review real manual smoke results before any UI, lifecycle, background, or production sync toggle
 - Keep encrypted backup/restore UX as staged follow-up work
 - Keep offline dictionary packs out of sync MVP scope
 
 Acceptance gate:
-- Production sync UI/lifecycle toggle remains blocked until actual auth/schema/two-device smoke passes on target platforms and the production toggle decision is accepted.
+- Production sync UI/lifecycle toggle remains blocked until actual auth/schema/two-device smoke passes on target platforms, results are reviewed, and the production toggle decision is accepted.
 
 ---
 

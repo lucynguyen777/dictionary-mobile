@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Supabase Cloud Sync Manual Smoke Execution Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-manual-smoke-execution.md` with the execution order for static verification, auth smoke, SQL/RLS review, RLS probes, runtime harness smoke, two-device smoke, and rollback checks.
+- [x] DONE [HARD]: Added a local-only result template that avoids committing project URLs, user ids, emails, tokens, screenshots, or service-role secrets.
+- [x] DONE [HARD]: Documented pass criteria for auth, RLS, harness safety, two-device create/update/delete/tombstone flow, sign-out preservation, export readability, and no-secret handling.
+- [x] DONE [HARD]: Documented failure handling that keeps production sync blocked and requires focused follow-up modules.
+- [x] DONE [HARD]: Linked the execution prep from `docs/supabase-cloud-sync-manual-smoke.md`; next module is **Supabase Cloud Sync Smoke Result Review** after a real disposable-project smoke run exists.
+
 **Module: Supabase Cloud Sync Production Toggle Decision Prep** - DONE
 - [x] DONE [HARD]: Added `docs/supabase-cloud-sync-production-toggle-decision.md` to define the gate before any production sync UI, lifecycle hook, or background sync.
 - [x] DONE [HARD]: Documented current implemented sync foundations and explicitly listed still-missing production pieces.
@@ -743,7 +750,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active next implementation module selected after the production toggle decision prep. Recommended next module: **Supabase Cloud Sync Manual Smoke Execution Prep**, because the production toggle remains blocked until auth smoke, SQL/RLS probes, and two-device manual sync smoke are actually run and recorded.
+No active next implementation module selected after the manual smoke execution prep. Recommended next module: **Supabase Cloud Sync Smoke Result Review**, but only after a real disposable-project smoke run exists. Until then, production sync UI/lifecycle work remains blocked.
 
 ## Blocked Module Execution Order
 
@@ -916,6 +923,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Compared production toggle options and recommended Profile/Settings opt-in beta after manual smoke.
 - [x] DONE [HARD]: Documented required product decisions for first surface, opt-in policy, states, domain scope, conflict detail, and failure reporting.
 - [x] DONE [HARD]: Kept production sync UI/lifecycle implementation blocked until acceptance gates pass.
+
+**Module: Supabase Cloud Sync Manual Smoke Execution Prep** - DONE
+- [x] DONE [HARD]: Added `docs/supabase-cloud-sync-manual-smoke-execution.md` for real smoke execution order and local-only result capture.
+- [x] DONE [HARD]: Documented required disposable-project inputs and no-secret rules.
+- [x] DONE [HARD]: Added pass criteria for static verification, auth smoke, SQL/RLS probes, harness behavior, two-device sync, export, and rollback.
+- [x] DONE [HARD]: Added failure handling rules that keep production sync blocked.
+- [x] DONE [HARD]: Linked execution prep from the manual smoke guide.
 
 **Module: Google Sheets Export** - DONE
 - [x] DONE [HARD]: Refreshed `.docs/decisions/google-sheets-export.md` with completed Supabase auth/backend/proxy foundations and `docs/google-sheets-export-mvp.md`.

@@ -117,6 +117,10 @@ The harness may run only when:
 
 Do not call this harness from app startup, Profile UI, background jobs, or production settings until the two-device manual smoke has passed and a separate production toggle module is accepted.
 
+## Execution Result Prep
+
+Use `docs/supabase-cloud-sync-manual-smoke-execution.md` when actually running the smoke. It defines the execution order, local-only result template, pass criteria, and failure handling rules. Do not commit the filled result if it contains project identifiers, emails, user ids, tokens, or screenshots with secrets.
+
 ## Acceptance Gate
 
 Sync manual smoke prep is complete when:
