@@ -16,6 +16,7 @@ Define the backend proxy contract before enabling production translation, glossa
 - Use DeepL for production text translation and glossary-assisted specialized translation.
 - Use OpenAI for AI chat, writing correction, conversation practice, and voice-transcript feedback.
 - Keep all provider keys in the backend environment. Mobile/web clients must never receive DeepL or OpenAI API keys.
+- Specialized dataset-agent setup can also support user-provided provider API keys after the encrypted-secret storage gate in `docs/user-provided-provider-secrets.md` is implemented. The app provides datasets, editor modes, retrieval context, quota controls, and agent setup; users provide optional provider access when product policy allows it.
 - Do not use machine translation output as dictionary data, lexical source data, etymology, or monolingual definitions.
 
 ## Backend Proxy Environment Policy
@@ -56,6 +57,8 @@ All routes require an authenticated Supabase session unless explicitly documente
 | `POST /proxy/ai/chat` | Non-realtime AI conversation and correction with streaming text response. | OpenAI Responses |
 | `POST /proxy/ai/voice-feedback` | Feedback on user transcript or local STT text, not raw pronunciation scoring. | OpenAI Responses |
 | `POST /proxy/ai/realtime-session` | Optional future route that creates a short-lived realtime session/token. | OpenAI Realtime |
+| `POST /proxy/provider-connections` | Validate and encrypt a user-provided provider API key before persistence. | Supabase + encrypted secret envelope |
+| `DELETE /proxy/provider-connections/:id` | Revoke a user provider connection and soft-delete its encrypted secret envelope. | Supabase |
 | `POST /proxy/translation-datasets/import` | Parse and validate user-uploaded specialized translation datasets. | Supabase + parser pipeline |
 | `PATCH /proxy/translation-datasets/:id` | Edit dataset metadata, entries, and validation states. | Supabase |
 | `POST /proxy/translation-datasets/:id/highlight` | Detect dataset terms/phrases in source text and return highlight spans. | Supabase + local matcher |
@@ -126,6 +129,8 @@ Rules:
 
 This feature is a staged module on top of the proxy foundation. In the MVP, "training an agent" means creating a dataset-grounded/RAG context agent. It does **not** fine-tune an OpenAI model or create a custom model per user.
 
+The product boundary is now explicit: Dictionary Mobile provides the workspace, dataset editor, retrieval/indexing layer, prompt/context setup, and provider-call guardrails. Users may provide their own API credentials through encrypted backend storage; the Expo app must never bundle or display user API keys.
+
 ### Dataset Upload Contract
 
 Accepted dataset formats:
@@ -186,6 +191,7 @@ Each agent is bound to:
 - a topic/domain;
 - a system instruction;
 - retrieval settings;
+- an optional encrypted user provider connection;
 - usage counters;
 - active/archived state.
 
@@ -209,6 +215,8 @@ MVP implementation can start with local editor modes and explicit unsupported st
 
 Recommended Supabase tables:
 
+- `user_provider_connections`;
+- `user_provider_secret_envelopes`;
 - `translation_datasets`;
 - `translation_dataset_entries`;
 - `translation_dataset_documents`;
@@ -221,6 +229,7 @@ Every table must enable RLS and scope rows with `auth.uid() = user_id`.
 
 Production implementation can start only after a staged code module defines:
 
+- encrypted user-provider secret storage with no-key-leak tests;
 - parser fixtures for each accepted format;
 - storage limits and upload size limits;
 - row/entry validation;
@@ -287,6 +296,8 @@ Rules:
 
 Recommended Supabase tables for proxy MVP:
 
+- `user_provider_connections`: user id, provider, purpose, display label, status, key version, created/updated/revoked timestamps.
+- `user_provider_secret_envelopes`: user id, connection id, algorithm, nonce, ciphertext, key version, created/rotated/revoked timestamps.
 - `proxy_usage_events`: user id, feature, provider, request id hash, input size, output size or estimate, status, error code, created at.
 - `user_glossaries`: user-owned glossary metadata.
 - `user_glossary_entries`: user-owned glossary entries.
@@ -321,6 +332,14 @@ Translation/AI code can start when the next module agrees to:
 - DeepL base URL is restricted to the accepted API hosts;
 - quota and input-size defaults are centralized;
 - structured log redaction covers provider keys and user content fields by default.
+
+**User-Provided Provider Secret Encryption Foundation** is complete:
+
+- `backend/userProviderSecrets.ts` reads the backend-only `USER_PROVIDER_SECRET_ENCRYPTION_KEY`;
+- user API keys are encrypted with AES-256-GCM before persistence;
+- encryption is bound to user id, provider, purpose, and key version;
+- ciphertext envelopes do not include plaintext secrets;
+- focused tests cover missing config, invalid key size, decrypt round trip, wrong user/key-version rejection, and empty-secret rejection.
 
 Next staged module: **DeepL + OpenAI Proxy Request Validation Draft**.
 

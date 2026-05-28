@@ -603,6 +603,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: User-Provided Provider Secret Encryption Foundation** - DONE
+- [x] DONE [HARD]: Added `docs/user-provided-provider-secrets.md` to define the product boundary: the app provides dataset-agent workspace/setup, while users can optionally supply provider API keys through backend-only handling.
+- [x] DONE [HARD]: Added `backend/userProviderSecrets.ts` to read a backend-only `USER_PROVIDER_SECRET_ENCRYPTION_KEY` without exposing user API keys to Expo/mobile clients.
+- [x] DONE [HARD]: Added AES-256-GCM encryption envelopes for user provider secrets, bound to user id, provider, purpose, and key version as authenticated data.
+- [x] DONE [HARD]: Added safe unconfigured-state handling and focused tests in `tests/userProviderSecrets.test.ts` for missing config, invalid key size, encryption/decryption, wrong-scope rejection, key-version mismatch, and empty-secret rejection.
+- [x] DONE [HARD]: Synced `docs/deepl-openai-backend-proxy-mvp.md` and `.ai/context/blocked-decisions.md`; next module is **DeepL + OpenAI Proxy Request Validation Draft**.
+
 **Module: DeepL + OpenAI Backend Proxy Env Guard Draft** - DONE
 - [x] DONE [HARD]: Added `backend/proxyConfig.ts` to read backend-only DeepL/OpenAI env configuration without exposing provider keys to Expo/mobile clients.
 - [x] DONE [HARD]: Added required env validation for `DEEPL_API_KEY`, allowed DeepL base URL, `OPENAI_API_KEY`, and `OPENAI_TEXT_MODEL`.
@@ -757,7 +764,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Documented expected local-first/no-local-data-delete behavior for every auth smoke path.
 - [x] DONE [HARD]: Documented verification commands for auth smoke-related changes before commit.
 
-No active Supabase Cloud Sync implementation module selected after the manual smoke execution prep because **Supabase Cloud Sync Smoke Result Review** requires a real disposable-project smoke run. Recommended active module is **DeepL + OpenAI Proxy Request Validation Draft**, continuing the accepted backend proxy path without provider keys or production calls.
+No active Supabase Cloud Sync implementation module selected after the manual smoke execution prep because **Supabase Cloud Sync Smoke Result Review** requires a real disposable-project smoke run. Recommended active module is **DeepL + OpenAI Proxy Request Validation Draft**, continuing the accepted backend proxy path without provider calls and after the user-provider secret encryption foundation.
 
 ## Blocked Module Execution Order
 
@@ -768,7 +775,7 @@ Prioritize modules by implementation complexity, user experience impact, and dep
 3. **Supabase Auth Foundation** - third, because accounts are the dependency for sync, export, AI proxy, and backend deletion semantics.
 4. **Supabase Cloud Sync MVP** - fourth, because it depends on auth and touches shared local-first user data.
 5. **DeepL + OpenAI Backend Proxy MVP** - fifth, because it needs backend auth, privacy boundaries, quota limits, and cost controls.
-6. **Specialized Translation Dataset Agents** - sixth, because it builds on the DeepL/OpenAI proxy foundation and needs dataset storage, retrieval, quota, and privacy contracts before production AI behavior.
+6. **Specialized Translation Dataset Agents** - sixth, because it builds on the DeepL/OpenAI proxy foundation and needs encrypted user-provider secret storage, dataset storage, retrieval, quota, and privacy contracts before production AI behavior.
 7. **Google Sheets Export** - seventh, because backend-mediated OAuth should wait for Supabase auth/backend foundation.
 8. **Language Source Gates** - eighth, because source-gate paths are accepted but production adapters remain blocked until license/sample/readiness gates pass.
 9. **Speech Scoring** - last, because Azure is accepted but implementation depends on backend upload, privacy, quota, retention, first-language coverage, and fake-provider tests.

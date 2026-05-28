@@ -122,7 +122,7 @@ Acceptance gate:
 ---
 
 ## DeepL + OpenAI Backend Proxy MVP
-Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; backend env guard draft added in `backend/proxyConfig.ts`. Translation/AI implementation can move through staged backend modules, but production provider calls remain blocked until backend routes, RLS tables, quota checks, and fake-provider tests are added.
+Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; backend env guard draft added in `backend/proxyConfig.ts`; user-provided provider secret encryption foundation added in `backend/userProviderSecrets.ts` and `docs/user-provided-provider-secrets.md`. Translation/AI implementation can move through staged backend modules, but production provider calls remain blocked until backend routes, RLS tables, quota checks, and fake-provider tests are added.
 
 Accepted:
 - DeepL translation and glossary support through backend proxy
@@ -133,23 +133,26 @@ Allowed preparatory work:
 - Follow `docs/deepl-openai-backend-proxy-mvp.md`
 - Keep DeepL and OpenAI keys server-side only
 - Keep backend env validation and redacted logging tests in place
+- Keep user-provided API keys backend-only and encrypt them before persistence
+- Bind encrypted user-provider secrets to user id, provider, purpose, and key version
 - Add quota checks before provider calls
 - Redact source text, translations, prompts, transcripts, glossary entries, and provider keys from logs by default
 - Keep machine translation output out of dictionary/source data
 
 Acceptance gate:
-- Request validation may start next; production provider calls require backend proxy routes, RLS-protected usage/glossary tables, quota checks, and fake-provider tests.
+- Request validation may start next; production provider calls require backend proxy routes, RLS-protected usage/glossary/provider-connection tables, quota checks, encrypted-secret no-key-leak tests, and fake-provider tests.
 
 ---
 
 ## Specialized Translation Dataset Agents
-Status: Staged TODO after DeepL/OpenAI proxy foundation. Production implementation is blocked until backend storage, parser validation, quota, privacy, and no-key-leak tests are defined.
+Status: Staged TODO after DeepL/OpenAI proxy foundation. User-provider secret encryption foundation is available, but production implementation is blocked until backend storage, parser validation, quota, privacy, and no-key-leak tests are defined.
 
 Accepted direction:
 - User-uploaded specialized translation datasets
 - Editable dataset rows/terms/segments
 - Smart term/phrase recognition and highlighting
 - Dataset-grounded context agents, not model fine-tuning
+- User-provided provider API keys can be attached only through encrypted backend storage
 - Maximum 3 active agents per user by default
 - Future paid packages/add-ons can raise the limit after a billing decision
 
@@ -159,10 +162,10 @@ Allowed preparatory work:
 - Define dataset upload/import contracts for CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF
 - Define editor modes for Word-like rich text, Google Docs-like surfaces, LaTeX, Markdown, and plain text
 - Keep scanned PDFs/OCR extraction out of scope until OCR implementation exists
-- Keep provider keys server-side and redact raw dataset content from logs by default
+- Keep app-owned and user-provided provider keys server-side, encrypted when persisted, and redact raw dataset content from logs by default
 
 Acceptance gate:
-- Implementation may start after parser fixtures, dataset validation, highlighting behavior, max-3-agent enforcement, RLS tables, quota checks, and fake-provider no-key-leak tests are planned. Paid extra-agent implementation remains blocked by the MVP no-billing decision.
+- Implementation may start after parser fixtures, dataset validation, highlighting behavior, max-3-agent enforcement, RLS tables, encrypted provider-connection tables, quota checks, and fake-provider no-key-leak tests are planned. Paid extra-agent implementation remains blocked by the MVP no-billing decision.
 
 ---
 
