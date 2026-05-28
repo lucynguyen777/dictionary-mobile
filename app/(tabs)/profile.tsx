@@ -1545,10 +1545,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
+    flex: 1,
     gap: 9,
+    minWidth: '45%',
     minHeight: 58,
     padding: 10,
-    width: '48%',
   },
   quickActionIcon: {
     alignItems: 'center',
@@ -2420,8 +2421,9 @@ const styles = StyleSheet.create({
     borderColor: '#E5E3DF',
     borderRadius: 12,
     borderWidth: 1,
+    flex: 1,
+    minWidth: '45%',
     padding: 11,
-    width: '48%',
   },
   dataStatValue: {
     color: '#1A1A1A',
