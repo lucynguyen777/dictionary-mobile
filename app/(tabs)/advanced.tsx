@@ -43,6 +43,7 @@ const typeFilterOptions: { value: FlashcardType | 'all'; label: string }[] = [
 ];
 
 type LearningToolId = 'flashcards' | 'ai-chat' | 'specialized-translation' | 'import' | 'reader' | 'export';
+type FlashcardMode = 'dashboard' | 'study' | 'manage';
 type ImportSourceId = 'csv-tsv' | 'reader-highlights' | 'class-list';
 type ExportActionId = FolderExportFormat | 'google-sheets';
 type ExportHistoryItem = {
@@ -53,6 +54,12 @@ type ExportHistoryItem = {
   status: 'success' | 'failed' | 'blocked';
   createdAt: string;
 };
+
+const flashcardModeOptions: { value: FlashcardMode; label: string }[] = [
+  { value: 'dashboard', label: 'Dashboard' },
+  { value: 'study', label: 'Study' },
+  { value: 'manage', label: 'Manage' },
+];
 
 const learningTools: {
   id: LearningToolId;
@@ -176,6 +183,7 @@ export default function AdvancedScreen() {
   const [typeFilter, setTypeFilter] = useState<FlashcardType | 'all'>('all');
   const [reviewFilter, setReviewFilter] = useState<FlashcardReviewState | 'all'>('all');
   const [activeToolId, setActiveToolId] = useState<LearningToolId | null>(null);
+  const [flashcardMode, setFlashcardMode] = useState<FlashcardMode>('dashboard');
 
   useFocusEffect(
     useCallback(() => {
@@ -352,6 +360,22 @@ export default function AdvancedScreen() {
             </View>
           </View>
 
+          <View style={styles.flashcardModeTabs}>
+            {flashcardModeOptions.map((mode) => (
+              <TouchableOpacity
+                key={mode.value}
+                activeOpacity={0.82}
+                onPress={() => setFlashcardMode(mode.value)}
+                style={[styles.flashcardModeTab, flashcardMode === mode.value && styles.flashcardModeTabActive]}>
+                <Text style={[styles.flashcardModeTabText, flashcardMode === mode.value && styles.flashcardModeTabTextActive]}>
+                  {mode.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {flashcardMode === 'dashboard' ? (
+            <>
           <View style={styles.flashcardAnalyticsGrid}>
             <AnalyticsStat label="Tổng thẻ" value={flashcardAnalytics.totalCards} />
             <AnalyticsStat label="Đến hạn" value={flashcardAnalytics.dueToday} />
@@ -396,7 +420,11 @@ export default function AdvancedScreen() {
               />
             </View>
           </View>
+            </>
+          ) : null}
 
+          {flashcardMode === 'manage' ? (
+            <>
           <View style={styles.checklist}>
             {flashcardOptions.map((option) => {
               const isSelected = selectedTypes[option.type];
@@ -481,8 +509,11 @@ export default function AdvancedScreen() {
               ))}
             </ScrollView>
           </View>
+            </>
+          ) : null}
 
-          {activeCard ? (
+          {flashcardMode === 'study' ? (
+          activeCard ? (
             <View style={styles.reviewCard}>
               <Text style={styles.reviewType}>{formatFlashcardType(activeCard.type)} · {formatReviewState(activeCard.reviewState)}</Text>
               <TouchableOpacity activeOpacity={0.86} onPress={() => setShowBack((value) => !value)} style={styles.flashcardFace}>
@@ -492,15 +523,19 @@ export default function AdvancedScreen() {
               <View style={styles.reviewActions}>
                 <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 1)} style={styles.againButton}>
                   <Text style={styles.againButtonText}>Lại</Text>
+                  <Text style={styles.reviewButtonHint}>Không nhớ</Text>
                 </TouchableOpacity>
                 <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 3)} style={styles.hardButton}>
                   <Text style={styles.hardButtonText}>Khó</Text>
+                  <Text style={styles.reviewButtonHint}>Nhớ chậm</Text>
                 </TouchableOpacity>
                 <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 4)} style={styles.goodButton}>
                   <Text style={styles.goodButtonText}>Tốt</Text>
+                  <Text style={styles.reviewButtonHint}>Nhớ được</Text>
                 </TouchableOpacity>
                 <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 5)} style={styles.easyButton}>
                   <Text style={styles.easyButtonText}>Dễ</Text>
+                  <Text style={styles.reviewButtonHint}>Rất nhanh</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -514,7 +549,8 @@ export default function AdvancedScreen() {
                   : 'Lưu vài từ trong tab Tra cứu, chọn loại thẻ, rồi tạo flashcard tại đây.'}
               </Text>
             </View>
-          )}
+          )
+          ) : null}
           </View>
         ) : activeToolId === 'ai-chat' ? (
           <AiConversationToolPanel />
@@ -1557,6 +1593,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
   },
+  flashcardModeTabs: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 14,
+    padding: 4,
+  },
+  flashcardModeTab: {
+    alignItems: 'center',
+    borderRadius: 6,
+    flex: 1,
+    minHeight: 34,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  flashcardModeTabActive: {
+    backgroundColor: '#2563EB',
+  },
+  flashcardModeTabText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  flashcardModeTabTextActive: {
+    color: '#FFFFFF',
+  },
   flashcardAnalyticsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1842,6 +1907,13 @@ const styles = StyleSheet.create({
     color: '#16A34A',
     fontSize: 13,
     fontWeight: '900',
+  },
+  reviewButtonHint: {
+    color: '#475569',
+    fontSize: 10,
+    fontWeight: '800',
+    marginTop: 3,
+    textAlign: 'center',
   },
   emptyFlashcard: {
     alignItems: 'center',
