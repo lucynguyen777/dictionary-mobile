@@ -20,6 +20,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
 import {
+  ActivityState,
+  getActivitySummary,
+  getDefaultActivityState,
+  getLocalDateKey,
+  loadActivityState,
+} from '@/data/activityStore';
+import {
   loadCurrentAuthSession,
   sendPasswordRecoveryEmail,
   signInAuthSession,
@@ -29,7 +36,6 @@ import {
   syncAuthAutoRefreshForAppState,
 } from '@/data/authController';
 import { type AuthSessionSnapshot } from '@/data/authSession';
-import { studyStats } from '@/data/dictionary';
 import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
@@ -60,13 +66,18 @@ import {
     clearUserProfile,
     getDefaultProfile,
     loadUserProfile,
-    loginMethodOptions,
     saveUserProfile,
 } from '@/data/profileStore';
 import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 
-const days = Array.from({ length: 84 }, (_, index) => index);
-const chartValues = [1, 1.5, 2, 2.4, 4.6, 6.4, 5.5, 7.3, 9.1, 11.2, 10.5, 13.1, 15.5, 12.6, 17.5, 16.1, 23.6];
+type WordChartRange = 'day' | 'month' | 'year';
+
+const wordChartRanges: { label: string; value: WordChartRange }[] = [
+  { label: 'Ngày', value: 'day' },
+  { label: 'Tháng', value: 'month' },
+  { label: 'Năm', value: 'year' },
+];
+const streakHeatmapDays = Array.from({ length: 84 }, (_, index) => index);
 const defaultAvatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop';
 const legalLinks = [
   {
@@ -105,6 +116,7 @@ const initialAuthSession: AuthSessionSnapshot = {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
+  const [activityState, setActivityState] = useState<ActivityState>(getDefaultActivityState());
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [offlinePackInstallState, setOfflinePackInstallState] = useState<OfflinePackInstallState>(
@@ -119,6 +131,7 @@ export default function ProfileScreen() {
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authBusyAction, setAuthBusyAction] = useState<'sign-in' | 'sign-up' | 'recovery' | null>(null);
+  const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
 
   useFocusEffect(
     useCallback(() => {
@@ -128,15 +141,17 @@ export default function ProfileScreen() {
 
       Promise.all([
         loadUserProfile(),
+        loadActivityState(),
         loadLibraryState(),
         loadReaderState(),
         loadOfflinePackInstallState(),
         loadCurrentAuthSession(),
       ]).then(
-        ([nextProfile, nextLibraryState, nextReaderState, nextOfflinePackInstallState, nextAuthSession]) => {
+        ([nextProfile, nextActivityState, nextLibraryState, nextReaderState, nextOfflinePackInstallState, nextAuthSession]) => {
           if (!isMounted) return;
 
           setProfile(nextProfile);
+          setActivityState(nextActivityState);
           setLibraryState(nextLibraryState);
           setReaderState(nextReaderState);
           setOfflinePackInstallState(nextOfflinePackInstallState);
@@ -468,6 +483,12 @@ export default function ProfileScreen() {
   const offlinePackInstallSummary = getOfflinePackInstallSummary(offlinePackInstallState);
   const avatarUri = profile.avatarUrl || defaultAvatarUri;
   const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
+  const dashboardNow = new Date();
+  const activitySummary = getActivitySummary(activityState, dashboardNow);
+  const dueFlashcards = libraryState.flashcards.filter((card) => new Date(card.dueDate) <= dashboardNow || card.reviewState !== 'reviewed').length;
+  const wordChartData = buildSavedWordChartData(libraryState.savedWords, wordChartRange, dashboardNow);
+  const activeDaySet = new Set(activityState.activeDays);
+  const currentYear = dashboardNow.getFullYear();
 
   const handleDeleteLocalProfile = () => {
     Alert.alert('Xóa hồ sơ local', 'Hành động này sẽ xóa hồ sơ local trên thiết bị. Bạn có muốn tiếp tục?', [
@@ -486,13 +507,6 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const authCopy = getAuthStatusCopy(authSession);
-  const totalLocalItems =
-    libraryState.folders.length +
-    libraryState.savedWords.length +
-    libraryState.flashcards.length +
-    readerState.documents.length;
-  const importedWordCount = libraryState.savedWords.filter((word) => word.source === 'import').length;
   const openSidebarSection = (section: SidebarSectionKey | null = null) => {
     setSidebarSection(section);
     setSidebarOpen(true);
@@ -529,80 +543,19 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.heroMetricRow}>
-            <ProfileMetric value={studyStats.mastered} label="Đã nhớ" />
-            <ProfileMetric value={studyStats.dueToday} label="Cần ôn" />
-            <ProfileMetric value={studyStats.listeningScore} label="Phát âm" />
-          </View>
-
-          <View style={styles.heroActionRow}>
-            <TouchableOpacity activeOpacity={0.84} onPress={() => openSidebarSection('account')} style={styles.primaryHeroAction}>
-              <Ionicons name="person-circle-outline" size={17} color="#FFFFFF" />
-              <Text style={styles.primaryHeroActionText} numberOfLines={1}>Chỉnh hồ sơ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.84} onPress={handleSaveProfile} style={styles.secondaryHeroAction}>
-              <Ionicons name="save-outline" size={16} color="#0075DE" />
-              <Text style={styles.secondaryHeroActionText} numberOfLines={1}>Lưu</Text>
-            </TouchableOpacity>
+            <ProfileMetric value={libraryState.savedWords.length} label="Từ đã lưu" />
+            <ProfileMetric value={dueFlashcards} label="Cần ôn" />
+            <ProfileMetric value={activitySummary.currentStreak} label="Streak" />
           </View>
           {saveMessage ? <Text style={styles.saveMessage}>{saveMessage}</Text> : null}
         </View>
 
-        <View style={styles.quickActionGrid}>
-          <QuickAction
-            icon="shield-checkmark-outline"
-            label="Riêng tư"
-            detail={profile.appLockEnabled ? 'Đã khóa app' : 'Local-first'}
-            onPress={() => openSidebarSection('privacy')}
-          />
-          <QuickAction
-            icon="cloud-outline"
-            label="Cloud"
-            detail={authCopy.badge}
-            onPress={() => openSidebarSection('account')}
-          />
-          <QuickAction
-            icon="download-outline"
-            label="Offline"
-            detail={`${offlinePackInstallSummary.readyCount}/${offlinePackSummary.packCount} gói`}
-            onPress={() => openSidebarSection('privacy')}
-          />
-          <QuickAction
-            icon="help-circle-outline"
-            label="Hỗ trợ"
-            detail="Phản hồi"
-            onPress={() => openSidebarSection('support')}
-          />
-        </View>
-
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderCopy}>
-              <Text style={styles.cardTitle}>Lộ trình hiện tại</Text>
-              <Text style={styles.cardSubtitle}>Mục tiêu và dữ liệu học được gom lại để xem nhanh.</Text>
+              <Text style={styles.cardTitle}>Tổng quan học tập</Text>
+              <Text style={styles.cardSubtitle}>Các chỉ số chính từ dữ liệu local trên thiết bị.</Text>
             </View>
-            <TouchableOpacity activeOpacity={0.82} onPress={() => openSidebarSection('account')} style={styles.inlineEditButton}>
-              <Ionicons name="create-outline" size={14} color="#0075DE" />
-              <Text style={styles.inlineEditText}>Sửa</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.summaryList}>
-            <SummaryRow icon="language-outline" label="Cặp ngôn ngữ" value={`${nativeLanguage?.label ?? profile.nativeLanguage} → ${learningLanguage?.label ?? profile.learningLanguage}`} />
-            <SummaryRow icon="barbell-outline" label="Trình độ" value={profile.proficiencyLevel} />
-            <SummaryRow icon="time-outline" label="Giờ nhắc" value={`${profile.notificationPreferences.reminderTime} · ${profile.timezone}`} />
-            <SummaryRow icon="key-outline" label="Đăng nhập" value={loginMethodOptions.find((option) => option.value === profile.loginMethod)?.label ?? profile.loginMethod} />
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderCopy}>
-              <Text style={styles.cardTitle}>Dữ liệu trên thiết bị</Text>
-              <Text style={styles.cardSubtitle}>{totalLocalItems} mục local, chưa tự động đồng bộ cloud.</Text>
-            </View>
-            <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={styles.inlineEditButton}>
-              <Ionicons name="cloud-upload-outline" size={14} color="#0075DE" />
-              <Text style={styles.inlineEditText}>Xuất</Text>
-            </TouchableOpacity>
           </View>
           <View style={styles.compactDataRow}>
             <DataStat label="Bộ từ" value={libraryState.folders.length} />
@@ -610,96 +563,56 @@ export default function ProfileScreen() {
             <DataStat label="Thẻ" value={libraryState.flashcards.length} />
             <DataStat label="Reader" value={readerState.documents.length} />
           </View>
-          <View style={styles.privacyNote}>
-            <Ionicons name="lock-closed-outline" size={18} color="#0075DE" />
-            <Text style={styles.privacyText}>
-              Có {importedWordCount} từ từ import. Quản lý khóa app, thông báo, xuất hoặc xóa dữ liệu trong mục Riêng tư.
-            </Text>
-          </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Gói từ điển offline</Text>
-          <Text style={styles.cardSubtitle}>
-            Phase 2 đã có dev pack URL/checksum, download, và SQLite import path. Web chỉ hiển thị smoke; native runtime mới tải và nhập pack.
-          </Text>
-          <View style={styles.offlinePackSummaryRow}>
-            <DataStat label="Gói" value={offlinePackSummary.packCount} />
-            <DataStat label="Builder" value={offlinePackSummary.builderReadyCount} />
-            <DataStat label="Có thể tải" value={offlinePackSummary.downloadableCount} />
-            <DataStat label="Đã cài" value={offlinePackInstallSummary.readyCount} />
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderCopy}>
+              <Text style={styles.cardTitle}>Từ mới thêm vào tủ từ</Text>
+              <Text style={styles.cardSubtitle}>Theo dõi tốc độ lưu từ theo ngày, tháng hoặc năm.</Text>
+            </View>
           </View>
-          {offlineDictionaryPacks.map((pack) => {
-            const language = languageOptions.find((item) => item.code === pack.languageCode);
-            const runtimeGate = getOfflinePackRuntimeGate(pack, offlinePackRuntimeOptions);
-            const installRecord = getOfflinePackInstallRecord(offlinePackInstallState, pack);
-            const installStatus = formatOfflinePackInstallStatus(installRecord.status);
-            const progressLabel =
-              installRecord.status === 'downloading' ? `Tiến độ ${formatOfflinePackProgress(installRecord)}` : installStatus;
-            const isBusy = offlinePackBusyId === pack.id;
-            const canInstall = runtimeGate.canDownload && !isBusy;
-            const hasInstallRecord = installRecord.status !== 'not_downloaded';
-
-            return (
-              <View key={pack.id} style={styles.offlinePackRow}>
-                <View style={styles.securityCopy}>
-                  <Text style={styles.securityTitle}>{language?.label ?? pack.languageCode}</Text>
-                  <Text style={styles.securityText}>
-                    {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
-                  </Text>
-                  <Text style={styles.securityText}>{runtimeGate.detail}</Text>
+          <View style={styles.segmentedControl}>
+            {wordChartRanges.map((range) => (
+              <TouchableOpacity
+                key={range.value}
+                activeOpacity={0.82}
+                onPress={() => setWordChartRange(range.value)}
+                style={[styles.segmentButton, wordChartRange === range.value && styles.segmentButtonActive]}>
+                <Text style={[styles.segmentButtonText, wordChartRange === range.value && styles.segmentButtonTextActive]}>
+                  {range.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.barChart}>
+            {wordChartData.points.map((point) => (
+              <View key={point.key} style={styles.barColumn}>
+                <View style={styles.barTrack}>
+                  <View style={[styles.barFill, { height: `${Math.max(8, (point.value / wordChartData.maxValue) * 100)}%` }]} />
                 </View>
-                <View style={styles.offlinePackStatusColumn}>
-                  <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
-                  <Text style={styles.offlinePackInstallText}>{progressLabel}</Text>
-                  <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
-                  <View style={styles.offlinePackActionRow}>
-                    <TouchableOpacity
-                      accessibilityLabel={`Tải ${language?.label ?? pack.languageCode} offline pack`}
-                      accessibilityRole="button"
-                      activeOpacity={0.82}
-                      disabled={!canInstall}
-                      onPress={() => handleInstallOfflinePack(pack)}
-                      style={[styles.offlinePackActionButton, !canInstall && styles.offlinePackActionButtonDisabled]}>
-                      <Ionicons name="download-outline" size={14} color={canInstall ? '#0075DE' : '#A4A097'} />
-                      <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
-                        {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
-                      </Text>
-                    </TouchableOpacity>
-                    {hasInstallRecord ? (
-                      <TouchableOpacity
-                        accessibilityLabel={`Xóa ${language?.label ?? pack.languageCode} offline pack`}
-                        accessibilityRole="button"
-                        activeOpacity={0.82}
-                        disabled={isBusy}
-                        onPress={() => handleDeleteOfflinePack(pack)}
-                        style={[styles.offlinePackDeleteButton, isBusy && styles.offlinePackActionButtonDisabled]}>
-                        <Ionicons name="trash-outline" size={14} color={isBusy ? '#94A3B8' : '#DC2626'} />
-                        <Text style={[styles.offlinePackDeleteText, isBusy && styles.offlinePackActionTextDisabled]}>
-                          Xóa
-                        </Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                </View>
+                <Text style={styles.barValue}>{point.value}</Text>
+                <Text style={styles.barLabel} numberOfLines={1}>{point.label}</Text>
               </View>
-            );
-          })}
-          <View style={styles.privacyNote}>
-            <Ionicons name="information-circle-outline" size={18} color="#0075DE" />
-            <Text style={styles.privacyText}>
-              Chưa tải dữ liệu offline trong bản này. Pack sẽ cần xác nhận dung lượng, attribution và license trước khi bật.
-            </Text>
+            ))}
           </View>
         </View>
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Lịch học năm nay</Text>
-            <View style={styles.yearPill}>
-              <Text style={styles.yearText}>2026</Text>
-              <Ionicons name="caret-down" size={14} color="#5D5B54" />
+            <View style={styles.cardHeaderCopy}>
+              <Text style={styles.cardTitle}>Streak đăng nhập</Text>
+              <Text style={styles.cardSubtitle}>Tính theo ngày app được mở trên thiết bị này.</Text>
             </View>
+            <View style={styles.yearPill}>
+              <Text style={styles.yearText}>{currentYear}</Text>
+            </View>
+          </View>
+          <View style={styles.compactDataRow}>
+            <DataStat label="Hiện tại" value={activitySummary.currentStreak} />
+            <DataStat label="Dài nhất" value={activitySummary.longestStreak} />
+            <DataStat label="Tháng này" value={activitySummary.activeDaysThisMonth} />
+            <DataStat label="Năm nay" value={activitySummary.activeDaysThisYear} />
           </View>
           <View style={styles.heatmapRow}>
             <View style={styles.weekLabels}>
@@ -708,9 +621,13 @@ export default function ProfileScreen() {
               <Text style={styles.weekLabel}>Fri</Text>
             </View>
             <View style={styles.heatmap}>
-              {days.map((day) => (
-                <View key={day} style={[styles.square, day % 7 > 3 && styles.squareStrong, day % 13 === 0 && styles.squareDark]} />
-              ))}
+              {streakHeatmapDays.map((dayOffset) => {
+                const date = new Date(dashboardNow);
+                date.setDate(dashboardNow.getDate() - (streakHeatmapDays.length - 1 - dayOffset));
+                const isActive = activeDaySet.has(getLocalDateKey(date));
+
+                return <View key={dayOffset} style={[styles.square, isActive && styles.squareStrong]} />;
+              })}
             </View>
           </View>
           <View style={styles.legend}>
@@ -719,28 +636,6 @@ export default function ProfileScreen() {
               <View key={item} style={[styles.legendSquare, item > 2 && styles.squareStrong]} />
             ))}
             <Text style={styles.legendText}>More</Text>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Từ mới mỗi ngày</Text>
-          <View style={styles.chart}>
-            {[25, 20, 15, 10, 5].map((tick) => (
-              <View key={tick} style={styles.gridLine}>
-                <Text style={styles.tick}>{tick}</Text>
-                <View style={styles.gridRule} />
-              </View>
-            ))}
-            <View style={styles.lineArea}>
-              {chartValues.map((value, index) => (
-                <View key={`${value}-${index}`} style={[styles.lineDot, { left: `${(index / (chartValues.length - 1)) * 100}%`, bottom: `${(value / 25) * 100}%` }]} />
-              ))}
-            </View>
-            <View style={styles.chartFooter}>
-              {['Nov 23', '24', '25', '26', '27', '28', '29', '30'].map((label) => (
-                <Text key={label} style={styles.dateLabel}>{label}</Text>
-              ))}
-            </View>
           </View>
         </View>
       </ScrollView>
@@ -792,6 +687,8 @@ export default function ProfileScreen() {
                   {sidebarNavItems.map((item) => (
                     <Pressable
                       key={item.key}
+                      accessibilityLabel={`Mở ${item.label}`}
+                      accessibilityRole="button"
                       onPress={() => setSidebarSection(item.key)}
                       style={({ pressed }) => [
                         styles.sidebarNavItem,
@@ -956,6 +853,67 @@ export default function ProfileScreen() {
                   <Ionicons name="trash-outline" size={16} color="#DC2626" />
                   <Text style={styles.clearDataText} numberOfLines={1}>Xóa tất cả dữ liệu local</Text>
                 </TouchableOpacity>
+                <Text style={styles.sidebarGroupLabel}>Gói từ điển offline</Text>
+                <View style={styles.offlinePackSummaryRow}>
+                  <DataStat label="Gói" value={offlinePackSummary.packCount} />
+                  <DataStat label="Đã cài" value={offlinePackInstallSummary.readyCount} />
+                </View>
+                {offlineDictionaryPacks.map((pack) => {
+                  const language = languageOptions.find((item) => item.code === pack.languageCode);
+                  const runtimeGate = getOfflinePackRuntimeGate(pack, offlinePackRuntimeOptions);
+                  const installRecord = getOfflinePackInstallRecord(offlinePackInstallState, pack);
+                  const installStatus = formatOfflinePackInstallStatus(installRecord.status);
+                  const progressLabel =
+                    installRecord.status === 'downloading' ? `Tiến độ ${formatOfflinePackProgress(installRecord)}` : installStatus;
+                  const isBusy = offlinePackBusyId === pack.id;
+                  const canInstall = runtimeGate.canDownload && !isBusy;
+                  const hasInstallRecord = installRecord.status !== 'not_downloaded';
+
+                  return (
+                    <View key={pack.id} style={styles.offlinePackRow}>
+                      <View style={styles.securityCopy}>
+                        <Text style={styles.securityTitle}>{language?.label ?? pack.languageCode}</Text>
+                        <Text style={styles.securityText}>
+                          {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
+                        </Text>
+                        <Text style={styles.securityText}>{runtimeGate.detail}</Text>
+                      </View>
+                      <View style={styles.offlinePackStatusColumn}>
+                        <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
+                        <Text style={styles.offlinePackInstallText}>{progressLabel}</Text>
+                        <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
+                        <View style={styles.offlinePackActionRow}>
+                          <TouchableOpacity
+                            accessibilityLabel={`Tải ${language?.label ?? pack.languageCode} offline pack`}
+                            accessibilityRole="button"
+                            activeOpacity={0.82}
+                            disabled={!canInstall}
+                            onPress={() => handleInstallOfflinePack(pack)}
+                            style={[styles.offlinePackActionButton, !canInstall && styles.offlinePackActionButtonDisabled]}>
+                            <Ionicons name="download-outline" size={14} color={canInstall ? '#0075DE' : '#A4A097'} />
+                            <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
+                              {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
+                            </Text>
+                          </TouchableOpacity>
+                          {hasInstallRecord ? (
+                            <TouchableOpacity
+                              accessibilityLabel={`Xóa ${language?.label ?? pack.languageCode} offline pack`}
+                              accessibilityRole="button"
+                              activeOpacity={0.82}
+                              disabled={isBusy}
+                              onPress={() => handleDeleteOfflinePack(pack)}
+                              style={[styles.offlinePackDeleteButton, isBusy && styles.offlinePackActionButtonDisabled]}>
+                              <Ionicons name="trash-outline" size={14} color={isBusy ? '#94A3B8' : '#DC2626'} />
+                              <Text style={[styles.offlinePackDeleteText, isBusy && styles.offlinePackActionTextDisabled]}>
+                                Xóa
+                              </Text>
+                            </TouchableOpacity>
+                          ) : null}
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
               </SidebarSection>
               ) : null}
 
@@ -1324,50 +1282,6 @@ function ProfileMetric({ label, value }: { label: string; value: number }) {
   );
 }
 
-function QuickAction({
-  detail,
-  icon,
-  label,
-  onPress,
-}: {
-  detail: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.quickAction}>
-      <View style={styles.quickActionIcon}>
-        <Ionicons name={icon} size={17} color="#0075DE" />
-      </View>
-      <View style={styles.quickActionCopy}>
-        <Text style={styles.quickActionLabel} numberOfLines={1}>{label}</Text>
-        <Text style={styles.quickActionDetail} numberOfLines={1}>{detail}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function SummaryRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  value: string;
-}) {
-  return (
-    <View style={styles.summaryRow}>
-      <View style={styles.summaryIcon}>
-        <Ionicons name={icon} size={16} color="#0075DE" />
-      </View>
-      <Text style={styles.summaryLabel} numberOfLines={1}>{label}</Text>
-      <Text style={styles.summaryValue} numberOfLines={1}>{value}</Text>
-    </View>
-  );
-}
-
 function DataStat({ label, value }: { label: string; value: number }) {
   return (
     <View style={styles.dataStat}>
@@ -1375,6 +1289,55 @@ function DataStat({ label, value }: { label: string; value: number }) {
       <Text style={styles.dataStatLabel}>{label}</Text>
     </View>
   );
+}
+
+function buildSavedWordChartData(savedWords: LibraryState['savedWords'], range: WordChartRange, now: Date) {
+  const bucketCount = range === 'day' ? 7 : range === 'month' ? 6 : 5;
+  const buckets = Array.from({ length: bucketCount }, (_, index) => {
+    const bucketDate = new Date(now);
+
+    if (range === 'day') {
+      bucketDate.setDate(now.getDate() - (bucketCount - 1 - index));
+    } else if (range === 'month') {
+      bucketDate.setMonth(now.getMonth() - (bucketCount - 1 - index), 1);
+    } else {
+      bucketDate.setFullYear(now.getFullYear() - (bucketCount - 1 - index), 0, 1);
+    }
+
+    return {
+      key: getWordChartBucketKey(bucketDate, range),
+      label: getWordChartBucketLabel(bucketDate, range),
+      value: 0,
+    };
+  });
+  const bucketByKey = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+
+  savedWords.forEach((word) => {
+    const createdAt = new Date(word.createdAt);
+    if (Number.isNaN(createdAt.getTime())) return;
+
+    const bucket = bucketByKey.get(getWordChartBucketKey(createdAt, range));
+    if (bucket) bucket.value += 1;
+  });
+
+  return {
+    maxValue: Math.max(1, ...buckets.map((bucket) => bucket.value)),
+    points: buckets,
+  };
+}
+
+function getWordChartBucketKey(date: Date, range: WordChartRange) {
+  if (range === 'day') return getLocalDateKey(date);
+  if (range === 'month') return getLocalDateKey(date).slice(0, 7);
+
+  return getLocalDateKey(date).slice(0, 4);
+}
+
+function getWordChartBucketLabel(date: Date, range: WordChartRange) {
+  if (range === 'day') return `${date.getDate()}/${date.getMonth() + 1}`;
+  if (range === 'month') return `T${date.getMonth() + 1}`;
+
+  return `${date.getFullYear()}`;
 }
 
 const styles = StyleSheet.create({
@@ -2515,6 +2478,72 @@ const styles = StyleSheet.create({
     height: 8,
     marginHorizontal: 1,
     width: 8,
+  },
+  segmentedControl: {
+    backgroundColor: '#F6F5F4',
+    borderColor: '#E5E3DF',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 12,
+    padding: 4,
+  },
+  segmentButton: {
+    alignItems: 'center',
+    borderRadius: 6,
+    flex: 1,
+    minHeight: 32,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  segmentButtonActive: {
+    backgroundColor: '#5645D4',
+  },
+  segmentButtonText: {
+    color: '#5D5B54',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  segmentButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  barChart: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 8,
+    height: 190,
+    marginTop: 14,
+  },
+  barColumn: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 5,
+    minWidth: 0,
+  },
+  barTrack: {
+    alignItems: 'center',
+    backgroundColor: '#F0EEEC',
+    borderRadius: 8,
+    height: 120,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    width: '100%',
+  },
+  barFill: {
+    backgroundColor: '#5645D4',
+    borderRadius: 8,
+    width: '100%',
+  },
+  barValue: {
+    color: '#1A1A1A',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  barLabel: {
+    color: '#5D5B54',
+    fontSize: 10,
+    fontWeight: '800',
   },
   chart: {
     height: 210,
