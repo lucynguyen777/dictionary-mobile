@@ -52,6 +52,8 @@ const DELETE_TABLE_SQL = [
   'DELETE FROM reader_settings',
   'DELETE FROM reader_documents',
   'DELETE FROM deleted_entities',
+  'DELETE FROM flashcard_learning_settings',
+  'DELETE FROM flashcard_review_events',
   'DELETE FROM flashcards',
   'DELETE FROM search_history',
   'DELETE FROM saved_word_folders',
@@ -133,6 +135,8 @@ const INSERT_FLASHCARD_SQL = `INSERT OR REPLACE INTO flashcards (
   back,
   created_at,
   review_state,
+  final_status,
+  completed_at,
   interval,
   repetition,
   efactor,
@@ -141,7 +145,23 @@ const INSERT_FLASHCARD_SQL = `INSERT OR REPLACE INTO flashcards (
   last_synced_at,
   version,
   deleted_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+const INSERT_FLASHCARD_REVIEW_EVENT_SQL = `INSERT OR REPLACE INTO flashcard_review_events (
+  id,
+  flashcard_id,
+  word_id,
+  quality,
+  reviewed_at,
+  scheduled_due_date_after_review
+) VALUES (?, ?, ?, ?, ?, ?)`;
+
+const INSERT_FLASHCARD_LEARNING_SETTINGS_SQL = `INSERT OR REPLACE INTO flashcard_learning_settings (
+  id,
+  completion_min_average_quality,
+  completion_min_review_count,
+  updated_at
+) VALUES (?, ?, ?, ?)`;
 
 const INSERT_DELETED_ENTITY_SQL = `INSERT OR REPLACE INTO deleted_entities (
   entity_type,
@@ -292,6 +312,8 @@ export async function replaceUserDatabaseRows(database: UserSqliteDatabase, rows
       row.back,
       row.created_at,
       row.review_state,
+      row.final_status ?? null,
+      row.completed_at ?? null,
       row.interval,
       row.repetition,
       row.efactor,
@@ -300,6 +322,26 @@ export async function replaceUserDatabaseRows(database: UserSqliteDatabase, rows
       row.last_synced_at,
       row.version,
       row.deleted_at
+    );
+  }
+
+  await database.runAsync(
+    INSERT_FLASHCARD_LEARNING_SETTINGS_SQL,
+    rows.flashcardLearningSettings.id,
+    rows.flashcardLearningSettings.completion_min_average_quality,
+    rows.flashcardLearningSettings.completion_min_review_count,
+    rows.flashcardLearningSettings.updated_at
+  );
+
+  for (const row of rows.flashcardReviewEvents) {
+    await database.runAsync(
+      INSERT_FLASHCARD_REVIEW_EVENT_SQL,
+      row.id,
+      row.flashcard_id,
+      row.word_id,
+      row.quality,
+      row.reviewed_at,
+      row.scheduled_due_date_after_review
     );
   }
 

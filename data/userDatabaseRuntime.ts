@@ -11,6 +11,8 @@ import {
   parseUserProfileFromSqliteRow,
   serializeUserDataForSqlite,
   type DeletedEntityRow,
+  type FlashcardLearningSettingsRow,
+  type FlashcardReviewEventRow,
   type FlashcardRow,
   type FolderRow,
   type ReaderDocumentRow,
@@ -49,6 +51,8 @@ const SELECT_SAVED_WORDS_SQL = 'SELECT * FROM saved_words ORDER BY created_at DE
 const SELECT_SAVED_WORD_FOLDERS_SQL = 'SELECT * FROM saved_word_folders ORDER BY word_id, folder_id';
 const SELECT_SEARCH_HISTORY_SQL = 'SELECT * FROM search_history ORDER BY looked_up_at DESC';
 const SELECT_FLASHCARDS_SQL = 'SELECT * FROM flashcards ORDER BY created_at DESC';
+const SELECT_FLASHCARD_REVIEW_EVENTS_SQL = 'SELECT * FROM flashcard_review_events ORDER BY reviewed_at DESC';
+const SELECT_FLASHCARD_LEARNING_SETTINGS_SQL = 'SELECT * FROM flashcard_learning_settings WHERE id = ? LIMIT 1';
 const SELECT_DELETED_ENTITIES_SQL = 'SELECT * FROM deleted_entities ORDER BY deleted_at DESC';
 const SELECT_READER_DOCUMENTS_SQL = 'SELECT * FROM reader_documents ORDER BY updated_at DESC';
 const SELECT_READER_SETTINGS_SQL = 'SELECT * FROM reader_settings WHERE id = ? LIMIT 1';
@@ -115,7 +119,19 @@ export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabase
 
   const database = await openDatabase(databaseName);
   try {
-    const [profileRow, folders, savedWords, savedWordFolders, searchHistory, flashcards, deletedEntities, documents, settings] =
+    const [
+      profileRow,
+      folders,
+      savedWords,
+      savedWordFolders,
+      searchHistory,
+      flashcards,
+      flashcardReviewEvents,
+      flashcardLearningSettings,
+      deletedEntities,
+      documents,
+      settings,
+    ] =
       await Promise.all([
         getFirstRequired<UserProfileRow>(database, SELECT_PROFILE_SQL, 'local-profile'),
         getAllRequired<FolderRow>(database, SELECT_FOLDERS_SQL),
@@ -123,6 +139,12 @@ export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabase
         getAllRequired<SavedWordFolderRow>(database, SELECT_SAVED_WORD_FOLDERS_SQL),
         getAllRequired<SearchHistoryRow>(database, SELECT_SEARCH_HISTORY_SQL),
         getAllRequired<FlashcardRow>(database, SELECT_FLASHCARDS_SQL),
+        getAllRequired<FlashcardReviewEventRow>(database, SELECT_FLASHCARD_REVIEW_EVENTS_SQL),
+        getFirstRequired<FlashcardLearningSettingsRow>(
+          database,
+          SELECT_FLASHCARD_LEARNING_SETTINGS_SQL,
+          'local-flashcard-learning-settings'
+        ),
         getAllRequired<DeletedEntityRow>(database, SELECT_DELETED_ENTITIES_SQL),
         getAllRequired<ReaderDocumentRow>(database, SELECT_READER_DOCUMENTS_SQL),
         getFirstRequired<ReaderSettingsRow>(database, SELECT_READER_SETTINGS_SQL, 'local-reader-settings'),
@@ -131,6 +153,8 @@ export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabase
     return {
       library: parseLibraryStateFromSqliteRows({
         deletedEntities,
+        flashcardLearningSettings,
+        flashcardReviewEvents,
         flashcards,
         folders,
         savedWordFolders,

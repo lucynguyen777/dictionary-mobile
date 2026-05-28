@@ -16,6 +16,7 @@ import {
   getDefaultLibraryState,
   getPendingFlashcards,
   markFlashcardSynced,
+  reviewFlashcard,
   updateFlashcardReviewState,
 } from '../data/libraryStore';
 import type { LibraryState } from '../data/libraryStore';
@@ -180,5 +181,44 @@ describe('libraryStore flashcard sync state', () => {
     // Mark as synced (physically remove)
     state = await markFlashcardSynced(state, 'card-4', '2023-01-04');
     expect(state.flashcards).toHaveLength(0);
+  });
+
+  it('records review events and completes cards after user thresholds', async () => {
+    let state: LibraryState = {
+      ...getDefaultLibraryState(),
+      flashcardLearningSettings: {
+        completionMinAverageQuality: 4,
+        completionMinReviewCount: 3,
+      },
+      flashcards: [
+        {
+          id: 'card-5',
+          wordId: 'word-5',
+          type: 'bilingual',
+          front: 'front',
+          back: 'back',
+          createdAt: '2023-01-01',
+          reviewState: 'new',
+          finalStatus: 'started',
+          completedAt: null,
+          interval: 0,
+          repetition: 0,
+          efactor: 2.5,
+          dueDate: '2023-01-01',
+          syncStatus: 'synced',
+          version: 1,
+        },
+      ],
+    };
+
+    state = await reviewFlashcard(state, 'card-5', 5);
+    state = await reviewFlashcard(state, 'card-5', 4);
+    state = await reviewFlashcard(state, 'card-5', 4);
+
+    expect(state.flashcardReviewEvents).toHaveLength(3);
+    expect(state.flashcardReviewEvents?.map((event) => event.quality)).toEqual([5, 4, 4]);
+    expect(state.flashcards[0].finalStatus).toBe('completed');
+    expect(state.flashcards[0].completedAt).toBeTruthy();
+    expect(state.flashcards[0].syncStatus).toBe('pending_update');
   });
 });

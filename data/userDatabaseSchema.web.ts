@@ -124,6 +124,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     back TEXT NOT NULL,
     created_at TEXT NOT NULL,
     review_state TEXT NOT NULL,
+    final_status TEXT,
+    completed_at TEXT,
     interval INTEGER NOT NULL,
     repetition INTEGER NOT NULL,
     efactor REAL NOT NULL,
@@ -134,6 +136,20 @@ export const USER_DATABASE_SCHEMA_SQL = [
     deleted_at TEXT,
     remote_version INTEGER,
     last_local_change_at TEXT
+  )`,
+  `CREATE TABLE IF NOT EXISTS flashcard_review_events (
+    id TEXT PRIMARY KEY,
+    flashcard_id TEXT NOT NULL,
+    word_id TEXT NOT NULL,
+    quality INTEGER NOT NULL,
+    reviewed_at TEXT NOT NULL,
+    scheduled_due_date_after_review TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS flashcard_learning_settings (
+    id TEXT PRIMARY KEY,
+    completion_min_average_quality REAL NOT NULL,
+    completion_min_review_count INTEGER NOT NULL,
+    updated_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS deleted_entities (
     entity_type TEXT NOT NULL,
@@ -181,6 +197,7 @@ export const USER_DATABASE_SCHEMA_SQL = [
   'CREATE INDEX IF NOT EXISTS saved_word_folders_folder_idx ON saved_word_folders(folder_id)',
   'CREATE INDEX IF NOT EXISTS search_history_lookup_idx ON search_history(normalized_word, looked_up_at)',
   'CREATE INDEX IF NOT EXISTS flashcards_due_idx ON flashcards(due_date, review_state)',
+  'CREATE INDEX IF NOT EXISTS flashcard_review_events_card_idx ON flashcard_review_events(flashcard_id, reviewed_at)',
   'CREATE INDEX IF NOT EXISTS reader_documents_updated_idx ON reader_documents(updated_at)',
   'CREATE INDEX IF NOT EXISTS folders_sync_status_idx ON folders(sync_status, updated_at)',
   'CREATE INDEX IF NOT EXISTS saved_words_sync_status_idx ON saved_words(sync_status, updated_at)',

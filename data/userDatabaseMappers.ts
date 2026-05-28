@@ -1,5 +1,5 @@
 import type { LibraryState } from './libraryStore';
-import { normalizeLibraryState } from './libraryStore';
+import { getDefaultFlashcardLearningSettings, normalizeLibraryState } from './libraryStore';
 import type { UserProfile } from './profileStore';
 import { normalizeProfile } from './profileStore';
 import type { ReaderState } from './readerStore';
@@ -89,6 +89,8 @@ export type FlashcardRow = {
   back: string;
   created_at: string;
   review_state: string;
+  final_status?: string | null;
+  completed_at?: string | null;
   interval: number;
   repetition: number;
   efactor: number;
@@ -97,6 +99,22 @@ export type FlashcardRow = {
   last_synced_at: string | null;
   version: number;
   deleted_at: string | null;
+};
+
+export type FlashcardReviewEventRow = {
+  id: string;
+  flashcard_id: string;
+  word_id: string;
+  quality: number;
+  reviewed_at: string;
+  scheduled_due_date_after_review: string;
+};
+
+export type FlashcardLearningSettingsRow = {
+  id: string;
+  completion_min_average_quality: number;
+  completion_min_review_count: number;
+  updated_at: string;
 };
 
 export type DeletedEntityRow = {
@@ -126,6 +144,8 @@ export type ReaderSettingsRow = {
 
 export type SerializedUserDatabaseRows = {
   deletedEntities: DeletedEntityRow[];
+  flashcardLearningSettings: FlashcardLearningSettingsRow;
+  flashcardReviewEvents: FlashcardReviewEventRow[];
   flashcards: FlashcardRow[];
   folders: FolderRow[];
   meta: UserDatabaseMetaRow[];
@@ -139,6 +159,7 @@ export type SerializedUserDatabaseRows = {
 
 export type UserDatabaseParityCounts = {
   deletedEntities: number;
+  flashcardReviewEvents: number;
   flashcards: number;
   folders: number;
   profile: number;
@@ -155,6 +176,15 @@ export function serializeUserDataForSqlite(
 ): SerializedUserDatabaseRows {
   return {
     deletedEntities: serializeDeletedEntities(snapshot.library, options.migratedAt),
+    flashcardLearningSettings: serializeFlashcardLearningSettings(snapshot.library, options.migratedAt),
+    flashcardReviewEvents: (snapshot.library.flashcardReviewEvents ?? []).map((event) => ({
+      id: event.id,
+      flashcard_id: event.flashcardId,
+      word_id: event.wordId,
+      quality: event.quality,
+      reviewed_at: event.reviewedAt,
+      scheduled_due_date_after_review: event.scheduledDueDateAfterReview,
+    })),
     flashcards: snapshot.library.flashcards.map((card) => ({
       id: card.id,
       word_id: card.wordId,
@@ -163,6 +193,8 @@ export function serializeUserDataForSqlite(
       back: card.back,
       created_at: card.createdAt,
       review_state: card.reviewState,
+      final_status: card.finalStatus,
+      completed_at: card.completedAt ?? null,
       interval: card.interval,
       repetition: card.repetition,
       efactor: card.efactor,
@@ -235,6 +267,7 @@ export function serializeUserDataForSqlite(
 export function getUserDatabaseParityCounts(rows: SerializedUserDatabaseRows): UserDatabaseParityCounts {
   return {
     deletedEntities: rows.deletedEntities.length,
+    flashcardReviewEvents: rows.flashcardReviewEvents.length,
     flashcards: rows.flashcards.length,
     folders: rows.folders.length,
     profile: rows.profile ? 1 : 0,
@@ -273,6 +306,8 @@ export function parseUserProfileFromSqliteRow(row: UserProfileRow): UserProfile 
 
 export function parseLibraryStateFromSqliteRows(rows: {
   deletedEntities: DeletedEntityRow[];
+  flashcardLearningSettings?: FlashcardLearningSettingsRow | null;
+  flashcardReviewEvents?: FlashcardReviewEventRow[];
   flashcards: FlashcardRow[];
   folders: FolderRow[];
   savedWordFolders: SavedWordFolderRow[];
@@ -299,6 +334,8 @@ export function parseLibraryStateFromSqliteRows(rows: {
         efactor: row.efactor,
         front: row.front,
         id: row.id,
+        completedAt: row.completed_at,
+        finalStatus: (row.final_status || undefined) as LibraryState['flashcards'][number]['finalStatus'],
         interval: row.interval,
         lastSyncedAt: row.last_synced_at,
         repetition: row.repetition,
@@ -308,6 +345,20 @@ export function parseLibraryStateFromSqliteRows(rows: {
         version: row.version,
         wordId: row.word_id,
       })),
+    flashcardLearningSettings: rows.flashcardLearningSettings
+      ? {
+          completionMinAverageQuality: rows.flashcardLearningSettings.completion_min_average_quality,
+          completionMinReviewCount: rows.flashcardLearningSettings.completion_min_review_count,
+        }
+      : getDefaultFlashcardLearningSettings(),
+    flashcardReviewEvents: (rows.flashcardReviewEvents ?? []).map((row) => ({
+      id: row.id,
+      flashcardId: row.flashcard_id,
+      wordId: row.word_id,
+      quality: row.quality,
+      reviewedAt: row.reviewed_at,
+      scheduledDueDateAfterReview: row.scheduled_due_date_after_review,
+    })),
     folders: rows.folders
       .filter((row) => !row.deleted_at)
       .map((row) => ({
@@ -399,6 +450,17 @@ function serializeDeletedEntities(library: LibraryState, migratedAt: string): De
     entity_id: folderId,
     deleted_at: migratedAt,
   }));
+}
+
+function serializeFlashcardLearningSettings(library: LibraryState, migratedAt: string): FlashcardLearningSettingsRow {
+  const settings = library.flashcardLearningSettings ?? getDefaultFlashcardLearningSettings();
+
+  return {
+    id: 'local-flashcard-learning-settings',
+    completion_min_average_quality: settings.completionMinAverageQuality,
+    completion_min_review_count: settings.completionMinReviewCount,
+    updated_at: migratedAt,
+  };
 }
 
 function serializeReaderSettings(reader: ReaderState, migratedAt: string): ReaderSettingsRow {

@@ -365,6 +365,8 @@ type RowTableName = keyof FakeUserSqliteDatabase['rows'];
 
 const insertColumns: Record<RowTableName, string[]> = {
   deleted_entities: ['entity_type', 'entity_id', 'deleted_at'],
+  flashcard_learning_settings: ['id', 'completion_min_average_quality', 'completion_min_review_count', 'updated_at'],
+  flashcard_review_events: ['id', 'flashcard_id', 'word_id', 'quality', 'reviewed_at', 'scheduled_due_date_after_review'],
   flashcards: [
     'id',
     'word_id',
@@ -373,6 +375,8 @@ const insertColumns: Record<RowTableName, string[]> = {
     'back',
     'created_at',
     'review_state',
+    'final_status',
+    'completed_at',
     'interval',
     'repetition',
     'efactor',
@@ -480,6 +484,8 @@ class FakeUserSqliteDatabase implements UserSqliteDatabase {
 function createEmptyRows() {
   return {
     deleted_entities: [] as Record<string, unknown>[],
+    flashcard_learning_settings: [] as Record<string, unknown>[],
+    flashcard_review_events: [] as Record<string, unknown>[],
     flashcards: [] as Record<string, unknown>[],
     folders: [] as Record<string, unknown>[],
     reader_documents: [] as Record<string, unknown>[],

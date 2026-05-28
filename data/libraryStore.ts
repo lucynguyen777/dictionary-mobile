@@ -47,6 +47,8 @@ export type Flashcard = {
   back: string;
   createdAt: string;
   reviewState: 'new' | 'learning' | 'reviewed';
+  finalStatus?: 'started' | 'in_progress' | 'completed';
+  completedAt?: string | null;
   // SM-2 Spaced Repetition System fields
   interval: number;
   repetition: number;
@@ -60,12 +62,29 @@ export type Flashcard = {
 
 export type FlashcardType = Flashcard['type'];
 export type FlashcardReviewState = Flashcard['reviewState'];
+export type FlashcardFinalStatus = NonNullable<Flashcard['finalStatus']>;
+
+export type FlashcardReviewEvent = {
+  id: string;
+  flashcardId: string;
+  wordId: string;
+  quality: number;
+  reviewedAt: string;
+  scheduledDueDateAfterReview: string;
+};
+
+export type FlashcardLearningSettings = {
+  completionMinAverageQuality: number;
+  completionMinReviewCount: number;
+};
 
 export type LibraryState = {
   folders: Folder[];
   savedWords: SavedWord[];
   searchHistory: SearchHistoryItem[];
   flashcards: Flashcard[];
+  flashcardReviewEvents?: FlashcardReviewEvent[];
+  flashcardLearningSettings?: FlashcardLearningSettings;
   deletedFolderIds: string[];
 };
 
@@ -439,8 +458,14 @@ export async function updateFlashcardReviewState(
  * Quality: 0-5 (0 = complete blackout, 5 = perfect response)
  */
 export async function reviewFlashcard(state: LibraryState, cardId: string, quality: number): Promise<LibraryState> {
+  const reviewedAt = now();
+  const flashcardReviewEvents = state.flashcardReviewEvents ?? [];
+  const flashcardLearningSettings = normalizeFlashcardLearningSettings(state.flashcardLearningSettings);
+  let reviewEvent: FlashcardReviewEvent | null = null;
   const nextState: LibraryState = {
     ...state,
+    flashcardLearningSettings,
+    flashcardReviewEvents,
     flashcards: state.flashcards.map((card) => {
       if (card.id !== cardId) return card;
 
@@ -468,21 +493,42 @@ export async function reviewFlashcard(state: LibraryState, cardId: string, quali
 
       const nextDue = new Date();
       nextDue.setDate(nextDue.getDate() + interval);
+      const nextDueDate = nextDue.toISOString();
       
       const reviewState: Flashcard['reviewState'] = q < 3 ? 'learning' : (interval > 14 ? 'reviewed' : 'learning');
+      reviewEvent = {
+        id: `flashcard-review-${card.id}-${reviewedAt}`,
+        flashcardId: card.id,
+        wordId: card.wordId,
+        quality: q,
+        reviewedAt,
+        scheduledDueDateAfterReview: nextDueDate,
+      };
+      const cardEvents = [...flashcardReviewEvents.filter((event) => event.flashcardId === card.id), reviewEvent];
+      const averageQuality = cardEvents.reduce((sum, event) => sum + event.quality, 0) / cardEvents.length;
+      const alreadyCompleted = card.finalStatus === 'completed';
+      const shouldComplete =
+        averageQuality >= flashcardLearningSettings.completionMinAverageQuality &&
+        cardEvents.length >= flashcardLearningSettings.completionMinReviewCount;
 
       return {
         ...card,
+        completedAt: alreadyCompleted ? card.completedAt ?? reviewedAt : shouldComplete ? reviewedAt : card.completedAt ?? null,
         interval,
         repetition,
         efactor,
-        dueDate: nextDue.toISOString(),
+        dueDate: nextDueDate,
+        finalStatus: alreadyCompleted || shouldComplete ? 'completed' : 'in_progress',
         reviewState,
         syncStatus: getPendingFlashcardSyncStatus(card),
         version: (card.version || 1) + 1,
       };
     }),
   };
+
+  if (reviewEvent) {
+    nextState.flashcardReviewEvents = [...flashcardReviewEvents, reviewEvent];
+  }
 
   await saveLibraryState(nextState);
 
@@ -759,7 +805,16 @@ export function getDefaultLibraryState(): LibraryState {
     savedWords: [],
     searchHistory: [],
     flashcards: [],
+    flashcardReviewEvents: [],
+    flashcardLearningSettings: getDefaultFlashcardLearningSettings(),
     deletedFolderIds: [],
+  };
+}
+
+export function getDefaultFlashcardLearningSettings(): FlashcardLearningSettings {
+  return {
+    completionMinAverageQuality: 4,
+    completionMinReviewCount: 3,
   };
 }
 
@@ -790,9 +845,65 @@ export function normalizeLibraryState(state: Partial<LibraryState>): LibraryStat
     folders,
     savedWords: state.savedWords ?? [],
     searchHistory: state.searchHistory ?? [],
-    flashcards: state.flashcards ?? [],
+    flashcards: (state.flashcards ?? []).map(normalizeFlashcard),
+    flashcardReviewEvents: (state.flashcardReviewEvents ?? [])
+      .map(normalizeFlashcardReviewEvent)
+      .filter((event): event is FlashcardReviewEvent => Boolean(event)),
+    flashcardLearningSettings: normalizeFlashcardLearningSettings(state.flashcardLearningSettings),
     deletedFolderIds,
   };
+}
+
+function normalizeFlashcard(card: Partial<Flashcard>): Flashcard {
+  const timestamp = now();
+  const reviewState = card.reviewState ?? 'new';
+  const completedAt = card.completedAt ?? null;
+
+  return {
+    id: card.id ?? `flashcard-${Date.now()}`,
+    wordId: card.wordId ?? '',
+    type: card.type ?? 'bilingual',
+    front: card.front ?? '',
+    back: card.back ?? '',
+    createdAt: card.createdAt ?? timestamp,
+    reviewState,
+    finalStatus: card.finalStatus ?? (completedAt ? 'completed' : reviewState === 'new' ? 'started' : 'in_progress'),
+    completedAt,
+    interval: card.interval ?? 0,
+    repetition: card.repetition ?? 0,
+    efactor: card.efactor ?? 2.5,
+    dueDate: card.dueDate ?? card.createdAt ?? timestamp,
+    syncStatus: card.syncStatus,
+    lastSyncedAt: card.lastSyncedAt ?? null,
+    version: card.version ?? 1,
+  };
+}
+
+function normalizeFlashcardReviewEvent(event: Partial<FlashcardReviewEvent>): FlashcardReviewEvent | null {
+  if (!event.flashcardId || !event.wordId || typeof event.quality !== 'number') return null;
+  const reviewedAt = event.reviewedAt ?? now();
+
+  return {
+    id: event.id ?? `flashcard-review-${event.flashcardId}-${reviewedAt}`,
+    flashcardId: event.flashcardId,
+    wordId: event.wordId,
+    quality: Math.max(0, Math.min(5, Math.round(event.quality))),
+    reviewedAt,
+    scheduledDueDateAfterReview: event.scheduledDueDateAfterReview ?? reviewedAt,
+  };
+}
+
+function normalizeFlashcardLearningSettings(settings?: Partial<FlashcardLearningSettings>): FlashcardLearningSettings {
+  const defaults = getDefaultFlashcardLearningSettings();
+
+  return {
+    completionMinAverageQuality: clampNumber(settings?.completionMinAverageQuality, 1, 5, defaults.completionMinAverageQuality),
+    completionMinReviewCount: clampNumber(settings?.completionMinReviewCount, 1, 50, defaults.completionMinReviewCount),
+  };
+}
+
+function clampNumber(value: unknown, min: number, max: number, fallback: number) {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : fallback;
 }
 
 function mergeFolders(defaultFolders: Folder[], storedFolders: Folder[]) {
@@ -952,6 +1063,8 @@ function buildFlashcard(word: SavedWord, type: FlashcardType, id: string, create
     back: cardContent[type].back,
     createdAt,
     reviewState: 'new',
+    finalStatus: 'started',
+    completedAt: null,
     interval: 0,
     repetition: 0,
     efactor: 2.5,
