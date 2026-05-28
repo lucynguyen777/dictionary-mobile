@@ -312,6 +312,18 @@ Translation/AI code can start when the next module agrees to:
 - add tests for quota rejection, unsupported language pairs, glossary validation, provider error mapping, streaming event handling, and no-key leakage.
 - for dataset agents, add parser, validation, highlighting, max-agent-limit, and no-raw-dataset-log tests before production use.
 
+## Implementation Progress
+
+**DeepL + OpenAI Backend Proxy Env Guard Draft** is complete:
+
+- `backend/proxyConfig.ts` reads backend-only DeepL/OpenAI env configuration;
+- missing provider env maps to `503 provider_unconfigured`;
+- DeepL base URL is restricted to the accepted API hosts;
+- quota and input-size defaults are centralized;
+- structured log redaction covers provider keys and user content fields by default.
+
+Next staged module: **DeepL + OpenAI Proxy Request Validation Draft**.
+
 ## Test Expectations
 
 - Unit tests for request validation and glossary sanitizer.

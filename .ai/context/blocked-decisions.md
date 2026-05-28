@@ -122,7 +122,7 @@ Acceptance gate:
 ---
 
 ## DeepL + OpenAI Backend Proxy MVP
-Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; translation/AI implementation can move to staged code modules after backend routes, RLS tables, and provider env vars are added.
+Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; backend env guard draft added in `backend/proxyConfig.ts`. Translation/AI implementation can move through staged backend modules, but production provider calls remain blocked until backend routes, RLS tables, quota checks, and fake-provider tests are added.
 
 Accepted:
 - DeepL translation and glossary support through backend proxy
@@ -132,12 +132,13 @@ Accepted:
 Allowed preparatory work:
 - Follow `docs/deepl-openai-backend-proxy-mvp.md`
 - Keep DeepL and OpenAI keys server-side only
+- Keep backend env validation and redacted logging tests in place
 - Add quota checks before provider calls
 - Redact source text, translations, prompts, transcripts, glossary entries, and provider keys from logs by default
 - Keep machine translation output out of dictionary/source data
 
 Acceptance gate:
-- Implementation may start after backend proxy routes, RLS-protected usage/glossary tables, env vars, and fake-provider tests are added.
+- Request validation may start next; production provider calls require backend proxy routes, RLS-protected usage/glossary tables, quota checks, and fake-provider tests.
 
 ---
 
