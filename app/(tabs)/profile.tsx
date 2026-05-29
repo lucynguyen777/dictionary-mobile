@@ -78,8 +78,8 @@ const wordChartRanges: { label: string; value: WordChartRange }[] = [
   { label: 'M', value: 'month' },
   { label: 'Y', value: 'year' },
 ];
-const streakHeatmapDays = Array.from({ length: 84 }, (_, index) => index);
 const defaultAvatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop';
+const monthShortLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const legalLinks = [
   {
     icon: 'document-text-outline' as const,
@@ -133,6 +133,8 @@ export default function ProfileScreen() {
   const [authPassword, setAuthPassword] = useState('');
   const [authBusyAction, setAuthBusyAction] = useState<'sign-in' | 'sign-up' | 'recovery' | null>(null);
   const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
+  const [selectedStreakYear, setSelectedStreakYear] = useState(new Date().getFullYear());
+  const [streakYearMenuOpen, setStreakYearMenuOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -491,8 +493,11 @@ export default function ProfileScreen() {
   const wordChartPrimaryValue = wordChartRange === 'day' ? wordChartData.totalValue : wordChartData.averageValue;
   const wordChartMetricLabel = wordChartRange === 'day' ? 'TOTAL' : 'TRUNG BÌNH';
   const wordChartPeriodLabel = getWordChartPeriodLabel(wordChartRange, dashboardNow);
-  const activeDaySet = new Set(activityState.activeDays);
   const currentYear = dashboardNow.getFullYear();
+  const streakYearOptions = getStreakYearOptions(activityState, currentYear);
+  const displayedStreakYear = streakYearOptions.includes(selectedStreakYear) ? selectedStreakYear : currentYear;
+  const selectedYearActiveDays = getActiveDaysForYear(activityState, displayedStreakYear);
+  const streakYearHeatmap = buildStreakYearHeatmap(activityState.activeDays, displayedStreakYear);
 
   const handleDeleteLocalProfile = () => {
     Alert.alert('Xóa hồ sơ local', 'Hành động này sẽ xóa hồ sơ local trên thiết bị. Bạn có muốn tiếp tục?', [
@@ -633,39 +638,96 @@ export default function ProfileScreen() {
               <Text style={styles.metricsCardTitle}>Streak đăng nhập</Text>
               <Text style={styles.metricsCardSubtitle}>Tính theo ngày app được mở trên thiết bị này.</Text>
             </View>
-            <View style={styles.metricsYearPill}>
-              <Text style={styles.metricsYearText}>{currentYear}</Text>
+            <View style={styles.yearPickerWrap}>
+              <Pressable
+                accessibilityLabel="Chọn năm streak"
+                accessibilityRole="button"
+                onPress={() => setStreakYearMenuOpen((current) => !current)}
+                style={({ pressed }) => [styles.metricsYearPill, pressed && styles.metricsYearPillPressed]}>
+                <Text style={styles.metricsYearText}>{displayedStreakYear}</Text>
+                <Ionicons name={streakYearMenuOpen ? 'chevron-up' : 'chevron-down'} size={13} color="#EDEAF7" />
+              </Pressable>
+              {streakYearMenuOpen ? (
+                <View style={styles.yearPickerMenu}>
+                  {streakYearOptions.map((year) => (
+                    <Pressable
+                      key={year}
+                      accessibilityRole="button"
+                      onPress={() => {
+                        setSelectedStreakYear(year);
+                        setStreakYearMenuOpen(false);
+                      }}
+                      style={({ pressed }) => [
+                        styles.yearPickerOption,
+                        year === displayedStreakYear && styles.yearPickerOptionActive,
+                        pressed && styles.yearPickerOptionPressed,
+                      ]}>
+                      <Text style={[styles.yearPickerOptionText, year === displayedStreakYear && styles.yearPickerOptionTextActive]}>
+                        {year}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
             </View>
           </View>
-          <View style={styles.darkDataRow}>
-            <DarkDataStat label="Hiện tại" value={activitySummary.currentStreak} />
-            <DarkDataStat label="Dài nhất" value={activitySummary.longestStreak} />
-            <DarkDataStat label="Tháng này" value={activitySummary.activeDaysThisMonth} />
-            <DarkDataStat label="Năm nay" value={activitySummary.activeDaysThisYear} />
+          <View style={styles.darkDataRowCompact}>
+            <DarkDataStat compact label="Hiện tại" value={activitySummary.currentStreak} />
+            <DarkDataStat compact label="Dài nhất" value={activitySummary.longestStreak} />
+            <DarkDataStat compact label="Tháng này" value={activitySummary.activeDaysThisMonth} />
+            <DarkDataStat compact label={displayedStreakYear === currentYear ? 'Năm nay' : 'Năm đó'} value={selectedYearActiveDays} />
           </View>
-          <View style={styles.heatmapRow}>
-            <View style={styles.weekLabels}>
-              <Text style={styles.weekLabel}>Mon</Text>
-              <Text style={styles.weekLabel}>Wed</Text>
-              <Text style={styles.weekLabel}>Fri</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.streakHeatmapScroll}
+            contentContainerStyle={styles.streakHeatmapContent}>
+            <View>
+              <View style={styles.streakMonthRow}>
+                <View style={styles.streakWeekLabelSpacer} />
+                <View style={styles.streakMonthGrid}>
+                  {streakYearHeatmap.monthLabels.map((month) => (
+                    <Text key={`${month.label}-${month.weekIndex}`} style={[styles.streakMonthLabel, { left: month.weekIndex * 13 }]}>
+                      {month.label}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.streakGridRow}>
+                <View style={styles.streakWeekLabels}>
+                  <Text style={styles.weekLabel}>Mon</Text>
+                  <Text style={styles.weekLabel}>Wed</Text>
+                  <Text style={styles.weekLabel}>Fri</Text>
+                </View>
+                <View style={styles.streakWeeks}>
+                  {streakYearHeatmap.weeks.map((week) => (
+                    <View key={week.key} style={styles.streakWeekColumn}>
+                      {week.days.map((day) => (
+                        <View
+                          key={day.key}
+                          style={[
+                            styles.square,
+                            !day.isInYear && styles.squareMuted,
+                            day.isActive && styles.squareStrong,
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.streakContributionFooter}>
+                <Text style={styles.legendText}>Learn how we count app opens</Text>
+                <View style={styles.legend}>
+                  <Text style={styles.legendText}>Less</Text>
+                  {[0, 1, 2, 3, 4].map((item) => (
+                    <View key={item} style={[styles.legendSquare, item > 1 && styles.squareStrong, item > 3 && styles.squareBright]} />
+                  ))}
+                  <Text style={styles.legendText}>More</Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.heatmap}>
-              {streakHeatmapDays.map((dayOffset) => {
-                const date = new Date(dashboardNow);
-                date.setDate(dashboardNow.getDate() - (streakHeatmapDays.length - 1 - dayOffset));
-                const isActive = activeDaySet.has(getLocalDateKey(date));
-
-                return <View key={dayOffset} style={[styles.square, isActive && styles.squareStrong]} />;
-              })}
-            </View>
-          </View>
-          <View style={styles.legend}>
-            <Text style={styles.legendText}>Less</Text>
-            {[0, 1, 2, 3, 4].map((item) => (
-              <View key={item} style={[styles.legendSquare, item > 2 && styles.squareStrong]} />
-            ))}
-            <Text style={styles.legendText}>More</Text>
-          </View>
+          </ScrollView>
         </View>
       </ScrollView>
 
@@ -1320,11 +1382,11 @@ function DataStat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function DarkDataStat({ label, value }: { label: string; value: number }) {
+function DarkDataStat({ compact, label, value }: { compact?: boolean; label: string; value: number }) {
   return (
-    <View style={styles.darkDataStat}>
+    <View style={[styles.darkDataStat, compact && styles.darkDataStatCompact]}>
       <Text style={styles.darkDataStatValue}>{value}</Text>
-      <Text style={styles.darkDataStatLabel}>{label}</Text>
+      <Text numberOfLines={1} style={[styles.darkDataStatLabel, compact && styles.darkDataStatLabelCompact]}>{label}</Text>
     </View>
   );
 }
@@ -1408,6 +1470,62 @@ function formatMetricNumber(value: number) {
   if (value < 10 && value % 1 !== 0) return value.toFixed(1);
 
   return Math.round(value).toLocaleString('vi-VN');
+}
+
+function getStreakYearOptions(activityState: ActivityState, currentYear: number) {
+  const years = new Set([currentYear]);
+
+  activityState.activeDays.forEach((dayKey) => {
+    const year = Number(dayKey.slice(0, 4));
+    if (!Number.isNaN(year)) years.add(year);
+  });
+
+  return [...years].sort((a, b) => b - a);
+}
+
+function getActiveDaysForYear(activityState: ActivityState, year: number) {
+  return activityState.activeDays.filter((dayKey) => dayKey.startsWith(`${year}-`)).length;
+}
+
+function buildStreakYearHeatmap(activeDays: string[], year: number) {
+  const activeDaySet = new Set(activeDays);
+  const firstDay = new Date(year, 0, 1);
+  const gridStart = new Date(firstDay);
+  gridStart.setDate(firstDay.getDate() - firstDay.getDay());
+  gridStart.setHours(0, 0, 0, 0);
+
+  const lastDay = new Date(year, 11, 31);
+  const gridEnd = new Date(lastDay);
+  gridEnd.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+  gridEnd.setHours(0, 0, 0, 0);
+
+  const weekCount = Math.ceil((gridEnd.getTime() - gridStart.getTime() + 1) / (7 * 24 * 60 * 60 * 1000));
+  const weeks = Array.from({ length: weekCount }, (_, weekIndex) => {
+    const days = Array.from({ length: 7 }, (_, dayIndex) => {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + weekIndex * 7 + dayIndex);
+      const key = getLocalDateKey(date);
+
+      return {
+        isActive: activeDaySet.has(key),
+        isInYear: date.getFullYear() === year,
+        key,
+      };
+    });
+
+    return {
+      days,
+      key: `week-${weekIndex}`,
+    };
+  });
+  const monthLabels = monthShortLabels.map((label, monthIndex) => {
+    const monthStart = new Date(year, monthIndex, 1);
+    const weekIndex = Math.floor((monthStart.getTime() - gridStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
+
+    return { label, weekIndex };
+  });
+
+  return { monthLabels, weeks };
 }
 
 const styles = StyleSheet.create({
@@ -2514,19 +2632,65 @@ const styles = StyleSheet.create({
     borderColor: '#3A3646',
     borderRadius: 8,
     borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
     height: 30,
     justifyContent: 'center',
     paddingHorizontal: 12,
+  },
+  metricsYearPillPressed: {
+    backgroundColor: '#302C3A',
   },
   metricsYearText: {
     color: '#EDEAF7',
     fontSize: 12,
     fontWeight: '900',
   },
+  yearPickerWrap: {
+    position: 'relative',
+    zIndex: 4,
+  },
+  yearPickerMenu: {
+    backgroundColor: '#121018',
+    borderColor: '#342F40',
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 82,
+    padding: 4,
+    position: 'absolute',
+    right: 0,
+    top: 36,
+    zIndex: 8,
+  },
+  yearPickerOption: {
+    borderRadius: 6,
+    minHeight: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  yearPickerOptionActive: {
+    backgroundColor: '#24212B',
+  },
+  yearPickerOptionPressed: {
+    backgroundColor: '#302C3A',
+  },
+  yearPickerOptionText: {
+    color: '#A7A2B2',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  yearPickerOptionTextActive: {
+    color: '#FFFFFF',
+  },
   darkDataRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+    marginTop: 12,
+  },
+  darkDataRowCompact: {
+    flexDirection: 'row',
+    gap: 8,
     marginTop: 12,
   },
   darkDataStat: {
@@ -2537,6 +2701,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: '45%',
     padding: 11,
+  },
+  darkDataStatCompact: {
+    minWidth: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 9,
   },
   darkDataStatValue: {
     color: '#A998F4',
@@ -2549,6 +2718,9 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginTop: 4,
     textTransform: 'uppercase',
+  },
+  darkDataStatLabelCompact: {
+    fontSize: 9,
   },
   clearDataButton: {
     alignItems: 'center',
@@ -2586,13 +2758,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 12,
   },
+  streakHeatmapScroll: {
+    marginTop: 14,
+  },
+  streakHeatmapContent: {
+    paddingBottom: 2,
+  },
+  streakMonthRow: {
+    flexDirection: 'row',
+  },
+  streakWeekLabelSpacer: {
+    width: 30,
+  },
+  streakMonthGrid: {
+    height: 20,
+    position: 'relative',
+    width: 689,
+  },
+  streakMonthLabel: {
+    color: '#EDEAF7',
+    fontSize: 11,
+    fontWeight: '800',
+    position: 'absolute',
+    top: 0,
+  },
+  streakGridRow: {
+    flexDirection: 'row',
+  },
   weekLabels: {
     justifyContent: 'space-around',
     marginRight: 4,
   },
+  streakWeekLabels: {
+    height: 88,
+    justifyContent: 'space-around',
+    paddingBottom: 2,
+    paddingTop: 11,
+    width: 30,
+  },
   weekLabel: {
-    color: '#8F8B9B',
-    fontSize: 7,
+    color: '#EDEAF7',
+    fontSize: 11,
+    fontWeight: '700',
   },
   heatmap: {
     flex: 1,
@@ -2601,34 +2808,55 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   square: {
-    backgroundColor: '#1E1B26',
+    backgroundColor: '#111820',
     borderRadius: 2,
-    height: 8,
-    width: 8,
+    height: 10,
+    width: 10,
+  },
+  squareMuted: {
+    opacity: 0.24,
   },
   squareStrong: {
-    backgroundColor: '#A998F4',
+    backgroundColor: '#56D364',
+  },
+  squareBright: {
+    backgroundColor: '#7EE787',
   },
   squareDark: {
     backgroundColor: '#5645D4',
+  },
+  streakWeeks: {
+    flexDirection: 'row',
+    gap: 3,
+  },
+  streakWeekColumn: {
+    gap: 3,
+  },
+  streakContributionFooter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 18,
+    justifyContent: 'space-between',
+    marginLeft: 30,
+    marginTop: 10,
+    minWidth: 600,
   },
   legend: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 5,
   },
   legendText: {
-    color: '#8F8B9B',
-    fontSize: 9,
+    color: '#A7A2B2',
+    fontSize: 11,
     marginHorizontal: 4,
   },
   legendSquare: {
-    backgroundColor: '#1E1B26',
+    backgroundColor: '#111820',
     borderRadius: 2,
-    height: 8,
+    height: 10,
     marginHorizontal: 1,
-    width: 8,
+    width: 10,
   },
   segmentedControl: {
     backgroundColor: '#24212B',
