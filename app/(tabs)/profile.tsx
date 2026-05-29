@@ -70,12 +70,13 @@ import {
 } from '@/data/profileStore';
 import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 
-type WordChartRange = 'day' | 'month' | 'year';
+type WordChartRange = 'day' | 'week' | 'month' | 'year';
 
 const wordChartRanges: { label: string; value: WordChartRange }[] = [
-  { label: 'Ngày', value: 'day' },
-  { label: 'Tháng', value: 'month' },
-  { label: 'Năm', value: 'year' },
+  { label: 'D', value: 'day' },
+  { label: 'W', value: 'week' },
+  { label: 'M', value: 'month' },
+  { label: 'Y', value: 'year' },
 ];
 const streakHeatmapDays = Array.from({ length: 84 }, (_, index) => index);
 const defaultAvatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop';
@@ -487,6 +488,9 @@ export default function ProfileScreen() {
   const activitySummary = getActivitySummary(activityState, dashboardNow);
   const dueFlashcards = libraryState.flashcards.filter((card) => new Date(card.dueDate) <= dashboardNow || card.reviewState !== 'reviewed').length;
   const wordChartData = buildSavedWordChartData(libraryState.savedWords, wordChartRange, dashboardNow);
+  const wordChartPrimaryValue = wordChartRange === 'day' ? wordChartData.totalValue : wordChartData.averageValue;
+  const wordChartMetricLabel = wordChartRange === 'day' ? 'TOTAL' : 'TRUNG BÌNH';
+  const wordChartPeriodLabel = getWordChartPeriodLabel(wordChartRange, dashboardNow);
   const activeDaySet = new Set(activityState.activeDays);
   const currentYear = dashboardNow.getFullYear();
 
@@ -565,11 +569,11 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, styles.metricsCardDark]}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderCopy}>
-              <Text style={styles.cardTitle}>Từ mới thêm vào tủ từ</Text>
-              <Text style={styles.cardSubtitle}>Theo dõi tốc độ lưu từ theo ngày, tháng hoặc năm.</Text>
+              <Text style={styles.metricsCardTitle}>Từ mới thêm vào tủ từ</Text>
+              <Text style={styles.metricsCardSubtitle}>Tốc độ lưu từ theo ngày, tuần, tháng hoặc năm.</Text>
             </View>
           </View>
           <View style={styles.segmentedControl}>
@@ -585,34 +589,59 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             ))}
           </View>
-          <View style={styles.barChart}>
-            {wordChartData.points.map((point) => (
-              <View key={point.key} style={styles.barColumn}>
-                <View style={styles.barTrack}>
-                  <View style={[styles.barFill, { height: `${Math.max(8, (point.value / wordChartData.maxValue) * 100)}%` }]} />
+          <View style={styles.metricsHeaderBlock}>
+            <Text style={styles.metricsOverline}>{wordChartMetricLabel}</Text>
+            <Text style={styles.metricsPrimaryValue}>{formatMetricNumber(wordChartPrimaryValue)}</Text>
+            <Text style={styles.metricsPeriod}>{wordChartPeriodLabel}</Text>
+          </View>
+          <View style={styles.fitnessChartFrame}>
+            <View pointerEvents="none" style={styles.chartGridOverlay}>
+              <View style={styles.chartTopRule} />
+              <View style={styles.chartMidRule} />
+              <View style={styles.chartBottomRule} />
+              {wordChartData.points.map((point) => (
+                <View key={point.key} style={styles.chartVerticalRule} />
+              ))}
+            </View>
+            <View style={styles.chartYAxisLabels}>
+              <Text style={styles.chartAxisText}>{wordChartData.maxValue}</Text>
+              <Text style={styles.chartAxisText}>{Math.round(wordChartData.maxValue / 2)}</Text>
+              <Text style={styles.chartAxisText}>0</Text>
+            </View>
+            <View style={styles.barChart}>
+              {wordChartData.points.map((point) => (
+                <View key={point.key} style={styles.barColumn}>
+                  <View style={styles.barTrack}>
+                    <View
+                      style={[
+                        styles.barFill,
+                        point.key === wordChartData.currentKey && styles.barFillActive,
+                        { height: `${Math.max(6, (point.value / wordChartData.maxValue) * 100)}%` },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.barLabel} numberOfLines={1}>{point.label}</Text>
                 </View>
-                <Text style={styles.barValue}>{point.value}</Text>
-                <Text style={styles.barLabel} numberOfLines={1}>{point.label}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, styles.metricsCardDark]}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderCopy}>
-              <Text style={styles.cardTitle}>Streak đăng nhập</Text>
-              <Text style={styles.cardSubtitle}>Tính theo ngày app được mở trên thiết bị này.</Text>
+              <Text style={styles.metricsCardTitle}>Streak đăng nhập</Text>
+              <Text style={styles.metricsCardSubtitle}>Tính theo ngày app được mở trên thiết bị này.</Text>
             </View>
-            <View style={styles.yearPill}>
-              <Text style={styles.yearText}>{currentYear}</Text>
+            <View style={styles.metricsYearPill}>
+              <Text style={styles.metricsYearText}>{currentYear}</Text>
             </View>
           </View>
-          <View style={styles.compactDataRow}>
-            <DataStat label="Hiện tại" value={activitySummary.currentStreak} />
-            <DataStat label="Dài nhất" value={activitySummary.longestStreak} />
-            <DataStat label="Tháng này" value={activitySummary.activeDaysThisMonth} />
-            <DataStat label="Năm nay" value={activitySummary.activeDaysThisYear} />
+          <View style={styles.darkDataRow}>
+            <DarkDataStat label="Hiện tại" value={activitySummary.currentStreak} />
+            <DarkDataStat label="Dài nhất" value={activitySummary.longestStreak} />
+            <DarkDataStat label="Tháng này" value={activitySummary.activeDaysThisMonth} />
+            <DarkDataStat label="Năm nay" value={activitySummary.activeDaysThisYear} />
           </View>
           <View style={styles.heatmapRow}>
             <View style={styles.weekLabels}>
@@ -1291,13 +1320,24 @@ function DataStat({ label, value }: { label: string; value: number }) {
   );
 }
 
+function DarkDataStat({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.darkDataStat}>
+      <Text style={styles.darkDataStatValue}>{value}</Text>
+      <Text style={styles.darkDataStatLabel}>{label}</Text>
+    </View>
+  );
+}
+
 function buildSavedWordChartData(savedWords: LibraryState['savedWords'], range: WordChartRange, now: Date) {
-  const bucketCount = range === 'day' ? 7 : range === 'month' ? 6 : 5;
+  const bucketCount = range === 'day' ? 8 : range === 'week' ? 8 : range === 'month' ? 12 : 6;
   const buckets = Array.from({ length: bucketCount }, (_, index) => {
     const bucketDate = new Date(now);
 
     if (range === 'day') {
       bucketDate.setDate(now.getDate() - (bucketCount - 1 - index));
+    } else if (range === 'week') {
+      bucketDate.setDate(now.getDate() - (bucketCount - 1 - index) * 7);
     } else if (range === 'month') {
       bucketDate.setMonth(now.getMonth() - (bucketCount - 1 - index), 1);
     } else {
@@ -1319,15 +1359,20 @@ function buildSavedWordChartData(savedWords: LibraryState['savedWords'], range: 
     const bucket = bucketByKey.get(getWordChartBucketKey(createdAt, range));
     if (bucket) bucket.value += 1;
   });
+  const totalValue = buckets.reduce((sum, bucket) => sum + bucket.value, 0);
 
   return {
+    averageValue: totalValue / bucketCount,
+    currentKey: getWordChartBucketKey(now, range),
     maxValue: Math.max(1, ...buckets.map((bucket) => bucket.value)),
     points: buckets,
+    totalValue,
   };
 }
 
 function getWordChartBucketKey(date: Date, range: WordChartRange) {
   if (range === 'day') return getLocalDateKey(date);
+  if (range === 'week') return getLocalDateKey(getWeekStartDate(date));
   if (range === 'month') return getLocalDateKey(date).slice(0, 7);
 
   return getLocalDateKey(date).slice(0, 4);
@@ -1335,9 +1380,34 @@ function getWordChartBucketKey(date: Date, range: WordChartRange) {
 
 function getWordChartBucketLabel(date: Date, range: WordChartRange) {
   if (range === 'day') return `${date.getDate()}/${date.getMonth() + 1}`;
+  if (range === 'week') return `${getWeekStartDate(date).getDate()}/${getWeekStartDate(date).getMonth() + 1}`;
   if (range === 'month') return `T${date.getMonth() + 1}`;
 
   return `${date.getFullYear()}`;
+}
+
+function getWordChartPeriodLabel(range: WordChartRange, now: Date) {
+  if (range === 'day') return 'Hôm nay';
+  if (range === 'week') return 'Tuần này';
+  if (range === 'month') return `Tháng ${now.getMonth() + 1}/${now.getFullYear()}`;
+
+  return `${now.getFullYear()}`;
+}
+
+function getWeekStartDate(date: Date) {
+  const weekStart = new Date(date);
+  const day = weekStart.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  weekStart.setDate(weekStart.getDate() + mondayOffset);
+  weekStart.setHours(0, 0, 0, 0);
+
+  return weekStart;
+}
+
+function formatMetricNumber(value: number) {
+  if (value < 10 && value % 1 !== 0) return value.toFixed(1);
+
+  return Math.round(value).toLocaleString('vi-VN');
 }
 
 const styles = StyleSheet.create({
@@ -2400,6 +2470,86 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'uppercase',
   },
+  metricsCardDark: {
+    backgroundColor: '#050507',
+    borderColor: '#1F1D28',
+  },
+  metricsCardTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  metricsCardSubtitle: {
+    color: '#9A97A7',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 3,
+  },
+  metricsHeaderBlock: {
+    marginTop: 18,
+  },
+  metricsOverline: {
+    color: '#8F8B9B',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
+  },
+  metricsPrimaryValue: {
+    color: '#A998F4',
+    fontSize: 42,
+    fontWeight: '900',
+    lineHeight: 48,
+    marginTop: 2,
+  },
+  metricsPeriod: {
+    color: '#8F8B9B',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  metricsYearPill: {
+    alignItems: 'center',
+    backgroundColor: '#25222E',
+    borderColor: '#3A3646',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  metricsYearText: {
+    color: '#EDEAF7',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  darkDataRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 12,
+  },
+  darkDataStat: {
+    backgroundColor: '#121018',
+    borderColor: '#2C2837',
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    minWidth: '45%',
+    padding: 11,
+  },
+  darkDataStatValue: {
+    color: '#A998F4',
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  darkDataStatLabel: {
+    color: '#A7A2B2',
+    fontSize: 11,
+    fontWeight: '900',
+    marginTop: 4,
+    textTransform: 'uppercase',
+  },
   clearDataButton: {
     alignItems: 'center',
     backgroundColor: '#FEF2F2',
@@ -2441,7 +2591,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   weekLabel: {
-    color: '#8E8E8E',
+    color: '#8F8B9B',
     fontSize: 7,
   },
   heatmap: {
@@ -2451,13 +2601,13 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   square: {
-    backgroundColor: '#E5E3DF',
+    backgroundColor: '#1E1B26',
     borderRadius: 2,
     height: 8,
     width: 8,
   },
   squareStrong: {
-    backgroundColor: '#DCECFA',
+    backgroundColor: '#A998F4',
   },
   squareDark: {
     backgroundColor: '#5645D4',
@@ -2469,80 +2619,139 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   legendText: {
+    color: '#8F8B9B',
     fontSize: 9,
     marginHorizontal: 4,
   },
   legendSquare: {
-    backgroundColor: '#E5E3DF',
+    backgroundColor: '#1E1B26',
     borderRadius: 2,
     height: 8,
     marginHorizontal: 1,
     width: 8,
   },
   segmentedControl: {
-    backgroundColor: '#F6F5F4',
-    borderColor: '#E5E3DF',
+    backgroundColor: '#24212B',
+    borderColor: '#24212B',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 4,
     marginTop: 12,
-    padding: 4,
+    padding: 3,
   },
   segmentButton: {
     alignItems: 'center',
-    borderRadius: 6,
+    borderRadius: 7,
     flex: 1,
-    minHeight: 32,
     justifyContent: 'center',
+    minHeight: 34,
     paddingHorizontal: 8,
   },
   segmentButtonActive: {
-    backgroundColor: '#5645D4',
+    backgroundColor: '#706E78',
   },
   segmentButtonText: {
-    color: '#5D5B54',
-    fontSize: 12,
+    color: '#F5F3FB',
+    fontSize: 15,
     fontWeight: '900',
   },
   segmentButtonTextActive: {
     color: '#FFFFFF',
   },
+  fitnessChartFrame: {
+    height: 238,
+    marginTop: 18,
+    paddingRight: 34,
+    position: 'relative',
+  },
+  chartGridOverlay: {
+    bottom: 24,
+    flexDirection: 'row',
+    left: 0,
+    position: 'absolute',
+    right: 28,
+    top: 4,
+  },
+  chartTopRule: {
+    backgroundColor: '#3C3946',
+    height: 1,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  chartMidRule: {
+    backgroundColor: '#3C3946',
+    height: 1,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: '50%',
+  },
+  chartBottomRule: {
+    backgroundColor: '#3C3946',
+    bottom: 0,
+    height: 1,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  chartVerticalRule: {
+    borderColor: '#3C3946',
+    borderLeftWidth: 1,
+    borderStyle: 'dashed',
+    flex: 1,
+  },
+  chartYAxisLabels: {
+    bottom: 12,
+    justifyContent: 'space-between',
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 28,
+  },
+  chartAxisText: {
+    color: '#9A97A7',
+    fontSize: 11,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
   barChart: {
     alignItems: 'flex-end',
     flexDirection: 'row',
-    gap: 8,
-    height: 190,
-    marginTop: 14,
+    gap: 6,
+    height: 214,
+    paddingBottom: 24,
   },
   barColumn: {
     alignItems: 'center',
     flex: 1,
-    gap: 5,
+    gap: 8,
+    height: '100%',
+    justifyContent: 'flex-end',
     minWidth: 0,
   },
   barTrack: {
     alignItems: 'center',
-    backgroundColor: '#F0EEEC',
-    borderRadius: 8,
-    height: 120,
+    backgroundColor: 'transparent',
+    borderRadius: 4,
+    flex: 1,
     justifyContent: 'flex-end',
     overflow: 'hidden',
     width: '100%',
   },
   barFill: {
-    backgroundColor: '#5645D4',
-    borderRadius: 8,
-    width: '100%',
+    backgroundColor: '#5B5278',
+    borderRadius: 4,
+    maxWidth: 34,
+    width: '62%',
   },
-  barValue: {
-    color: '#1A1A1A',
-    fontSize: 11,
-    fontWeight: '900',
+  barFillActive: {
+    backgroundColor: '#A998F4',
   },
   barLabel: {
-    color: '#5D5B54',
-    fontSize: 10,
+    color: '#8F8B9B',
+    fontSize: 11,
     fontWeight: '800',
   },
   chart: {

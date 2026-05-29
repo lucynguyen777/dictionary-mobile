@@ -1424,16 +1424,16 @@ function FlashcardStatusDonut({
   const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const segments = [
-    { color: '#16A34A', value: completed },
-    { color: '#2563EB', value: inProgress },
-    { color: '#F59E0B', value: started },
+    { color: '#B6FF4D', value: completed },
+    { color: '#A998F4', value: inProgress },
+    { color: '#5B5278', value: started },
   ];
   let offset = 0;
 
   return (
     <View style={styles.donutWrap}>
       <Svg height={86} width={86} viewBox="0 0 86 86">
-        <Circle cx="43" cy="43" fill="none" r={radius} stroke="#E2E8F0" strokeWidth="10" />
+        <Circle cx="43" cy="43" fill="none" r={radius} stroke="#24212B" strokeWidth="10" />
         {segments.map((segment) => {
           const dash = (segment.value / total) * circumference;
           const strokeDashoffset = -offset;
@@ -1446,13 +1446,12 @@ function FlashcardStatusDonut({
               cy="43"
               fill="none"
               r={radius}
-              rotation="-90"
-              origin="43,43"
               stroke={segment.color}
               strokeDasharray={`${dash} ${circumference - dash}`}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
               strokeWidth="10"
+              transform="rotate(-90 43 43)"
             />
           );
         })}
@@ -1629,21 +1628,21 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   analyticsStat: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#121018',
+    borderColor: '#2C2837',
+    borderRadius: 12,
     borderWidth: 1,
     flex: 1,
     minWidth: '45%',
     padding: 10,
   },
   analyticsStatValue: {
-    color: '#0F172A',
-    fontSize: 20,
+    color: '#A998F4',
+    fontSize: 22,
     fontWeight: '900',
   },
   analyticsStatLabel: {
-    color: '#64748B',
+    color: '#A7A2B2',
     fontSize: 11,
     fontWeight: '900',
     marginTop: 4,
@@ -1651,9 +1650,9 @@ const styles = StyleSheet.create({
   },
   flashcardStatusPanel: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: '#050507',
+    borderColor: '#1F1D28',
+    borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
@@ -1665,12 +1664,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   flashcardStatusTitle: {
-    color: '#0F172A',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '900',
   },
   flashcardStatusText: {
-    color: '#64748B',
+    color: '#A7A2B2',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
@@ -1683,7 +1682,7 @@ const styles = StyleSheet.create({
     width: 86,
   },
   donutCenter: {
-    color: '#0F172A',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '900',
     position: 'absolute',
