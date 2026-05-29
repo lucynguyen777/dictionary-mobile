@@ -633,7 +633,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={[styles.card, styles.metricsCardDark]}>
-          <View style={styles.cardHeader}>
+          <View style={[styles.cardHeader, { zIndex: 10 }]}>
             <View style={styles.cardHeaderCopy}>
               <Text style={styles.metricsCardTitle}>Streak đăng nhập</Text>
               <Text style={styles.metricsCardSubtitle}>Tính theo ngày app được mở trên thiết bị này.</Text>
@@ -708,7 +708,10 @@ export default function ProfileScreen() {
                           style={[
                             styles.square,
                             !day.isInYear && styles.squareMuted,
-                            day.isActive && styles.squareStrong,
+                            day.isActive && day.level === 1 && styles.squareLevel1,
+                            day.isActive && day.level === 2 && styles.squareLevel2,
+                            day.isActive && day.level === 3 && styles.squareLevel3,
+                            day.isActive && day.level >= 4 && styles.squareLevel4,
                           ]}
                         />
                       ))}
@@ -720,9 +723,11 @@ export default function ProfileScreen() {
                 <Text style={styles.legendText}>Learn how we count app opens</Text>
                 <View style={styles.legend}>
                   <Text style={styles.legendText}>Less</Text>
-                  {[0, 1, 2, 3, 4].map((item) => (
-                    <View key={item} style={[styles.legendSquare, item > 1 && styles.squareStrong, item > 3 && styles.squareBright]} />
-                  ))}
+                  <View style={[styles.legendSquare]} />
+                  <View style={[styles.legendSquare, styles.squareLevel1]} />
+                  <View style={[styles.legendSquare, styles.squareLevel2]} />
+                  <View style={[styles.legendSquare, styles.squareLevel3]} />
+                  <View style={[styles.legendSquare, styles.squareLevel4]} />
                   <Text style={styles.legendText}>More</Text>
                 </View>
               </View>
@@ -1488,7 +1493,12 @@ function getActiveDaysForYear(activityState: ActivityState, year: number) {
 }
 
 function buildStreakYearHeatmap(activeDays: string[], year: number) {
-  const activeDaySet = new Set(activeDays);
+  // Count occurrences of each day to determine intensity levels
+  const activeDayCounts = new Map<string, number>();
+  activeDays.forEach((day) => {
+    activeDayCounts.set(day, (activeDayCounts.get(day) ?? 0) + 1);
+  });
+
   const firstDay = new Date(year, 0, 1);
   const gridStart = new Date(firstDay);
   gridStart.setDate(firstDay.getDate() - firstDay.getDay());
@@ -1505,11 +1515,16 @@ function buildStreakYearHeatmap(activeDays: string[], year: number) {
       const date = new Date(gridStart);
       date.setDate(gridStart.getDate() + weekIndex * 7 + dayIndex);
       const key = getLocalDateKey(date);
+      const count = activeDayCounts.get(key) ?? 0;
+
+      // Level 0 = no activity, 1 = light, 2 = medium, 3 = strong, 4 = max
+      const level = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : count <= 6 ? 3 : 4;
 
       return {
-        isActive: activeDaySet.has(key),
+        isActive: count > 0,
         isInYear: date.getFullYear() === year,
         key,
+        level,
       };
     });
 
@@ -2648,7 +2663,8 @@ const styles = StyleSheet.create({
   },
   yearPickerWrap: {
     position: 'relative',
-    zIndex: 4,
+    zIndex: 20,
+    elevation: 20,
   },
   yearPickerMenu: {
     backgroundColor: '#121018',
@@ -2660,7 +2676,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     top: 36,
-    zIndex: 8,
+    zIndex: 30,
+    elevation: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
   yearPickerOption: {
     borderRadius: 6,
@@ -2692,6 +2713,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginTop: 12,
+    position: 'relative',
+    zIndex: 1,
   },
   darkDataStat: {
     backgroundColor: '#121018',
@@ -2762,25 +2785,27 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   streakHeatmapContent: {
+    alignItems: 'center',
+    flexGrow: 1,
     paddingBottom: 2,
   },
   streakMonthRow: {
     flexDirection: 'row',
   },
   streakWeekLabelSpacer: {
-    width: 30,
+    width: 34,
   },
   streakMonthGrid: {
     height: 20,
     position: 'relative',
-    width: 689,
+    width: 795,
   },
   streakMonthLabel: {
     color: '#EDEAF7',
     fontSize: 11,
     fontWeight: '800',
     position: 'absolute',
-    top: 0,
+    top: 2,
   },
   streakGridRow: {
     flexDirection: 'row',
@@ -2790,11 +2815,11 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   streakWeekLabels: {
-    height: 88,
+    height: 106,
     justifyContent: 'space-around',
     paddingBottom: 2,
     paddingTop: 11,
-    width: 30,
+    width: 34,
   },
   weekLabel: {
     color: '#EDEAF7',
@@ -2808,19 +2833,31 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   square: {
-    backgroundColor: '#111820',
-    borderRadius: 2,
-    height: 10,
-    width: 10,
+    backgroundColor: '#161B22',
+    borderRadius: 3,
+    height: 12,
+    width: 12,
   },
   squareMuted: {
     opacity: 0.24,
   },
+  squareLevel1: {
+    backgroundColor: '#0E4429',
+  },
+  squareLevel2: {
+    backgroundColor: '#006D32',
+  },
+  squareLevel3: {
+    backgroundColor: '#26A641',
+  },
+  squareLevel4: {
+    backgroundColor: '#39D353',
+  },
   squareStrong: {
-    backgroundColor: '#56D364',
+    backgroundColor: '#26A641',
   },
   squareBright: {
-    backgroundColor: '#7EE787',
+    backgroundColor: '#39D353',
   },
   squareDark: {
     backgroundColor: '#5645D4',
@@ -2837,13 +2874,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 18,
     justifyContent: 'space-between',
-    marginLeft: 30,
+    marginLeft: 34,
     marginTop: 10,
-    minWidth: 600,
+    minWidth: 700,
   },
   legend: {
     alignItems: 'center',
     flexDirection: 'row',
+    gap: 3,
     justifyContent: 'flex-end',
   },
   legendText: {
@@ -2852,11 +2890,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   legendSquare: {
-    backgroundColor: '#111820',
-    borderRadius: 2,
-    height: 10,
-    marginHorizontal: 1,
-    width: 10,
+    backgroundColor: '#161B22',
+    borderRadius: 3,
+    height: 12,
+    width: 12,
   },
   segmentedControl: {
     backgroundColor: '#24212B',
