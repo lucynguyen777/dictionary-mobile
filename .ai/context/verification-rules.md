@@ -85,8 +85,10 @@ Confirm:
 - `Next Work Queue` has at most 5 items
 - failed or skipped checks are documented
 
-## Before Commit
+## Before Commit & Push (Security Risk & Vulnerability Check)
 Confirm:
+- **Security Check**: Actively check for potential risks of the new/modified modules, especially security vulnerabilities and attack surfaces (e.g. plaintext keys, missing RLS policies, unvalidated inputs, rate-limiting/abuse holes, insecure local storage).
+- **Resolution Plan**: List and explain the mitigations/solutions for all identified security or architectural risks. Do not suggest committing or pushing if there are unresolved high security risks.
 - no unrelated changes were staged
 - no secrets or generated noise were added
 - decision docs are not treated as accepted unless their status says `Accepted`

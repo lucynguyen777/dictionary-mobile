@@ -13,8 +13,8 @@ Prefer small, complete, verifiable changes.
 
 Do not make unrelated refactors unless required.
 
-## Verification Rule
-Before marking a task DONE, run:
+## Verification & Security Rule
+Before marking a task DONE or committing/pushing, run:
 
 ```bash
 git diff --check
@@ -22,7 +22,13 @@ npx tsc --noEmit
 npm run lint
 ```
 
-If verification fails, the task must not be marked DONE.
+Furthermore, you must actively inspect changes for security risks, vulnerabilities, and credentials leakage:
+1. **No Client-Side Secrets**: Never commit or push hardcoded API keys, tokens, or credentials.
+2. **Row Level Security (RLS)**: Verify all new database tables in migrations have RLS enabled and proper ownership-scoped policies.
+3. **Input Sanitation & Limits**: Validate that file parsers (like PDF/EPUB/DOCX) and APIs have strict size boundaries to prevent memory exhaust/denial of service.
+4. **Credential/Token Storage**: Verify that sensitive tokens are stored in secure native storage (e.g. Keychain via SecureStore) rather than unencrypted storage.
+
+If verification fails or there are active unmitigated security risks, the task must not be marked DONE.
 
 ## Documentation Rule
 

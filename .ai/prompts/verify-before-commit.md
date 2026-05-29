@@ -13,13 +13,15 @@ Use this before creating a commit or when the user asks whether the current work
 - `package.json`
 
 ## Task
-Verify the current working tree, check checklist consistency, and decide whether the changes are ready to commit.
+Verify the current working tree, check checklist consistency, perform security/vulnerability risk assessment, and decide whether the changes are ready to commit.
 
 ## Rules
 - Run `npx tsc --noEmit`.
 - Run `npm run lint`.
 - Run `npm test` when data logic, parser logic, adapters, stores, or tested behavior changed.
 - For user-facing features, verify functional flow, interruption handling, data integrity, UI/UX, performance basics, and compatibility coverage.
+- **Security & Risk Assessment Rule**: Check and list all potential risks of the new/modified modules, especially security vulnerabilities and attack surfaces (e.g., API key leaks, missing RLS policies, input sanitation flaws, rate-limiting/abuse, insecure local storage).
+- **Resolution Rule**: For every identified security or architectural risk, explicitly list the mitigation or resolution plan in the verification report. Do not suggest committing if high-risk security flaws are active.
 - Browser testing and temporary screenshots under `tmp/app-testing/` are allowed for Expo web smoke and visual comparison.
 - Check that `docs/product-progress.md` matches the code.
 - Confirm `Next Work Queue` remains valid.
@@ -31,7 +33,7 @@ Verify the current working tree, check checklist consistency, and decide whether
 - Verification results.
 - App-testing evidence when applicable.
 - Checklist consistency result.
-- Unresolved risks.
+- **Security & Architectural Risks**: Explicitly itemized security/attack surface/vulnerability risks with their corresponding resolutions.
 - Suggested commit message.
 - Clear commit readiness decision.
 
@@ -40,4 +42,5 @@ Verify the current working tree, check checklist consistency, and decide whether
 - Stop if lint fails.
 - Stop if tests fail for in-scope changes.
 - Stop if checklist says DONE but code is incomplete.
+- Stop if there are unresolved security risks or vulnerabilities without a concrete mitigation plan.
 - Stop if unrelated risky changes are present.

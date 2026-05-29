@@ -984,11 +984,16 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 2. Khi bắt đầu một task trong `Next Work Module`, chuyển task đó sang `[~] IN PROGRESS` trong checklist tương ứng và trong module.
 3. Sau khi triển khai xong, cập nhật checklist theo trạng thái thực tế của code: `[x]`, `[~]`, `[ ]`, hoặc `[!]`.
 4. Trước mỗi commit, kiểm tra lại tiến độ code và `docs/product-progress.md` đã đồng bộ. Nếu commit hash chưa tồn tại, có thể cập nhật `Current Baseline` ngay sau commit code bằng một commit checklist kế tiếp.
-5. Trước mỗi commit code, chạy kiểm tra xác minh theo verification ladder trong `docs/testing-and-build-guide.md`: `git diff --check`, `npx tsc --noEmit`, `npm run lint`, và focused/full test suite khi shared behavior, parser, adapter, hoặc store thay đổi. Nếu chỉ sửa tài liệu, vẫn ưu tiên chạy `git diff --check`, `npx tsc --noEmit`, và `npm run lint` trừ khi có blocker rõ ràng.
-6. Commit code và checklist cùng nhau khi hợp lý. Nếu cần ghi commit hash mới vào `Current Baseline`, commit cập nhật checklist ngay sau commit code.
-7. Trước mỗi lần push lên GitHub, kiểm tra lại `git status`, commit gần nhất, và `docs/product-progress.md` để đảm bảo code/checklist không lệch.
-8. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
-9. Sau khi checklist trên GitHub khớp với code thực tế và module hiện tại hoàn tất, mới tạo hoặc bắt đầu `Next Work Module` tiếp theo.
+5. **Kiểm Tra Rủi Ro & Bảo Mật Trước Khi Commit**: Trước mỗi commit code, chạy kiểm tra xác minh theo verification ladder trong `docs/testing-and-build-guide.md` (`git diff --check`, `npx tsc --noEmit`, `npm run lint`, và test suite). Đặc biệt, AI phải tự động thực hiện **Security Risk & Vulnerability Audit** đối với tất cả các thay đổi trong module mới:
+   - Phát hiện các rủi ro rò rỉ thông tin nhạy cảm (API keys, credentials, plaintext tokens).
+   - Kiểm tra xem các bảng cơ sở dữ liệu mới trong Supabase migrations đã bật Row Level Security (RLS) và có policy phân quyền theo user hay chưa.
+   - Kiểm tra các lỗ hổng từ input đầu vào (vd: kích thước file import EPUB/PDF/DOCX, độ dài tin nhắn chat AI) để phòng chống tấn công Từ Chối Dịch Vụ (DoS) và tràn bộ nhớ.
+   - Đảm bảo các token xác thực nhạy cảm được lưu trữ an toàn (e.g., SecureStore trên native) thay vì lưu plaintext trong AsyncStorage.
+6. **Lập Phương Án Giải Quyết Rủi Ro**: Với mỗi rủi ro bảo mật hoặc lỗi phát sinh được phát hiện, AI phải ghi nhận chi tiết rủi ro kèm theo phương án giải quyết (mitigation/resolution plan) cụ thể trong báo cáo kiểm tra (verification report) trước khi tiến hành commit. Không commit nếu có lỗ hổng bảo mật nghiêm trọng chưa được xử lý.
+7. Commit code và checklist cùng nhau khi hợp lý. Nếu cần ghi commit hash mới vào `Current Baseline`, commit cập nhật checklist ngay sau commit code.
+8. **Kiểm Tra Rủi Ro Trước Khi Push**: Trước khi push lên GitHub, kiểm tra lại toàn bộ rủi ro của module mới, chạy lại kiểm tra tĩnh và test suite, đảm bảo mọi lỗ hổng đã được vá triệt để và `docs/product-progress.md` hoàn toàn khớp với thực tế.
+9. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
+10. Sau khi checklist trên GitHub khớp với code thực tế và module hiện tại hoàn tất, mới tạo hoặc bắt đầu `Next Work Module` tiếp theo.
 
 ### Module Queue Rules
 1. Mỗi `Next Work Module` phải có ít nhất 3 task và nhiều nhất 5 task liên quan; mặc định lập plan đủ 5 task khi còn đủ task hợp lệ.
