@@ -20,6 +20,19 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `37dfa88` feat(reader): add dark mode, theme customization, AI TTS voice reader, and reading progress scrubber
+  - `ad5c9f2` feat(profile): refine streak heatmap
+  - `5c7fb30` feat(ui): restyle analytics charts
+  - `f73f4e9` feat(security): harden developer workflow with mandatory security risk audit
+  - `abb6a7b` feat(flashcards): clarify study and management ux
+  - `a314e4c` feat(flashcards): add analytics dashboard and completion settings
+  - `2064dee` feat(flashcards): add learning analytics data model
+  - `46949da` feat(profile): turn profile into activity dashboard
+  - `7e24495` feat(profile): add local activity streak tracking
+  - `752f7bb` docs(progress): add analytics dashboard module plan
+  - `bde8f4c` fix(profile): align dashboard grid cards
+  - `54d4222` feat(ui): apply design reference to profile
+  - `40c93ac` feat(profile): streamline profile dashboard
   - `a4689ef` feat(database): clean up legacy user data storage
   - `06c6ccf` feat(database): adopt sqlite user runtime
   - `06e4543` feat(database): add local user data migration bridge
@@ -264,12 +277,29 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Implement offline sync state management for Flashcards: track version, syncStatus (pending_create, pending_update, pending_delete), and lastSyncedAt for background sync.
 
 ### Profile And Flashcard Analytics Dashboard
-- [x] DONE [EASY]: Roadmap Sync For Dashboard Analytics - split the dashboard/analytics work into staged modules, keep analytics local-first, and preserve Profile sidebar account/privacy/support/export/reset/offline-pack actions.
-- [x] DONE [MEDIUM]: Activity Streak Foundation - added local app-open day tracking, current/longest streak calculations, and focused streak tests without cloud sync.
-- [x] DONE [MEDIUM]: Profile Dashboard Refactor - turned Profile into an activity dashboard, removed duplicated main-screen settings actions, added saved-word chart ranges, and replaced yearly study calendar with login/app-open streak stats.
-- [x] DONE [HARD]: Flashcard Analytics Data Model - added review events, completion thresholds, final status, completed date, and SQLite/legacy normalization coverage before building analytics UI.
-- [x] DONE [MEDIUM]: Flashcard Dashboard And Completion Settings - added overview stats, status pie/donut chart, and user-controlled completed thresholds inside Flashcard.
-- [x] DONE [MEDIUM]: Flashcard UX Polish Inspired By Anki/Quizlet - split Flashcard into Dashboard, Study, and Manage modes while preserving create, filter, review, and Anki export flows.
+- [x] DONE [EASY]: Roadmap Sync For Dashboard Analytics
+- [x] DONE [MEDIUM]: Activity Streak Foundation
+- [x] DONE [MEDIUM]: Profile Dashboard Refactor
+- [x] DONE [HARD]: Flashcard Analytics Data Model - review events, completion thresholds, final status, completed date, SQLite/legacy normalization
+- [x] DONE [MEDIUM]: Flashcard Dashboard And Completion Settings
+- [x] DONE [MEDIUM]: Flashcard UX Polish Inspired By Anki/Quizlet
+- [x] DONE [MEDIUM]: Streak Heatmap Refinement (commit `ad5c9f2`)
+- [x] DONE [MEDIUM]: Analytics Charts Restyle (commit `5c7fb30`)
+
+### Reader Dark Mode, AI TTS Voice & Theme Customization
+- [x] DONE [MEDIUM]: Dark mode support across Reader reading surface
+- [x] DONE [MEDIUM]: Theme customization (font, background, accent) persisted per-user
+- [x] DONE [HARD]: AI-powered TTS voice reader integrated into Reader reading flow
+- [x] DONE [MEDIUM]: Reading progress scrubber for long documents
+- Module delivered in commit `37dfa88`.
+
+### Developer Security Audit Harden
+- [x] DONE [HARD]: Mandatory pre-commit security risk & vulnerability audit enforced in verification ladder
+- [x] DONE [MEDIUM]: Credential/secret leak detection in new modules
+- [x] DONE [MEDIUM]: Supabase migration RLS enforcement check
+- [x] DONE [MEDIUM]: Input validation guard (file size, message length) for DoS prevention
+- [x] DONE [MEDIUM]: Secure token storage audit (SecureStore > AsyncStorage for auth tokens)
+- Module delivered in commit `f73f4e9`.
 
 ### Import Dataset
 - [x] DONE: CSV import MVP.
@@ -632,12 +662,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Verified Profile sidebar still exposes account, privacy, support, export/reset, and offline-pack actions.
 - [x] DONE [MEDIUM]: Ran Expo web mobile/desktop smoke plus static checks; next module is **Flashcard Analytics Data Model**.
 
-**Module: Flashcard Analytics Data Model** - TODO
-- [ ] TODO [HARD]: Extend flashcard state with final status and completed date while normalizing legacy cards.
-- [ ] TODO [HARD]: Add review events and learning settings to the local-first library model.
-- [ ] TODO [HARD]: Update `reviewFlashcard()` to append review events and apply completion thresholds.
-- [ ] TODO [HARD]: Update SQLite schema/mappers/runtime tests for analytics fields and review events.
-- [ ] TODO [HARD]: Verify focused library/runtime/migration tests plus static checks before commit.
+**Module: Flashcard Analytics Data Model** - DONE
+- [x] DONE [HARD]: Extended flashcard state with final status and completed date while normalizing legacy cards (commit `2064dee`).
+- [x] DONE [HARD]: Added review events and learning settings to the local-first library model (commit `2064dee`).
+- [x] DONE [HARD]: Update `reviewFlashcard()` to append review events and apply completion thresholds (commit `2064dee`).
+- [x] DONE [HARD]: Update SQLite schema/mappers/runtime tests for analytics fields and review events (commit `2064dee`).
+- [x] DONE [HARD]: Verify focused library/runtime/migration tests plus static checks before commit (commit `2064dee`).
 
 **Module: Supabase Cloud Sync Runner Wiring Draft** - DONE
 - [x] DONE [HARD]: Added `data/supabaseSyncRunner.ts` as the guarded composition point for the sync runner, runtime adapter, and local SQLite port.
