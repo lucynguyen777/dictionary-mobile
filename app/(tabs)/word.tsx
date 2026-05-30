@@ -1,3 +1,5 @@
+import VoiceCapturePreview from '@/components/word/VoiceCapturePreview';
+import { performOCR } from '@/data/ocr';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   RecordingPresets,
@@ -5,8 +7,6 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from 'expo-audio';
-import VoiceCapturePreview from '@/components/word/VoiceCapturePreview';
-import { performOCR } from '@/data/ocr';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -22,10 +22,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import StickyTabBar from '@/components/word/StickyTabBar';
 import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
+import { lookupMonolingual, lookupRelatedWords } from '@/data/adapterRegistry';
 import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
 import {
   ApiBilingualMeaningResult,
@@ -37,7 +39,6 @@ import {
   fetchVietnameseSuggestions,
   isBlockedBilingualDictionaryPair,
 } from '@/data/dictionaryApi';
-import { lookupMonolingual, lookupRelatedWords } from '@/data/adapterRegistry';
 import {
   buildLocalFixtureFallback,
   formatEtymologyWithAttribution,
@@ -68,12 +69,12 @@ import {
   createOcrPrototypeResult,
   createSpeechToTextPrototypeResult,
 } from '@/data/recognition';
+import type { RecognitionCapturePreview } from '@/data/recognitionCapture';
 import {
   createAudioCapturePreview,
   createImageCapturePreview,
   formatCapturePreviewMeta,
 } from '@/data/recognitionCapture';
-import type { RecognitionCapturePreview } from '@/data/recognitionCapture';
 
 const { width } = Dimensions.get('window');
 
@@ -84,6 +85,7 @@ type LanguageField = 'source' | 'target';
 type RecognitionStatus = 'idle' | 'requesting' | 'recording' | 'processing' | 'ready' | 'error';
 
 export default function WordScreen() {
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ word?: string; sourceLang?: string; targetLang?: string }>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState('');
@@ -506,7 +508,7 @@ export default function WordScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
       <View style={styles.lookupPanel}>
         <View style={styles.lookupSearchCard}>
           <View style={styles.inputBox}>
@@ -538,27 +540,31 @@ export default function WordScreen() {
               <Ionicons name="language-outline" size={18} color="#2563EB" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.languageCaption}>
-            Đang tra: {sourceLanguage.label} → {targetLanguage.label}
-          </Text>
-          <View style={styles.recognitionActionRow}>
-            <TouchableOpacity
-              accessibilityLabel="Open voice search prototype"
-              activeOpacity={0.82}
-              onPress={() => openRecognitionModal('speech')}
-              style={styles.recognitionActionButton}>
-              <Ionicons name="mic-outline" size={17} color="#0F766E" />
-              <Text style={styles.recognitionActionText}>Voice</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="Open OCR lookup prototype"
-              activeOpacity={0.82}
-              onPress={() => openRecognitionModal('ocr')}
-              style={styles.recognitionActionButton}>
-              <Ionicons name="image-outline" size={17} color="#0F766E" />
-              <Text style={styles.recognitionActionText}>OCR</Text>
-            </TouchableOpacity>
-          </View>
+          {showLanguageControls ? (
+            <Text style={styles.languageCaption}>
+              Đang tra: {sourceLanguage.label} → {targetLanguage.label}
+            </Text>
+          ) : null}
+          {showLanguageControls ? (
+            <View style={styles.recognitionActionRow}>
+              <TouchableOpacity
+                accessibilityLabel="Open voice search prototype"
+                activeOpacity={0.82}
+                onPress={() => openRecognitionModal('speech')}
+                style={styles.recognitionActionButton}>
+                <Ionicons name="mic-outline" size={17} color="#0F766E" />
+                <Text style={styles.recognitionActionText}>Voice</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityLabel="Open OCR lookup prototype"
+                activeOpacity={0.82}
+                onPress={() => openRecognitionModal('ocr')}
+                style={styles.recognitionActionButton}>
+                <Ionicons name="image-outline" size={17} color="#0F766E" />
+                <Text style={styles.recognitionActionText}>OCR</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
           {showLanguageControls ? (
             <View style={styles.languageControls}>
               <LookupLanguageSelect

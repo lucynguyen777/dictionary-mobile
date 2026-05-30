@@ -3,18 +3,18 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
-import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  GestureResponderEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  GestureResponderEvent,
 } from 'react-native';
 
 import Screen from '@/components/app/Screen';
@@ -244,7 +244,7 @@ export default function ReaderScreen() {
 
   // Adjust application background color to match specific preset background if selected
   const handleSelectBackground = (bgColor: string, themeMode: ReaderTheme) => {
-    handleUpdateSettings({ backgroundColor: bgColor });
+    handleUpdateSettings({ backgroundColor: bgColor as any });
     updatePreferences({ theme: themeMode });
   };
 
@@ -722,7 +722,7 @@ export default function ReaderScreen() {
 
         {/* Reader Book Content display */}
         {selectedDocument ? (
-          <View style={[styles.readerPage, { backgroundColor: readerState.settings.backgroundColor }]}>
+          <View style={[styles.readerPage, { backgroundColor: readerState.settings.backgroundColor as any }]}>
             <Text style={[styles.readerTitle, { color: activeTheme.text }, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>
               {selectedDocument.title}
             </Text>

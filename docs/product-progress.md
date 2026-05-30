@@ -976,12 +976,13 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined OpenAI AI chat/voice-feedback contract for streaming, transcript handling, moderation, abuse controls, and user-visible usage limits.
 - [x] DONE [HARD]: Acceptance gate met for future translation/AI implementation planning; code still requires backend routes, RLS tables, provider env vars, quota checks, and fake-provider tests.
 
-**Module: Specialized Translation Dataset Agents** - TODO AFTER DEEPL/OPENAI PROXY
-- [ ] TODO [HARD]: Define dataset upload/import contract for common formats: CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF; scanned PDF/OCR remains separate.
-- [ ] TODO [HARD]: Define editable dataset model: terms, phrases, source segments, translations, notes, tags, domain/toptiêic, confidence, duplicate/conflict states, and revision history.
-- [ ] TODO [HARD]: Define smart recognition/highlighting: match dataset terms/phrases in source text, show terminology chips, conflicts, missing translations, and suggested glossary candidates.
-- [ ] TODO [HARD]: Define per-user context agents: max 3 active agents by default, each bound to one dataset/context; future extra agents require paid package/add-on decision.
-- [ ] TODO [HARD]: Define editor modes: Word-like rich text, Google Docs-like collaborative-ready surface, LaTeX, Markdown, and plain text, with export/import boundaries and unsupported feature states.
+**Module: Specialized Translation Dataset Agents** - DONE
+- [x] DONE [HARD]: Defined dataset upload/import contract for CSV/TSV, XLS/XLSX, TXT, Markdown, JSON, DOCX, and text-extractable PDF.
+- [x] DONE [HARD]: Defined editable dataset model covering terms, phrases, source segments, translations, tags, confidence, duplicate/conflict states, and revision history.
+- [x] DONE [HARD]: Defined smart recognition/highlighting with longest-match preference, terminology chips, conflict warnings, and local-first glossary suggestions.
+- [x] DONE [HARD]: Defined per-user context agents with max 3 active agents, customizable base instructions, retrieval boundaries, and connection mappings.
+- [x] DONE [HARD]: Defined editor environment modes (plain text, markdown, rich text, Google Docs workspace, LaTeX) and explicit unsupported/stubbed states.
+- Result: `docs/specialized-translation-dataset-agents-plan.md` details all upload contracts, schemas, smart matching rules, and Supabase RLS migrations.
 
 **Module: Speech Scoring** - DONE DECISION PREP / AZURE ACCEPTED
 - [x] DONE [HARD]: Refreshed `.docs/decisions/speech-scoring-engine.md` with current scoring/alignment candidates and clarified why OS/native STT does not satisfy scoring.

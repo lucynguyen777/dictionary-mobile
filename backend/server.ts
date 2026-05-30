@@ -2,10 +2,10 @@ import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 
 import {
-    getProviderUnconfiguredResponse,
-    readBackendProxyConfig,
-    type BackendProxyConfig,
-    type BackendProxyEnv,
+  getProviderUnconfiguredResponse,
+  readBackendProxyConfig,
+  type BackendProxyConfig,
+  type BackendProxyEnv,
 } from './proxyConfig';
 import { QuotaTracker } from './quotaTracker';
 
@@ -72,7 +72,8 @@ export function createServer(deps: ServerDependencies) {
   });
 
   // POST /proxy/translate/text - DeepL translation
-  app.post('/proxy/translate/text', async (req: Request & { userId: string }, res: Response) => {
+  app.post('/proxy/translate/text', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
     if (config.status !== 'configured') {
       res.status(503).json(getProviderUnconfiguredResponse(config));
       return;
@@ -89,7 +90,7 @@ export function createServer(deps: ServerDependencies) {
 
     // Check quota
     if (quotaTracker) {
-      const quotaCheck = quotaTracker.checkQuota(req.userId, 'translation', validation.data.characterCount);
+      const quotaCheck = quotaTracker.checkQuota(userId, 'translation', validation.data.characterCount);
       if (!quotaCheck.ok) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
@@ -121,7 +122,8 @@ export function createServer(deps: ServerDependencies) {
   });
 
   // POST /proxy/ai/chat - OpenAI AI chat (non-streaming MVP, streaming TBD)
-  app.post('/proxy/ai/chat', async (req: Request & { userId: string }, res: Response) => {
+  app.post('/proxy/ai/chat', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
     if (config.status !== 'configured') {
       res.status(503).json(getProviderUnconfiguredResponse(config));
       return;
@@ -136,7 +138,7 @@ export function createServer(deps: ServerDependencies) {
 
     // Check quota (counts as 1 request)
     if (quotaTracker) {
-      const quotaCheck = quotaTracker.checkQuota(req.userId, 'ai-chat', 1);
+      const quotaCheck = quotaTracker.checkQuota(userId, 'ai-chat', 1);
       if (!quotaCheck.ok) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
@@ -153,15 +155,16 @@ export function createServer(deps: ServerDependencies) {
   });
 
   // GET /proxy/quota - current user quota state
-  app.get('/proxy/quota', (req: Request & { userId: string }, res: Response) => {
+  app.get('/proxy/quota', (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
     if (!quotaTracker) {
       res.status(503).json({ error: { code: 'provider_unconfigured', message: 'Quota not available.' } });
       return;
     }
 
     res.json({
-      translation: quotaTracker.getState(req.userId, 'translation'),
-      aiChat: quotaTracker.getState(req.userId, 'ai-chat'),
+      translation: quotaTracker.getState(userId, 'translation'),
+      aiChat: quotaTracker.getState(userId, 'ai-chat'),
     });
   });
 

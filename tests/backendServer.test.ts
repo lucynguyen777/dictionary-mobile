@@ -61,7 +61,7 @@ async function fetchJson(urlStr: string, options: RequestInit = {}) {
   return new Promise<{ body: any; status: number }>((resolve, reject) => {
     const url = new URL(urlStr);
     const req = http.request(
-      url,
+      url.toString(),
       {
         method: options.method || 'GET',
         headers: options.headers as any,
