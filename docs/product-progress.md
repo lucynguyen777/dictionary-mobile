@@ -984,6 +984,14 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
 - [x] DONE [HARD]: Defined editor environment modes (plain text, markdown, rich text, Google Docs workspace, LaTeX) and explicit unsupported/stubbed states.
 - Result: `docs/specialized-translation-dataset-agents-plan.md` details all upload contracts, schemas, smart matching rules, and Supabase RLS migrations.
 
+**Module: Specialized Translation Dataset Agents Foundation** - DONE
+- [x] DONE [HARD]: Created `data/backendProxyClient.ts` as shared fetch wrapper for proxy routes.
+- [x] DONE [HARD]: Wired `AiConversationToolPanel` and `SpecializedTranslationToolPanel` (UI shells) to real proxy routes.
+- [x] DONE [HARD]: Created `data/datasetAgentRunner.ts` (local RAG matcher + max 3 agent limit logic).
+- [x] DONE [HARD]: Created `supabase/migrations/006_specialized_translation_datasets.sql` with tables for agents, dataset blocks, and RLS policies.
+- [x] DONE [HARD]: Added `tests/datasetAgentRunner.test.ts` for matcher/runner logic.
+- Next code candidate: RAG pipeline execution with vector embeddings or Dataset UI setup.
+
 **Module: Speech Scoring** - DONE DECISION PREP / AZURE ACCEPTED
 - [x] DONE [HARD]: Refreshed `.docs/decisions/speech-scoring-engine.md` with current scoring/alignment candidates and clarified why OS/native STT does not satisfy scoring.
 - [x] DONE [HARD]: Compared cloud pronunciation scoring APIs, on-device alignment options, custom backend pipelines, and manual playback-only fallback in `docs/speech-scoring-engine-plan.md`.

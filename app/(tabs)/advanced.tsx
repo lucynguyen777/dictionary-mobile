@@ -16,12 +16,14 @@ import {
   exportFolderToAnkiTsv,
   exportFolderToCsv,
   exportFolderToExcel,
-  getFavoriteFolderId,
   getDefaultLibraryState,
+  getFavoriteFolderId,
   loadLibraryState,
   reviewFlashcard,
   saveLibraryState,
 } from '@/data/libraryStore';
+
+import { BackendProxyError, aiChat, translateText } from '@/data/backendProxyClient';
 
 const flashcardOptions: { type: FlashcardType; label: string; description: string }[] = [
   { type: 'bilingual', label: 'Song ngữ', description: 'Từ + nghĩa + ghi chú' },
@@ -590,7 +592,6 @@ function ToolTab({
 }
 
 type AiChatPreviewState = 'empty' | 'loading' | 'ready' | 'error';
-type VoiceRecordingState = 'idle' | 'recording' | 'processing';
 
 const aiChatThreads = [
   { id: 'travel', title: 'Đặt phòng khách sạn', preview: 'I would like to book a room...' },
@@ -605,54 +606,70 @@ const translationDomains = [
   { id: 'academic', label: 'Học thuật' },
 ];
 
+interface AiChatMessageDisplay {
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+}
+
 function AiConversationToolPanel() {
   const [previewState, setPreviewState] = useState<AiChatPreviewState>('empty');
   const [activeThreadId, setActiveThreadId] = useState('');
-  const [voiceState, setVoiceState] = useState<VoiceRecordingState>('idle');
+  const [messages, setMessages] = useState<AiChatMessageDisplay[]>([]);
   const [draftMessage, setDraftMessage] = useState('');
-  const [transcript, setTranscript] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [errorText, setErrorText] = useState('');
 
   const activeThread = aiChatThreads.find((thread) => thread.id === activeThreadId);
 
   const handleOpenThread = (threadId: string) => {
     setActiveThreadId(threadId);
     setPreviewState('loading');
-    setVoiceState('idle');
-    setTranscript('');
+    setMessages([]);
     setDraftMessage('');
+    setErrorText('');
 
     setTimeout(() => {
       setPreviewState('ready');
-      setDraftMessage(aiChatThreads.find((thread) => thread.id === threadId)?.preview ?? '');
-      setTranscript('Bản ghi âm và transcript sẽ hiển thị tại đây khi backend AI sẵn sàng.');
-    }, 500);
+      const thread = aiChatThreads.find((t) => t.id === threadId);
+      if (thread) {
+        setMessages([{ content: `Xin chào! Hãy luyện tập chủ đề: ${thread.title}.`, role: 'assistant' }]);
+      }
+      setDraftMessage(aiChatThreads.find((t) => t.id === threadId)?.preview ?? '');
+    }, 300);
   };
 
-  const handleSimulateError = () => {
-    setActiveThreadId('');
-    setPreviewState('error');
-    setVoiceState('idle');
-    setTranscript('');
+  const handleSend = async () => {
+    const text = draftMessage.trim();
+    if (!text || isSending || !activeThread) return;
+
+    setMessages((prev) => [...prev, { content: text, role: 'user' }]);
     setDraftMessage('');
+    setIsSending(true);
+    setErrorText('');
+
+    try {
+      const res = await aiChat({
+        goal: 'conversation',
+        learningLanguage: 'en',
+        messages: [{ content: text, role: 'user' }],
+        nativeLanguage: 'vi',
+        stream: false,
+      });
+      setMessages((prev) => [...prev, { content: res.content, role: 'assistant' }]);
+    } catch (err) {
+      const msg = err instanceof BackendProxyError ? `${err.code ? `[${err.code}] ` : ''}${err.message}` : 'Lỗi kết nối đến backend.';
+      setErrorText(msg);
+    } finally {
+      setIsSending(false);
+    }
   };
 
-  const handleToggleRecording = () => {
-    if (previewState !== 'ready') return;
-
-    if (voiceState === 'idle') {
-      setVoiceState('recording');
-      setTranscript('Đang ghi âm... (UI preview)');
-      return;
-    }
-
-    if (voiceState === 'recording') {
-      setVoiceState('processing');
-      setTranscript('Đang xử lý giọng nói... (UI preview)');
-      setTimeout(() => {
-        setVoiceState('idle');
-        setTranscript('I would like to book a room for two nights, please.');
-      }, 700);
-    }
+  const handleReset = () => {
+    setActiveThreadId('');
+    setPreviewState('empty');
+    setMessages([]);
+    setDraftMessage('');
+    setErrorText('');
   };
 
   return (
@@ -663,13 +680,8 @@ function AiConversationToolPanel() {
         </View>
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>AI hội thoại</Text>
-          <Text style={styles.description}>Luyện phản xạ bằng giọng nói hoặc tin nhắn. Backend AI chưa kết nối — đây là UI shell.</Text>
+          <Text style={styles.description}>Chat thật với OpenAI qua backend proxy. Chọn chủ đề, nhập tin nhắn.</Text>
         </View>
-      </View>
-
-      <View style={styles.blockedNotice}>
-        <Ionicons name="lock-closed-outline" size={16} color="#B45309" />
-        <Text style={styles.blockedNoticeText}>Cần backend streaming, auth và cost controls trước khi chat thật.</Text>
       </View>
 
       <Text style={styles.toolSectionLabel}>Danh sách hội thoại</Text>
@@ -682,32 +694,20 @@ function AiConversationToolPanel() {
             onPress={() => handleOpenThread(thread.id)}
           />
         ))}
-        <FilterChip isSelected={previewState === 'error'} label="Lỗi mẫu" onPress={handleSimulateError} />
+        <FilterChip isSelected={false} label="Đặt lại" onPress={handleReset} />
       </ScrollView>
 
       {previewState === 'empty' ? (
         <View style={styles.toolStateCard}>
           <Ionicons name="chatbubble-ellipses-outline" size={22} color="#94A3B8" />
           <Text style={styles.toolStateTitle}>Chưa chọn hội thoại</Text>
-          <Text style={styles.toolStateText}>Chọn một chủ đề ở trên để xem khung chat, ghi âm và feedback.</Text>
+          <Text style={styles.toolStateText}>Chọn một chủ đề ở trên để bắt đầu chat với AI.</Text>
         </View>
       ) : null}
 
       {previewState === 'loading' ? (
         <View style={styles.toolStateCard}>
           <Text style={styles.toolStateTitle}>Đang tải hội thoại...</Text>
-          <Text style={styles.toolStateText}>Chuẩn bị khung chat và transcript.</Text>
-        </View>
-      ) : null}
-
-      {previewState === 'error' ? (
-        <View style={[styles.toolStateCard, styles.toolStateCardError]}>
-          <Ionicons name="alert-circle-outline" size={22} color="#DC2626" />
-          <Text style={styles.toolStateTitle}>Không tải được hội thoại</Text>
-          <Text style={styles.toolStateText}>Kiểm tra kết nối hoặc thử lại sau khi backend AI sẵn sàng.</Text>
-          <TouchableOpacity activeOpacity={0.82} onPress={() => setPreviewState('empty')} style={styles.toolRetryButton}>
-            <Text style={styles.toolRetryButtonText}>Thử lại</Text>
-          </TouchableOpacity>
         </View>
       ) : null}
 
@@ -715,58 +715,46 @@ function AiConversationToolPanel() {
         <>
           <View style={styles.chatSurface}>
             <Text style={styles.chatBubbleLabel}>Chủ đề · {activeThread.title}</Text>
-            <View style={styles.chatBubbleAssistant}>
-              <Text style={styles.chatBubbleText}>Xin chào! Hãy luyện tập câu mở đầu cho tình huống này.</Text>
-            </View>
-            <View style={styles.chatBubbleUser}>
-              <Text style={styles.chatBubbleTextUser}>{draftMessage || '...'}</Text>
-            </View>
+            {messages.map((msg, i) => (
+              <View key={i} style={msg.role === 'user' ? styles.chatBubbleUser : styles.chatBubbleAssistant}>
+                <Text style={msg.role === 'user' ? styles.chatBubbleTextUser : styles.chatBubbleText}>
+                  {msg.content}
+                </Text>
+              </View>
+            ))}
+            {isSending ? (
+              <View style={styles.chatBubbleAssistant}>
+                <Text style={styles.chatBubbleText}>Đang suy nghĩ...</Text>
+              </View>
+            ) : null}
           </View>
 
-          <View style={styles.voiceRow}>
+          {errorText ? (
+            <View style={[styles.toolStateCard, styles.toolStateCardError]}>
+              <Ionicons name="alert-circle-outline" size={18} color="#DC2626" />
+              <Text style={styles.toolStateText}>{errorText}</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.chatInputRow}>
+            <TextInput
+              multiline
+              onChangeText={setDraftMessage}
+              placeholder="Nhập tin nhắn..."
+              placeholderTextColor="#94A3B8"
+              style={[styles.toolTextArea, { flex: 1, marginBottom: 0 }]}
+              value={draftMessage}
+            />
             <TouchableOpacity
               activeOpacity={0.82}
-              disabled={voiceState === 'processing'}
-              onPress={handleToggleRecording}
-              style={[
-                styles.voiceButton,
-                voiceState === 'recording' && styles.voiceButtonRecording,
-                voiceState === 'processing' && styles.voiceButtonDisabled,
-              ]}>
-              <Ionicons
-                name={voiceState === 'recording' ? 'stop-circle' : 'mic-outline'}
-                size={18}
-                color="#FFFFFF"
-              />
-              <Text style={styles.voiceButtonText}>
-                {voiceState === 'idle' ? 'Ghi âm' : voiceState === 'recording' ? 'Dừng' : 'Đang xử lý...'}
-              </Text>
+              disabled={isSending || !draftMessage.trim()}
+              onPress={handleSend}
+              style={[styles.generateButton, { marginLeft: 8, marginTop: 0, minWidth: 70 },
+                (isSending || !draftMessage.trim()) && styles.generateButtonDisabled]}>
+              <Ionicons name="send" size={16} color="#FFFFFF" />
+              <Text style={styles.generateButtonText}>Gửi</Text>
             </TouchableOpacity>
-            <Text style={styles.voiceStateText}>
-              {voiceState === 'idle' ? 'Sẵn sàng ghi âm' : voiceState === 'recording' ? 'Đang ghi...' : 'Đang xử lý...'}
-            </Text>
           </View>
-
-          <View style={styles.transcriptCard}>
-            <Text style={styles.toolSectionLabel}>Transcript</Text>
-            <Text style={styles.transcriptText}>{transcript}</Text>
-          </View>
-
-          <View style={styles.feedbackCard}>
-            <Text style={styles.toolSectionLabel}>Correction / Feedback</Text>
-            <Text style={styles.feedbackText}>
-              Gợi ý: thay &quot;I want book room&quot; bằng &quot;I would like to book a room&quot; để tự nhiên hơn.
-            </Text>
-          </View>
-
-          <TextInput
-            editable={false}
-            multiline
-            placeholder="Nhập tin nhắn (chờ backend)..."
-            placeholderTextColor="#94A3B8"
-            style={styles.toolTextArea}
-            value={draftMessage}
-          />
         </>
       ) : null}
     </View>
@@ -778,6 +766,9 @@ function SpecializedTranslationToolPanel() {
   const [glossaryText, setGlossaryText] = useState('MRI → cộng hưởng từ\nCT scan → chụp cắt lớp');
   const [sourceText, setSourceText] = useState('The patient underwent an MRI after the initial screening.');
   const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedText, setTranslatedText] = useState('');
+  const [translationError, setTranslationError] = useState('');
+  const [charCount, setCharCount] = useState(0);
 
   const glossaryTerms = glossaryText
     .split('\n')
@@ -790,9 +781,34 @@ function SpecializedTranslationToolPanel() {
 
   const highlightedTerms = glossaryTerms.filter((term) => sourceText.toLowerCase().includes(term.source.toLowerCase()));
 
-  const handleTranslatePreview = () => {
+  const handleTranslate = async () => {
+    const text = sourceText.trim();
+    if (!text || isTranslating) return;
+
     setIsTranslating(true);
-    setTimeout(() => setIsTranslating(false), 600);
+    setTranslationError('');
+
+    try {
+      const res = await translateText({
+        sourceText: text,
+        targetLang: 'vi',
+        sourceLang: 'en',
+        glossaryId: domainId === 'general' ? undefined : domainId,
+        formality: domainId === 'legal' || domainId === 'academic' ? 'more' : 'prefer_more',
+      });
+      setTranslatedText(res.translatedText);
+      setCharCount(res.characterCount);
+    } catch (err) {
+      const msg = err instanceof BackendProxyError ? `${err.code ? `[${err.code}] ` : ''}${err.message}` : 'Lỗi kết nối đến backend dịch.';
+      setTranslationError(msg);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handleClear = () => {
+    setTranslatedText('');
+    setTranslationError('');
   };
 
   return (
@@ -803,13 +819,8 @@ function SpecializedTranslationToolPanel() {
         </View>
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>Dịch chuyên ngành</Text>
-          <Text style={styles.description}>Dịch theo glossary và ngữ cảnh chuyên ngành. Production translation cần backend riêng.</Text>
+          <Text style={styles.description}>Dịch thật qua DeepL backend proxy, hỗ trợ glossary và formality theo domain.</Text>
         </View>
-      </View>
-
-      <View style={styles.blockedNotice}>
-        <Ionicons name="cloud-offline-outline" size={16} color="#B45309" />
-        <Text style={styles.blockedNoticeText}>Backend dịch chuyên ngành chưa kết nối. UI preview không phải bản dịch production.</Text>
       </View>
 
       <Text style={styles.toolSectionLabel}>Chuyên ngành / chủ đề</Text>
@@ -819,7 +830,7 @@ function SpecializedTranslationToolPanel() {
             key={domain.id}
             isSelected={domainId === domain.id}
             label={domain.label}
-            onPress={() => setDomainId(domain.id)}
+            onPress={() => { setDomainId(domain.id); handleClear(); }}
           />
         ))}
       </ScrollView>
@@ -863,20 +874,30 @@ function SpecializedTranslationToolPanel() {
       <TouchableOpacity
         activeOpacity={0.85}
         disabled={isTranslating || !sourceText.trim()}
-        onPress={handleTranslatePreview}
+        onPress={handleTranslate}
         style={[styles.generateButton, (isTranslating || !sourceText.trim()) && styles.generateButtonDisabled]}>
         <Ionicons name="language-outline" size={18} color="#FFFFFF" />
-        <Text style={styles.generateButtonText}>{isTranslating ? 'Đang mô phỏng...' : 'Xem preview dịch (local)'}</Text>
+        <Text style={styles.generateButtonText}>{isTranslating ? 'Đang dịch...' : 'Dịch qua DeepL'}</Text>
       </TouchableOpacity>
 
       <View style={styles.translationOutputCard}>
         <Text style={styles.toolSectionLabel}>Kết quả dịch</Text>
         {isTranslating ? (
-          <Text style={styles.toolStateText}>Đang xử lý theo glossary và domain {translationDomains.find((d) => d.id === domainId)?.label}...</Text>
+          <Text style={styles.toolStateText}>Đang gọi API DeepL với domain {translationDomains.find((d) => d.id === domainId)?.label}...</Text>
+        ) : translatedText ? (
+          <>
+            <Text style={styles.translationOutputText}>{translatedText}</Text>
+            {charCount > 0 ? (
+              <Text style={styles.toolStateText}>Ký tự đã dùng: {charCount.toLocaleString()}</Text>
+            ) : null}
+          </>
+        ) : translationError ? (
+          <View style={styles.toolStateCardError}>
+            <Ionicons name="alert-circle-outline" size={16} color="#DC2626" />
+            <Text style={styles.toolStateText}>{translationError}</Text>
+          </View>
         ) : (
-          <Text style={styles.translationOutputText}>
-            Bệnh nhân đã được chụp cộng hưởng từ sau khi sàng lọc ban đầu. (Preview UI — không dùng làm dữ liệu production.)
-          </Text>
+          <Text style={styles.toolStateText}>{"Nhập văn bản và nhấn \"Dịch qua DeepL\" để bắt đầu."}</Text>
         )}
       </View>
     </View>
@@ -2619,5 +2640,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 21,
     marginTop: 4,
+  },
+  chatInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
   },
 });
