@@ -3,11 +3,21 @@
   "postCreateCommand": "npm install -g 9remote@latest",
   "postAttachCommand": "9remote start",
   "forwardPorts": [
-    2208
+    2208,
+    8081,
+    3001
   ],
   "portsAttributes": {
     "2208": {
       "label": "9Remote Server",
+      "onAutoForward": "notify"
+    },
+    "8081": {
+      "label": "Expo Web",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Backend Proxy",
       "onAutoForward": "notify"
     }
   }
