@@ -126,7 +126,7 @@ export default function HomeScreen() {
           activeOpacity={0.85}
           onPress={handleOpenLookup}
           style={styles.searchBox}>
-          <Ionicons name="search" size={23} color="#2563EB" />
+          <Ionicons name="search" size={23} color="#7C3AED" />
           <View style={styles.searchCopy}>
             <Text style={styles.searchLabel}>Tra cứu từ vựng</Text>
             <Text style={styles.searchHint}>Nhập từ, chọn ngôn ngữ rồi nhấn Enter</Text>
@@ -137,7 +137,7 @@ export default function HomeScreen() {
         {showLanguagePicker ? (
           <View style={styles.languagePanel}>
             <View style={styles.homeLookupInputBox}>
-              <Ionicons name="text" size={20} color="#2563EB" />
+              <Ionicons name="text" size={20} color="#7C3AED" />
               <TextInput
                 ref={lookupInputRef}
                 autoCapitalize="none"
@@ -194,7 +194,7 @@ export default function HomeScreen() {
         <View style={styles.statsRow}>
           {reviewPlan.map((item) => (
             <View key={item.label} style={styles.statCard}>
-              <Ionicons name={item.icon} size={20} color="#2563EB" />
+              <Ionicons name={item.icon} size={20} color="#7C3AED" />
               <Text style={styles.statValue}>{item.value}</Text>
               <Text style={styles.statLabel}>{item.label}</Text>
             </View>
@@ -227,7 +227,7 @@ export default function HomeScreen() {
             <Text style={styles.wotdDefinition}>{wordOfDay.shortDefinition}</Text>
             {wordOfDay.definitions[0]?.examples[0] ? (
               <View style={styles.wotdExample}>
-                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#2563EB" />
+                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#7C3AED" />
                 <Text style={styles.wotdExampleText}>“{wordOfDay.definitions[0].examples[0].source}”</Text>
               </View>
             ) : null}
@@ -326,7 +326,7 @@ function LanguageSelect({
                   </Text>
                   <Text style={styles.languageOptionHint}>{language.hint}</Text>
                 </View>
-                {isSelected ? <Ionicons name="checkmark" size={16} color="#2563EB" /> : null}
+                {isSelected ? <Ionicons name="checkmark" size={16} color="#7C3AED" /> : null}
               </TouchableOpacity>
             );
           })}
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   scrollTopButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 22,
     bottom: 18,
     elevation: 24,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#0F172A',
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   iconButton: {
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     width: 42,
   },
   hero: {
-    backgroundColor: '#102A43',
+    backgroundColor: '#1F1B2E',
     borderRadius: 8,
     flexDirection: 'row',
     marginTop: 22,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   heroKicker: {
-    color: '#93C5FD',
+    color: '#C4B5FD',
     fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     color: '#FFFFFF',
     fontSize: 27,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 33,
     marginTop: 12,
   },
@@ -424,9 +424,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   heroBadgeNumber: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 25,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   heroBadgeLabel: {
     color: '#64748B',
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   homeLookupInputBox: {
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
-    borderColor: '#DBEAFE',
+    borderColor: '#DDD6FE',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   activeLanguageSelect: {
-    borderColor: '#2563EB',
+    borderColor: '#7C3AED',
   },
   languageSelectLabel: {
     color: '#64748B',
@@ -518,11 +518,11 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     flex: 1,
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   languageSwap: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 8,
     height: 36,
     justifyContent: 'center',
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   activeLanguageOption: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
   },
   languageOptionCopy: {
     flex: 1,
@@ -556,10 +556,10 @@ const styles = StyleSheet.create({
   languageOptionText: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeLanguageOptionText: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   languageOptionHint: {
     color: '#94A3B8',
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   },
   startLookupButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     flexDirection: 'row',
     gap: 8,
@@ -578,12 +578,12 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   disabledLookupButton: {
-    backgroundColor: '#93C5FD',
+    backgroundColor: '#C4B5FD',
   },
   startLookupText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   statsRow: {
     flexDirection: 'row',
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   statValue: {
     color: '#0F172A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 8,
   },
   statLabel: {
@@ -619,10 +619,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: '#0F172A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sectionAction: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 13,
     fontWeight: '800',
   },
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   word: {
     color: '#0F172A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   ipa: {
     color: '#64748B',
@@ -650,13 +650,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   topicPill: {
-    backgroundColor: '#EEF4FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   topicText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 11,
     fontWeight: '800',
   },
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
   emptyHistoryTitle: {
     color: '#0F172A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 10,
   },
   emptyHistoryText: {
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   wotdCard: {
-    backgroundColor: '#102A43',
+    backgroundColor: '#1F1B2E',
     borderRadius: 12,
     marginBottom: 4,
     padding: 18,
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
   },
   wotdBadge: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 999,
     flexDirection: 'row',
     gap: 5,
@@ -723,10 +723,10 @@ const styles = StyleSheet.create({
   wotdWord: {
     color: '#FFFFFF',
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   wotdIpa: {
-    color: '#93C5FD',
+    color: '#C4B5FD',
     fontSize: 15,
     marginTop: 4,
   },

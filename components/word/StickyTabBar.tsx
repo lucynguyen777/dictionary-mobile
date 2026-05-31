@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Dimensions, LayoutChangeEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { useToken } from '@/hooks/use-token';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type Props = {
@@ -15,6 +17,7 @@ type TabLayout = {
 };
 
 export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
+  const { colors } = useToken();
   const scrollRef = useRef<ScrollView>(null);
   const tabLayouts = useRef<TabLayout[]>([]);
 
@@ -29,7 +32,7 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
   }, [activeIndex]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.canvasAlt }]}>
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -49,10 +52,10 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
                 };
               }}
               style={styles.tab}>
-              <Text numberOfLines={1} style={[styles.tabText, isActive && styles.activeText]}>
+              <Text numberOfLines={1} style={[styles.tabText, { color: colors.textTertiary }, isActive && { color: colors.accentPrimary }]}>
                 {tab}
               </Text>
-              <View style={[styles.indicator, isActive && styles.activeIndicator]} />
+              <View style={[styles.indicator, isActive && { backgroundColor: colors.accentPrimary }]} />
             </TouchableOpacity>
           );
         })}
@@ -63,7 +66,6 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F7F8FA',
     height: 62,
   },
   content: {
@@ -77,12 +79,8 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   tabText: {
-    color: '#94A3B8',
     fontSize: 15,
-    fontWeight: '800',
-  },
-  activeText: {
-    color: '#2563EB',
+    fontWeight: '600',
   },
   indicator: {
     alignSelf: 'center',
@@ -91,8 +89,5 @@ const styles = StyleSheet.create({
     height: 3,
     marginTop: 8,
     width: 31,
-  },
-  activeIndicator: {
-    backgroundColor: '#2563EB',
   },
 });

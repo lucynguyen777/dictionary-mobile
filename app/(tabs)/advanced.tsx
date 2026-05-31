@@ -84,7 +84,7 @@ const learningTools: {
     title: 'AI hội thoại',
     description: 'Luyện phản xạ bằng giọng nói hoặc tin nhắn với gợi ý sửa câu.',
     icon: 'chatbubbles-outline',
-    accent: '#EAF1FF',
+    accent: '#F3E8FF',
     status: 'UI shell sẵn sàng',
   },
   {
@@ -331,7 +331,7 @@ export default function AdvancedScreen() {
               accessibilityLabel="Quay lại danh sách luyện tập"
               onPress={() => setActiveToolId(null)}
               style={styles.toolBackButton}>
-              <Ionicons name="chevron-back" size={18} color="#2563EB" />
+              <Ionicons name="chevron-back" size={18} color="#7C3AED" />
             </TouchableOpacity>
             <View style={[styles.toolDetailHeaderIcon, { backgroundColor: activeTool.accent }]}>
               <Ionicons name={activeTool.icon} size={18} color="#0F172A" />
@@ -440,7 +440,7 @@ export default function AdvancedScreen() {
                   <Ionicons
                     name={isSelected ? 'checkbox' : 'square-outline'}
                     size={21}
-                    color={isSelected ? '#2563EB' : '#94A3B8'}
+                    color={isSelected ? '#7C3AED' : '#94A3B8'}
                   />
                   <View style={styles.checkCopy}>
                     <Text style={styles.checkLabel}>{option.label}</Text>
@@ -675,7 +675,7 @@ function AiConversationToolPanel() {
   return (
     <View style={styles.toolPanel}>
       <View style={styles.toolPanelHeader}>
-        <View style={[styles.iconWrap, { backgroundColor: '#EAF1FF' }]}>
+        <View style={[styles.iconWrap, { backgroundColor: '#F3E8FF' }]}>
           <Ionicons name="chatbubbles-outline" size={28} color="#0F172A" />
         </View>
         <View style={styles.copy}>
@@ -959,11 +959,11 @@ function ImportToolPanel({ libraryState }: { libraryState: LibraryState }) {
               onPress={() => setSourceId(source.id)}
               style={[styles.importSourceCard, isSelected && styles.importSourceCardActive]}>
               <View style={styles.importSourceHeader}>
-                <Ionicons name={source.icon} size={18} color={isSelected ? '#2563EB' : '#64748B'} />
+                <Ionicons name={source.icon} size={18} color={isSelected ? '#7C3AED' : '#64748B'} />
                 <Ionicons
                   name={isSelected ? 'radio-button-on' : 'radio-button-off'}
                   size={18}
-                  color={isSelected ? '#2563EB' : '#CBD5E1'}
+                  color={isSelected ? '#7C3AED' : '#CBD5E1'}
                 />
               </View>
               <Text style={[styles.importSourceTitle, isSelected && styles.importSourceTitleActive]}>{source.title}</Text>
@@ -1015,7 +1015,7 @@ function ImportToolPanel({ libraryState }: { libraryState: LibraryState }) {
           <Ionicons
             name={destinationMode === 'new' ? 'radio-button-on' : 'radio-button-off'}
             size={17}
-            color={destinationMode === 'new' ? '#2563EB' : '#94A3B8'}
+            color={destinationMode === 'new' ? '#7C3AED' : '#94A3B8'}
           />
           <Text style={[styles.importDestinationText, destinationMode === 'new' && styles.importDestinationTextActive]}>
             Bộ từ mới theo tên file
@@ -1031,7 +1031,7 @@ function ImportToolPanel({ libraryState }: { libraryState: LibraryState }) {
           <Ionicons
             name={destinationMode === 'existing' ? 'radio-button-on' : 'radio-button-off'}
             size={17}
-            color={destinationMode === 'existing' ? '#2563EB' : '#94A3B8'}
+            color={destinationMode === 'existing' ? '#7C3AED' : '#94A3B8'}
           />
           <Text style={[styles.importDestinationText, destinationMode === 'existing' && styles.importDestinationTextActive]}>
             Bộ từ có sẵn
@@ -1078,7 +1078,7 @@ function ImportToolPanel({ libraryState }: { libraryState: LibraryState }) {
               <Ionicons
                 name={isSelected ? 'checkbox' : 'square-outline'}
                 size={20}
-                color={isSelected ? '#2563EB' : '#94A3B8'}
+                color={isSelected ? '#7C3AED' : '#94A3B8'}
               />
               <View style={styles.importFlashcardPlanCopy}>
                 <Text style={styles.importFlashcardPlanTitle}>{option.label}</Text>
@@ -1305,11 +1305,11 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
                 isBlocked && styles.exportActionCardBlocked,
               ]}>
               <View style={styles.importSourceHeader}>
-                <Ionicons name={action.icon} size={18} color={isBlocked ? '#B45309' : isSelected ? '#2563EB' : '#64748B'} />
+                <Ionicons name={action.icon} size={18} color={isBlocked ? '#B45309' : isSelected ? '#7C3AED' : '#64748B'} />
                 <Ionicons
                   name={isSelected ? 'radio-button-on' : 'radio-button-off'}
                   size={18}
-                  color={isSelected ? '#2563EB' : '#CBD5E1'}
+                  color={isSelected ? '#7C3AED' : '#CBD5E1'}
                 />
               </View>
               <Text style={[styles.importSourceTitle, isSelected && styles.importSourceTitleActive]}>{action.title}</Text>
@@ -1565,13 +1565,13 @@ const styles = StyleSheet.create({
   title: {
     color: '#0F172A',
     fontSize: 29,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 18,
     marginTop: 4,
   },
   challengeCard: {
     alignItems: 'center',
-    backgroundColor: '#102A43',
+    backgroundColor: '#1F1B2E',
     borderRadius: 8,
     flexDirection: 'row',
     marginBottom: 16,
@@ -1593,25 +1593,25 @@ const styles = StyleSheet.create({
   panelKicker: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   panelTitle: {
     color: '#0F172A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
   },
   savedWordPill: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   savedWordPillText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   flashcardModeTabs: {
     backgroundColor: '#F8FAFC',
@@ -1632,12 +1632,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   flashcardModeTabActive: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
   },
   flashcardModeTabText: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   flashcardModeTabTextActive: {
     color: '#FFFFFF',
@@ -1660,12 +1660,12 @@ const styles = StyleSheet.create({
   analyticsStatValue: {
     color: '#A998F4',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   analyticsStatLabel: {
     color: '#A7A2B2',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
     textTransform: 'uppercase',
   },
@@ -1687,7 +1687,7 @@ const styles = StyleSheet.create({
   flashcardStatusTitle: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   flashcardStatusText: {
     color: '#A7A2B2',
@@ -1705,7 +1705,7 @@ const styles = StyleSheet.create({
   donutCenter: {
     color: '#FFFFFF',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
     position: 'absolute',
   },
   flashcardSettingsPanel: {
@@ -1729,7 +1729,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 6,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -1749,8 +1749,8 @@ const styles = StyleSheet.create({
     padding: 11,
   },
   checkItemActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
   },
   checkCopy: {
     flex: 1,
@@ -1758,7 +1758,7 @@ const styles = StyleSheet.create({
   checkLabel: {
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   checkDescription: {
     color: '#64748B',
@@ -1768,7 +1768,7 @@ const styles = StyleSheet.create({
   },
   generateButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     flexDirection: 'row',
     gap: 8,
@@ -1777,12 +1777,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   generateButtonDisabled: {
-    backgroundColor: '#93C5FD',
+    backgroundColor: '#C4B5FD',
   },
   generateButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   exportButton: {
     alignItems: 'center',
@@ -1800,7 +1800,7 @@ const styles = StyleSheet.create({
   exportButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   filterBlock: {
     backgroundColor: '#F8FAFC',
@@ -1812,7 +1812,7 @@ const styles = StyleSheet.create({
   filterLabel: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   filterRow: {
@@ -1829,16 +1829,16 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   filterChipActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#7C3AED',
   },
   filterChipText: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   filterChipTextActive: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   reviewCard: {
     backgroundColor: '#F8FAFC',
@@ -1849,29 +1849,29 @@ const styles = StyleSheet.create({
   reviewType: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   flashcardFace: {
     alignItems: 'center',
-    backgroundColor: '#102A43',
+    backgroundColor: '#1F1B2E',
     borderRadius: 8,
     minHeight: 142,
     justifyContent: 'center',
     padding: 16,
   },
   faceLabel: {
-    color: '#93C5FD',
+    color: '#C4B5FD',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 10,
     textTransform: 'uppercase',
   },
   faceText: {
     color: '#FFFFFF',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 29,
     textAlign: 'center',
   },
@@ -1890,7 +1890,7 @@ const styles = StyleSheet.create({
   againButtonText: {
     color: '#E11D48',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   hardButton: {
     alignItems: 'center',
@@ -1902,19 +1902,19 @@ const styles = StyleSheet.create({
   hardButtonText: {
     color: '#EA580C',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   goodButton: {
     alignItems: 'center',
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 8,
     flex: 1,
     paddingVertical: 11,
   },
   goodButtonText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   easyButton: {
     alignItems: 'center',
@@ -1926,7 +1926,7 @@ const styles = StyleSheet.create({
   easyButtonText: {
     color: '#16A34A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   reviewButtonHint: {
     color: '#475569',
@@ -1945,7 +1945,7 @@ const styles = StyleSheet.create({
   emptyFlashcardTitle: {
     color: '#0F172A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 8,
   },
   emptyFlashcardText: {
@@ -1958,7 +1958,7 @@ const styles = StyleSheet.create({
   },
   challengeIcon: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     height: 48,
     justifyContent: 'center',
@@ -1971,10 +1971,10 @@ const styles = StyleSheet.create({
   challengeTitle: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   challengeText: {
-    color: '#BFDBFE',
+    color: '#C4B5FD',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 19,
@@ -2010,7 +2010,7 @@ const styles = StyleSheet.create({
   toolTabText: {
     color: '#0F172A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   toolTabDescription: {
     color: '#64748B',
@@ -2048,7 +2048,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     flex: 1,
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     minWidth: 0,
   },
   toolPanel: {
@@ -2065,16 +2065,16 @@ const styles = StyleSheet.create({
   },
   toolStatusPill: {
     alignSelf: 'flex-start',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 999,
     marginTop: 14,
     paddingHorizontal: 11,
     paddingVertical: 7,
   },
   toolStatusText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   toolRoadmap: {
     backgroundColor: '#F8FAFC',
@@ -2087,7 +2087,7 @@ const styles = StyleSheet.create({
   toolRoadmapTitle: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   toolRoadmapText: {
     color: '#64748B',
@@ -2108,8 +2108,8 @@ const styles = StyleSheet.create({
     padding: 11,
   },
   importSourceCardActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
   },
   importSourceHeader: {
     alignItems: 'center',
@@ -2120,10 +2120,10 @@ const styles = StyleSheet.create({
   importSourceTitle: {
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importSourceTitleActive: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   importSourceText: {
     color: '#64748B',
@@ -2135,7 +2135,7 @@ const styles = StyleSheet.create({
   importSourceStatus: {
     color: '#92400E',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 8,
     textTransform: 'uppercase',
   },
@@ -2156,12 +2156,12 @@ const styles = StyleSheet.create({
   importPreviewTitle: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importPreviewBadge: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importMappingPreviewRow: {
     alignItems: 'center',
@@ -2183,7 +2183,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     flex: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importMappingNote: {
     color: '#64748B',
@@ -2208,12 +2208,12 @@ const styles = StyleSheet.create({
   importValidationValue: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importValidationLabel: {
     color: '#64748B',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
     textTransform: 'uppercase',
   },
@@ -2250,17 +2250,17 @@ const styles = StyleSheet.create({
     padding: 11,
   },
   importDestinationButtonActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
   },
   importDestinationText: {
     color: '#64748B',
     flex: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importDestinationTextActive: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   importFolderPickerRow: {
     gap: 8,
@@ -2282,8 +2282,8 @@ const styles = StyleSheet.create({
     padding: 11,
   },
   importFlashcardPlanItemActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
   },
   importFlashcardPlanCopy: {
     flex: 1,
@@ -2291,7 +2291,7 @@ const styles = StyleSheet.create({
   importFlashcardPlanTitle: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importFlashcardPlanText: {
     color: '#64748B',
@@ -2318,8 +2318,8 @@ const styles = StyleSheet.create({
     padding: 11,
   },
   exportActionCardActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
   },
   exportActionCardBlocked: {
     backgroundColor: '#FFFBEB',
@@ -2363,7 +2363,7 @@ const styles = StyleSheet.create({
   exportHistoryTitle: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   exportHistoryMessage: {
     color: '#64748B',
@@ -2375,12 +2375,12 @@ const styles = StyleSheet.create({
   exportHistoryTime: {
     color: '#94A3B8',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   openToolButton: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     flexDirection: 'row',
     gap: 7,
@@ -2391,7 +2391,7 @@ const styles = StyleSheet.create({
   openToolButtonText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   card: {
     alignItems: 'center',
@@ -2416,7 +2416,7 @@ const styles = StyleSheet.create({
   featureTitle: {
     color: '#0F172A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   description: {
     color: '#64748B',
@@ -2446,7 +2446,7 @@ const styles = StyleSheet.create({
   toolSectionLabel: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 14,
     textTransform: 'uppercase',
   },
@@ -2463,7 +2463,7 @@ const styles = StyleSheet.create({
   toolStateTitle: {
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 8,
   },
   toolStateText: {
@@ -2486,7 +2486,7 @@ const styles = StyleSheet.create({
   toolRetryButtonText: {
     color: '#DC2626',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   chatSurface: {
     backgroundColor: '#F8FAFC',
@@ -2500,7 +2500,7 @@ const styles = StyleSheet.create({
   chatBubbleLabel: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   chatBubbleAssistant: {
@@ -2512,7 +2512,7 @@ const styles = StyleSheet.create({
   },
   chatBubbleUser: {
     alignSelf: 'flex-end',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     maxWidth: '92%',
     padding: 10,
@@ -2537,7 +2537,7 @@ const styles = StyleSheet.create({
   },
   voiceButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 999,
     flexDirection: 'row',
     gap: 6,
@@ -2553,7 +2553,7 @@ const styles = StyleSheet.create({
   voiceButtonText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   voiceStateText: {
     color: '#64748B',
@@ -2577,15 +2577,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   feedbackCard: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
     borderRadius: 8,
     borderWidth: 1,
     marginTop: 12,
     padding: 12,
   },
   feedbackText: {
-    color: '#1D4ED8',
+    color: '#6D28D9',
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
@@ -2624,7 +2624,7 @@ const styles = StyleSheet.create({
   terminologyChipText: {
     color: '#047857',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   translationOutputCard: {
     backgroundColor: '#F8FAFC',

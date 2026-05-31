@@ -280,7 +280,7 @@ function MeaningTab({
                           activeOpacity={0.7}
                           onPress={() => speakExample(example.source)}
                           style={styles.exampleAudioButton}>
-                          <Ionicons name="volume-medium-outline" size={16} color="#2563EB" />
+                          <Ionicons name="volume-medium-outline" size={16} color="#7C3AED" />
                         </TouchableOpacity>
                         <Text
                           style={[
@@ -758,7 +758,7 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
             activeOpacity={0.82}
             onPress={isRecording ? handleStopRecording : handleStartRecording}
             style={[styles.recordingButton, isRecording && styles.stopRecordingButton]}>
-            <Ionicons name={isRecording ? 'stop' : 'mic-outline'} size={17} color={isRecording ? '#FFFFFF' : '#2563EB'} />
+            <Ionicons name={isRecording ? 'stop' : 'mic-outline'} size={17} color={isRecording ? '#FFFFFF' : '#7C3AED'} />
             <Text style={[styles.recordingButtonText, isRecording && styles.stopRecordingButtonText]}>
               {isRecording ? 'Dừng' : 'Ghi âm'}
             </Text>
@@ -859,7 +859,7 @@ function getStateToneStyle(tone: StateTone) {
 
   return {
     card: styles.loadingStateCard,
-    iconColor: '#2563EB',
+    iconColor: '#7C3AED',
     text: styles.loadingStateText,
     title: styles.loadingStateTitle,
   };
@@ -874,7 +874,7 @@ const styles = StyleSheet.create({
   },
   scrollTopButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 22,
     bottom: 18,
     elevation: 24,
@@ -923,7 +923,7 @@ const styles = StyleSheet.create({
   },
   stateTitle: {
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   stateText: {
     fontSize: 12,
@@ -932,11 +932,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   loadingStateCard: {
-    backgroundColor: '#EAF1FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F3E8FF',
+    borderColor: '#C4B5FD',
   },
   loadingStateTitle: {
-    color: '#1D4ED8',
+    color: '#6D28D9',
   },
   loadingStateText: {
     color: '#475569',
@@ -976,15 +976,15 @@ const styles = StyleSheet.create({
     borderColor: '#FED7AA',
   },
   infoCard: {
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 8,
     marginBottom: 14,
     padding: 16,
   },
   infoTitle: {
-    color: '#1D4ED8',
+    color: '#6D28D9',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   infoText: {
     color: '#475569',
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
   warningTitle: {
     color: '#C2410C',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   warningText: {
     color: '#9A3412',
@@ -1016,7 +1016,7 @@ const styles = StyleSheet.create({
   heading: {
     color: '#0F172A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 12,
   },
   definitionItem: {
@@ -1031,7 +1031,7 @@ const styles = StyleSheet.create({
   definitionNumber: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 10,
     textTransform: 'uppercase',
   },
@@ -1048,13 +1048,13 @@ const styles = StyleSheet.create({
   },
   definitionMetaText: {
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   blueMetaPill: {
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
   },
   blueMetaText: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   greenMetaPill: {
     backgroundColor: '#EAF8F0',
@@ -1081,7 +1081,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   translation: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 14,
     fontWeight: '800',
     lineHeight: 22,
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
   exampleLabel: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 6,
     marginTop: 16,
     textTransform: 'uppercase',
@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   exampleAudioButton: {
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 999,
     padding: 4,
     marginTop: 1,
@@ -1128,7 +1128,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: '#0F172A',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 16,
   },
   chipWrap: {
@@ -1137,13 +1137,13 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   chipButton: {
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   chipText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 14,
     fontWeight: '800',
   },
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
   previewTitle: {
     color: '#C2410C',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   previewText: {
     color: '#9A3412',
@@ -1201,15 +1201,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   phraseType: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   collocation: {
     color: '#0F172A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   tenseBlock: {
     backgroundColor: '#FFFFFF',
@@ -1228,12 +1228,12 @@ const styles = StyleSheet.create({
   noteTitle: {
     color: '#166534',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 8,
   },
   recordingCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#DBEAFE',
+    borderColor: '#DDD6FE',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 18,
@@ -1245,7 +1245,7 @@ const styles = StyleSheet.create({
   recordingTitle: {
     color: '#0F172A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   recordingText: {
     color: '#64748B',
@@ -1260,7 +1260,7 @@ const styles = StyleSheet.create({
   },
   recordingButton: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 8,
     flex: 1,
     flexDirection: 'row',
@@ -1272,9 +1272,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#DC2626',
   },
   recordingButtonText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   stopRecordingButtonText: {
     color: '#FFFFFF',
@@ -1292,7 +1292,7 @@ const styles = StyleSheet.create({
   playRecordingText: {
     color: '#166534',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   disabledRecordingButton: {
     backgroundColor: '#F1F5F9',
@@ -1301,7 +1301,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
   tableHeader: {
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 8,
     flexDirection: 'row',
     padding: 10,

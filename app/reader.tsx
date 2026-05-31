@@ -225,9 +225,9 @@ export default function ReaderScreen() {
         secondaryText: '#64748B',
         cardBg: '#FFFFFF',
         border: '#E2E8F0',
-        accent: '#2563EB',
-        accentLight: '#EFF6FF',
-        accentText: '#2563EB',
+        accent: '#7C3AED',
+        accentLight: '#F5F3FF',
+        accentText: '#7C3AED',
         highlightBg: '#FEF3C7',
         highlightText: '#92400E',
         shadow: 'rgba(15, 23, 42, 0.05)',
@@ -960,7 +960,7 @@ const styles = StyleSheet.create({
   importButtonText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   kicker: {
     fontSize: 13,
@@ -970,7 +970,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 29,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
   },
   documentRow: {
@@ -995,7 +995,7 @@ const styles = StyleSheet.create({
   },
   documentFormatText: {
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeDocumentFormatText: {
     color: '#E2E8F0',
@@ -1005,10 +1005,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 14,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    boxShadow: '0px 2px 10px rgba(15, 23, 42, 0.08)',
   },
   settingRow: {
     alignItems: 'center',
@@ -1017,7 +1014,7 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   stepper: {
     alignItems: 'center',
@@ -1033,7 +1030,7 @@ const styles = StyleSheet.create({
   },
   stepValue: {
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     minWidth: 24,
     textAlign: 'center',
   },
@@ -1054,11 +1051,11 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sectionHeading: {
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 18,
     textTransform: 'uppercase',
   },
@@ -1083,14 +1080,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 14,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    boxShadow: '0px 1px 8px rgba(15, 23, 42, 0.05)',
   },
   readerTitle: {
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 12,
   },
   readerTextWrap: {
@@ -1118,12 +1112,12 @@ const styles = StyleSheet.create({
   },
   readerActionKicker: {
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   readerActionWord: {
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   readerActionClose: {
@@ -1165,7 +1159,7 @@ const styles = StyleSheet.create({
   },
   lookupActionText: {
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   saveActionButton: {
     alignItems: 'center',
@@ -1179,7 +1173,7 @@ const styles = StyleSheet.create({
   saveActionText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   emptyCard: {
     alignItems: 'center',
@@ -1190,7 +1184,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 10,
   },
   emptyText: {
@@ -1237,7 +1231,7 @@ const styles = StyleSheet.create({
   },
   voiceCardLabel: {
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   voiceCardDesc: {
     fontSize: 11,
@@ -1259,7 +1253,7 @@ const styles = StyleSheet.create({
   },
   speedButtonText: {
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   // Scrubber styles
   scrubberPanel: {
@@ -1270,10 +1264,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     position: 'absolute',
     right: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    boxShadow: '0px -2px 10px rgba(15, 23, 42, 0.1)',
   },
   scrubberInfo: {
     flexDirection: 'row',
@@ -1282,7 +1273,7 @@ const styles = StyleSheet.create({
   },
   scrubberPercentage: {
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   scrubberSentences: {
     fontSize: 11,

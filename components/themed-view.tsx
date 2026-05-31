@@ -8,10 +8,9 @@ export type ThemedViewProps = ViewProps & {
 };
 
 export function ThemedView({ style, lightColor, darkColor, ...otherProps }: ThemedViewProps) {
-  const { colors } = useToken();
+  const { colors, theme } = useToken();
 
-  // Use provided colors, fall back to canvas from design system
-  const backgroundColor = lightColor || darkColor || colors.canvas;
+  const backgroundColor = theme === 'dark' ? darkColor ?? colors.canvas : lightColor ?? colors.canvas;
 
   return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }

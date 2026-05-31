@@ -466,7 +466,7 @@ export default function LibraryScreen() {
         </View>
 
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={20} color="#2563EB" />
+          <Ionicons name="search" size={20} color="#7C3AED" />
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
@@ -510,7 +510,7 @@ export default function LibraryScreen() {
                   <Ionicons
                     name={option.icon}
                     size={18}
-                    color={isActive ? '#2563EB' : '#94A3B8'}
+                    color={isActive ? '#7C3AED' : '#94A3B8'}
                   />
                 </TouchableOpacity>
               );
@@ -727,14 +727,14 @@ export default function LibraryScreen() {
                 <>
                   <Text style={styles.addSheetTitle}>Thêm vào Tủ từ</Text>
                   <TouchableOpacity activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={styles.addChoiceCard}>
-                    <Ionicons name="folder-outline" size={23} color="#2563EB" />
+                    <Ionicons name="folder-outline" size={23} color="#7C3AED" />
                     <View style={styles.addChoiceCopy}>
                       <Text style={styles.addChoiceTitle}>Tạo mới</Text>
                       <Text style={styles.addChoiceText}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
                     </View>
                   </TouchableOpacity>
                   <TouchableOpacity activeOpacity={0.84} onPress={handlePickCsv} style={styles.addChoiceCard}>
-                    <Ionicons name="cloud-upload-outline" size={23} color="#2563EB" />
+                    <Ionicons name="cloud-upload-outline" size={23} color="#7C3AED" />
                     <View style={styles.addChoiceCopy}>
                       <Text style={styles.addChoiceTitle}>Tải lên file</Text>
                       <Text style={styles.addChoiceText}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
@@ -749,12 +749,12 @@ export default function LibraryScreen() {
                 <>
                   <View style={styles.addSheetHeaderRow}>
                     <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
-                      <Ionicons name="chevron-back" size={18} color="#2563EB" />
+                      <Ionicons name="chevron-back" size={18} color="#7C3AED" />
                     </TouchableOpacity>
                     <Text style={styles.addSheetTitle}>Tạo bộ từ mới</Text>
                   </View>
                   <View style={styles.createInputBox}>
-                    <Ionicons name="folder-outline" size={19} color="#2563EB" />
+                    <Ionicons name="folder-outline" size={19} color="#7C3AED" />
                     <TextInput
                       autoCorrect={false}
                       onChangeText={(text) => {
@@ -794,12 +794,12 @@ export default function LibraryScreen() {
                 <>
                   <View style={styles.addSheetHeaderRow}>
                     <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
-                      <Ionicons name="chevron-back" size={18} color="#2563EB" />
+                      <Ionicons name="chevron-back" size={18} color="#7C3AED" />
                     </TouchableOpacity>
                     <Text style={styles.addSheetTitle}>Tải lên file</Text>
                   </View>
                   <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
-                    <Ionicons name="cloud-upload-outline" size={18} color="#2563EB" />
+                    <Ionicons name="cloud-upload-outline" size={18} color="#7C3AED" />
                     <Text style={styles.importPickText}>{importFileName ? 'Đổi file' : 'Chọn CSV/TSV'}</Text>
                   </TouchableOpacity>
                   {importFileName ? (
@@ -834,7 +834,7 @@ export default function LibraryScreen() {
                                 <Ionicons
                                   name={isSelected ? 'radio-button-on' : 'radio-button-off'}
                                   size={17}
-                                  color={isSelected ? '#2563EB' : '#94A3B8'}
+                                  color={isSelected ? '#7C3AED' : '#94A3B8'}
                                 />
                                 <View style={styles.importOptionCopy}>
                                   <Text style={[styles.importOptionTitle, isSelected && styles.activeImportOptionTitle]}>
@@ -857,7 +857,7 @@ export default function LibraryScreen() {
                           <Ionicons
                             name={importOptions.hasHeader ? 'checkbox' : 'square-outline'}
                             size={20}
-                            color={importOptions.hasHeader ? '#2563EB' : '#94A3B8'}
+                            color={importOptions.hasHeader ? '#7C3AED' : '#94A3B8'}
                           />
                           <View style={styles.importFlashcardCopy}>
                             <Text style={styles.importFlashcardTitle}>Dùng hàng/cột đầu làm tên trường</Text>
@@ -917,7 +917,7 @@ export default function LibraryScreen() {
                           <Ionicons
                             name={importTargetMode === 'new' ? 'radio-button-on' : 'radio-button-off'}
                             size={17}
-                            color={importTargetMode === 'new' ? '#2563EB' : '#94A3B8'}
+                            color={importTargetMode === 'new' ? '#7C3AED' : '#94A3B8'}
                           />
                           <Text style={[styles.importModeText, importTargetMode === 'new' && styles.activeImportModeText]}>
                             Bộ từ mới
@@ -933,7 +933,7 @@ export default function LibraryScreen() {
                           <Ionicons
                             name={importTargetMode === 'existing' ? 'radio-button-on' : 'radio-button-off'}
                             size={17}
-                            color={importTargetMode === 'existing' ? '#2563EB' : '#94A3B8'}
+                            color={importTargetMode === 'existing' ? '#7C3AED' : '#94A3B8'}
                           />
                           <Text style={[styles.importModeText, importTargetMode === 'existing' && styles.activeImportModeText]}>
                             Bộ từ có sẵn
@@ -942,7 +942,7 @@ export default function LibraryScreen() {
                       </View>
                       {importTargetMode === 'new' ? (
                         <View style={styles.createInputBox}>
-                          <Ionicons name="folder-outline" size={19} color="#2563EB" />
+                          <Ionicons name="folder-outline" size={19} color="#7C3AED" />
                           <TextInput
                             autoCorrect={false}
                             onChangeText={setImportFolderName}
@@ -980,7 +980,7 @@ export default function LibraryScreen() {
                         <Ionicons
                           name={shouldCreateImportFlashcards ? 'checkbox' : 'square-outline'}
                           size={20}
-                          color={shouldCreateImportFlashcards ? '#2563EB' : '#94A3B8'}
+                          color={shouldCreateImportFlashcards ? '#7C3AED' : '#94A3B8'}
                         />
                         <View style={styles.importFlashcardCopy}>
                           <Text style={styles.importFlashcardTitle}>Tạo flashcard sau import</Text>
@@ -1197,12 +1197,12 @@ const styles = StyleSheet.create({
   title: {
     color: '#0F172A',
     fontSize: 29,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
   },
   floatingAddButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 24,
     elevation: 45,
     justifyContent: 'center',
@@ -1249,7 +1249,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     flex: 1,
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   addSheetHeaderRow: {
     alignItems: 'center',
@@ -1258,7 +1258,7 @@ const styles = StyleSheet.create({
   },
   addBackButton: {
     alignItems: 'center',
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 999,
     height: 32,
     justifyContent: 'center',
@@ -1281,7 +1281,7 @@ const styles = StyleSheet.create({
   addChoiceTitle: {
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   addChoiceText: {
     color: '#64748B',
@@ -1298,7 +1298,7 @@ const styles = StyleSheet.create({
   addSheetCloseText: {
     color: '#475569',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   addSheetActions: {
     flexDirection: 'row',
@@ -1306,7 +1306,7 @@ const styles = StyleSheet.create({
   },
   addSheetPrimary: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     flex: 1,
     paddingVertical: 13,
@@ -1314,7 +1314,7 @@ const styles = StyleSheet.create({
   addSheetPrimaryText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   addSheetSecondary: {
     alignItems: 'center',
@@ -1326,10 +1326,10 @@ const styles = StyleSheet.create({
   addSheetSecondaryText: {
     color: '#475569',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   segment: {
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 8,
     flexDirection: 'row',
     gap: 6,
@@ -1377,7 +1377,7 @@ const styles = StyleSheet.create({
   metadataTitle: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   metadataInput: {
@@ -1401,11 +1401,11 @@ const styles = StyleSheet.create({
   cancelCreateText: {
     color: '#475569',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   submitCreateButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     flex: 1,
     paddingVertical: 11,
@@ -1413,7 +1413,7 @@ const styles = StyleSheet.create({
   submitCreateText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importPanel: {
     backgroundColor: '#FFFFFF',
@@ -1431,18 +1431,18 @@ const styles = StyleSheet.create({
   importKicker: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   importTitle: {
     color: '#0F172A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 3,
   },
   importPickButton: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 8,
     flexDirection: 'row',
     gap: 6,
@@ -1450,9 +1450,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   importPickText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importHint: {
     color: '#64748B',
@@ -1478,7 +1478,7 @@ const styles = StyleSheet.create({
   importConfigLabel: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 8,
     textTransform: 'uppercase',
   },
@@ -1499,8 +1499,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   activeImportOptionCard: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
   },
   importOptionCopy: {
     flex: 1,
@@ -1508,10 +1508,10 @@ const styles = StyleSheet.create({
   importOptionTitle: {
     color: '#0F172A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeImportOptionTitle: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   importOptionText: {
     color: '#64748B',
@@ -1543,16 +1543,16 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   activeImportPrimaryChip: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#7C3AED',
   },
   importPrimaryText: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeImportPrimaryText: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   importModeRow: {
     flexDirection: 'row',
@@ -1572,17 +1572,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   activeImportModeButton: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
   },
   importModeText: {
     color: '#64748B',
     flex: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeImportModeText: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   importFolderRow: {
     gap: 8,
@@ -1598,16 +1598,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   activeImportFolderChip: {
-    backgroundColor: '#EAF1FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F3E8FF',
+    borderColor: '#C4B5FD',
   },
   importFolderChipText: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeImportFolderChipText: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   importFlashcardToggle: {
     alignItems: 'flex-start',
@@ -1626,7 +1626,7 @@ const styles = StyleSheet.create({
   importFlashcardTitle: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importFlashcardText: {
     color: '#64748B',
@@ -1658,7 +1658,7 @@ const styles = StyleSheet.create({
   mappingHeader: {
     color: '#0F172A',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 8,
   },
   mappingButton: {
@@ -1668,20 +1668,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   mappingButtonActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
   },
   mappingButtonText: {
     color: '#475569',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   mappingButtonTextActive: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   importPreviewWord: {
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importPreviewDefinition: {
     color: '#64748B',
@@ -1697,7 +1697,7 @@ const styles = StyleSheet.create({
   },
   importSubmitButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     marginTop: 10,
     paddingVertical: 11,
@@ -1705,7 +1705,7 @@ const styles = StyleSheet.create({
   importSubmitText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   importMessage: {
     color: '#166534',
@@ -1721,9 +1721,9 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   segmentActiveText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   segmentItem: {
@@ -1798,7 +1798,7 @@ const styles = StyleSheet.create({
     width: 38,
   },
   viewIconButtonActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
   },
   folderControlsDropdown: {
     elevation: 25,
@@ -1817,16 +1817,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   controlChipActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#7C3AED',
   },
   controlChipText: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   controlChipTextActive: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   viewModePanel: {
     backgroundColor: '#FFFFFF',
@@ -1889,7 +1889,7 @@ const styles = StyleSheet.create({
   colorPickerTitle: {
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 10,
   },
   colorSwatchRow: {
@@ -1913,11 +1913,11 @@ const styles = StyleSheet.create({
   colorPickerCancelText: {
     color: '#475569',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   colorSwatchSelected: {
     borderWidth: 2,
-    borderColor: '#2563EB',
+    borderColor: '#7C3AED',
   },
   colorNoteInput: {
     backgroundColor: '#F8FAFC',
@@ -1937,7 +1937,7 @@ const styles = StyleSheet.create({
   },
   colorPickerSave: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -1945,7 +1945,7 @@ const styles = StyleSheet.create({
   colorPickerSaveText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   renameInput: {
     backgroundColor: '#F8FAFC',
@@ -1965,16 +1965,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   viewModeButtonActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#7C3AED',
   },
   viewModeText: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   viewModeTextActive: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   grid: {
     flexDirection: 'row',
@@ -2064,7 +2064,7 @@ const styles = StyleSheet.create({
   folderFavoriteText: {
     color: '#B45309',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   folderMenuButton: {
     alignItems: 'center',
@@ -2101,7 +2101,7 @@ const styles = StyleSheet.create({
     color: '#334155',
     flex: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   folderActionDivider: {
     backgroundColor: '#E2E8F0',
@@ -2111,7 +2111,7 @@ const styles = StyleSheet.create({
   folderActionLabel: {
     color: '#64748B',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     paddingHorizontal: 8,
     textTransform: 'uppercase',
   },
@@ -2122,15 +2122,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   downloadChip: {
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
   downloadChipText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   shareChip: {
     alignItems: 'center',
@@ -2144,12 +2144,12 @@ const styles = StyleSheet.create({
   shareChipText: {
     color: '#0F766E',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   folderName: {
     color: '#0F172A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   wordNumber: {
     color: '#64748B',
@@ -2158,7 +2158,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   folderTagText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 11,
     fontWeight: '800',
     marginTop: 4,
@@ -2166,7 +2166,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: '#0F172A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 12,
     marginTop: 14,
   },
@@ -2186,7 +2186,7 @@ const styles = StyleSheet.create({
   savedWordTitle: {
     color: '#0F172A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   savedWordMeta: {
     color: '#64748B',
@@ -2201,15 +2201,15 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   savedTag: {
-    backgroundColor: '#EEF4FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   savedTagText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   emptyText: {
     color: '#64748B',
@@ -2226,7 +2226,7 @@ const styles = StyleSheet.create({
   emptyCardTitle: {
     color: '#0F172A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 10,
   },
   emptyCardText: {

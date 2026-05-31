@@ -16,14 +16,14 @@ export function ThemedText({
   type = 'body',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
-
   // Map old type names to new ones for backward compatibility
   let mappedType = type;
   if (type === 'default') mappedType = 'body';
   else if (type === 'defaultSemiBold') mappedType = 'bodyBold';
   else if (type === 'title') mappedType = 'h1';
   else if (type === 'subtitle') mappedType = 'h2';
+
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, mappedType === 'link' ? 'tint' : 'text');
 
   return (
     <Text

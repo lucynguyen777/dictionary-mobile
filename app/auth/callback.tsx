@@ -81,7 +81,7 @@ export default function AuthCallbackScreen() {
     <Screen>
       <View style={styles.container}>
         <View style={styles.statusCircle}>
-          <Ionicons name={copy.icon} size={34} color="#2563EB" />
+          <Ionicons name={copy.icon} size={34} color="#7C3AED" />
         </View>
         <Text style={styles.title}>{copy.title}</Text>
         <Text style={styles.message}>{copy.message}</Text>
@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
   },
   statusCircle: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
     borderRadius: 999,
     borderWidth: 1,
     height: 72,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#0F172A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     textAlign: 'center',
   },
   message: {
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 8,
     justifyContent: 'center',
     marginTop: 22,
@@ -146,6 +146,6 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
 });

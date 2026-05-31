@@ -512,7 +512,7 @@ export default function WordScreen() {
       <View style={styles.lookupPanel}>
         <View style={styles.lookupSearchCard}>
           <View style={styles.inputBox}>
-            <Ionicons name="search" size={22} color="#2563EB" />
+            <Ionicons name="search" size={22} color="#7C3AED" />
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
@@ -537,7 +537,7 @@ export default function WordScreen() {
               activeOpacity={0.78}
               onPress={() => setShowLanguageControls((value) => !value)}
               style={styles.languageToggle}>
-              <Ionicons name="language-outline" size={18} color="#2563EB" />
+              <Ionicons name="language-outline" size={18} color="#7C3AED" />
             </TouchableOpacity>
           </View>
           {showLanguageControls ? (
@@ -932,7 +932,7 @@ function LookupLanguageSelect({
                   </Text>
                   <Text style={styles.languageOptionHint}>{language.hint}</Text>
                 </View>
-                {isSelected ? <Ionicons name="checkmark" size={16} color="#2563EB" /> : null}
+                {isSelected ? <Ionicons name="checkmark" size={16} color="#7C3AED" /> : null}
               </TouchableOpacity>
             );
           })}
@@ -1197,7 +1197,7 @@ const styles = StyleSheet.create({
   inputBox: {
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
-    borderColor: '#DBEAFE',
+    borderColor: '#DDD6FE',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -1213,7 +1213,7 @@ const styles = StyleSheet.create({
   },
   languageToggle: {
     alignItems: 'center',
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 8,
     height: 34,
     justifyContent: 'center',
@@ -1244,7 +1244,7 @@ const styles = StyleSheet.create({
   recognitionActionText: {
     color: '#0F766E',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   languageControls: {
     alignItems: 'flex-start',
@@ -1264,12 +1264,12 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   activeLanguageSelect: {
-    borderColor: '#2563EB',
+    borderColor: '#7C3AED',
   },
   languageSelectLabel: {
     color: '#64748B',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   languageSelectValueRow: {
@@ -1282,11 +1282,11 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     flex: 1,
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   languageSwap: {
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
     borderRadius: 8,
     height: 34,
     justifyContent: 'center',
@@ -1311,7 +1311,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   activeLanguageOption: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: '#F5F3FF',
   },
   languageOptionCopy: {
     flex: 1,
@@ -1320,10 +1320,10 @@ const styles = StyleSheet.create({
   languageOptionText: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeLanguageOptionText: {
-    color: '#2563EB',
+    color: '#7C3AED',
   },
   languageOptionHint: {
     color: '#94A3B8',
@@ -1346,13 +1346,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   activeResultChip: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: '#7C3AED',
+    borderColor: '#7C3AED',
   },
   resultWord: {
     color: '#0F172A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   activeResultText: {
     color: '#FFFFFF',
@@ -1364,10 +1364,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   activeResultMeta: {
-    color: '#BFDBFE',
+    color: '#C4B5FD',
   },
   apiLookupChip: {
-    backgroundColor: '#102A43',
+    backgroundColor: '#1F1B2E',
     borderRadius: 8,
     minWidth: 132,
     paddingHorizontal: 12,
@@ -1376,10 +1376,10 @@ const styles = StyleSheet.create({
   apiLookupTitle: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   apiLookupMeta: {
-    color: '#BFDBFE',
+    color: '#C4B5FD',
     fontSize: 11,
     fontWeight: '700',
     marginTop: 4,
@@ -1396,7 +1396,7 @@ const styles = StyleSheet.create({
   historyTitle: {
     color: '#64748B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 8,
     textTransform: 'uppercase',
   },
@@ -1422,7 +1422,7 @@ const styles = StyleSheet.create({
   suggestionTitle: {
     color: '#DC2626',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 8,
     textTransform: 'uppercase',
   },
@@ -1446,15 +1446,15 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   morphologyTitle: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   morphologyChip: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
     borderRadius: 8,
     borderWidth: 1,
     minWidth: 104,
@@ -1462,9 +1462,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   morphologyText: {
-    color: '#1D4ED8',
+    color: '#6D28D9',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   morphologyMeta: {
     color: '#64748B',
@@ -1495,13 +1495,13 @@ const styles = StyleSheet.create({
   recognitionEyebrow: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   recognitionTitle: {
     color: '#0F172A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   recognitionCloseButton: {
@@ -1537,7 +1537,7 @@ const styles = StyleSheet.create({
   recognitionStatusTitle: {
     color: '#0F172A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   recognitionStatusText: {
     color: '#64748B',
@@ -1590,7 +1590,7 @@ const styles = StyleSheet.create({
   recognitionPreviewTitle: {
     color: '#0F172A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   recognitionPreviewMeta: {
     color: '#64748B',
@@ -1604,13 +1604,13 @@ const styles = StyleSheet.create({
   recognitionResultLabel: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   recognitionResultText: {
     color: '#0F172A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 5,
   },
   recognitionNotice: {
@@ -1662,7 +1662,7 @@ const styles = StyleSheet.create({
   recognitionSuggestionText: {
     color: '#0F766E',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   recognitionFooter: {
     flexDirection: 'row',
@@ -1688,7 +1688,7 @@ const styles = StyleSheet.create({
   recognitionPrimaryText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   recognitionSecondaryButton: {
     alignItems: 'center',
@@ -1704,6 +1704,6 @@ const styles = StyleSheet.create({
   recognitionSecondaryText: {
     color: '#0F766E',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
 });

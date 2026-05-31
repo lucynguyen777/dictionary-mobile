@@ -1575,13 +1575,13 @@ const styles = StyleSheet.create({
   heroEyebrow: {
     color: '#787671',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   heroName: {
     color: '#1A1A1A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   heroMeta: {
@@ -1625,7 +1625,7 @@ const styles = StyleSheet.create({
     color: '#9A3412',
     flexShrink: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   goalText: {
     color: '#9A3412',
@@ -1651,12 +1651,12 @@ const styles = StyleSheet.create({
   profileMetricValue: {
     color: '#1A1A1A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   profileMetricLabel: {
     color: '#5D5B54',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 2,
   },
   heroActionRow: {
@@ -1678,7 +1678,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     flexShrink: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   secondaryHeroAction: {
     alignItems: 'center',
@@ -1696,7 +1696,7 @@ const styles = StyleSheet.create({
   secondaryHeroActionText: {
     color: '#0075DE',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   quickActionGrid: {
     flexDirection: 'row',
@@ -1732,7 +1732,7 @@ const styles = StyleSheet.create({
   quickActionLabel: {
     color: '#1A1A1A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   quickActionDetail: {
     color: '#5D5B54',
@@ -1758,7 +1758,7 @@ const styles = StyleSheet.create({
   inlineEditText: {
     color: '#0075DE',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   summaryList: {
     gap: 8,
@@ -1788,14 +1788,14 @@ const styles = StyleSheet.create({
     color: '#5D5B54',
     flexShrink: 0,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     width: 92,
   },
   summaryValue: {
     color: '#1A1A1A',
     flex: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     minWidth: 0,
     textAlign: 'right',
   },
@@ -1829,7 +1829,7 @@ const styles = StyleSheet.create({
   settingsButtonText: {
     color: '#1A1A1A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sidebarOverlay: {
     bottom: 0,
@@ -1882,7 +1882,7 @@ const styles = StyleSheet.create({
   sidebarTitle: {
     color: '#1A1A1A',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sidebarProfileCard: {
     alignItems: 'center',
@@ -1907,7 +1907,7 @@ const styles = StyleSheet.create({
   sidebarProfileName: {
     color: '#1A1A1A',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sidebarProfileMeta: {
     color: '#5D5B54',
@@ -1918,7 +1918,7 @@ const styles = StyleSheet.create({
   sidebarGroupLabel: {
     color: '#787671',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     marginBottom: 7,
     textTransform: 'uppercase',
   },
@@ -1949,7 +1949,7 @@ const styles = StyleSheet.create({
     color: '#5D5B54',
     flex: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     minWidth: 0,
   },
   sidebarNavItemTextActive: {
@@ -1978,7 +1978,7 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     flex: 1,
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
     minWidth: 0,
   },
   sidebarContent: {
@@ -1990,7 +1990,7 @@ const styles = StyleSheet.create({
   sidebarSectionTitle: {
     color: '#5D5B54',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     letterSpacing: 0.4,
     marginBottom: 10,
     textTransform: 'uppercase',
@@ -2024,7 +2024,7 @@ const styles = StyleSheet.create({
   authStatusTitle: {
     color: '#1A1A1A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   authStatusText: {
     color: '#5D5B54',
@@ -2038,7 +2038,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     color: '#0369A1',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     maxWidth: 86,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -2068,7 +2068,7 @@ const styles = StyleSheet.create({
   authStatusButtonText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   authStatusButtonTextSecondary: {
     color: '#391C57',
@@ -2119,7 +2119,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     flexShrink: 1,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   authFormButtonTextSecondary: {
     color: '#0075DE',
@@ -2138,7 +2138,7 @@ const styles = StyleSheet.create({
   authRecoveryButtonText: {
     color: '#0075DE',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sidebarAvatarBlock: {
     alignItems: 'center',
@@ -2161,7 +2161,7 @@ const styles = StyleSheet.create({
   sidebarAvatarActionText: {
     color: '#0075DE',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sidebarPrimaryAction: {
     alignSelf: 'stretch',
@@ -2201,7 +2201,7 @@ const styles = StyleSheet.create({
   },
   sidebarActionTextDestructive: {
     color: '#DC2626',
-    fontWeight: '900',
+    fontWeight: '700',
   },
   sidebarActionTextDisabled: {
     color: '#A4A097',
@@ -2211,7 +2211,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     color: '#787671',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     maxWidth: 74,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -2267,7 +2267,7 @@ const styles = StyleSheet.create({
     color: '#0075DE',
     flexShrink: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   avatar: {
     alignSelf: 'center',
@@ -2280,7 +2280,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     color: '#1A1A1A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 16,
   },
   userMeta: {
@@ -2313,7 +2313,7 @@ const styles = StyleSheet.create({
   metricValue: {
     color: '#1A1A1A',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   metricLabel: {
     color: '#5D5B54',
@@ -2338,7 +2338,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     color: '#1A1A1A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   cardSubtitle: {
     color: '#5D5B54',
@@ -2353,7 +2353,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     color: '#5D5B54',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 12,
     textTransform: 'uppercase',
   },
@@ -2390,7 +2390,7 @@ const styles = StyleSheet.create({
   optionChipText: {
     color: '#5D5B54',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   optionChipTextActive: {
     color: '#391C57',
@@ -2429,7 +2429,7 @@ const styles = StyleSheet.create({
   securityTitle: {
     color: '#1A1A1A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   securityText: {
     color: '#5D5B54',
@@ -2476,7 +2476,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     color: '#1A1A1A',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
     paddingHorizontal: 10,
     paddingVertical: 8,
     textAlign: 'center',
@@ -2510,7 +2510,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     color: '#3730A3',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     paddingHorizontal: 8,
     paddingVertical: 5,
     textAlign: 'center',
@@ -2531,7 +2531,7 @@ const styles = StyleSheet.create({
   offlinePackInstallText: {
     color: '#0F766E',
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 13,
     textAlign: 'right',
   },
@@ -2560,7 +2560,7 @@ const styles = StyleSheet.create({
   offlinePackActionText: {
     color: '#0075DE',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   offlinePackActionTextDisabled: {
     color: '#A4A097',
@@ -2580,7 +2580,7 @@ const styles = StyleSheet.create({
   offlinePackDeleteText: {
     color: '#DC2626',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   dataStat: {
     backgroundColor: '#FAFAF9',
@@ -2594,12 +2594,12 @@ const styles = StyleSheet.create({
   dataStatValue: {
     color: '#1A1A1A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   dataStatLabel: {
     color: '#5D5B54',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
     textTransform: 'uppercase',
   },
@@ -2610,7 +2610,7 @@ const styles = StyleSheet.create({
   metricsCardTitle: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   metricsCardSubtitle: {
     color: '#9A97A7',
@@ -2625,21 +2625,21 @@ const styles = StyleSheet.create({
   metricsOverline: {
     color: '#8F8B9B',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
     letterSpacing: 0,
     textTransform: 'uppercase',
   },
   metricsPrimaryValue: {
     color: '#A998F4',
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '700',
     lineHeight: 48,
     marginTop: 2,
   },
   metricsPeriod: {
     color: '#8F8B9B',
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   metricsYearPill: {
     alignItems: 'center',
@@ -2659,7 +2659,7 @@ const styles = StyleSheet.create({
   metricsYearText: {
     color: '#EDEAF7',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   yearPickerWrap: {
     position: 'relative',
@@ -2678,10 +2678,7 @@ const styles = StyleSheet.create({
     top: 36,
     zIndex: 30,
     elevation: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    boxShadow: '0px 8px 18px rgba(0, 0, 0, 0.28)',
   },
   yearPickerOption: {
     borderRadius: 6,
@@ -2698,7 +2695,7 @@ const styles = StyleSheet.create({
   yearPickerOptionText: {
     color: '#A7A2B2',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   yearPickerOptionTextActive: {
     color: '#FFFFFF',
@@ -2733,12 +2730,12 @@ const styles = StyleSheet.create({
   darkDataStatValue: {
     color: '#A998F4',
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   darkDataStatLabel: {
     color: '#A7A2B2',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
     textTransform: 'uppercase',
   },
@@ -2760,7 +2757,7 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     flexShrink: 1,
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   yearPill: {
     alignItems: 'center',
@@ -2918,7 +2915,7 @@ const styles = StyleSheet.create({
   segmentButtonText: {
     color: '#F5F3FB',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   segmentButtonTextActive: {
     color: '#FFFFFF',

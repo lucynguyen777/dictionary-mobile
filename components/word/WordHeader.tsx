@@ -51,7 +51,7 @@ export default function WordHeader({
     translationNotice: {
       alignItems: 'flex-start',
       backgroundColor: colors.statusInfo,
-      borderColor: '#BFDBFE', // Light blue (non-standard, keep hardcoded)
+      borderColor: colors.accentNeo,
       borderRadius: radius.md,
       borderWidth: 1,
       flexDirection: 'row',
@@ -60,7 +60,7 @@ export default function WordHeader({
       padding: spacing.md,
     },
     translationNoticeText: {
-      color: '#1E3A8A', // Dark blue (non-standard, keep hardcoded)
+      color: colors.textPrimary,
       flex: 1,
       fontSize: 13,
       fontWeight: '700',
@@ -75,7 +75,7 @@ export default function WordHeader({
       color: colors.textPrimary,
       flex: 1,
       fontSize: 40,
-      fontWeight: '900',
+      fontWeight: '700',
     },
     actions: {
       alignItems: 'center',
@@ -132,12 +132,12 @@ export default function WordHeader({
     folderPickerTitle: {
       color: colors.textPrimary,
       fontSize: 16,
-      fontWeight: '900',
+      fontWeight: '700',
     },
     saveMessage: {
       alignItems: 'center',
       backgroundColor: colors.statusSuccess,
-      borderBottomColor: '#BBF7D0', // Green border (non-standard, keep hardcoded)
+      borderBottomColor: colors.accentSuccess,
       borderBottomWidth: 1,
       flexDirection: 'row',
       gap: 7,
@@ -145,7 +145,7 @@ export default function WordHeader({
       paddingVertical: spacing.xs,
     },
     saveMessageText: {
-      color: '#166534', // Dark green (non-standard, keep hardcoded)
+      color: colors.accentSuccess,
       flex: 1,
       fontSize: 12,
       fontWeight: '800',
@@ -264,7 +264,7 @@ export default function WordHeader({
     <View style={styles.container}>
       {isTranslationComingSoon ? (
         <View style={styles.translationNotice}>
-          <Ionicons name="time-outline" size={18} color="#2563EB" />
+          <Ionicons name="time-outline" size={18} color={colors.accentPrimary} />
           <Text style={styles.translationNoticeText}>
             Cặp ngôn ngữ này chưa có dịch production. Tab Meaning vẫn có thể hiển thị định nghĩa của ngôn ngữ gốc khi có dữ liệu local/API.
           </Text>
@@ -286,7 +286,7 @@ export default function WordHeader({
             <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={30} color="#EF476F" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setFolderPickerOpen((value) => !value)}>
-            <Ionicons name="add-circle-outline" size={30} color="#2563EB" />
+            <Ionicons name="add-circle-outline" size={30} color={colors.accentPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -294,7 +294,7 @@ export default function WordHeader({
       <View style={styles.ipaRow}>
         <Text style={styles.ipa}>{entry.ipa}</Text>
         <TouchableOpacity disabled={!entry.audio} onPress={playAudio} style={[styles.audioButton, !entry.audio && styles.audioButtonDisabled]}>
-          <Ionicons name="volume-medium-outline" size={18} color={entry.audio ? '#2563EB' : '#94A3B8'} />
+          <Ionicons name="volume-medium-outline" size={18} color={entry.audio ? colors.accentPrimary : colors.textTertiary} />
         </TouchableOpacity>
         <Text style={styles.translation}>{entry.vietnamese}</Text>
       </View>
@@ -303,36 +303,36 @@ export default function WordHeader({
         <View style={styles.folderPicker}>
           <View style={styles.folderPickerHeader}>
             <Text style={styles.folderPickerTitle}>Lưu vào bộ từ</Text>
-            <Ionicons name="albums-outline" size={22} color="#2563EB" />
+            <Ionicons name="albums-outline" size={22} color={colors.accentPrimary} />
           </View>
           {saveMessage ? (
             <View style={styles.saveMessage}>
-              <Ionicons name="checkmark-circle" size={17} color="#16A34A" />
+              <Ionicons name="checkmark-circle" size={17} color={colors.accentSuccess} />
               <Text style={styles.saveMessageText}>{saveMessage}</Text>
             </View>
           ) : null}
           <View style={styles.folderSearchBox}>
-            <Ionicons name="search" size={18} color="#64748B" />
+            <Ionicons name="search" size={18} color={colors.textSecondary} />
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
               onChangeText={setFolderQuery}
               placeholder="Tìm nhanh bộ từ..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textTertiary}
               returnKeyType="search"
               style={styles.folderSearchInput}
               value={folderQuery}
             />
             {folderQuery ? (
               <TouchableOpacity activeOpacity={0.75} onPress={() => setFolderQuery('')}>
-                <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
               </TouchableOpacity>
             ) : null}
           </View>
           <TextInput
             multiline
             placeholder="Ghi chú nhanh cho từ này"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textTertiary}
             value={noteDraft}
             onChangeText={setNoteDraft}
             style={styles.noteInput}
@@ -358,14 +358,14 @@ export default function WordHeader({
                       <Text numberOfLines={1} style={styles.folderText}>{folder.name}</Text>
                       <Text style={styles.folderMeta}>{isSavedInFolder ? 'Đã có trong bộ từ này' : 'Bấm để lưu vào đây'}</Text>
                     </View>
-                    <Ionicons name={isSavedInFolder ? 'checkmark-circle' : 'add-circle-outline'} size={23} color="#2563EB" />
+                    <Ionicons name={isSavedInFolder ? 'checkmark-circle' : 'add-circle-outline'} size={23} color={colors.accentPrimary} />
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
           ) : (
             <View style={styles.emptyFolderState}>
-              <Ionicons name="search-outline" size={20} color="#94A3B8" />
+              <Ionicons name="search-outline" size={20} color={colors.textTertiary} />
               <Text style={styles.emptyFolderText}>Không tìm thấy bộ từ phù hợp.</Text>
             </View>
           )}

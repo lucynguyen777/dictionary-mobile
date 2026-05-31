@@ -1,13 +1,10 @@
 import { PropsWithChildren } from 'react';
-import { SafeAreaView, StyleSheet, ViewStyle } from 'react-native';
+import { SafeAreaView, ViewStyle } from 'react-native';
+
+import { useToken } from '@/hooks/use-token';
 
 export default function Screen({ children, style }: PropsWithChildren<{ style?: ViewStyle }>) {
-  return <SafeAreaView style={[styles.screen, style]}>{children}</SafeAreaView>;
-}
+  const { colors } = useToken();
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#F7F8FA',
-  },
-});
+  return <SafeAreaView style={[{ backgroundColor: colors.canvasAlt, flex: 1 }, style]}>{children}</SafeAreaView>;
+}

@@ -641,6 +641,16 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Minimal Futuristic UI Completion** - DONE
+- Module Completion Plan: finish the minimalism + futuristic migration for mobile and Expo web without removing routes, handlers, import/export contracts, auth/sync boundaries, OCR/STT gates, AI/backend gates, or existing local-first behavior.
+- Acceptance criteria: every touched action remains reachable, light/dark theme fallbacks are correct, major mobile/web surfaces avoid overlap and text overflow, blocked features stay visibly blocked, and `git diff --check`, `npx tsc --noEmit`, `npm run lint -- --max-warnings=0`, and `npm test -- --run` pass before completion.
+- [x] DONE [MEDIUM]: Fix token/primitives alignment: `ThemedView`, `ThemedText`, `useThemeColor`, and design-system accent mapping use the same minimal futuristic light/dark tokens while preserving legacy props and exports.
+- [x] DONE [MEDIUM]: Apply the root/navigation shell: app lock, shared `Screen`/`SectionTitle`, and bottom tabs use restrained shadow, token colors, and theme-aware backgrounds.
+- [x] DONE [MEDIUM]: Apply lookup/word surfaces: `WordHeader`, `TabPager`, `StickyTabBar`, `VoiceCapturePreview`, and `app/(tabs)/word.tsx` keep lookup, audio, save-to-folder, OCR/voice, and tab flows intact while moving active accents away from legacy blue.
+- [x] DONE [MEDIUM]: Apply library/folder surfaces: `app/(tabs)/library.tsx` and `app/folder/[id].tsx` keep create/import/export/rename/delete/share/favorite/color/note flows intact while aligning CTA and selected states to the new accent palette.
+- [x] DONE [MEDIUM]: Apply reader/profile/advanced polish: Reader theme customization and all Profile/Advanced actions are preserved while app chrome/control accent styling aligns with shared tokens.
+- [x] DONE [MEDIUM]: Verified with `git diff --check`, `npx tsc --noEmit`, `npm run lint -- --max-warnings=0`, `npm test -- --run`, and Expo web mobile/desktop screenshots in `tmp/minimal-futuristic-mobile.png` and `tmp/minimal-futuristic-desktop.png`.
+
 **Module: Roadmap Sync For Dashboard Analytics** - DONE
 - [x] DONE [EASY]: Added the Profile/Flashcard analytics roadmap as local-first staged work.
 - [x] DONE [EASY]: Recorded that Profile sidebar account, privacy, support, export/reset, and offline-pack actions must remain reachable while the main Profile tab becomes a dashboard.

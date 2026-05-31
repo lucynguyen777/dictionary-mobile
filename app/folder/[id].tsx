@@ -144,11 +144,11 @@ export default function FolderDetailScreen() {
             <Text style={styles.folderMenuLabel}>Xuất bộ từ</Text>
             <View style={styles.exportGroup}>
               <TouchableOpacity onPress={() => handleExport('csv')} style={styles.exportButton}>
-                <Ionicons name="download-outline" size={18} color="#2563EB" />
+                <Ionicons name="download-outline" size={18} color="#7C3AED" />
                 <Text style={styles.exportText}>CSV</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleExport('excel')} style={styles.exportButton}>
-                <Ionicons name="grid-outline" size={18} color="#2563EB" />
+                <Ionicons name="grid-outline" size={18} color="#7C3AED" />
                 <Text style={styles.exportText}>XLS</Text>
               </TouchableOpacity>
             </View>
@@ -165,7 +165,7 @@ export default function FolderDetailScreen() {
             />
             <View style={styles.manageActions}>
               <TouchableOpacity activeOpacity={0.82} onPress={handleRenameFolder} style={styles.saveButton}>
-                <Ionicons name="checkmark-circle-outline" size={18} color="#2563EB" />
+                <Ionicons name="checkmark-circle-outline" size={18} color="#7C3AED" />
                 <Text style={styles.saveButtonText}>Đổi tên</Text>
               </TouchableOpacity>
               {!isFavoriteFolder ? (
@@ -179,7 +179,7 @@ export default function FolderDetailScreen() {
         ) : null}
 
         <View style={styles.hero}>
-          <View style={[styles.folderIcon, { backgroundColor: folder?.color ?? '#EAF1FF' }]}>
+          <View style={[styles.folderIcon, { backgroundColor: folder?.color ?? '#F3E8FF' }]}>
             {folder?.avatarUri ? (
               <Image source={{ uri: folder.avatarUri }} style={styles.folderAvatarImage} />
             ) : (
@@ -195,7 +195,7 @@ export default function FolderDetailScreen() {
         </View>
 
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={20} color="#2563EB" />
+          <Ionicons name="search" size={20} color="#7C3AED" />
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
@@ -276,7 +276,7 @@ function FolderWordCard({
         activeOpacity={0.82}
         onPress={() => onSaveNote(word.id, noteDraft)}
         style={styles.noteButton}>
-        <Ionicons name="checkmark-circle-outline" size={18} color="#2563EB" />
+        <Ionicons name="checkmark-circle-outline" size={18} color="#7C3AED" />
         <Text style={styles.noteButtonText}>Lưu ghi chú</Text>
       </TouchableOpacity>
     </View>
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   },
   scrollTopButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
+    backgroundColor: '#7C3AED',
     borderRadius: 22,
     bottom: 18,
     elevation: 24,
@@ -335,12 +335,12 @@ const styles = StyleSheet.create({
   folderMenuLabel: {
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     textTransform: 'uppercase',
   },
   exportButton: {
     alignItems: 'center',
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 999,
     flexDirection: 'row',
     gap: 6,
@@ -348,9 +348,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   exportText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   hero: {
     alignItems: 'center',
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#0F172A',
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 4,
   },
   subtitle: {
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   folderTags: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
     fontWeight: '800',
     marginTop: 6,
@@ -412,14 +412,14 @@ const styles = StyleSheet.create({
   manageTitle: {
     color: '#0F172A',
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   lockedPill: {
     backgroundColor: '#F1F5F9',
     borderRadius: 999,
     color: '#64748B',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '700',
     overflow: 'hidden',
     paddingHorizontal: 9,
     paddingVertical: 5,
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     alignItems: 'center',
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 999,
     flexDirection: 'row',
     gap: 6,
@@ -451,9 +451,9 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   saveButtonText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   deleteButton: {
     alignItems: 'center',
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: '#EF4444',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   searchBox: {
     alignItems: 'center',
@@ -504,10 +504,10 @@ const styles = StyleSheet.create({
   wordTitle: {
     color: '#0F172A',
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   wordMeta: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 13,
     fontWeight: '800',
     marginTop: 3,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   noteButton: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#EAF1FF',
+    backgroundColor: '#F3E8FF',
     borderRadius: 999,
     flexDirection: 'row',
     gap: 6,
@@ -552,9 +552,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   noteButtonText: {
-    color: '#2563EB',
+    color: '#7C3AED',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '700',
   },
   emptyCard: {
     alignItems: 'center',
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     color: '#0F172A',
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 10,
   },
   emptyText: {

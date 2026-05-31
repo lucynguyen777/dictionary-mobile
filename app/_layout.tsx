@@ -10,6 +10,7 @@ import { recordAppOpen } from '@/data/activityStore';
 import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useToken } from '@/hooks/use-token';
 
 installDevelopmentWarningFilter();
 
@@ -97,25 +98,26 @@ function AppLockScreen({
   onRetry: () => void;
   state: AppLockState;
 }) {
+  const { colors, radius, spacing } = useToken();
   const isChecking = state === 'checking';
   const isUnsupported = state === 'unsupported';
 
   return (
-    <View style={styles.lockScreen}>
-      <View style={styles.lockCard}>
-        <Text style={styles.lockIcon}>Lock</Text>
-        <Text style={styles.lockTitle}>Dictionary Mobile đang được khóa</Text>
-        <Text style={styles.lockText}>
+    <View style={[styles.lockScreen, { backgroundColor: colors.canvasAlt, padding: spacing.xl }]}>
+      <View style={[styles.lockCard, { backgroundColor: colors.canvasElevated, borderColor: colors.borderDefault, borderRadius: radius.md, padding: spacing.xxl }]}>
+        <Text style={[styles.lockIcon, { color: colors.accentPrimary }]}>Lock</Text>
+        <Text style={[styles.lockTitle, { color: colors.textPrimary }]}>Dictionary Mobile đang được khóa</Text>
+        <Text style={[styles.lockText, { color: colors.textSecondary }]}>
           {isUnsupported
             ? 'Thiết bị hoặc môi trường hiện tại chưa hỗ trợ khóa sinh trắc học. Bạn vẫn có thể tiếp tục để vào app.'
             : 'Xác thực bằng sinh trắc học hoặc mã thiết bị để tiếp tục học.'}
         </Text>
-        {isChecking ? <ActivityIndicator color="#2563EB" style={styles.lockSpinner} /> : null}
+        {isChecking ? <ActivityIndicator color={colors.accentPrimary} style={styles.lockSpinner} /> : null}
         <TouchableOpacity
           activeOpacity={0.82}
           disabled={isChecking}
           onPress={isUnsupported ? onContinue : onRetry}
-          style={[styles.lockButton, isChecking && styles.lockButtonDisabled]}
+          style={[styles.lockButton, { backgroundColor: colors.accentPrimary }, isChecking && styles.lockButtonDisabled]}
         >
           <Text style={styles.lockButtonText}>{isUnsupported ? 'Tiếp tục' : 'Mở khóa'}</Text>
         </TouchableOpacity>
@@ -127,39 +129,30 @@ function AppLockScreen({
 const styles = StyleSheet.create({
   lockScreen: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
   },
   lockCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
     borderWidth: 1,
     maxWidth: 420,
-    padding: 22,
     width: '100%',
   },
   lockIcon: {
-    color: '#2563EB',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0,
     textTransform: 'uppercase',
   },
   lockTitle: {
-    color: '#0F172A',
     fontSize: 19,
-    fontWeight: '900',
+    fontWeight: '700',
     marginTop: 10,
     textAlign: 'center',
   },
   lockText: {
-    color: '#64748B',
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '500',
     lineHeight: 20,
     marginTop: 8,
     textAlign: 'center',
@@ -169,7 +162,6 @@ const styles = StyleSheet.create({
   },
   lockButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
     borderRadius: 999,
     marginTop: 18,
     paddingHorizontal: 18,
@@ -181,6 +173,6 @@ const styles = StyleSheet.create({
   lockButtonText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '700',
   },
 });
