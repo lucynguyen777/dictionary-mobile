@@ -79,5 +79,22 @@ Supported:
 - Excel-compatible XLS
 - Anki TSV
 
+## Cloud Synchronization Tables (Supabase Schema)
+- **user_profiles**: stores user profile preferences and goals synced to backend.
+- **library_folders**: folder metadata (id, name, color, color_note, is_favorite, etc.).
+- **saved_words**: saved vocabulary (word, ipa, definition, audio, note, tags).
+- **saved_word_folders**: relation mapping words to their corresponding folders.
+- **search_history**: local query history logs.
+- **flashcards**: spaced repetition states and schedules.
+- **user_sync_cursors**: tracks incremental pull/push timestamps per domain.
+
+## Translation & AI Tutor Tables (v1.3.0)
+- **user_provider_connections**: metadata mappings for user-provided API credentials.
+- **user_provider_secret_envelopes**: encrypted keys for credentials.
+- **proxy_usage_events**: usage character/token metrics.
+- **user_glossaries & user_glossary_entries**: custom translation mappings.
+- **translation_datasets, translation_dataset_entries & translation_dataset_documents**: text segment corpus and reference document datasets.
+- **translation_context_agents & translation_agent_usage_events**: tutor system instructions and usage details.
+
 Blocked:
 - Google Sheets until OAuth decision exists

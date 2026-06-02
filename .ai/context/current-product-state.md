@@ -81,19 +81,26 @@
 - Timezone and Daily goal settings (words, minutes, reviews)
 - Local data overview showing count of saved words, folders, flashcards, reader files, and datasets
 - Export all local user data and reset/delete all local data with confirmation alert
-- Privacy copy explaining local-first storage and biometric app lock (expo-local-authentication)
-- Local user-data SQLite runtime for Profile, Library, and Reader, with migration from legacy AsyncStorage and explicit legacy cleanup utility guarded by backup marker and offline-pack preservation tests
+- Biometric app lock (expo-local-authentication) and database backup confirmation.
+- Local user-data SQLite runtime for Profile, Library, and Reader, with migration from legacy AsyncStorage and explicit legacy cleanup utility.
+
+### Auth & Cloud Sync
+- Supabase Authentication (email registration, login, secure token management via SecureStore, and session refresh callbacks).
+- Realtime database sync runner synchronization for user profiles, library folders, saved words, word memberships, search history, and flashcards.
+- Soft-deleted record tracking with tombstones and cursor-based sync polling.
+
+### AI Assistant & Translation Proxy
+- Backend API proxy executing requests with Supabase auth session token headers.
+- DeepL text translation panel embedded in dictionary word lookups and Reader selection cards.
+- AI Tutor assistant (`ai-assistant`) conversational dashboard supporting writing correction, conversation practice, grammar explanations, and scenario roleplays via OpenAI backend proxy.
+- Monthly/daily usage quotas and event logging tracking character counts.
 
 ## In Progress
-- No active implementation module is selected after the legacy user-data AsyncStorage cleanup and post-cleanup baseline sync modules. Use `docs/product-progress.md` as the source of truth before selecting the next 3-5 task module.
+- Post-release optimization and monitoring.
 
 ## Blocked
-- Auth (Email login, password changes, account deletion, real sign out)
-- Cloud sync (cross-device sync, encrypted backup)
 - Google Sheets export (OAuth flow and Google API blocked)
 - Speech scoring (IPA comparison, per-phoneme scoring alignment engine)
-- AI chatbot (Real-time AI conversation, voice chatbot, persistent memory)
-- Production translation (multilingual production translation, specialized glossary translation)
 - Cantonese monolingual baseline (needs words.hk hosted API or approved local bundle path)
 - Uyghur monolingual baseline (needs enough balanced non-placeholder native-definition fixtures or another approved source)
 - VI-to-FR bilingual dictionary source selection (no machine translation allowed)

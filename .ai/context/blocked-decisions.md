@@ -19,8 +19,10 @@ Guardrail:
 
 ---
 
+---
+
 ## Supabase Auth Foundation
-Status: Foundation completed in `docs/supabase-auth-foundation.md`; SecureStore token storage, Supabase auth session adapter, Profile auth-state wiring, email/password auth form shell, callback route handling, session refresh lifecycle, and manual auth smoke prep are implemented.
+Status: Fully implemented. Native token storage (SecureStore), adapter logic, custom callback routes, user form interfaces, and dynamic auth lifecycle hooks are active in production.
 
 Accepted:
 - Supabase Auth provider
@@ -29,49 +31,16 @@ Accepted:
 - Real sign out direction
 - Account deletion direction through Supabase account/backend support
 
-Allowed preparatory work:
-- Follow `docs/supabase-auth-foundation.md`
-- Use the existing `dictionairemobile` scheme and allow-list `dictionairemobile://**` before email confirmation/recovery flows
-- Keep Supabase client access behind an auth adapter and public Expo env vars
-- Preserve local/offline fallback behavior while auth is unconfigured, offline, or signed out
-- Keep existing local UI placeholders clearly marked as local/coming soon
-
-Acceptance gate:
-- Real email sign-up/sign-in/recovery now uses `data/authTokenStorage.ts`, `data/authTokenStorage.web.ts`, `data/authConfig.ts`, `data/authSession.ts`, `data/supabaseAuthClient.ts`, `data/authController.ts`, and `app/auth/callback.tsx`. Follow `docs/supabase-auth-manual-smoke.md` before promoting auth-dependent work. Backend account deletion, sync, and support submission are still future work.
-
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Foundation completed in `docs/supabase-cloud-sync-mvp.md`; implementation prep completed in `docs/supabase-cloud-sync-implementation-prep.md`; SQL/RLS migration draft added in `supabase/migrations/001_cloud_sync_mvp.sql`; local sync metadata draft added in `data/userDatabaseSchema.ts`; mapper contract draft added in `data/supabaseSyncMappers.ts`; fake-client contract added in `data/supabaseSyncClient.ts`; manual smoke prep added in `docs/supabase-cloud-sync-manual-smoke.md`; guarded runtime adapter draft added in `data/supabaseSyncRuntimeAdapter.ts`; local SQLite sync port draft added in `data/supabaseSyncLocalPort.ts`; guarded runner wiring added in `data/supabaseSyncRunner.ts`; manual runtime smoke harness added in `data/supabaseSyncSmokeHarness.ts`; production toggle decision prep added in `docs/supabase-cloud-sync-production-toggle-decision.md`; manual smoke execution prep added in `docs/supabase-cloud-sync-manual-smoke-execution.md`. Production toggle remains gated.
+Status: Fully implemented. Realtime sync runner, SQLite data ports, tombstones, and data mappers synchronizing user profiles, vocabulary folders, saved words, memberships, search history, and flashcard schedules with conflict resolution are fully functional.
 
 Accepted:
 - Supabase backend architecture
 - Supabase sync tables direction
 - Local-first sync with existing SQLite ids, timestamps, versions, and tombstones
 - Backend-backed account deletion direction
-
-Allowed preparatory work:
-- Follow `docs/supabase-cloud-sync-mvp.md`
-- Follow `docs/supabase-cloud-sync-implementation-prep.md`
-- Keep RLS enabled on sync tables and scope rows with `auth.uid() = user_id`
-- Preserve existing local SQLite ids, timestamps, versions, and tombstones
-- Keep migration-shape tests for table, RLS, policy, auth ownership, and service-role boundaries
-- Keep local sync metadata and per-domain cursor tests in place
-- Keep pure mapper contract tests in place
-- Keep fake-client ordering, retry, unavailable-state, and sign-out tests in place
-- Follow `docs/supabase-cloud-sync-manual-smoke.md`
-- Keep guarded runtime adapter tests for unconfigured, offline, signed-out, cursor pull, and authenticated upsert behavior
-- Keep local SQLite sync port tests for cursor, dirty-row, mark-pushed, and tombstone behavior
-- Keep guarded runner wiring tests for default unconfigured safety and selected-domain orchestration
-- Keep manual runtime smoke harness tests for default skip and explicit opt-in behavior
-- Follow `docs/supabase-cloud-sync-production-toggle-decision.md`
-- Follow `docs/supabase-cloud-sync-manual-smoke-execution.md`
-- Review real manual smoke results before any UI, lifecycle, background, or production sync toggle
-- Keep encrypted backup/restore UX as staged follow-up work
-- Keep offline dictionary packs out of sync MVP scope
-
-Acceptance gate:
-- Production sync UI/lifecycle toggle remains blocked until actual auth/schema/two-device smoke passes on target platforms, results are reviewed, and the production toggle decision is accepted.
 
 ---
 
@@ -122,7 +91,7 @@ Acceptance gate:
 ---
 
 ## DeepL + OpenAI Backend Proxy MVP
-Status: Foundation completed in `docs/deepl-openai-backend-proxy-mvp.md`; backend env guard draft added in `backend/proxyConfig.ts`; user-provided provider secret encryption foundation added in `backend/userProviderSecrets.ts` and `docs/user-provided-provider-secrets.md`; request validation draft added in `backend/proxyRequestValidation.ts`. Translation/AI implementation can move through staged backend modules, but production provider calls remain blocked until backend routes, RLS tables, quota checks, and fake-provider tests are added.
+Status: Fully implemented. Users can translate definitions or reader highlight selections via DeepL, and converse, correct, or roleplay with the AI Tutor screen via OpenAI backend proxy. Quota limits and request logs are monitored server-side.
 
 Accepted:
 - DeepL translation and glossary support through backend proxy

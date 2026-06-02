@@ -16,6 +16,7 @@ import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
 import { getLanguageByCode } from '@/data/languages';
 import { PhrasebookItem, getPhrasebookItems } from '@/data/phrasebook';
+import { TranslationPanel } from '@/components/TranslationPanel';
 
 type Props = {
   apiBilingualMeaning: ApiBilingualMeaningResult | null;
@@ -301,6 +302,7 @@ function MeaningTab({
           ))}
         </View>
       ))}
+      <TranslationPanel sourceText={entry.shortDefinition || entry.word} targetLang="VI" />
     </View>
   );
 }

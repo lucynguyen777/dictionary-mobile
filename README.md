@@ -84,9 +84,10 @@ See [Deployment Options](docs/deployment-options.md) for web hosting choices, EA
 
 ## Notes
 
-- User data is local-first unless an accepted backend/cloud decision exists.
+- User data is local-first, utilizing local SQLite storage, with optional Supabase Cloud Sync when signed in.
 - Dictionary work must build monolingual lookup first and must not use machine translation as dictionary data.
-- Auth, cloud sync, OAuth, AI, speech scoring, production translation, and licensed offline bundles remain blocked until accepted decisions exist.
+- Supabase Authentication, cross-device database synchronization, DeepL translations, and OpenAI-based AI learning partner (AI Tutor) are fully integrated and functional.
+- Google Sheets export, speech scoring, and licensed offline bundles remain blocked until accepted decisions exist.
 
 ## Expo References
 

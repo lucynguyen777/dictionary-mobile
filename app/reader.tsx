@@ -44,6 +44,7 @@ import {
   updateReaderSettings,
 } from '@/data/readerStore';
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
+import { TranslationPanel } from '@/components/TranslationPanel';
 
 // Extra Local Preferences Storage Keys
 const PREFS_STORAGE_KEY = 'dictionary-mobile.reader-prefs.v1';
@@ -803,6 +804,7 @@ export default function ReaderScreen() {
               style={[styles.quickNoteInput, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border, color: activeTheme.text }]}
               value={quickNote}
             />
+            <TranslationPanel sourceText={selectedHighlightText} targetLang="VI" />
             {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
             <View style={styles.readerActionButtons}>
               <TouchableOpacity activeOpacity={0.82} onPress={handleOpenLookup} style={[styles.lookupActionButton, { backgroundColor: activeTheme.bg }]}>

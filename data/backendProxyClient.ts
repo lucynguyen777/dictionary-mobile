@@ -10,6 +10,7 @@
  */
 
 import { Platform } from 'react-native';
+import { createSupabaseAuthClient } from './supabaseAuthClient';
 
 export type AiChatGoal = 'conversation' | 'correction' | 'explanation' | 'roleplay';
 
@@ -76,12 +77,27 @@ async function proxyFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const url = `${BASE}${PROXY_PREFIX}${path}`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+
+  // Extract session token from Supabase client
+  try {
+    const authResult = createSupabaseAuthClient();
+    if (authResult.status === 'configured') {
+      const { data } = await authResult.client.auth.getSession();
+      if (data.session?.access_token) {
+        headers['Authorization'] = `Bearer ${data.session.access_token}`;
+      }
+    }
+  } catch (err) {
+    // Fail silently, middleware will reject if route requires auth
+  }
+
   const res = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>),
-    },
+    headers,
   });
 
   if (!res.ok) {
