@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build:web:clean",
+  "outputDirectory": "dist",
+  "framework": null,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/folder/:id",
+      "destination": "/folder/[id].html"
+    },
+    {
+      "source": "/auth/callback",
+      "destination": "/auth/callback.html"
+    }
+  ]
+}

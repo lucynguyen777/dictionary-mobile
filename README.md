@@ -63,10 +63,23 @@ npm run test:native:maestro:expo-go:android
 
 See [Testing And Build Guide](docs/testing-and-build-guide.md) for the full QA matrix, unit test guidance, manual smoke checklist, and release checklist.
 
+## Deployment
+
+The current deployable release is local-first. The selected first deployment path is Vercel static web hosting. Web can be exported as static files with:
+
+```bash
+npm run build:web:clean
+```
+
+Use `dist` as the static hosting output directory. `vercel.json` contains the matching build/output settings and route rewrites. Native preview/production builds are configured through EAS scripts in `package.json`.
+
+See [Deployment Options](docs/deployment-options.md) for web hosting choices, EAS build commands, current app identifiers, store checklist, and rollback notes.
+
 ## Project Docs
 
 - [Product Progress](docs/product-progress.md): canonical roadmap, queue, and completion checklist.
 - [Testing And Build Guide](docs/testing-and-build-guide.md): QA workflow, unit tests, build/run commands, and release checklist.
+- [Deployment Options](docs/deployment-options.md): web/static hosting, native EAS builds, store readiness, and release path.
 - [Cache And Fixtures](docs/cache-and-fixtures.md): runtime cache and deterministic fixture policy.
 
 ## Notes

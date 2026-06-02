@@ -12,6 +12,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   Modal,
@@ -368,6 +369,13 @@ export default function WordScreen() {
   };
 
   const handleLanguageSelect = (field: LanguageField, language: LanguageOption) => {
+    if (language.dictionaryStatus === 'unavailable') {
+      showFutureFeatureNotice(
+        `${language.label}: Cập nhật trong phiên bản sau. Cần nguồn dữ liệu từ điển hợp pháp trước khi bật tra cứu production.`
+      );
+      return;
+    }
+
     router.setParams({
       sourceLang: field === 'source' ? language.code : sourceLanguage.code,
       targetLang: field === 'target' ? language.code : targetLanguage.code,
@@ -378,13 +386,8 @@ export default function WordScreen() {
     scrollRef.current?.scrollTo({ x: 0, animated: false });
   };
 
-  const openRecognitionModal = (mode: RecognitionKind) => {
-    setRecognitionMode(mode);
-    setRecognitionStatus('idle');
-    setRecognitionResult(null);
-    setRecognitionCapturePreview(null);
-    setRecognitionError('');
-    setRecognitionModalOpen(true);
+  const showFutureFeatureNotice = (message: string) => {
+    Alert.alert('Cập nhật trong phiên bản sau', message);
   };
 
   const closeRecognitionModal = async () => {
@@ -548,22 +551,25 @@ export default function WordScreen() {
           {showLanguageControls ? (
             <View style={styles.recognitionActionRow}>
               <TouchableOpacity
-                accessibilityLabel="Open voice search prototype"
+                accessibilityLabel="Voice search will be updated in a later version"
                 activeOpacity={0.82}
-                onPress={() => openRecognitionModal('speech')}
-                style={styles.recognitionActionButton}>
-                <Ionicons name="mic-outline" size={17} color="#0F766E" />
+                onPress={() => showFutureFeatureNotice('Voice Search cần dev-client/native STT và kiểm thử quyền microphone trước khi mở production.')}
+                style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
+                <Ionicons name="time-outline" size={17} color="#7C6F8E" />
                 <Text style={styles.recognitionActionText}>Voice</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                accessibilityLabel="Open OCR lookup prototype"
+                accessibilityLabel="OCR lookup will be updated in a later version"
                 activeOpacity={0.82}
-                onPress={() => openRecognitionModal('ocr')}
-                style={styles.recognitionActionButton}>
-                <Ionicons name="image-outline" size={17} color="#0F766E" />
+                onPress={() => showFutureFeatureNotice('OCR Camera Lookup cần dev-client/native OCR engine và dữ liệu kiểm thử ảnh trước khi mở production.')}
+                style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
+                <Ionicons name="time-outline" size={17} color="#7C6F8E" />
                 <Text style={styles.recognitionActionText}>OCR</Text>
               </TouchableOpacity>
             </View>
+          ) : null}
+          {showLanguageControls ? (
+            <Text style={styles.futureRecognitionHint}>Voice/OCR: Cập nhật trong phiên bản sau · Cần dev-client</Text>
           ) : null}
           {showLanguageControls ? (
             <View style={styles.languageControls}>
@@ -609,7 +615,7 @@ export default function WordScreen() {
               <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
                 <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
                 <Text style={styles.apiLookupMeta}>
-                  {isBilingualSourceBlocked ? 'Source pending' : `${sourceLanguage.label} dictionary`}
+                  {isBilingualSourceBlocked ? 'Cập nhật sau' : `${sourceLanguage.label} dictionary`}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -919,20 +925,32 @@ function LookupLanguageSelect({
         <View style={styles.languageMenu}>
           {languageOptions.map((language) => {
             const isSelected = language.code === selectedLanguage.code;
+            const isUnavailable = language.dictionaryStatus === 'unavailable';
 
             return (
               <TouchableOpacity
                 key={`${field}-${language.code}`}
-                activeOpacity={0.82}
+                activeOpacity={isUnavailable ? 0.72 : 0.82}
                 onPress={() => onSelect(field, language)}
-                style={[styles.languageOption, isSelected && styles.activeLanguageOption]}>
+                style={[
+                  styles.languageOption,
+                  isSelected && styles.activeLanguageOption,
+                  isUnavailable && styles.futureLanguageOption,
+                ]}>
                 <View style={styles.languageOptionCopy}>
-                  <Text style={[styles.languageOptionText, isSelected && styles.activeLanguageOptionText]}>
+                  <Text style={[
+                    styles.languageOptionText,
+                    isSelected && styles.activeLanguageOptionText,
+                    isUnavailable && styles.futureLanguageOptionText,
+                  ]}>
                     {language.label}
                   </Text>
-                  <Text style={styles.languageOptionHint}>{language.hint}</Text>
+                  <Text style={[styles.languageOptionHint, isUnavailable && styles.futureLanguageHint]}>
+                    {isUnavailable ? 'Cập nhật trong phiên bản sau · Cần nguồn dữ liệu' : language.hint}
+                  </Text>
                 </View>
                 {isSelected ? <Ionicons name="checkmark" size={16} color="#7C3AED" /> : null}
+                {!isSelected && isUnavailable ? <Ionicons name="time-outline" size={15} color="#7C6F8E" /> : null}
               </TouchableOpacity>
             );
           })}
@@ -1100,10 +1118,10 @@ function getEtymologySourceName(apiMeaning: ApiMeaningResult | null, sourceLangu
 
 function getBilingualDictionaryUnavailableMessage(sourceLanguage: LanguageOption, targetLanguage: LanguageOption) {
   if (isBlockedBilingualDictionaryPair(sourceLanguage.code, targetLanguage.code)) {
-    return `${sourceLanguage.label} → ${targetLanguage.label} dictionary source has not been selected yet.`;
+    return `Cập nhật trong phiên bản sau: cần nguồn dữ liệu từ điển ${sourceLanguage.label} → ${targetLanguage.label} đủ tin cậy.`;
   }
 
-  return `Chưa có nguồn dữ liệu từ điển ${sourceLanguage.label} sang ${targetLanguage.label} đủ tin cậy.`;
+  return `Cập nhật trong phiên bản sau: chưa có nguồn dữ liệu từ điển ${sourceLanguage.label} sang ${targetLanguage.label} đủ tin cậy.`;
 }
 
 function getRecognitionStatusTitle(mode: RecognitionKind, status: RecognitionStatus) {
@@ -1121,7 +1139,7 @@ function getRecognitionResultLabel(result: RecognitionPrototypeResult) {
     return result.engineStatus === 'native-ready' ? 'OCR candidates' : 'OCR readiness candidates';
   }
 
-  return 'Kết quả prototype';
+  return 'Kết quả thử nghiệm';
 }
 
 function getRecognitionStatusText(mode: RecognitionKind, status: RecognitionStatus) {
@@ -1129,7 +1147,7 @@ function getRecognitionStatusText(mode: RecognitionKind, status: RecognitionStat
     return mode === 'speech' ? 'Kiểm tra quyền microphone trên thiết bị.' : 'Kiểm tra quyền thư viện ảnh trên thiết bị.';
   }
 
-  if (status === 'recording') return 'Dừng ghi để tạo transcript prototype.';
+  if (status === 'recording') return 'Dừng ghi để tạo transcript thử nghiệm.';
   if (status === 'processing') return 'Luồng capture đã nhận dữ liệu cục bộ và đang tạo kết quả thử nghiệm.';
   if (status === 'ready') return 'Chọn một chip hoặc tra ngay kết quả đầu tiên.';
   if (status === 'error') return 'Quyền hoặc capture chưa sẵn sàng trên môi trường này.';
@@ -1165,7 +1183,7 @@ function createDictionaryUnavailableEntry(
         vietnamese: 'Cần bổ sung dataset hoặc API hợp pháp để tra cứu đầy đủ ngôn ngữ này.',
         examples: [],
         domain: 'Hệ thống',
-        level: hasLocalDictionarySource ? 'Preview' : 'Sắp hỗ trợ',
+        level: hasLocalDictionarySource ? 'Preview' : 'Cập nhật sau',
       },
     ],
     synonyms: [],
@@ -1241,10 +1259,21 @@ const styles = StyleSheet.create({
     minHeight: 34,
     paddingHorizontal: 10,
   },
+  futureRecognitionButton: {
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+    opacity: 0.58,
+  },
   recognitionActionText: {
-    color: '#0F766E',
+    color: '#6D5B8F',
     fontSize: 12,
     fontWeight: '700',
+  },
+  futureRecognitionHint: {
+    color: '#7C6F8E',
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 7,
   },
   languageControls: {
     alignItems: 'flex-start',
@@ -1313,6 +1342,10 @@ const styles = StyleSheet.create({
   activeLanguageOption: {
     backgroundColor: '#F5F3FF',
   },
+  futureLanguageOption: {
+    backgroundColor: '#F8FAFC',
+    opacity: 0.58,
+  },
   languageOptionCopy: {
     flex: 1,
     paddingRight: 8,
@@ -1325,11 +1358,17 @@ const styles = StyleSheet.create({
   activeLanguageOptionText: {
     color: '#7C3AED',
   },
+  futureLanguageOptionText: {
+    color: '#6D5B8F',
+  },
   languageOptionHint: {
     color: '#94A3B8',
     fontSize: 11,
     fontWeight: '700',
     marginTop: 2,
+  },
+  futureLanguageHint: {
+    color: '#7C6F8E',
   },
   resultRow: {
     gap: 10,

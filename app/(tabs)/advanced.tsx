@@ -70,6 +70,8 @@ const learningTools: {
   icon: ComponentProps<typeof Ionicons>['name'];
   accent: string;
   status: string;
+  future?: boolean;
+  futureReason?: string;
 }[] = [
   {
     id: 'flashcards',
@@ -85,7 +87,9 @@ const learningTools: {
     description: 'Luyện phản xạ bằng giọng nói hoặc tin nhắn với gợi ý sửa câu.',
     icon: 'chatbubbles-outline',
     accent: '#F3E8FF',
-    status: 'UI shell sẵn sàng',
+    status: 'Cập nhật trong phiên bản sau',
+    future: true,
+    futureReason: 'Cần backend OpenAI, streaming, auth và giới hạn chi phí.',
   },
   {
     id: 'specialized-translation',
@@ -93,7 +97,9 @@ const learningTools: {
     description: 'Dịch đoạn văn theo thuật ngữ cá nhân và ngữ cảnh học thuật.',
     icon: 'language-outline',
     accent: '#EAF8F0',
-    status: 'UI shell sẵn sàng',
+    status: 'Cập nhật trong phiên bản sau',
+    future: true,
+    futureReason: 'Cần backend DeepL/OpenAI và lưu glossary theo tài khoản.',
   },
   {
     id: 'import',
@@ -114,7 +120,7 @@ const learningTools: {
   {
     id: 'export',
     title: 'Xuất bộ từ',
-    description: 'Xuất sang CSV, Google Sheets hoặc Anki khi cần học ngoài app.',
+    description: 'Xuất sang CSV, Excel hoặc Anki text để học ngoài app.',
     icon: 'download-outline',
     accent: '#EAF7FA',
     status: 'CSV/Excel/Anki text',
@@ -147,7 +153,7 @@ const importSourceOptions: {
     title: 'Danh sách lớp học',
     description: 'Paste danh sách từ, mỗi dòng một mục để chuẩn hóa sau.',
     icon: 'clipboard-outline',
-    status: 'UI chuẩn bị',
+    status: 'Cập nhật trong phiên bản sau',
   },
 ];
 
@@ -578,16 +584,40 @@ function ToolTab({
   tool: (typeof learningTools)[number];
 }) {
   return (
-    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={styles.toolTab}>
+    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={[styles.toolTab, tool.future && styles.futureFeatureMuted]}>
       <View style={[styles.toolTabIcon, { backgroundColor: tool.accent }]}>
         <Ionicons name={tool.icon} size={18} color="#0F172A" />
       </View>
       <View style={styles.toolTabCopy}>
-        <Text style={styles.toolTabText} numberOfLines={1}>{tool.title}</Text>
+        <View style={styles.futureTitleRow}>
+          <Text style={styles.toolTabText} numberOfLines={1}>{tool.title}</Text>
+          {tool.future ? <FutureFeatureBadge /> : null}
+        </View>
         <Text style={styles.toolTabDescription} numberOfLines={2}>{tool.description}</Text>
       </View>
       <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
     </TouchableOpacity>
+  );
+}
+
+function FutureFeatureBadge() {
+  return (
+    <View style={styles.futureFeatureBadge}>
+      <Ionicons name="time-outline" size={12} color="#92400E" />
+      <Text style={styles.futureFeatureBadgeText}>Cập nhật trong phiên bản sau</Text>
+    </View>
+  );
+}
+
+function FutureFeatureNotice({ reason }: { reason: string }) {
+  return (
+    <View style={styles.futureFeatureNotice}>
+      <Ionicons name="lock-closed-outline" size={16} color="#92400E" />
+      <View style={styles.futureFeatureNoticeCopy}>
+        <Text style={styles.futureFeatureNoticeTitle}>Cập nhật trong phiên bản sau</Text>
+        <Text style={styles.futureFeatureNoticeText}>{reason}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -620,6 +650,7 @@ function AiConversationToolPanel() {
   const [errorText, setErrorText] = useState('');
 
   const activeThread = aiChatThreads.find((thread) => thread.id === activeThreadId);
+  const isFutureFeature = true;
 
   const handleOpenThread = (threadId: string) => {
     setActiveThreadId(threadId);
@@ -680,9 +711,10 @@ function AiConversationToolPanel() {
         </View>
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>AI hội thoại</Text>
-          <Text style={styles.description}>Chat thật với OpenAI qua backend proxy. Chọn chủ đề, nhập tin nhắn.</Text>
+          <Text style={styles.description}>Khung luyện hội thoại đã được chuẩn bị, nhưng bản deploy hiện tại chưa bật backend AI.</Text>
         </View>
       </View>
+      <FutureFeatureNotice reason="Cần backend OpenAI, streaming, auth, rate limit và kiểm soát chi phí trước khi mở cho người dùng." />
 
       <Text style={styles.toolSectionLabel}>Danh sách hội thoại</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
@@ -740,19 +772,20 @@ function AiConversationToolPanel() {
             <TextInput
               multiline
               onChangeText={setDraftMessage}
-              placeholder="Nhập tin nhắn..."
+              editable={!isFutureFeature}
+              placeholder="Cập nhật trong phiên bản sau"
               placeholderTextColor="#94A3B8"
               style={[styles.toolTextArea, { flex: 1, marginBottom: 0 }]}
               value={draftMessage}
             />
             <TouchableOpacity
               activeOpacity={0.82}
-              disabled={isSending || !draftMessage.trim()}
+              disabled={isFutureFeature || isSending || !draftMessage.trim()}
               onPress={handleSend}
               style={[styles.generateButton, { marginLeft: 8, marginTop: 0, minWidth: 70 },
-                (isSending || !draftMessage.trim()) && styles.generateButtonDisabled]}>
+                (isFutureFeature || isSending || !draftMessage.trim()) && styles.generateButtonDisabled]}>
               <Ionicons name="send" size={16} color="#FFFFFF" />
-              <Text style={styles.generateButtonText}>Gửi</Text>
+              <Text style={styles.generateButtonText}>Sau</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -769,6 +802,7 @@ function SpecializedTranslationToolPanel() {
   const [translatedText, setTranslatedText] = useState('');
   const [translationError, setTranslationError] = useState('');
   const [charCount, setCharCount] = useState(0);
+  const isFutureFeature = true;
 
   const glossaryTerms = glossaryText
     .split('\n')
@@ -819,9 +853,10 @@ function SpecializedTranslationToolPanel() {
         </View>
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>Dịch chuyên ngành</Text>
-          <Text style={styles.description}>Dịch thật qua DeepL backend proxy, hỗ trợ glossary và formality theo domain.</Text>
+          <Text style={styles.description}>UI glossary và domain đã sẵn sàng; bản deploy hiện tại chưa bật dịch production.</Text>
         </View>
       </View>
+      <FutureFeatureNotice reason="Cần backend DeepL/OpenAI, auth và lưu glossary an toàn trước khi mở dịch chuyên ngành." />
 
       <Text style={styles.toolSectionLabel}>Chuyên ngành / chủ đề</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
@@ -838,8 +873,9 @@ function SpecializedTranslationToolPanel() {
       <Text style={styles.toolSectionLabel}>Glossary (mỗi dòng: thuật ngữ → bản dịch)</Text>
       <TextInput
         multiline
+        editable={!isFutureFeature}
         onChangeText={setGlossaryText}
-        placeholder="term → bản dịch"
+        placeholder="Cập nhật trong phiên bản sau"
         placeholderTextColor="#94A3B8"
         style={styles.toolTextArea}
         value={glossaryText}
@@ -848,8 +884,9 @@ function SpecializedTranslationToolPanel() {
       <Text style={styles.toolSectionLabel}>Văn bản nguồn</Text>
       <TextInput
         multiline
+        editable={!isFutureFeature}
         onChangeText={setSourceText}
-        placeholder="Nhập đoạn cần dịch..."
+        placeholder="Cập nhật trong phiên bản sau"
         placeholderTextColor="#94A3B8"
         style={styles.toolTextArea}
         value={sourceText}
@@ -873,11 +910,11 @@ function SpecializedTranslationToolPanel() {
 
       <TouchableOpacity
         activeOpacity={0.85}
-        disabled={isTranslating || !sourceText.trim()}
+        disabled={isFutureFeature || isTranslating || !sourceText.trim()}
         onPress={handleTranslate}
-        style={[styles.generateButton, (isTranslating || !sourceText.trim()) && styles.generateButtonDisabled]}>
+        style={[styles.generateButton, (isFutureFeature || isTranslating || !sourceText.trim()) && styles.generateButtonDisabled]}>
         <Ionicons name="language-outline" size={18} color="#FFFFFF" />
-        <Text style={styles.generateButtonText}>{isTranslating ? 'Đang dịch...' : 'Dịch qua DeepL'}</Text>
+        <Text style={styles.generateButtonText}>{isTranslating ? 'Đang dịch...' : 'Cập nhật sau'}</Text>
       </TouchableOpacity>
 
       <View style={styles.translationOutputCard}>
@@ -897,7 +934,7 @@ function SpecializedTranslationToolPanel() {
             <Text style={styles.toolStateText}>{translationError}</Text>
           </View>
         ) : (
-          <Text style={styles.toolStateText}>{"Nhập văn bản và nhấn \"Dịch qua DeepL\" để bắt đầu."}</Text>
+          <Text style={styles.toolStateText}>Cập nhật trong phiên bản sau. Hiện app deploy chỉ bật các luồng local-first.</Text>
         )}
       </View>
     </View>
@@ -1141,7 +1178,7 @@ const exportActions: {
     title: 'Google Sheets',
     description: 'Cần OAuth và Google API trước khi xuất trực tiếp.',
     icon: 'cloud-offline-outline',
-    status: 'Bị chặn',
+    status: 'Cập nhật trong phiên bản sau',
   },
 ];
 
@@ -1187,7 +1224,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
 
   const handleRunExport = async () => {
     if (activeActionId === 'google-sheets') {
-      const message = 'Google Sheets cần OAuth và Google API flow, nên chưa thể xuất trực tiếp.';
+      const message = 'Cập nhật trong phiên bản sau: Google Sheets cần OAuth và Google API flow.';
       setStatusMessage(message);
       addHistoryItem({
         action: activeActionId,
@@ -1255,7 +1292,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
 
       <View style={styles.blockedNotice}>
         <Ionicons name="lock-closed-outline" size={16} color="#B45309" />
-        <Text style={styles.blockedNoticeText}>Google Sheets export vẫn bị chặn cho tới khi chọn OAuth và Google API flow.</Text>
+        <Text style={styles.blockedNoticeText}>Google Sheets: Cập nhật trong phiên bản sau. Bản deploy hiện tại hỗ trợ CSV, Excel và Anki text.</Text>
       </View>
 
       <Text style={styles.toolSectionLabel}>Bộ từ cần xuất</Text>
@@ -1303,6 +1340,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
                 styles.exportActionCard,
                 isSelected && styles.exportActionCardActive,
                 isBlocked && styles.exportActionCardBlocked,
+                isBlocked && styles.futureFeatureMuted,
               ]}>
               <View style={styles.importSourceHeader}>
                 <Ionicons name={action.icon} size={18} color={isBlocked ? '#B45309' : isSelected ? '#7C3AED' : '#64748B'} />
@@ -1330,7 +1368,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
         ]}>
         <Ionicons name={activeActionId === 'google-sheets' ? 'lock-closed-outline' : 'download-outline'} size={18} color="#FFFFFF" />
         <Text style={styles.exportButtonText}>
-          {isRunningExport ? 'Đang xuất...' : activeActionId === 'google-sheets' ? 'Xem trạng thái bị chặn' : 'Xuất file'}
+          {isRunningExport ? 'Đang xuất...' : activeActionId === 'google-sheets' ? 'Cập nhật sau' : 'Xuất file'}
         </Text>
       </TouchableOpacity>
 
@@ -1778,6 +1816,7 @@ const styles = StyleSheet.create({
   },
   generateButtonDisabled: {
     backgroundColor: '#C4B5FD',
+    opacity: 0.58,
   },
   generateButtonText: {
     color: '#FFFFFF',
@@ -2075,6 +2114,58 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
     fontSize: 12,
     fontWeight: '700',
+  },
+  futureTitleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  futureFeatureMuted: {
+    opacity: 0.56,
+  },
+  futureFeatureBadge: {
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  futureFeatureBadgeText: {
+    color: '#92400E',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  futureFeatureNotice: {
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    marginTop: 12,
+    padding: 10,
+  },
+  futureFeatureNoticeCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  futureFeatureNoticeTitle: {
+    color: '#92400E',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  futureFeatureNoticeText: {
+    color: '#92400E',
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 17,
+    marginTop: 2,
   },
   toolRoadmap: {
     backgroundColor: '#F8FAFC',

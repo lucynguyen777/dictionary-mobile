@@ -123,7 +123,7 @@ export const languageOptions = [
   {
     code: 'yue',
     label: '廣東話 (Cantonese)',
-    hint: 'Sắp hỗ trợ',
+    hint: 'Cập nhật trong phiên bản sau',
     family: 'sino-tibetan',
     script: 'han',
     writingDirection: 'ltr',
