@@ -26,6 +26,7 @@ export type UserProfile = {
   timezone: string;
   dailyGoal: string;
   appLockEnabled: boolean;
+  cloudSyncEnabled: boolean;
   notificationPreferences: NotificationPreferences;
   updatedAt: string;
 };
@@ -54,6 +55,7 @@ export function getDefaultProfile(): UserProfile {
     timezone: getDefaultTimezone(),
     dailyGoal: '15 từ/ngày',
     appLockEnabled: false,
+    cloudSyncEnabled: false,
     notificationPreferences: getDefaultNotificationPreferences(),
     updatedAt: new Date().toISOString(),
   };
@@ -130,6 +132,7 @@ export function normalizeProfile(profile: Partial<UserProfile>): UserProfile {
     learningGoal: profile.learningGoal?.trim() || defaultProfile.learningGoal,
     timezone: profile.timezone?.trim() || defaultProfile.timezone,
     dailyGoal: profile.dailyGoal?.trim() || defaultProfile.dailyGoal,
+    cloudSyncEnabled: profile.cloudSyncEnabled ?? defaultProfile.cloudSyncEnabled,
     notificationPreferences: normalizeNotificationPreferences(profile.notificationPreferences),
   };
 }

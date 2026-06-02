@@ -34,6 +34,7 @@ export type UserProfileRow = {
   timezone: string;
   daily_goal: string;
   app_lock_enabled: number;
+  cloud_sync_enabled: number;
   daily_reminder_enabled: number;
   review_reminder_enabled: number;
   weekly_summary_enabled: number;
@@ -282,6 +283,7 @@ export function getUserDatabaseParityCounts(rows: SerializedUserDatabaseRows): U
 export function parseUserProfileFromSqliteRow(row: UserProfileRow): UserProfile {
   return normalizeProfile({
     appLockEnabled: Boolean(row.app_lock_enabled),
+    cloudSyncEnabled: Boolean(row.cloud_sync_enabled),
     avatarUrl: row.avatar_url,
     dailyGoal: row.daily_goal,
     displayName: row.display_name,
@@ -436,6 +438,7 @@ function serializeProfile(profile: UserProfile): UserProfileRow {
     timezone: profile.timezone,
     daily_goal: profile.dailyGoal,
     app_lock_enabled: profile.appLockEnabled ? 1 : 0,
+    cloud_sync_enabled: profile.cloudSyncEnabled ? 1 : 0,
     daily_reminder_enabled: profile.notificationPreferences.dailyReminderEnabled ? 1 : 0,
     review_reminder_enabled: profile.notificationPreferences.reviewReminderEnabled ? 1 : 0,
     weekly_summary_enabled: profile.notificationPreferences.weeklySummaryEnabled ? 1 : 0,

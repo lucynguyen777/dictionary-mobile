@@ -298,6 +298,7 @@ function seedAsyncStorage() {
 const fixtureProfile: UserProfile = {
   appLockEnabled: false,
   avatarUrl: '',
+  cloudSyncEnabled: false,
   dailyGoal: '10 từ/ngày',
   displayName: 'Runtime Profile',
   email: '',
@@ -487,6 +488,7 @@ const insertColumns: Record<RowTableName, string[]> = {
     'timezone',
     'daily_goal',
     'app_lock_enabled',
+    'cloud_sync_enabled',
     'daily_reminder_enabled',
     'review_reminder_enabled',
     'weekly_summary_enabled',

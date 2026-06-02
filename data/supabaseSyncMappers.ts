@@ -193,6 +193,7 @@ export function mapUserProfileFromRemote(row: RemoteUserProfileRow): UserProfile
     timezone: row.timezone,
     daily_goal: row.daily_goal,
     app_lock_enabled: 0,
+    cloud_sync_enabled: 1,
     daily_reminder_enabled: row.notification_preferences.dailyReminderEnabled ? 1 : 0,
     review_reminder_enabled: row.notification_preferences.reviewReminderEnabled ? 1 : 0,
     weekly_summary_enabled: row.notification_preferences.weeklySummaryEnabled ? 1 : 0,

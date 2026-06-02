@@ -80,12 +80,13 @@ const INSERT_PROFILE_SQL = `INSERT OR REPLACE INTO user_profile (
   timezone,
   daily_goal,
   app_lock_enabled,
+  cloud_sync_enabled,
   daily_reminder_enabled,
   review_reminder_enabled,
   weekly_summary_enabled,
   reminder_time,
   updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
 const INSERT_FOLDER_SQL = `INSERT OR REPLACE INTO folders (
   id,
@@ -254,6 +255,7 @@ export async function replaceUserDatabaseRows(database: UserSqliteDatabase, rows
     rows.profile.timezone,
     rows.profile.daily_goal,
     rows.profile.app_lock_enabled,
+    rows.profile.cloud_sync_enabled,
     rows.profile.daily_reminder_enabled,
     rows.profile.review_reminder_enabled,
     rows.profile.weekly_summary_enabled,

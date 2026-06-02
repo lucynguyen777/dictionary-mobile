@@ -41,6 +41,7 @@ describe('supabase sync mappers', () => {
         timezone: 'Asia/Ho_Chi_Minh',
         daily_goal: '20',
         app_lock_enabled: 1,
+        cloud_sync_enabled: 0,
         daily_reminder_enabled: 0,
         review_reminder_enabled: 1,
         weekly_summary_enabled: 1,

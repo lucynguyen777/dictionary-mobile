@@ -1,5 +1,5 @@
 export const USER_DATABASE_NAME = 'dictionary-mobile-user.sqlite';
-export const USER_DATABASE_SCHEMA_VERSION = 1;
+export const USER_DATABASE_SCHEMA_VERSION = 2;
 export const USER_SYNC_DOMAINS = [
   'profile',
   'folders',
@@ -48,6 +48,7 @@ export const USER_DATABASE_SCHEMA_SQL = [
     timezone TEXT NOT NULL,
     daily_goal TEXT NOT NULL,
     app_lock_enabled INTEGER NOT NULL DEFAULT 0,
+    cloud_sync_enabled INTEGER NOT NULL DEFAULT 0,
     daily_reminder_enabled INTEGER NOT NULL DEFAULT 1,
     review_reminder_enabled INTEGER NOT NULL DEFAULT 1,
     weekly_summary_enabled INTEGER NOT NULL DEFAULT 0,

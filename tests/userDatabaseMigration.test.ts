@@ -64,7 +64,7 @@ describe('user database migration bridge', () => {
       databaseName: USER_DATABASE_NAME,
       databaseUri: `sqlite://${USER_DATABASE_NAME}`,
       migratedAt,
-      schemaVersion: 1,
+      schemaVersion: 2,
     });
     expect(database.rows.user_profile[0]).toMatchObject({
       app_lock_enabled: 1,
@@ -128,7 +128,7 @@ describe('user database migration bridge', () => {
     expect(database.rows.saved_word_folders).toHaveLength(3);
     expect(database.rows.flashcards).toHaveLength(2);
     expect(database.rows.user_database_meta).toEqual([
-      { key: 'schema_version', value: '1' },
+      { key: 'schema_version', value: '2' },
       { key: 'migrated_at', value: migratedAt },
     ]);
   });
@@ -199,6 +199,7 @@ function createFixtureSource(overrides: FixtureSourceOverrides = {}): UserDataba
 
 const fixtureProfile: UserProfile = {
   appLockEnabled: true,
+  cloudSyncEnabled: false,
   avatarUrl: '',
   dailyGoal: '20 từ/ngày',
   displayName: 'Mai Anh',
@@ -419,6 +420,7 @@ const insertColumns: Record<RowTableName, string[]> = {
     'timezone',
     'daily_goal',
     'app_lock_enabled',
+    'cloud_sync_enabled',
     'daily_reminder_enabled',
     'review_reminder_enabled',
     'weekly_summary_enabled',

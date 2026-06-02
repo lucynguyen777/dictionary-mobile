@@ -69,7 +69,7 @@ describe('legacy user-data AsyncStorage cleanup', () => {
     expect(marker).toMatchObject({
       backupUri: 'file://backup.json',
       createdAt: cleanupAt,
-      schemaVersion: 1,
+      schemaVersion: 2,
     });
     expect(marker.legacyKeys).toEqual(LEGACY_USER_DATA_KEYS);
   });
@@ -179,7 +179,7 @@ function createCleanupSource(storage: Map<string, string>) {
 function createEligibleDatabase({
   hasProfile = true,
   hasReaderSettings = true,
-  schemaVersion = '1',
+  schemaVersion = '2',
 }: {
   hasProfile?: boolean;
   hasReaderSettings?: boolean;

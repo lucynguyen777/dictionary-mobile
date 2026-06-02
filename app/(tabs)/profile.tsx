@@ -19,6 +19,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import {
   ActivityState,
   getActivitySummary,
@@ -452,6 +453,16 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleToggleCloudSync = async (nextValue: boolean) => {
+    try {
+      const nextProfile = await saveUserProfile({ ...profile, cloudSyncEnabled: nextValue });
+      setProfile(nextProfile);
+      setSaveMessage(nextValue ? 'Đã bật đồng bộ đám mây cho tài khoản này.' : 'Đã tắt đồng bộ đám mây.');
+    } catch {
+      Alert.alert('Lỗi đồng bộ', 'Không thể thay đổi thiết lập đồng bộ lúc này.');
+    }
+  };
+
   const handleUpdateNotificationPreference = async <Key extends keyof NotificationPreferences>(
     key: Key,
     value: NotificationPreferences[Key]
@@ -747,6 +758,7 @@ export default function ProfileScreen() {
           <View style={[styles.sidebarSheet, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
             <View style={styles.sidebarHeader}>
               <Text style={styles.sidebarTitle}>Cài đặt</Text>
+              <SyncStatusIndicator />
               <Pressable
                 accessibilityLabel="Đóng"
                 accessibilityRole="button"
@@ -905,6 +917,20 @@ export default function ProfileScreen() {
                     value={profile.appLockEnabled}
                   />
                 </View>
+                {authSession.status === 'authenticated' && (
+                  <View style={styles.securityRow}>
+                    <View style={styles.securityCopy}>
+                      <Text style={styles.securityTitle}>Đồng bộ đám mây</Text>
+                      <Text style={styles.securityText}>Tự động đồng bộ dữ liệu học tập lên cloud.</Text>
+                    </View>
+                    <Switch
+                      onValueChange={handleToggleCloudSync}
+                      thumbColor="#FFFFFF"
+                      trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
+                      value={profile.cloudSyncEnabled}
+                    />
+                  </View>
+                )}
                 <Text style={styles.sidebarGroupLabel}>Thông báo local</Text>
                 <View style={styles.notificationPanel}>
                   <NotificationPreferenceRow
@@ -1138,10 +1164,14 @@ function AuthStatusPanel({
 }) {
   const copy = getAuthStatusCopy(authSession);
   const canSignOut = authSession.status === 'authenticated' || authSession.status === 'needs_verification';
+  const isUnconfigured = authSession.status === 'unconfigured';
+  const disabled = authSession.status === 'loading' || (isUnconfigured && !canSignOut);
 
   return (
     <View style={styles.authStatusPanel}>
-      <FutureFeatureNotice reason="Đăng nhập, xác minh email, đồng bộ cloud và backup mã hóa sẽ được cập nhật trong phiên bản sau. Bản deploy hiện tại dùng hồ sơ local." />
+      {isUnconfigured && (
+        <FutureFeatureNotice reason="Đăng nhập, xác minh email, đồng bộ cloud và backup mã hóa sẽ được cập nhật trong phiên bản sau. Bản deploy hiện tại dùng hồ sơ local." />
+      )}
       <View style={styles.authStatusHeader}>
         <View style={styles.authStatusIcon}>
           <Ionicons name={canSignOut ? 'cloud-done-outline' : 'cloud-offline-outline'} size={17} color="#0075DE" />
@@ -1155,16 +1185,16 @@ function AuthStatusPanel({
       <View style={styles.authStatusActions}>
         <Pressable
           accessibilityRole="button"
-          disabled
+          disabled={disabled}
           onPress={canSignOut ? onSignOutPress : onPrimaryPress}
           style={({ pressed }) => [
             styles.authStatusButton,
             canSignOut && styles.authStatusButtonSecondary,
             pressed && styles.authStatusButtonPressed,
-            styles.authStatusButtonDisabled,
+            disabled && styles.authStatusButtonDisabled,
           ]}>
           <Text style={[styles.authStatusButtonText, canSignOut && styles.authStatusButtonTextSecondary]} numberOfLines={1}>
-            {canSignOut ? 'Đăng xuất cloud' : 'Cập nhật sau'}
+            {canSignOut ? 'Đăng xuất cloud' : 'Đăng nhập'}
           </Text>
         </Pressable>
         <Pressable
@@ -1202,12 +1232,14 @@ function AuthFormShell({
 }) {
   const isBusy = Boolean(authBusyAction);
   const isUnconfigured = authSession.status === 'unconfigured';
-  const isFutureFeature = true;
+  const isFutureFeature = isUnconfigured;
 
   return (
     <View style={styles.authFormPanel}>
       <Text style={styles.sidebarGroupLabel}>Đăng nhập cloud</Text>
-      <FutureFeatureNotice reason="Cần hoàn tất cấu hình Supabase/Auth production trước khi bật đăng nhập cho người dùng." />
+      {isUnconfigured && (
+        <FutureFeatureNotice reason="Cần hoàn tất cấu hình Supabase/Auth production trước khi bật đăng nhập cho người dùng." />
+      )}
       <TextInput
         autoCapitalize="none"
         editable={!isBusy && !isFutureFeature}
@@ -1235,7 +1267,7 @@ function AuthFormShell({
           style={({ pressed }) => [styles.authFormButton, pressed && styles.authStatusButtonPressed, (isBusy || isFutureFeature) && styles.authStatusButtonDisabled]}>
           <Ionicons name="log-in-outline" size={15} color="#FFFFFF" />
           <Text style={styles.authFormButtonText} numberOfLines={1}>
-            {authBusyAction === 'sign-in' ? 'Đang vào' : 'Cập nhật sau'}
+            {authBusyAction === 'sign-in' ? 'Đang vào' : 'Đăng nhập'}
           </Text>
         </Pressable>
         <Pressable
@@ -1250,7 +1282,7 @@ function AuthFormShell({
           ]}>
           <Ionicons name="person-add-outline" size={15} color="#0075DE" />
           <Text style={[styles.authFormButtonText, styles.authFormButtonTextSecondary]} numberOfLines={1}>
-            {authBusyAction === 'sign-up' ? 'Đang tạo' : 'Cập nhật sau'}
+            {authBusyAction === 'sign-up' ? 'Đang tạo' : 'Tạo tài khoản'}
           </Text>
         </Pressable>
       </View>
@@ -1261,7 +1293,7 @@ function AuthFormShell({
         style={({ pressed }) => [styles.authRecoveryButton, pressed && styles.authStatusButtonPressed, (isBusy || isFutureFeature) && styles.authStatusButtonDisabled]}>
         <Ionicons name="mail-outline" size={15} color="#0075DE" />
         <Text style={styles.authRecoveryButtonText} numberOfLines={1}>
-          {authBusyAction === 'recovery' ? 'Đang gửi email' : 'Cập nhật sau'}
+          {authBusyAction === 'recovery' ? 'Đang gửi email' : 'Quên mật khẩu'}
         </Text>
       </Pressable>
       <Text style={styles.fieldHint}>

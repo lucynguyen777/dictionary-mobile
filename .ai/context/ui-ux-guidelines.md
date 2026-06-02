@@ -46,6 +46,22 @@ Sử dụng `DESIGN.md` như nguồn tham chiếu, nhưng chuyển ngữ và tin
 - Rõ ràng ghi nhãn "Sắp có", "Cần đăng nhập", "Cần kết nối Google" hoặc "Cần backend".
 - Hiển thị trạng thái kèm hint ngắn gọn (ví dụ: "Kết nối Google để xuất lên Sheets"). Không làm giao diện trông như đã hoạt động nếu feature chưa khả dụng.
 
+## Backend Sync & Database UI/UX
+- **Trạng thái đồng bộ (Sync Indicator)**: Cung cấp biểu tượng trực quan rõ ràng tại Profile/Header để hiển thị các trạng thái: Đang đồng bộ (xoay nhẹ), Đã đồng bộ (green check), Thay đổi chưa đẩy (offline queue indicator) và Lỗi đồng bộ.
+- **Xung đột dữ liệu (Conflict UI)**: Hạn chế làm gián đoạn người dùng; ưu tiên áp dụng chiến thuật tự động hòa trộn (timestamp/field-level resolution). Nếu cần giải quyết thủ công, hiển thị giao diện đối chiếu trực quan thay vì báo lỗi thô ráp.
+
+## AI Chat & Translation UI/UX
+- **Streaming Response**: Giao diện chat và dịch phải hiển thị nội dung dạng text streaming (từng từ hoặc cụm từ) kèm loader động để tạo cảm giác phản hồi nhanh.
+- **Giới hạn hạn ngạch (Quota & Rate Limits)**: Hiển thị thanh tiến trình sử dụng hạn ngạch AI (ví dụ: "Đã dùng 15/50 lượt dịch hôm nay") để người dùng chủ động điều chỉnh hành vi.
+
+## Native Permissions & OS STT/OCR UX
+- **Quyền truy cập (Permissions)**: Không yêu cầu quyền ngay khi mở app; chỉ yêu cầu quyền camera (cho OCR) hoặc microphone (cho STT) khi người dùng chủ động nhấn vào tính năng tương ứng.
+- **Fallback khi từ chối**: Cung cấp màn hình hướng dẫn thân thiện kèm nút "Mở cài đặt thiết bị" nếu quyền bị từ chối, giải thích rõ lý do cần quyền để hoạt động.
+
+## External OAuth & Google Sheets Flows
+- **OAuth Popup**: Cảnh báo rõ ràng cho người dùng trước khi chuyển hướng ra trình duyệt ngoài hoặc mở WebBrowser sheet để thực hiện xác thực Google.
+- **Hủy kết nối**: Luôn cung cấp tùy chọn "Đăng xuất" hoặc "Thu hồi quyền Sheets" trực quan trong phần cài đặt tài khoản.
+
 ## Destructive Actions
 - Bắt buộc có xác nhận rõ ràng với tiêu đề, mô tả hậu quả và hành động đảo ngược nếu có thể (ví dụ: "Hoàn tác trong 30s").
 
