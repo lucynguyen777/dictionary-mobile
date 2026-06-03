@@ -643,14 +643,14 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
-**Module: v1.2.2 Release Consistency And Support Readiness** - IN PROGRESS
+**Module: v1.2.2 Release Consistency And Support Readiness** - DONE
 - Module Completion Plan: ship v1.2.2 as a small stabilization release that keeps v1.2.1 behavior intact, makes the app/reporting surface clearly identify the deployed version, and removes stale docs/copy that still implies automatic cloud sync.
-- Acceptance criteria: version metadata says `1.2.2`, Profile exposes a compact release/support status without adding a new dependency or changing data models, cloud sync docs consistently describe manual beta sync only, static/unit verification passes, and the verified commit is pushed before deploy.
+- Acceptance criteria: version metadata says `1.2.2`, Profile exposes a compact release/support status without adding a new dependency or changing data models, cloud sync docs consistently describe manual beta sync only, static/unit verification passes, and the verified commit `8b29000` is pushed before deploy.
 - [x] DONE [EASY]: Bumped package/app release metadata and synced top-level release docs/context to v1.2.2.
 - [x] DONE [MEDIUM]: Added a small shared release metadata helper and Profile support/status surface so deployed builds show version and local-first/manual-sync scope.
 - [x] DONE [MEDIUM]: Rewrote Supabase Cloud Sync smoke docs to use explicit "Sync now" manual steps instead of foreground/start sync wording.
 - [x] DONE [EASY]: Added release consistency tests covering metadata alignment and manual-sync doc guardrails.
-- [~] IN PROGRESS [MEDIUM]: Run static/unit/build verification, commit/push, deploy the pushed version, and smoke test production.
+- [x] DONE [MEDIUM]: Ran static/unit/build verification, committed and pushed `8b29000`, deployed to `https://dictionaire-mobile.vercel.app`, and smoke tested `/`, `/profile`, and backend proxy unauthorized handling.
 
 **Module: v1.2.1 Stabilization And Deploy Wiring** - DONE
 - Module Completion Plan: stabilize the already implemented v1.2.0 Supabase/Auth/AI/translation work for v1.2.1 deploy without expanding into broad v1.3 feature scope.
