@@ -9,7 +9,7 @@ Implementation preparation now lives in `docs/reader-pdf-implementation-prep.md`
 - TXT, HTML, DOCX, and EPUB are enabled through local parsing paths.
 - PDF is detected by `getReaderImportFormat()` but still routes to the unsupported-format message.
 - `readerImportPlans.pdf.nextStep` must continue to say PDF is disabled until this gate is satisfied.
-- Scanned PDFs are out of scope until an OCR decision exists.
+- Scanned PDFs now have a Chandra OCR integration hook in the Reader import layer, but production mobile/web networking remains gated by a separate privacy/auth/config module.
 
 ## Required Fixtures
 Use small local files committed only if licensing and file size are acceptable. If binary fixtures are too large or license-unclear, keep them outside the repo and document their checksums.
@@ -19,7 +19,7 @@ Use small local files committed only if licensing and file size are acceptable. 
 | `digital-simple.pdf` | One-column digital text PDF | Extracts title/body text in reading order with no OCR dependency. |
 | `digital-multiline.pdf` | Multi-paragraph text with line wraps | Preserves paragraph breaks well enough for Reader display. |
 | `digital-columns.pdf` | Two-column or layout-heavy PDF | Either extracts readable text or returns a clear unsupported/layout warning. |
-| `scanned-image.pdf` | Image-only scanned PDF | Must remain unsupported with OCR-required messaging. |
+| `scanned-image.pdf` | Image-only scanned PDF | Must stay on the OCR-required path unless a Chandra OCR parser is explicitly injected. |
 | `empty.pdf` | Valid PDF with no extractable text | Throws the existing empty-text error path. |
 | `oversize.pdf` | Larger than 10MB | Throws the existing 10MB size-limit error before parsing. |
 
@@ -47,7 +47,7 @@ It must also preserve current guards:
 - reject files larger than `MAX_READER_FILE_SIZE_BYTES`;
 - reject empty extracted text with `Tài liệu trống hoặc không thể trích xuất văn bản hợp lệ.`;
 - never send document content to a backend or external API;
-- keep scanned/OCR flows blocked until the OCR product decision is accepted.
+- keep scanned/OCR flows disabled by default unless a Chandra OCR parser is explicitly injected.
 
 ## Test Requirements
 - Extend `tests/readerImport.test.ts` only after a parser implementation exists.
@@ -65,4 +65,4 @@ Do not implement or enable PDF extraction until:
 - at least one digital PDF fixture is available for the target platform;
 - parser behavior is deterministic enough for Reader text display;
 - Expo Go/dev-client/web support boundaries are documented in UI copy;
-- OCR remains explicitly blocked.
+- OCR remains disabled by default unless the Chandra OCR parser is explicitly injected and production privacy/auth/config gates are satisfied.

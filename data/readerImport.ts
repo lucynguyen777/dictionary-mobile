@@ -26,6 +26,27 @@ export type ReaderPdfImportResult = {
   sourceFormat: 'pdf';
 };
 
+export type ReaderPdfClassification = {
+  kind: 'digital' | 'image-based';
+  text: string;
+};
+
+export type ReaderPdfOcrResult = {
+  text?: string;
+  markdown?: string;
+  pages?: {
+    pageNumber?: number;
+    text?: string;
+    markdown?: string;
+  }[];
+  metadata?: Record<string, unknown>;
+};
+
+export type ReaderPdfOcrParser = (input: {
+  fileName: string;
+  rawContent: ArrayBuffer;
+}) => Promise<ReaderPdfOcrResult>;
+
 type MammothConvertToHtml = typeof mammoth.convertToHtml;
 type XmlNode = Record<string, unknown>;
 type PdfJsTextItem = {
@@ -219,13 +240,18 @@ export async function extractDocxReaderText(
 export async function extractPdfReaderDocument(
   fileName: string,
   rawContent: ArrayBuffer,
-  parser: (rawContent: ArrayBuffer) => Promise<string> = extractPdfReaderText
+  parser: (rawContent: ArrayBuffer) => Promise<string> = extractPdfReaderText,
+  options: { ocrParser?: ReaderPdfOcrParser } = {}
 ): Promise<ReaderPdfImportResult> {
   if (rawContent.byteLength > MAX_READER_FILE_SIZE_BYTES) {
     throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 10MB.');
   }
 
-  const content = await parser(rawContent);
+  const classification = await classifyPdfForReaderImport(rawContent, parser);
+  const content =
+    classification.kind === 'digital'
+      ? classification.text
+      : await extractImageBasedPdfReaderText(fileName, rawContent, options.ocrParser);
 
   if (!content) {
     throw new Error('Tài liệu trống hoặc không thể trích xuất văn bản hợp lệ.');
@@ -236,6 +262,28 @@ export async function extractPdfReaderDocument(
     content,
     sourceFormat: 'pdf',
   };
+}
+
+export async function classifyPdfForReaderImport(
+  rawContent: ArrayBuffer,
+  parser: (rawContent: ArrayBuffer) => Promise<string> = extractPdfReaderText
+): Promise<ReaderPdfClassification> {
+  const text = normalizeReaderImportedText(await parser(rawContent));
+
+  return {
+    kind: text ? 'digital' : 'image-based',
+    text,
+  };
+}
+
+export function extractReaderTextFromOcrResult(result: ReaderPdfOcrResult) {
+  const pageText = result.pages
+    ?.map((page) => page.markdown ?? page.text ?? '')
+    .map(markdownToReaderText)
+    .filter(Boolean)
+    .join('\n\n');
+
+  return markdownToReaderText(result.markdown ?? result.text ?? pageText ?? '');
 }
 
 export async function extractPdfReaderText(
@@ -321,6 +369,35 @@ function getReaderImportTitle(fileName: string) {
 
 function decodeUtf8(arrayBuffer: ArrayBuffer) {
   return new TextDecoder().decode(arrayBuffer);
+}
+
+async function extractImageBasedPdfReaderText(
+  fileName: string,
+  rawContent: ArrayBuffer,
+  ocrParser?: ReaderPdfOcrParser
+) {
+  if (!ocrParser) return '';
+
+  return extractReaderTextFromOcrResult(await ocrParser({ fileName, rawContent }));
+}
+
+function normalizeReaderImportedText(text: string) {
+  return text
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .split(/\r?\n/u)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n')
+    .trim();
+}
+
+function markdownToReaderText(text: string) {
+  return normalizeReaderImportedText(
+    text
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/[*_`~]+/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  );
 }
 
 async function loadPdfJsParser(): Promise<PdfJsModule> {

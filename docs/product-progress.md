@@ -328,6 +328,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Reader PDF extraction implementation preparation: repo-owned digital/empty/image-only fixtures are committed, parser path is selected as web-first PDF.js-style prototype before native dev-client evaluation, and PDF remains disabled.
 - [x] DONE [HARD]: Reader PDF extraction parser prototype: PDF.js-style parser abstraction and fixture tests cover digital, empty, and image-only PDFs while app PDF import remains disabled.
 - [x] DONE [HARD]: Reader PDF import enablement gate. Wire PDF into Reader import under the `READER_ENABLE_PDF=true` gate for Expo web, verify unsupported native/Expo Go alerts, and execute manual browser smoke testing.
+- [x] DONE [HARD]: Chandra OCR scanned-PDF integration foundation: added Chandra provider/registry, Reader PDF digital-vs-image classification, injected scanned-PDF OCR hook, standalone dockerized Chandra service, and focused provider/Reader compatibility tests while keeping mobile/web networking unwired.
 
 ## User Profile And Privacy
 
@@ -642,6 +643,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: Chandra OCR Reader Integration** - DONE
+- Module Completion Plan: integrate Chandra as a document OCR provider for scanned/image-based PDFs while preserving the existing OCR engine contract, Reader import pipeline, PDF text parser, highlight/lookup/save/flashcard flows, and MLKit camera OCR direction.
+- Acceptance criteria: `docs/chandra-integration-audit.md` documents the current architecture and risks; Chandra implements the existing OCR provider contract and is selectable through an OCR provider registry; digital PDFs continue using the existing parser; image-only PDFs can route through an injected Chandra OCR path into normal Reader text; `backend/chandra-service/` is dockerized with `/ocr/image` and `/ocr/pdf`; focused and existing OCR/Reader tests pass without mobile networking changes.
+- [x] DONE [MEDIUM]: Audit current OCR, Reader import, PDF import, and vocabulary mining flows before code changes.
+- [x] DONE [HARD]: Add Chandra OCR provider adapter and OCR provider registry without replacing the existing OCR engine abstraction.
+- [x] DONE [HARD]: Add Reader PDF classification and scanned-PDF OCR hook that preserves digital-PDF parsing and existing Reader text behavior.
+- [x] DONE [HARD]: Create dockerized `backend/chandra-service/` with `/ocr/image` and `/ocr/pdf` REST endpoints and safe request limits.
+- [x] DONE [MEDIUM]: Add focused Chandra/provider/Reader compatibility tests and run verification/security checks.
 
 **Module: v1.2.3 Roadmap Truth And Production Gate Prep** - DONE
 - Module Completion Plan: reconcile stale blocked rows with the current implemented/gated state, document the recommended opt-in beta sync path, and prepare the first production smoke gate before opening more cloud/native features.

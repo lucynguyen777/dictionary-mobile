@@ -32,3 +32,6 @@ export function createOcrLookupSuggestions(result: OcrEngineResult) {
 }
 
 export const unavailableNativeOcrEngine = createUnavailableNativeOcrEngine();
+
+export type { OcrProviderId, OcrProviderRegistry, OcrProviderRegistryOptions } from './ocrProviderRegistry';
+export { createOcrProviderRegistry, createRegistryFromProviders } from './ocrProviderRegistry';

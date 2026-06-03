@@ -22,7 +22,7 @@ This document focuses on **feasibility, platform constraints (Expo Go vs dev-cli
 
 ### Non-goals in this slice
 - No “real-time” continuous transcription while speaking; start with press-to-record → transcript.
-- No full document OCR for scanned PDFs (already blocked in PDF docs); this is camera/image OCR only.
+- Camera/image OCR and document OCR stay separate. Camera OCR continues through the MLKit/dev-client path; scanned PDF/document OCR is handled by the Chandra Reader integration plan and must not replace the camera OCR architecture.
 - No IPA or per-phoneme pronunciation scoring. OS/native STT can produce transcripts, but it does not satisfy the speech-scoring engine gate.
 
 ---
@@ -245,6 +245,15 @@ The next native implementation slice should keep the existing Expo Go/Web behavi
 - Do not store capture history unless a separate user-data retention decision accepts it.
 - Treat offline STT as unknown until the dev-client smoke matrix records device behavior.
 - Keep Expo web on deterministic/manual fallback unless browser `SpeechRecognition` support is explicitly enabled and tested.
+
+## Chandra document OCR addendum
+
+Chandra OCR is integrated as a document/scanned-PDF provider path, not as the camera OCR replacement.
+
+- `data/providers/ChandraOCRProvider.ts` maps Chandra Markdown/text/page responses into the existing `OcrEngineResult` shape.
+- `data/ocrProviderRegistry.ts` lets MLKit and Chandra be selected without changing Word/Reader UI code.
+- `data/readerImport.ts` now classifies PDFs by running digital text extraction first. Digital PDFs stay on the existing parser and are never OCRed. Image-based PDFs can use an injected Chandra OCR parser and then enter Reader as normal text.
+- `backend/chandra-service/` contains the standalone Dockerized Chandra REST service. Mobile/web networking remains unwired until a separate production privacy/auth/config module accepts it.
 
 ## Source notes
 
