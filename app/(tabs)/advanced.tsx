@@ -1,5 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, useFocusEffect, type Href } from 'expo-router';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
+import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
 import { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
@@ -24,6 +26,20 @@ import {
 } from '@/data/libraryStore';
 
 import { BackendProxyError, aiChat, translateText } from '@/data/backendProxyClient';
+import {
+  extractReaderDocument,
+  getReaderImportFormat,
+  getUnsupportedReaderImportMessage,
+  isEnabledReaderImportFormat,
+} from '@/data/readerImport';
+import {
+  ReaderDocument,
+  ReaderState,
+  getDefaultReaderState,
+  importReaderText,
+  loadReaderState,
+  selectReaderDocument,
+} from '@/data/readerStore';
 
 const flashcardOptions: { type: FlashcardType; label: string; description: string }[] = [
   { type: 'bilingual', label: 'Song ngữ', description: 'Từ + nghĩa + ghi chú' },
@@ -177,7 +193,10 @@ const importMappingPreview: Record<ImportSourceId, { source: string; target: str
 };
 
 export default function AdvancedScreen() {
+  const router = useRouter();
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
+  const [isImportingReaderDocument, setIsImportingReaderDocument] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Record<FlashcardType, boolean>>({
     bilingual: true,
     'word-definition': true,
@@ -197,8 +216,10 @@ export default function AdvancedScreen() {
     useCallback(() => {
       let isMounted = true;
 
-      loadLibraryState().then((state) => {
-        if (isMounted) setLibraryState(state);
+      Promise.all([loadLibraryState(), loadReaderState()]).then(([nextLibraryState, nextReaderState]) => {
+        if (!isMounted) return;
+        setLibraryState(nextLibraryState);
+        setReaderState(nextReaderState);
       });
 
       return () => {
@@ -313,6 +334,60 @@ export default function AdvancedScreen() {
 
     setLibraryState(nextState);
     saveLibraryState(nextState);
+  };
+
+  const handleImportReaderDocument = async () => {
+    if (isImportingReaderDocument) return;
+
+    setIsImportingReaderDocument(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        copyToCacheDirectory: true,
+        multiple: false,
+        type: [
+          'text/plain',
+          'text/html',
+          'application/xhtml+xml',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/epub+zip',
+          'application/pdf',
+        ],
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      const format = getReaderImportFormat(asset.name, asset.mimeType);
+      if (!isEnabledReaderImportFormat(format)) {
+        Alert.alert('Định dạng chưa hỗ trợ', getUnsupportedReaderImportMessage(format));
+        return;
+      }
+
+      const pickedFile = asset.file ?? new File(asset.uri);
+      const rawContent = format === 'docx' || format === 'epub' || format === 'pdf'
+        ? await pickedFile.arrayBuffer()
+        : await pickedFile.text();
+      const extracted = await extractReaderDocument(asset.name, rawContent, asset.mimeType);
+
+      const nextState = await importReaderText(
+        readerState,
+        extracted.title,
+        extracted.content,
+        extracted.sourceFormat
+      );
+      setReaderState(nextState);
+      Alert.alert('Đã nhập tài liệu', `"${extracted.title}" đã sẵn sàng trong thư viện đọc.`);
+    } catch (error) {
+      Alert.alert('Không thể nhập file', error instanceof Error ? error.message : 'Vui lòng thử lại với file khác.');
+    } finally {
+      setIsImportingReaderDocument(false);
+    }
+  };
+
+  const handleOpenReaderDocument = async (documentId: string) => {
+    const nextState = await selectReaderDocument(readerState, documentId);
+    setReaderState(nextState);
+    router.push('/reader');
   };
 
   return (
@@ -568,6 +643,13 @@ export default function AdvancedScreen() {
           <SpecializedTranslationToolPanel />
         ) : activeToolId === 'import' ? (
           <ImportToolPanel libraryState={libraryState} />
+        ) : activeToolId === 'reader' ? (
+          <ReaderLibraryToolPanel
+            isImporting={isImportingReaderDocument}
+            onImport={handleImportReaderDocument}
+            onOpenDocument={handleOpenReaderDocument}
+            readerState={readerState}
+          />
         ) : activeToolId === 'export' ? (
           <ExportToolPanel libraryState={libraryState} />
         ) : activeTool ? (
@@ -1410,9 +1492,102 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
   );
 }
 
+function ReaderLibraryToolPanel({
+  isImporting,
+  onImport,
+  onOpenDocument,
+  readerState,
+}: {
+  isImporting: boolean;
+  onImport: () => void;
+  onOpenDocument: (documentId: string) => void;
+  readerState: ReaderState;
+}) {
+  const documents = readerState.documents;
+
+  return (
+    <View style={styles.toolPanel}>
+      <View style={styles.toolPanelHeader}>
+        <View style={[styles.iconWrap, { backgroundColor: '#F1ECFF' }]}>
+          <Ionicons name="reader-outline" size={28} color="#0F172A" />
+        </View>
+        <View style={styles.copy}>
+          <Text style={styles.featureTitle}>Đọc sách kèm tra từ</Text>
+          <Text style={styles.description}>Thư viện tài liệu đã nhập. Chọn một file để mở Trình đọc Novel và dùng highlight, tra từ, lưu từ, tạo flashcard như cũ.</Text>
+        </View>
+      </View>
+
+      <View style={styles.readerLibraryToolbar}>
+        <View style={styles.toolStatusPill}>
+          <Text style={styles.toolStatusText}>{documents.length} tài liệu</Text>
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          disabled={isImporting}
+          onPress={onImport}
+          style={[styles.readerImportButton, isImporting && styles.exportButtonDisabled]}>
+          <Ionicons name="document-text-outline" size={17} color="#FFFFFF" />
+          <Text style={styles.openToolButtonText}>{isImporting ? 'Đang nhập...' : 'Nhập file'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {documents.length ? (
+        <View style={styles.readerDocumentGrid}>
+          {documents.map((document) => (
+            <ReaderDocumentCard
+              document={document}
+              isSelected={document.id === readerState.selectedDocumentId}
+              key={document.id}
+              onPress={() => onOpenDocument(document.id)}
+            />
+          ))}
+        </View>
+      ) : (
+        <View style={styles.toolStateCard}>
+          <Ionicons name="library-outline" size={24} color="#94A3B8" />
+          <Text style={styles.toolStateTitle}>Chưa có tài liệu đọc</Text>
+          <Text style={styles.toolStateText}>
+            Nhập TXT, HTML, EPUB, DOCX hoặc PDF đã bật gate để tạo thư viện đọc. Màn Trình đọc Novel chỉ tập trung vào đọc và tra từ.
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function ReaderDocumentCard({
+  document,
+  isSelected,
+  onPress,
+}: {
+  document: ReaderDocument;
+  isSelected: boolean;
+  onPress: () => void;
+}) {
+  const wordCount = getReaderDocumentWordCount(document.content);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.84}
+      onPress={onPress}
+      style={[styles.readerDocumentCard, isSelected && styles.readerDocumentCardActive]}>
+      <View style={styles.readerDocumentHeader}>
+        <View style={styles.readerDocumentIcon}>
+          <Ionicons name="book-outline" size={18} color="#7C3AED" />
+        </View>
+        <Text style={styles.readerDocumentFormat}>{(document.sourceFormat ?? 'txt').toUpperCase()}</Text>
+      </View>
+      <Text style={styles.readerDocumentTitle} numberOfLines={2}>{document.title}</Text>
+      <Text style={styles.readerDocumentMeta}>{wordCount} từ · {formatReaderDocumentDate(document.updatedAt)}</Text>
+      <View style={styles.readerDocumentOpenRow}>
+        <Text style={styles.readerDocumentOpenText}>Mở trình đọc</Text>
+        <Ionicons name="arrow-forward" size={15} color="#7C3AED" />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 function LearningToolPanel({ tool }: { tool: (typeof learningTools)[number] }) {
-  const readerHref = '/reader' as Href;
-  const isReader = tool.id === 'reader';
 
   return (
     <View style={styles.toolPanel}>
@@ -1434,14 +1609,6 @@ function LearningToolPanel({ tool }: { tool: (typeof learningTools)[number] }) {
           {getToolRoadmapText(tool.id)}
         </Text>
       </View>
-      {isReader ? (
-        <Link href={readerHref} asChild>
-          <TouchableOpacity activeOpacity={0.82} style={styles.openToolButton}>
-            <Ionicons name="open-outline" size={17} color="#FFFFFF" />
-            <Text style={styles.openToolButtonText}>Mở Reader</Text>
-          </TouchableOpacity>
-        </Link>
-      ) : null}
     </View>
   );
 }
@@ -1461,6 +1628,21 @@ function getToolRoadmapText(toolId: LearningToolId) {
   }
 
   return 'Chuẩn hóa xuất CSV/Excel/Anki text; Google Sheets vẫn cần OAuth, còn Anki .apkg cần parser/package riêng.';
+}
+
+function getReaderDocumentWordCount(content: string) {
+  const words = content.trim().match(/\S+/g);
+  return words?.length ?? 0;
+}
+
+function formatReaderDocumentDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'vừa cập nhật';
+
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+  });
 }
 
 function AnalyticsStat({ label, value }: { label: string; value: number | string }) {
@@ -2116,6 +2298,80 @@ const styles = StyleSheet.create({
     color: '#7C3AED',
     fontSize: 12,
     fontWeight: '700',
+  },
+  readerLibraryToolbar: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between',
+    marginTop: 14,
+  },
+  readerImportButton: {
+    alignItems: 'center',
+    backgroundColor: '#7C3AED',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 7,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+  },
+  readerDocumentGrid: {
+    gap: 10,
+    marginTop: 14,
+  },
+  readerDocumentCard: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+  },
+  readerDocumentCardActive: {
+    backgroundColor: '#F5F3FF',
+    borderColor: '#C4B5FD',
+  },
+  readerDocumentHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  readerDocumentIcon: {
+    alignItems: 'center',
+    backgroundColor: '#EDE9FE',
+    borderRadius: 999,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  readerDocumentFormat: {
+    color: '#7C3AED',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  readerDocumentTitle: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '800',
+    lineHeight: 20,
+  },
+  readerDocumentMeta: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 6,
+  },
+  readerDocumentOpenRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    marginTop: 12,
+  },
+  readerDocumentOpenText: {
+    color: '#7C3AED',
+    fontSize: 12,
+    fontWeight: '800',
   },
   futureTitleRow: {
     alignItems: 'center',

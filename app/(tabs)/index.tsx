@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, useFocusEffect, useRouter } from 'expo-router';
+import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -271,6 +271,13 @@ export default function HomeScreen() {
         ) : null}
       </ScrollView>
       <TouchableOpacity
+        accessibilityLabel="Chat nhanh với AI"
+        activeOpacity={0.84}
+        onPress={() => router.push('/ai-assistant' as Href)}
+        style={styles.quickAiButton}>
+        <Ionicons name="chatbubble-ellipses" size={20} color="#FFFFFF" />
+      </TouchableOpacity>
+      <TouchableOpacity
         accessibilityLabel="Lên đầu trang"
         activeOpacity={0.84}
         onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
@@ -350,6 +357,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#7C3AED',
     borderRadius: 22,
     bottom: 18,
+    elevation: 24,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 18,
+    boxShadow: '0px 6px 12px rgba(15, 23, 42, 0.18)',
+    width: 44,
+    zIndex: 30,
+  },
+  quickAiButton: {
+    alignItems: 'center',
+    backgroundColor: '#06B6D4',
+    borderColor: 'rgba(255, 255, 255, 0.72)',
+    borderRadius: 22,
+    borderWidth: 1,
+    bottom: 72,
     elevation: 24,
     height: 44,
     justifyContent: 'center',

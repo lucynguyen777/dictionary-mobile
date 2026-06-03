@@ -69,10 +69,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ai-assistant"
         options={{
-          title: 'AI Tutor',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} size={24} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen

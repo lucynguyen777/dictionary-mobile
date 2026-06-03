@@ -1,6 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as DocumentPicker from 'expo-document-picker';
-import { File } from 'expo-file-system';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -28,17 +26,9 @@ import {
   saveWordToFolder,
 } from '@/data/libraryStore';
 import {
-  extractReaderDocument,
-  extractReaderText,
-  getReaderImportFormat,
-  getUnsupportedReaderImportMessage,
-  isEnabledReaderImportFormat,
-} from '@/data/readerImport';
-import {
   ReaderSettings,
   ReaderState,
   getDefaultReaderState,
-  importReaderText,
   loadReaderState,
   selectReaderDocument,
   updateReaderSettings,
@@ -247,53 +237,6 @@ export default function ReaderScreen() {
   const handleSelectBackground = (bgColor: string, themeMode: ReaderTheme) => {
     handleUpdateSettings({ backgroundColor: bgColor as any });
     updatePreferences({ theme: themeMode });
-  };
-
-  const handlePickText = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        base64: false,
-        copyToCacheDirectory: true,
-        type: [
-          'text/plain',
-          'text/html',
-          'text/*',
-          'application/epub+zip',
-          'application/pdf',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ],
-      });
-
-      if (result.canceled) return;
-
-      const asset = result.assets[0];
-      const importFormat = getReaderImportFormat(asset.name, asset.mimeType);
-
-      if (!isEnabledReaderImportFormat(importFormat)) {
-        Alert.alert('Import Reader', getUnsupportedReaderImportMessage(importFormat));
-        return;
-      }
-
-      const pickedFile = asset.file ?? new File(asset.uri);
-      const importedDocument =
-        importFormat === 'docx' || importFormat === 'epub' || importFormat === 'pdf'
-          ? await extractReaderDocument(asset.name, await pickedFile.arrayBuffer(), asset.mimeType)
-          : extractReaderText(asset.name, await pickedFile.text());
-
-      if (!importedDocument.content.trim()) {
-        Alert.alert('Import Reader', 'File này không có nội dung text có thể đọc.');
-        return;
-      }
-
-      importReaderText(
-        readerState,
-        importedDocument.title,
-        importedDocument.content,
-        importedDocument.sourceFormat
-      ).then(setReaderState);
-    } catch (error) {
-      Alert.alert('Import Reader thất bại', error instanceof Error ? error.message : 'Chưa thể đọc file này.');
-    }
   };
 
   const handleSelectDocument = (documentId: string) => {
@@ -514,10 +457,6 @@ export default function ReaderScreen() {
             style={[styles.iconButton, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}
           >
             <Ionicons name="chevron-back" size={22} color={activeTheme.text} />
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.82} onPress={handlePickText} style={[styles.importButton, { backgroundColor: activeTheme.accent }]}>
-            <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.importButtonText}>Nhập file</Text>
           </TouchableOpacity>
         </View>
 
@@ -779,7 +718,7 @@ export default function ReaderScreen() {
             <Ionicons name="reader-outline" size={28} color={activeTheme.secondaryText} />
             <Text style={[styles.emptyTitle, { color: activeTheme.text }]}>Chưa có văn bản</Text>
             <Text style={[styles.emptyText, { color: activeTheme.secondaryText }]}>
-              Import file TXT hoặc HTML để đọc. Bấm vào một từ tiếng Anh để tra nghĩa, lưu từ hoặc ghi chú nhanh.
+              Vào Luyện tập → Đọc sách kèm tra từ để nhập tài liệu. Sau khi mở file, bấm vào từ hoặc cụm từ để tra nghĩa, lưu từ và tạo flashcard.
             </Text>
           </View>
         )}
@@ -950,19 +889,6 @@ const styles = StyleSheet.create({
     height: 42,
     justifyContent: 'center',
     width: 42,
-  },
-  importButton: {
-    alignItems: 'center',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 7,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  importButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
   },
   kicker: {
     fontSize: 13,

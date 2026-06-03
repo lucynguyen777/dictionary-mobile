@@ -651,6 +651,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: Training Reader Library And AI Entry Consolidation** - DONE
+- Module Completion Plan: remove duplicate training entry confusion by keeping AI Tutor out of the bottom tab bar while preserving quick access, and turn `Đọc sách kèm tra từ` into a document library/import surface so `Trình đọc Novel` remains focused on reading, highlight, lookup, save-word, flashcard, and TTS flows.
+- Acceptance criteria: `AI Tutor` no longer appears as a separate bottom tab competing with `AI hội thoại`; Home has a quick AI chat button above the scroll-up button; `Đọc sách kèm tra từ` lists imported Reader documents and owns the import action; selecting a document opens the existing Reader route with the selected document; `/reader` no longer has a duplicate import button; existing Reader highlight/lookup/save/flashcard behavior is untouched; static/unit verification passes before commit.
+- [x] DONE [MEDIUM]: Hid the duplicate `AI Tutor` bottom tab while preserving the `/ai-assistant` route for quick chat access.
+- [x] DONE [EASY]: Added a Home floating quick AI chat button directly above the existing scroll-up button.
+- [x] DONE [MEDIUM]: Changed `Đọc sách kèm tra từ` in `Luyện tập` into a Reader document library that loads and displays imported files.
+- [x] DONE [MEDIUM]: Moved Reader file import from `Trình đọc Novel` into the `Đọc sách kèm tra từ` tool page without changing import parser contracts.
+- [x] DONE [MEDIUM]: Wired document selection from the library into the existing Reader route so highlight, lookup, save-word, flashcard, and TTS flows continue without duplication.
+
 **Module: Reader Theme And Novel Controls Polish** - TODO
 - Module Completion Plan: fix the Reader/novel reading experience so it follows the app theme by default, offers clearly distinct book background presets, adds a Home quick light/dark switch, and replaces the current always-visible Reader settings blocks with a bottom progress/control surface and settings sheet that preserves lookup, highlight, save-word, flashcard, import, and TTS behavior.
 - Acceptance criteria: Home has a reachable light/dark toggle using the app design system; Reader first open follows the main app/system theme and can still be overridden in Reader settings; background presets are visually distinct with no duplicate Cream/Cam, cool/gray/white, or black/gray confusion; bottom Reader controls include audio, previous page, next page, settings, play/pause TTS, and table of contents actions; settings menu matches the reference structure while staying mobile/web responsive; existing Reader highlight/lookup/save/flashcard/import/TTS flows still work; static/unit verification passes before commit.
