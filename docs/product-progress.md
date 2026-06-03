@@ -14,11 +14,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: release metadata and docs/copy consistency are selected for v1.2.2 support readiness.
-- Medium next tasks: manual beta sync smoke documentation and Profile support surface are selected for v1.2.2 stabilization.
-- Hard next tasks: Supabase Auth, Vercel backend proxy, DeepL/OpenAI, and manual beta Cloud Sync are implemented but remain production-gated by env vars, smoke verification, quotas, and RLS checks.
+- Easy next tasks: roadmap truth reconciliation and production-gate instructions are selected for v1.2.3 readiness.
+- Medium next tasks: production smoke packaging for Supabase Auth, manual beta Cloud Sync, and backend proxy is selected before opening more user-visible cloud features.
+- Hard next tasks: Google Sheets, feedback submission, native OCR/STT, Azure pronunciation scoring, specialized glossary persistence, and account deletion backend are accepted/staged but require external setup, env vars, native/dev-client validation, or provider smoke gates.
 - Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
-- Deferred scope: OCR/STT thật, Google Sheets export, encrypted cloud backup/restore, account deletion backend, feedback submission, specialized document translation/glossary persistence, pronunciation scoring, unsupported language/source gates, and production etymology/conjugation.
+- Deferred scope: encrypted cloud backup/restore, unsupported language/source gates, production bulk/offline etymology/conjugation, billing for extra agents, and any feature whose provider/source smoke gate has not passed.
 
 ## Current Baseline
 - Latest completed commits:
@@ -199,13 +199,13 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
 - [x] DONE [HARD]: Word variations/morphology search for English inflections and common irregular forms (VD: "went" -> "go") (commit `3706441`).
 - [x] DONE [HARD]: Offline dictionary database bundle planning and decision accepted in `.docs/decisions/offline-dictionary-bundle.md` (Option 1: Wiktionary/Kaikki bundles with staged implementation).
-- [!] BLOCKED [HARD]: Voice Search / OCR Camera Lookup thật (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh) - Cập nhật trong phiên bản sau; UI entry point phải mờ/disabled và nêu rõ cần dev-client/native engine.
+- [ ] TODO [HARD]: Voice Search / OCR Camera Lookup thật (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh) - accepted native/dev-client path; UI entry point stays muted until MLKit OCR and OS/native STT pass dev-client smoke.
   - [x] DONE [HARD]: Architecture/library evaluation and staged implementation plan: `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Implementation Phase 1: Word screen Voice/OCR entry points, microphone/photo-library permission flow, local audio/image capture hooks, deterministic STT/OCR prototype results, and lookup routing covered by `tests/recognition.test.ts`.
   - [x] DONE [HARD]: Implementation Phase 2: capture previews for local audio/image inputs, OCR camera preview entry, manual dev-client smoke matrix, and on-device OCR/STT engine shortlist documented in `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Stage 3 readiness: package-agnostic OCR engine contract, deterministic block/line parser, selectable OCR candidates, dev-client-gated native OCR state, and `tests/ocrEngine.test.ts` coverage.
-  - [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - real on-device OCR integration needs a maintained MLKit Text Recognition wrapper, validated behind the existing OCR engine contract in an Expo dev-client/custom native build.
-  - [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - real on-device STT integration needs OS/native speech recognizers, privacy validation, offline behavior checks, and unavailable-engine fallbacks in a dev-client build.
+  - [ ] TODO [HARD]: Real on-device OCR integration uses the accepted `@infinitered/react-native-mlkit-text-recognition` dev-client spike behind the existing OCR engine contract.
+  - [ ] TODO [HARD]: Real on-device STT integration uses the accepted `expo-speech-recognition` dev-client spike with permission, privacy, offline behavior, and unavailable-engine fallbacks.
 
 ### Context & Examples
 - [x] DONE [MEDIUM]: Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ) (commit `d1f96b5`).
@@ -229,7 +229,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE: Export folder to CSV.
 - [x] DONE [MEDIUM]: Export folder to Excel-compatible `.xls`.
 - [x] DONE [MEDIUM]: Anki text-only export from folder/saved words (commit `72abef2`).
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - Google Sheets export needs backend-mediated Google OAuth, staged after Supabase auth/backend foundation and Google Sheets export contract docs.
+- [ ] TODO [HARD]: Google Sheets export is accepted/staged through backend-mediated Google OAuth; implementation needs Google Cloud OAuth setup, server-side token storage, row mapping, fake Google client tests, and production smoke.
 
 ### Library Folder UI/UX
 - [x] DONE [EASY]: Replace visible per-folder export tags (`CSV`, `XLS`, `Anki`) with a kebab menu button on each folder card.
@@ -252,9 +252,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### Pronunciation
 - [x] DONE: Audio-only pronunciation in lookup.
 - [x] DONE [MEDIUM]: Record user pronunciation (commit `8764019`).
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - IPA comparison with per-phoneme alignment and scoring needs speech/phoneme engine or backend.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - phoneme-level scoring table needs reliable alignment engine.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - GIF/visual pronunciation guidance needs content production pipeline.
+- [ ] TODO [HARD]: IPA comparison with per-phoneme alignment and scoring is accepted/staged through Azure AI Speech Pronunciation Assessment, backend upload/proxy, quota, privacy copy, retention policy, and fake-provider tests.
+- [ ] TODO [HARD]: Phoneme-level scoring table must use provider-backed Azure output only; no fake scores.
+- [ ] TODO [MEDIUM]: Visual pronunciation guidance can start with provider-backed score rows and static local guidance; GIF/content pipeline remains optional later work.
 
 ## Learning Tools
 
@@ -335,11 +335,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Turn the top-left profile hamburger icon into a real settings button with clear press feedback.
 - [x] DONE [MEDIUM]: Build a profile settings sidebar/drawer overlay with close button, backdrop press, safe-area spacing, and scroll support.
 - [x] DONE [MEDIUM]: Add Account/Profile settings panel: avatar UI, display name, username, email, phone number, password placeholder, and delete account action.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - real password/email/phone verification needs Supabase Auth; UI must stay clearly marked local/later-version until auth is implemented.
+- [~] IN PROGRESS [HARD]: Real email/password auth and verification are implemented through Supabase Auth when production env and redirect allow-list are configured; phone verification remains deferred.
 - [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - feedback submission needs Supabase feedback table plus Resend backend email notification after Supabase backend scaffolding, RLS, retention, spam controls, and fake email-client tests are defined.
+- [ ] TODO [HARD]: Feedback submission is accepted/staged as Supabase `feedback` table plus Resend backend email notification; needs support inbox/domain setup, RLS, retention, spam controls, and fake email-client tests.
 - [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [x] DONE [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
 - [x] DONE [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
@@ -362,9 +362,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Delete/reset local user data with confirmation (commit `a9cf589`).
 - [x] DONE [EASY]: Privacy copy explaining local-first storage and what leaves the device.
 - [x] DONE [MEDIUM]: App lock or biometric lock option if native support is added (commit `1a07198`).
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - email login/auth needs Supabase Auth production configuration.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - cloud sync and encrypted backup need Supabase auth/backend, with encrypted backup policy still staged as its own implementation decision.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - account deletion workflow needs Supabase account/backend support and local-data deletion contracts.
+- [~] IN PROGRESS [HARD]: Email login/auth is implemented and production-gated by `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, redirect allow-list, and manual smoke.
+- [~] IN PROGRESS [HARD]: Manual beta Cloud Sync is implemented and production-gated by Supabase env, RLS probes, two-device smoke, and opt-in Profile/Settings behavior; encrypted backup/restore remains deferred.
+- [ ] TODO [HARD]: Account deletion backend workflow is accepted/staged after Supabase admin/backend route, local-data deletion contract, remote failure recovery, and no-local-data-loss tests.
 
 ## Advanced Features
 
@@ -501,8 +501,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ### Translation
 - [x] DONE [MEDIUM]: Language selector and bilingual dictionary flow; supported/blocked pair rules are centralized, unsupported pair routing is guarded, and API/UI coming-soon behavior is covered by tests.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - production multilingual translation needs DeepL through a Supabase/backend proxy, quota limits, and privacy controls.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - specialized translation with user glossary/database needs DeepL glossary support and backend persistence after Supabase auth/backend foundation.
+- [~] IN PROGRESS [HARD]: Production multilingual translation is implemented through the Vercel/Supabase backend proxy and remains gated by provider env vars, authenticated smoke, quota checks, and privacy copy.
+- [ ] TODO [HARD]: Specialized translation with user glossary/database is accepted/staged after DeepL glossary support, backend persistence, parser validation, RLS, quota checks, and fake-provider tests.
 
 ### Etymology And Conjugation
 - [x] DONE [HARD]: Draft etymology/conjugation source decision brief with legal structured source candidates and keep production integration blocked while decision remains Proposed.
@@ -510,11 +510,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Choose reliable resource for conjugation via accepted decision in `.docs/decisions/etymology-conjugation-source.md` (Option 2: UniMorph for structured paradigm exploration).
 - [x] DONE [HARD]: Etymology/conjugation source option selection accepted by product owner in `.docs/decisions/etymology-conjugation-source.md`; implementation remains subject to attribution and offline licensing constraints.
 - [x] DONE [HARD]: Etymology source integration slice (Wiktionary-derived attribution): adapter contract, UI attribution behavior, and missing-source fallback coverage are implemented before enabling production data path. Verification: `npm test -- --run tests/etymologyAdapter.test.ts`, `npm test -- --run`, `npx tsc --noEmit`, `npm run lint`, and Expo web HTTP smoke for `/word`.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - production etymology and conjugation should not be mocked without a real resource.
+- [ ] TODO [HARD]: Production etymology/conjugation expansion can continue only with source metadata and real Wiktionary/UniMorph-backed rows; offline/bulk packaging remains blocked by attribution and ShareAlike pack review.
 
 ### AI
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - real-time voice/text chatbot needs OpenAI through a backend proxy, streaming, auth, rate limits, and cost controls.
-- [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - specialized document translation with imported glossary needs DeepL/OpenAI proxy boundaries and backend persistence strategy.
+- [~] IN PROGRESS [HARD]: Text AI Tutor is implemented through the backend proxy when Supabase auth and OpenAI env vars are configured; realtime voice feedback/streaming remains staged behind quota, privacy, and provider smoke.
+- [ ] TODO [HARD]: Specialized document translation with imported glossary is accepted/staged after DeepL/OpenAI proxy boundaries, dataset persistence, parser validation, no-key-leak tests, and max-3-agent enforcement.
 
 ## Completed Work Modules
 
@@ -642,6 +642,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: v1.2.3 Roadmap Truth And Production Gate Prep** - DONE
+- Module Completion Plan: reconcile stale blocked rows with the current implemented/gated state, document the recommended opt-in beta sync path, and prepare the first production smoke gate before opening more cloud/native features.
+- Acceptance criteria: Supabase Auth, manual beta Cloud Sync, DeepL/OpenAI proxy, Google Sheets, feedback, OCR/STT, and pronunciation scoring are classified as implemented/gated, accepted/staged, or still blocked accurately; user-owned setup steps are documented with official links; no runtime code or secret values are changed.
+- [x] DONE [EASY]: Refreshed Difficulty Overview so v1.2.3 focuses on production gates rather than v1.2.2 release consistency.
+- [x] DONE [MEDIUM]: Reclassified stale auth/sync/translation/AI checklist rows from old `[!] BLOCKED` wording into implemented-but-production-gated or accepted/staged TODO status.
+- [x] DONE [MEDIUM]: Reclassified accepted OCR/STT, Google Sheets, feedback, and Azure pronunciation scoring rows as staged TODO work with their remaining external setup gates.
+- [x] DONE [MEDIUM]: Added `docs/v1.2.3-production-gate-smoke.md` with recommended Profile/Settings opt-in beta sync and user setup instructions for Supabase, Vercel env vars, Resend, Google OAuth, and Expo dev-client.
+- [x] DONE [EASY]: Ran docs/static verification, then prepared the docs-only gate update for commit, push, and deploy.
 
 **Module: v1.2.2 Release Consistency And Support Readiness** - DONE
 - Module Completion Plan: ship v1.2.2 as a small stabilization release that keeps v1.2.1 behavior intact, makes the app/reporting surface clearly identify the deployed version, and removes stale docs/copy that still implies automatic cloud sync.
