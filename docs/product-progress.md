@@ -183,6 +183,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 ### UI & Copy Polish
 - [x] DONE [EASY]: Localized small UI strings and polished lookup error presentation (commit `a6f1c79`).
 - [x] DONE [EASY]: Add bottom-right scroll-to-top controls on long lookup and folder pages.
+- [x] DONE [EASY]: Fix Word tab recognition preview so camera permission is requested only after the user opens the camera capture action, not when entering the `Tra cứu` tab.
 
 
 ### Dictionary Lookup

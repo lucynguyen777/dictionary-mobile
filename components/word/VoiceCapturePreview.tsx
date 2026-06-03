@@ -18,11 +18,25 @@ export default function VoiceCapturePreview({ visible, onClose, onCapture }: Voi
   const [type, setType] = useState<CameraType>('back');
 
   useEffect(() => {
-    (async () => {
+    if (!visible) {
+      setCameraRef(null);
+      setHasPermission(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function requestCameraPermission() {
       const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
+      if (isMounted) setHasPermission(status === 'granted');
+    }
+
+    requestCameraPermission();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [visible]);
 
   const handleCapture = async () => {
     if (cameraRef) {
@@ -33,6 +47,14 @@ export default function VoiceCapturePreview({ visible, onClose, onCapture }: Voi
   };
 
   if (!visible) return null;
+  if (hasPermission === null) {
+    return (
+      <View style={[styles.centered, { backgroundColor: colors.canvasAlt }]}>
+        <Text style={[styles.error, { color: colors.textSecondary }]}>Đang kiểm tra quyền camera...</Text>
+      </View>
+    );
+  }
+
   if (hasPermission === false) {
     return (
       <View style={[styles.centered, { backgroundColor: colors.canvasAlt }]}>
