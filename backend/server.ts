@@ -79,7 +79,7 @@ export function createServer(deps: ServerDependencies) {
       return;
     }
 
-    const { validateTranslateTextRequest } = await import('./proxyRequestValidation');
+    const { validateTranslateTextRequest } = await import('./proxyRequestValidation.js');
     const validation = validateTranslateTextRequest(req.body, config.limits);
     if (!validation.ok) {
       res.status(validation.status).json({ error: validation.error });
@@ -91,7 +91,7 @@ export function createServer(deps: ServerDependencies) {
     // Check quota
     if (quotaTracker) {
       const quotaCheck = quotaTracker.checkQuota(userId, 'translation', validation.data.characterCount);
-      if (!quotaCheck.ok) {
+      if (quotaCheck.ok === false) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
       }
@@ -129,7 +129,7 @@ export function createServer(deps: ServerDependencies) {
       return;
     }
 
-    const { validateAiChatRequest } = await import('./proxyRequestValidation');
+    const { validateAiChatRequest } = await import('./proxyRequestValidation.js');
     const validation = validateAiChatRequest(req.body);
     if (!validation.ok) {
       res.status(validation.status).json({ error: validation.error });
@@ -139,7 +139,7 @@ export function createServer(deps: ServerDependencies) {
     // Check quota (counts as 1 request)
     if (quotaTracker) {
       const quotaCheck = quotaTracker.checkQuota(userId, 'ai-chat', 1);
-      if (!quotaCheck.ok) {
+      if (quotaCheck.ok === false) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
       }
