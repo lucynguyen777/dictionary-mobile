@@ -81,7 +81,7 @@ export function createServer(deps: ServerDependencies) {
 
     const { validateTranslateTextRequest } = await import('./proxyRequestValidation.js');
     const validation = validateTranslateTextRequest(req.body, config.limits);
-    if (!validation.ok) {
+    if (validation.ok === false) {
       res.status(validation.status).json({ error: validation.error });
       return;
     }
@@ -131,7 +131,7 @@ export function createServer(deps: ServerDependencies) {
 
     const { validateAiChatRequest } = await import('./proxyRequestValidation.js');
     const validation = validateAiChatRequest(req.body);
-    if (!validation.ok) {
+    if (validation.ok === false) {
       res.status(validation.status).json({ error: validation.error });
       return;
     }
