@@ -184,6 +184,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [EASY]: Localized small UI strings and polished lookup error presentation (commit `a6f1c79`).
 - [x] DONE [EASY]: Add bottom-right scroll-to-top controls on long lookup and folder pages.
 - [x] DONE [EASY]: Fix Word tab recognition preview so camera permission is requested only after the user opens the camera capture action, not when entering the `Tra cứu` tab.
+- [x] DONE [EASY]: Scope the Flashcard due-review challenge card in `Luyện tập` so it appears only on the tool overview or Flashcard tool, not every tool detail page.
+- [ ] TODO [MEDIUM]: Add a Home tab quick toggle for app light/dark mode so users can switch the main shell theme without opening deeper settings.
 
 
 ### Dictionary Lookup
@@ -294,6 +296,10 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Theme customization (font, background, accent) persisted per-user
 - [x] DONE [HARD]: AI-powered TTS voice reader integrated into Reader reading flow
 - [x] DONE [MEDIUM]: Reading progress scrubber for long documents
+- [ ] TODO [MEDIUM]: Fix Reader background palette so warm/cool/light/dark choices are visually distinct and labels no longer present identical-looking options.
+- [ ] TODO [MEDIUM]: Make Reader first-open theme follow the main app light/dark system color, then persist user overrides from the Reader setting menu.
+- [ ] TODO [MEDIUM]: Move Reader novel settings into a modal sheet opened from the bottom control panel, matching the provided reference layout.
+- [ ] TODO [MEDIUM]: Add bottom Reader progress bar plus control panel with audio, previous/next page, settings, play/pause TTS, and table-of-contents buttons.
 - Module delivered in commit `37dfa88`.
 
 ### Developer Security Audit Harden
@@ -644,6 +650,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: Reader Theme And Novel Controls Polish** - TODO
+- Module Completion Plan: fix the Reader/novel reading experience so it follows the app theme by default, offers clearly distinct book background presets, adds a Home quick light/dark switch, and replaces the current always-visible Reader settings blocks with a bottom progress/control surface and settings sheet that preserves lookup, highlight, save-word, flashcard, import, and TTS behavior.
+- Acceptance criteria: Home has a reachable light/dark toggle using the app design system; Reader first open follows the main app/system theme and can still be overridden in Reader settings; background presets are visually distinct with no duplicate Cream/Cam, cool/gray/white, or black/gray confusion; bottom Reader controls include audio, previous page, next page, settings, play/pause TTS, and table of contents actions; settings menu matches the reference structure while staying mobile/web responsive; existing Reader highlight/lookup/save/flashcard/import/TTS flows still work; static/unit verification passes before commit.
+- [ ] TODO [MEDIUM]: Add shared app color-scheme preference plumbing and a Home tab quick light/dark toggle using current design-system tokens.
+- [ ] TODO [MEDIUM]: Rework Reader theme initialization so `auto/system` follows the main app light/dark color on first open and only diverges after a Reader-specific user choice.
+- [ ] TODO [MEDIUM]: Replace Reader background presets with distinct swatches and labels for Auto, White, Ivory, Sepia, Warm Amber, Paper Gray, Cool Mist, Charcoal, and Black.
+- [ ] TODO [MEDIUM]: Add bottom Reader progress bar and novel control panel with audio, previous/next page, settings, play/pause TTS, and table-of-contents buttons without covering selected-word actions.
+- [ ] TODO [MEDIUM]: Move Reader appearance/audio/font/reading-mode controls into a modal settings sheet inspired by the reference screens and verify mobile/web layout, no overflow, and feature parity.
 
 **Module: Chandra OCR Reader Integration** - DONE
 - Module Completion Plan: integrate Chandra as a document OCR provider for scanned/image-based PDFs while preserving the existing OCR engine contract, Reader import pipeline, PDF text parser, highlight/lookup/save/flashcard flows, and MLKit camera OCR direction.

@@ -320,15 +320,17 @@ export default function AdvancedScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.kicker}>Phòng luyện tập</Text>
         <Text style={styles.title}>Công cụ học nâng cao</Text>
-        <View style={styles.challengeCard}>
-          <View style={styles.challengeIcon}>
-            <Ionicons name="flash" size={26} color="#FFFFFF" />
+        {(!activeToolId || activeToolId === 'flashcards') ? (
+          <View style={styles.challengeCard}>
+            <View style={styles.challengeIcon}>
+              <Ionicons name="flash" size={26} color="#FFFFFF" />
+            </View>
+            <View style={styles.challengeCopy}>
+              <Text style={styles.challengeTitle}>{dueFlashcards} thẻ cần ôn</Text>
+              <Text style={styles.challengeText}>Lọc theo bộ từ, loại thẻ hoặc trạng thái để ôn đúng nhóm cần học.</Text>
+            </View>
           </View>
-          <View style={styles.challengeCopy}>
-            <Text style={styles.challengeTitle}>{dueFlashcards} thẻ cần ôn</Text>
-            <Text style={styles.challengeText}>Lọc theo bộ từ, loại thẻ hoặc trạng thái để ôn đúng nhóm cần học.</Text>
-          </View>
-        </View>
+        ) : null}
 
         {activeTool ? (
           <View style={styles.toolDetailHeader}>
