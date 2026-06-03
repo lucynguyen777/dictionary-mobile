@@ -1,9 +1,8 @@
-import { AppState, AppStateStatus } from 'react-native';
 import { loadUserProfile } from './profileStore';
 import { loadCurrentAuthSession } from './authController';
 import { runSupabaseCloudSyncOnce } from './supabaseSyncRunner';
 
-export type SyncState = 'syncing' | 'synced' | 'error' | 'offline' | 'idle';
+export type SyncState = 'syncing' | 'synced' | 'error' | 'offline' | 'signed-out' | 'unconfigured' | 'idle';
 export type SyncStateListener = (state: SyncState) => void;
 
 let listeners: SyncStateListener[] = [];
@@ -26,18 +25,23 @@ export function getCurrentSyncState(): SyncState {
   return currentSyncState;
 }
 
-export async function triggerLifecycleSync() {
+export async function triggerManualSync() {
   try {
     const profile = await loadUserProfile();
     if (!profile.cloudSyncEnabled) {
       notifyListeners('idle');
-      return;
+      return { status: 'idle' as const };
     }
 
     const session = await loadCurrentAuthSession();
+    if (session.status === 'unconfigured') {
+      notifyListeners('unconfigured');
+      return { status: 'unconfigured' as const };
+    }
+
     if (session.status !== 'authenticated') {
-      notifyListeners('idle');
-      return;
+      notifyListeners('signed-out');
+      return { status: 'signed-out' as const };
     }
 
     notifyListeners('syncing');
@@ -46,34 +50,27 @@ export async function triggerLifecycleSync() {
       notifyListeners('synced');
     } else if (result.status === 'offline') {
       notifyListeners('offline');
+    } else if (result.status === 'unconfigured') {
+      notifyListeners('unconfigured');
+    } else if (result.status === 'signed-out') {
+      notifyListeners('signed-out');
     } else {
       notifyListeners('error');
     }
+
+    return result;
   } catch (error) {
     notifyListeners('error');
+    return { error, status: 'failed' as const };
   }
 }
 
-let appStateSubscription: { remove: () => void } | null = null;
+export const triggerLifecycleSync = triggerManualSync;
 
 export function startSyncLifecycle() {
-  if (appStateSubscription) return;
-
-  // Trigger sync on launch
-  triggerLifecycleSync();
-
-  const handleAppStateChange = (nextAppState: AppStateStatus) => {
-    if (nextAppState === 'active') {
-      triggerLifecycleSync();
-    }
-  };
-
-  appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+  notifyListeners('idle');
 }
 
 export function stopSyncLifecycle() {
-  if (appStateSubscription) {
-    appStateSubscription.remove();
-    appStateSubscription = null;
-  }
+  notifyListeners('idle');
 }

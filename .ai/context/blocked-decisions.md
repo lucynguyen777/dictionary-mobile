@@ -91,7 +91,7 @@ Acceptance gate:
 ---
 
 ## DeepL + OpenAI Backend Proxy MVP
-Status: Fully implemented. Users can translate definitions or reader highlight selections via DeepL, and converse, correct, or roleplay with the AI Tutor screen via OpenAI backend proxy. Quota limits and request logs are monitored server-side.
+Status: Implemented and wired for v1.2.1 through the Vercel `/backend-proxy` function. Users can translate definitions or reader highlight selections via DeepL, and converse, correct, or roleplay with the AI Tutor screen via OpenAI backend proxy when Supabase auth and provider env vars are configured. Quota limits are enforced server-side.
 
 Accepted:
 - DeepL translation and glossary support through backend proxy
@@ -110,7 +110,7 @@ Allowed preparatory work:
 - Keep machine translation output out of dictionary/source data
 
 Acceptance gate:
-- Quota guard may start next; production provider calls require backend proxy routes, RLS-protected usage/glossary/provider-connection tables, quota checks, encrypted-secret no-key-leak tests, and fake-provider tests.
+- Production provider calls require Vercel env vars, Supabase auth redirect allow-list, backend proxy smoke, quota checks, RLS-protected usage/glossary/provider-connection tables, encrypted-secret no-key-leak tests, and fake-provider tests.
 
 ---
 

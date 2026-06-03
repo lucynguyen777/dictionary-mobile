@@ -11,7 +11,6 @@ import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToken } from '@/hooks/use-token';
-import { startSyncLifecycle, stopSyncLifecycle } from '@/data/supabaseSyncLifecycle';
 
 installDevelopmentWarningFilter();
 
@@ -70,10 +69,6 @@ export default function RootLayout() {
       // Activity tracking should never block app entry.
     });
 
-    startSyncLifecycle();
-    return () => {
-      stopSyncLifecycle();
-    };
   }, [appLockState]);
 
   return (

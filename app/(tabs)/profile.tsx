@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
+import { triggerManualSync } from '@/data/supabaseSyncLifecycle';
 import {
   ActivityState,
   getActivitySummary,
@@ -457,9 +458,26 @@ export default function ProfileScreen() {
     try {
       const nextProfile = await saveUserProfile({ ...profile, cloudSyncEnabled: nextValue });
       setProfile(nextProfile);
-      setSaveMessage(nextValue ? 'Đã bật đồng bộ đám mây cho tài khoản này.' : 'Đã tắt đồng bộ đám mây.');
+      setSaveMessage(nextValue ? 'Đã bật beta đồng bộ cloud. Bấm Đồng bộ ngay để chạy thủ công.' : 'Đã tắt đồng bộ đám mây.');
     } catch {
       Alert.alert('Lỗi đồng bộ', 'Không thể thay đổi thiết lập đồng bộ lúc này.');
+    }
+  };
+
+  const handleManualCloudSync = async () => {
+    const result = await triggerManualSync();
+    if (result.status === 'synced') {
+      setSaveMessage('Đã đồng bộ cloud thủ công.');
+    } else if (result.status === 'idle') {
+      setSaveMessage('Bật beta đồng bộ cloud trước khi chạy thủ công.');
+    } else if (result.status === 'signed-out') {
+      Alert.alert('Cần đăng nhập', 'Đăng nhập cloud trước khi đồng bộ dữ liệu.');
+    } else if (result.status === 'unconfigured') {
+      Alert.alert('Cloud chưa cấu hình', 'Cần cấu hình Supabase production trước khi đồng bộ.');
+    } else if (result.status === 'offline') {
+      Alert.alert('Ngoại tuyến', 'Kiểm tra mạng rồi thử đồng bộ lại.');
+    } else {
+      Alert.alert('Lỗi đồng bộ', 'Không thể đồng bộ cloud lúc này.');
     }
   };
 
@@ -902,7 +920,7 @@ export default function ProfileScreen() {
                 <View style={styles.privacyNote}>
                   <Ionicons name="lock-closed-outline" size={18} color="#0075DE" />
                   <Text style={styles.privacyText}>
-                    Dữ liệu học tập, hồ sơ và file Reader đang lưu local trên thiết bị. Chưa đồng bộ cloud trừ khi bạn bật đăng nhập sau này.
+                    Dữ liệu học tập, hồ sơ và file Reader luôn lưu local trước. Cloud chỉ chạy khi bạn đăng nhập, bật beta đồng bộ và bấm Đồng bộ ngay.
                   </Text>
                 </View>
                 <View style={styles.securityRow}>
@@ -918,17 +936,28 @@ export default function ProfileScreen() {
                   />
                 </View>
                 {authSession.status === 'authenticated' && (
-                  <View style={styles.securityRow}>
-                    <View style={styles.securityCopy}>
-                      <Text style={styles.securityTitle}>Đồng bộ đám mây</Text>
-                      <Text style={styles.securityText}>Tự động đồng bộ dữ liệu học tập lên cloud.</Text>
+                  <View style={styles.cloudSyncPanel}>
+                    <View style={styles.securityRow}>
+                      <View style={styles.securityCopy}>
+                        <Text style={styles.securityTitle}>Beta đồng bộ đám mây</Text>
+                        <Text style={styles.securityText}>Đồng bộ thủ công dữ liệu học tập lên cloud. Local data luôn được giữ lại.</Text>
+                      </View>
+                      <Switch
+                        onValueChange={handleToggleCloudSync}
+                        thumbColor="#FFFFFF"
+                        trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
+                        value={profile.cloudSyncEnabled}
+                      />
                     </View>
-                    <Switch
-                      onValueChange={handleToggleCloudSync}
-                      thumbColor="#FFFFFF"
-                      trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
-                      value={profile.cloudSyncEnabled}
-                    />
+                    {profile.cloudSyncEnabled ? (
+                      <TouchableOpacity
+                        activeOpacity={0.82}
+                        onPress={handleManualCloudSync}
+                        style={styles.manualSyncButton}>
+                        <Ionicons name="sync-outline" size={15} color="#0075DE" />
+                        <Text style={styles.manualSyncButtonText} numberOfLines={1}>Đồng bộ ngay</Text>
+                      </TouchableOpacity>
+                    ) : null}
                   </View>
                 )}
                 <Text style={styles.sidebarGroupLabel}>Thông báo local</Text>
@@ -2471,6 +2500,31 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 12,
     padding: 12,
+  },
+  cloudSyncPanel: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E3DF',
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 12,
+    padding: 12,
+  },
+  manualSyncButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderColor: '#BFDBFE',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 10,
+    minHeight: 36,
+    paddingHorizontal: 12,
+  },
+  manualSyncButtonText: {
+    color: '#0075DE',
+    fontSize: 12,
+    fontWeight: '800',
   },
   securityCopy: {
     flex: 1,

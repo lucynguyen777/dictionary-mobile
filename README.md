@@ -65,13 +65,13 @@ See [Testing And Build Guide](docs/testing-and-build-guide.md) for the full QA m
 
 ## Deployment
 
-The current deployable release is local-first. The selected first deployment path is Vercel static web hosting. Web can be exported as static files with:
+The current deployable release is v1.2.1. It keeps local-first data ownership while enabling Supabase Auth, manual beta Cloud Sync, DeepL translation, and AI Tutor only when the required production environment variables and backend proxy are configured. The selected web deployment path is Vercel with Expo static output plus a Vercel Function for `/backend-proxy`.
 
 ```bash
 npm run build:web:clean
 ```
 
-Use `dist` as the static hosting output directory. `vercel.json` contains the matching build/output settings and route rewrites. Native preview/production builds are configured through EAS scripts in `package.json`.
+Use `dist` as the static hosting output directory. `vercel.json` contains the matching build/output settings, route rewrites, and backend proxy rewrite. Native preview/production builds are configured through EAS scripts in `package.json`.
 
 See [Deployment Options](docs/deployment-options.md) for web hosting choices, EAS build commands, current app identifiers, store checklist, and rollback notes.
 
@@ -84,9 +84,9 @@ See [Deployment Options](docs/deployment-options.md) for web hosting choices, EA
 
 ## Notes
 
-- User data is local-first, utilizing local SQLite storage, with optional Supabase Cloud Sync when signed in.
+- User data is local-first, utilizing local SQLite storage, with optional manual beta Supabase Cloud Sync when signed in and configured.
 - Dictionary work must build monolingual lookup first and must not use machine translation as dictionary data.
-- Supabase Authentication, cross-device database synchronization, DeepL translations, and OpenAI-based AI learning partner (AI Tutor) are fully integrated and functional.
+- Supabase Authentication, manual beta cloud sync, DeepL translations, and OpenAI-based AI learning partner (AI Tutor) are implemented; production behavior requires Supabase/Vercel env vars, backend proxy availability, and smoke verification.
 - Google Sheets export, speech scoring, and licensed offline bundles remain blocked until accepted decisions exist.
 
 ## Expo References

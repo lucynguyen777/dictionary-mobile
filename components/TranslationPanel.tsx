@@ -15,7 +15,7 @@ export function TranslationPanel({
   targetLang = 'VI',
   sourceLang,
 }: TranslationPanelProps) {
-  const { colors, spacing, radius, typography } = useToken();
+  const { colors, radius, typography } = useToken();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TranslateTextResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

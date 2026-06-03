@@ -6,6 +6,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/backend-proxy/:path*",
+      "destination": "/api/backend-proxy?path=:path*"
+    },
+    {
       "source": "/folder/:id",
       "destination": "/folder/[id].html"
     },

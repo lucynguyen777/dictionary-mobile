@@ -14,11 +14,11 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: no active easy task selected; current deploy is focused on verification and small local UI cleanup only when a concrete 3-5 task module is selected.
-- Medium next tasks: legacy AsyncStorage cleanup is implemented; no unblocked medium module is currently selected for this deploy.
-- Hard next tasks: Supabase auth/backend, DeepL/OpenAI proxy, MLKit OCR, OS/native STT, Azure speech scoring, Google OAuth, support feedback, and production language-source work are parked as **Cập nhật trong phiên bản sau** and must stay visibly disabled/muted in UI until their dependency gates pass.
-- Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset, offline pack status shell, and current minimal futuristic UI polish.
-- Deferred scope: OCR/STT thật, Google Sheets export, auth verification, cloud sync/backup, account deletion backend, feedback submission, production translation/glossary, AI chatbot, document translation, pronunciation scoring, unsupported language/source gates, and production etymology/conjugation.
+- Easy next tasks: no active easy task selected; v1.2.1 deploy is focused on release truth, backend proxy availability, and verification.
+- Medium next tasks: manual beta sync UX and docs/version reconciliation are selected for v1.2.1 stabilization.
+- Hard next tasks: Supabase Auth, Vercel backend proxy, DeepL/OpenAI, and manual beta Cloud Sync are implemented but remain production-gated by env vars, smoke verification, quotas, and RLS checks.
+- Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
+- Deferred scope: OCR/STT thật, Google Sheets export, encrypted cloud backup/restore, account deletion backend, feedback submission, specialized document translation/glossary persistence, pronunciation scoring, unsupported language/source gates, and production etymology/conjugation.
 
 ## Current Baseline
 - Latest completed commits:
@@ -643,6 +643,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: v1.2.1 Stabilization And Deploy Wiring** - DONE
+- Module Completion Plan: stabilize the already implemented v1.2.0 Supabase/Auth/AI/translation work for v1.2.1 deploy without expanding into broad v1.3 feature scope.
+- Acceptance criteria: version metadata says `1.2.1`, docs agree with code, Vercel exposes `/backend-proxy/:path*`, cloud sync is manual beta only, duplicate Supabase translation dataset migrations are reconciled, and static/unit/build verification passes before deploy.
+- [x] DONE [MEDIUM]: Reconciled release truth by updating version metadata and docs/context to say Supabase Auth, manual beta Cloud Sync, DeepL translation, and AI Tutor are implemented but gated by production env/backend/smoke checks.
+- [x] DONE [HARD]: Added a Vercel backend proxy function and rewrite so production web can serve `/backend-proxy/proxy/translate/text`, `/backend-proxy/proxy/ai/chat`, and `/backend-proxy/proxy/quota` without exposing provider keys.
+- [x] DONE [MEDIUM]: Replaced automatic foreground sync with manual beta sync UX for signed-in users and explicit sync states.
+- [x] DONE [HARD]: Reconciled Supabase migration overlap by keeping `002_ai_translation_proxy.sql` as canonical and making `006_specialized_translation_datasets.sql` additive.
+- [x] DONE [MEDIUM]: Added focused tests for Vercel backend proxy routing, manual sync lifecycle behavior, and translation migration shape.
+
 **Module: Minimal Futuristic UI Completion** - DONE
 - Module Completion Plan: finish the minimalism + futuristic migration for mobile and Expo web without removing routes, handlers, import/export contracts, auth/sync boundaries, OCR/STT gates, AI/backend gates, or existing local-first behavior.
 - Acceptance criteria: every touched action remains reachable, light/dark theme fallbacks are correct, major mobile/web surfaces avoid overlap and text overflow, blocked features stay visibly blocked, and `git diff --check`, `npx tsc --noEmit`, `npm run lint -- --max-warnings=0`, and `npm test -- --run` pass before completion.
@@ -1053,9 +1062,11 @@ These modules decompose accepted, staged, and still-blocked roadmap rows. Accept
    - Đảm bảo các token xác thực nhạy cảm được lưu trữ an toàn (e.g., SecureStore trên native) thay vì lưu plaintext trong AsyncStorage.
 6. **Lập Phương Án Giải Quyết Rủi Ro**: Với mỗi rủi ro bảo mật hoặc lỗi phát sinh được phát hiện, AI phải ghi nhận chi tiết rủi ro kèm theo phương án giải quyết (mitigation/resolution plan) cụ thể trong báo cáo kiểm tra (verification report) trước khi tiến hành commit. Không commit nếu có lỗ hổng bảo mật nghiêm trọng chưa được xử lý.
 7. Commit code và checklist cùng nhau khi hợp lý. Nếu cần ghi commit hash mới vào `Current Baseline`, commit cập nhật checklist ngay sau commit code.
-8. **Kiểm Tra Rủi Ro Trước Khi Push**: Trước khi push lên GitHub, kiểm tra lại toàn bộ rủi ro của module mới, chạy lại kiểm tra tĩnh và test suite, đảm bảo mọi lỗ hổng đã được vá triệt để và `docs/product-progress.md` hoàn toàn khớp với thực tế.
-9. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
-10. Sau khi checklist trên GitHub khớp với code thực tế và module hiện tại hoàn tất, mới tạo hoặc bắt đầu `Next Work Module` tiếp theo.
+8. **Quy Trình Release Version Mới**: Sau khi hoàn thành một version mới và verification pass, bắt buộc commit toàn bộ code/docs của version đó, push lên GitHub, xác nhận `main` đã đồng bộ với `origin/main`, rồi mới deploy đúng version đã push. Không deploy production từ thay đổi local chưa commit/push, trừ khi người dùng yêu cầu hotfix khẩn cấp và phải ghi rõ trong báo cáo.
+9. **Kiểm Tra Rủi Ro Trước Khi Push**: Trước khi push lên GitHub, kiểm tra lại toàn bộ rủi ro của module mới, chạy lại kiểm tra tĩnh và test suite khi có thay đổi sau verification, đảm bảo mọi lỗ hổng đã được vá triệt để và `docs/product-progress.md` hoàn toàn khớp với thực tế.
+10. Sau khi push, kiểm tra `main` đã đồng bộ với `origin/main` và không còn thay đổi local chưa commit.
+11. Sau khi deploy, smoke test production endpoint/UI chính và ghi rõ URL/version deployed trong báo cáo.
+12. Sau khi checklist trên GitHub khớp với code thực tế và module hiện tại hoàn tất, mới tạo hoặc bắt đầu `Next Work Module` tiếp theo.
 
 ### Module Queue Rules
 1. Mỗi `Next Work Module` phải có ít nhất 3 task và nhiều nhất 5 task liên quan; mặc định lập plan đủ 5 task khi còn đủ task hợp lệ.

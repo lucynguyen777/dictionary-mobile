@@ -85,18 +85,19 @@
 - Local user-data SQLite runtime for Profile, Library, and Reader, with migration from legacy AsyncStorage and explicit legacy cleanup utility.
 
 ### Auth & Cloud Sync
-- Supabase Authentication (email registration, login, secure token management via SecureStore, and session refresh callbacks).
-- Realtime database sync runner synchronization for user profiles, library folders, saved words, word memberships, search history, and flashcards.
+- Supabase Authentication (email registration, login, secure token management via SecureStore, and session refresh callbacks) when public Supabase env vars are configured.
+- Manual beta cloud sync runner for user profiles, library folders, saved words, word memberships, search history, flashcards, Reader documents, Reader settings, and tombstones.
 - Soft-deleted record tracking with tombstones and cursor-based sync polling.
+- No automatic foreground/background/realtime sync in v1.2.1; users must explicitly enable beta sync and tap "Đồng bộ ngay".
 
 ### AI Assistant & Translation Proxy
-- Backend API proxy executing requests with Supabase auth session token headers.
+- Vercel-backed API proxy executing requests with Supabase auth session token headers.
 - DeepL text translation panel embedded in dictionary word lookups and Reader selection cards.
 - AI Tutor assistant (`ai-assistant`) conversational dashboard supporting writing correction, conversation practice, grammar explanations, and scenario roleplays via OpenAI backend proxy.
-- Monthly/daily usage quotas and event logging tracking character counts.
+- Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- Post-release optimization and monitoring.
+- v1.2.1 deployment verification, Supabase redirect allow-list smoke, and provider env smoke.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)

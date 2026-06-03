@@ -88,7 +88,7 @@ Supported:
 - **flashcards**: spaced repetition states and schedules.
 - **user_sync_cursors**: tracks incremental pull/push timestamps per domain.
 
-## Translation & AI Tutor Tables (v1.3.0)
+## Translation & AI Tutor Tables (v1.2.1 backend-gated)
 - **user_provider_connections**: metadata mappings for user-provided API credentials.
 - **user_provider_secret_envelopes**: encrypted keys for credentials.
 - **proxy_usage_events**: usage character/token metrics.

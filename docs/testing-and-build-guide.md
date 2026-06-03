@@ -478,3 +478,10 @@ Before pushing:
 - Check the latest commit with `git log --oneline -1`.
 - Reconfirm `docs/product-progress.md` is synchronized.
 - After push, confirm `main` and `origin/main` are aligned and no local uncommitted changes remain.
+
+For completed version releases:
+
+- Commit all verified version code/docs before production deploy.
+- Push the release commit to GitHub and confirm the branch is aligned with `origin/main`.
+- Deploy only the pushed version, then run production smoke checks for the home route, core deep links, and backend/API endpoints touched by the release.
+- If an emergency hotfix must deploy from local unpushed changes, document that exception explicitly in the final release report and push the same changes immediately after validation.

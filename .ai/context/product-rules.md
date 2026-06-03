@@ -37,7 +37,8 @@ After implementation:
 1. Update docs/product-progress.md.
 2. Sync checklist status with code reality.
 3. Update Next Work Queue if needed.
-4. Suggest a commit message.
+4. For a completed verified version release, commit all version code/docs, push to GitHub, confirm `main` matches `origin/main`, then deploy that pushed version and smoke test production.
+5. Suggest a commit message for non-release work when the user has not asked to commit.
 
 ## Blocked Task Rule
 

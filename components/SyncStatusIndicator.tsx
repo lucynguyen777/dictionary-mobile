@@ -39,6 +39,20 @@ export function SyncStatusIndicator() {
           color: '#D97706', // amber
           spinner: false,
         };
+      case 'signed-out':
+        return {
+          icon: 'person-circle-outline' as const,
+          text: 'Cần đăng nhập',
+          color: colors.textSecondary,
+          spinner: false,
+        };
+      case 'unconfigured':
+        return {
+          icon: 'cloud-offline-outline' as const,
+          text: 'Cloud chưa cấu hình',
+          color: colors.textSecondary,
+          spinner: false,
+        };
       case 'error':
         return {
           icon: 'alert-circle-outline' as const,

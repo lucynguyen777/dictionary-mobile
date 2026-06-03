@@ -1,6 +1,6 @@
 # Deployment Options
 
-This app is ready to ship as a local-first build with the completed feature set documented in `docs/product-progress.md`.
+This app is ready to ship as v1.2.1 with the completed feature set documented in `docs/product-progress.md`.
 
 ## Current Deploy Scope
 
@@ -12,11 +12,14 @@ Enabled for this release:
 - Reader import/read/select/save/TTS/progress.
 - Flashcards and local learning analytics.
 - Profile local privacy/settings/export/reset/app lock.
+- Supabase Auth when public Supabase env vars are configured.
+- Manual beta Supabase Cloud Sync for signed-in users; no automatic foreground/background sync.
+- DeepL translation and AI Tutor through the Vercel `/backend-proxy` route when provider env vars are configured.
 - Offline pack status shell and current minimal futuristic UI polish.
 
 Parked as `Cập nhật trong phiên bản sau`:
 
-- Real OCR/STT, Google Sheets export, auth verification, cloud sync/backup, account deletion backend, feedback submission, production translation/glossary, AI chatbot, document translation, pronunciation scoring, unsupported language/source gates, and production etymology/conjugation.
+- Real OCR/STT, Google Sheets export, encrypted cloud backup/restore, account deletion backend, feedback submission, specialized document translation/glossary persistence, pronunciation scoring, unsupported language/source gates, and production etymology/conjugation.
 
 ## Required Verification
 
@@ -33,7 +36,7 @@ For UI changes, also smoke Expo web on one narrow mobile viewport and one deskto
 
 ## Web Deployment
 
-Selected first path: static Expo web export on Vercel.
+Selected first path: Expo web static export on Vercel plus a Vercel Function for backend proxy traffic.
 
 Build command:
 
@@ -78,14 +81,17 @@ Or connect the GitHub repository in the Vercel dashboard and use the same build 
 Route handling:
 
 - Static files are exported under `dist`.
+- `/backend-proxy/:path*` is rewritten to `/api/backend-proxy?path=:path*` so DeepL/OpenAI calls stay same-origin and server-side.
 - `/folder/:id` is rewritten to the exported dynamic route shell.
-- `/auth/callback` is rewritten to the exported callback shell, but auth remains parked for this local-first release.
+- `/auth/callback` is rewritten to the exported callback shell for Supabase Auth redirects.
 
 Notes:
 
-- The current app is local-first and should not require production secrets for web deploy.
-- If Supabase/auth/cloud features are enabled later, add the hosted web URL to the provider redirect allowlist before release.
-- Keep blocked feature copy visible and disabled; do not expose backend/OAuth/AI CTAs as production actions.
+- Local-first flows work without production secrets.
+- Supabase/Auth requires `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Vercel.
+- Backend proxy requires `DEEPL_API_BASE_URL`, `DEEPL_API_KEY`, `OPENAI_API_KEY`, and `OPENAI_TEXT_MODEL` in Vercel. Optional proxy limit env vars can tune quota.
+- Add `https://dictionaire-mobile.vercel.app/auth/callback` and the native `dictionairemobile://auth/callback` URL to the Supabase redirect allow-list before production auth smoke.
+- Keep blocked OCR/STT/OAuth/speech/source-gated copy visible and disabled.
 
 ## Native App Deployment
 
@@ -123,7 +129,7 @@ Before store submission:
 
 - Confirm the bundle/package identifiers match the real Apple Developer and Google Play Console app records.
 - Replace placeholder app display metadata, screenshots, privacy policy URL, support URL, and store listing copy.
-- Confirm App Privacy/Data Safety answers match the local-first release: local storage, local export/reset, no production auth/cloud/AI/OAuth in this release.
+- Confirm App Privacy/Data Safety answers match v1.2.1: local-first storage, local export/reset, Supabase Auth/manual beta Cloud Sync only when configured, AI/DeepL through backend proxy only when configured, and no Google OAuth in this release.
 - Camera, microphone, and photo-library permissions are intentionally not declared for this production config because Voice/OCR are parked for a later version.
 - Re-add native permissions only when real OCR/STT is production-enabled and tested in a dev-client/custom native build.
 
