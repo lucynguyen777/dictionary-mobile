@@ -88,7 +88,9 @@ Use JSONB columns for current simple array fields such as tags, because local UI
 
 ## Sync Flow
 
-1. On authenticated app start or foreground:
+1. Deferred beyond v1.2.2: on authenticated app start or foreground:
+   - v1.2.2 production behavior remains manual beta only; users must enable sync and tap "Sync now";
+   - automatic app-start/foreground sync requires a later accepted production toggle module;
    - load local SQLite snapshot;
    - pull remote rows changed after `lastSuccessfulSyncAt`;
    - apply remote tombstones first;

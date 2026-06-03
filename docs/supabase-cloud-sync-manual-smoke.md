@@ -2,9 +2,9 @@
 
 ## Goal
 
-Define the manual smoke gate for Supabase Cloud Sync before any production runtime sync is wired into the app. This document assumes the current code has only schema, metadata, mapper, and fake-client contracts.
+Define the manual smoke gate for Supabase Cloud Sync before any production runtime sync is accepted beyond the current manual beta toggle. The current app must run sync only when a signed-in user enables beta sync and taps "Đồng bộ ngay".
 
-This smoke prep does not enable realtime subscriptions, background jobs, encrypted backup, restore UX, service-role access, or a user-facing sync toggle.
+This smoke prep does not enable realtime subscriptions, background jobs, encrypted backup, restore UX, service-role access, or automatic app-start/foreground sync.
 
 ## Preconditions
 
@@ -61,16 +61,16 @@ Record only pass/fail notes locally; do not commit user ids, emails, tokens, or 
 
 ## Two-Device Manual Smoke Script
 
-This script is the acceptance shape for a later runtime sync module. It is not runnable until real client wiring exists.
+This script is the acceptance shape for the manual beta runtime. It intentionally uses explicit "Sync now" actions instead of app-start or foreground triggers.
 
 1. Device A signs in as User A.
 2. Device B signs in as the same User A.
 3. Device A creates a folder and saves one word to that folder.
-4. Device B runs a foreground/start sync and sees the folder plus saved word.
+4. Device B enables beta sync and taps "Đồng bộ ngay"; it sees the folder plus saved word.
 5. Device B edits the saved word note or tags.
-6. Device A runs foreground/start sync and sees the edited note or tags.
+6. Device A taps "Đồng bộ ngay" and sees the edited note or tags.
 7. Device A deletes the saved word.
-8. Device B runs foreground/start sync and the tombstone removes the saved word locally.
+8. Device B taps "Đồng bộ ngay" and the tombstone removes the saved word locally.
 9. Device A signs out.
 10. Device A local data remains on device unless the user chooses a reset/delete action.
 11. Device A signs back in and unsynced local dirty rows remain available for the next sync decision.
@@ -102,7 +102,7 @@ Optional after disposable Supabase setup:
 npm run web
 ```
 
-Then run auth smoke first, SQL/RLS probes second, and the two-device sync script only after runtime sync wiring exists.
+Then run auth smoke first, SQL/RLS probes second, and the two-device sync script only through the explicit manual sync action.
 
 ## Manual Runtime Harness
 
@@ -115,7 +115,7 @@ The harness may run only when:
 - local env values are uncommitted;
 - auth smoke and SQL/RLS review have already passed.
 
-Do not call this harness from app startup, Profile UI, background jobs, or production settings until the two-device manual smoke has passed and a separate production toggle module is accepted.
+Do not call this harness from app startup, background jobs, or automatic foreground events. Production UI may expose only the explicit manual beta sync action after the two-device manual smoke has passed.
 
 ## Execution Result Prep
 

@@ -91,7 +91,7 @@ Acceptance gate:
 ---
 
 ## DeepL + OpenAI Backend Proxy MVP
-Status: Implemented and wired for v1.2.1 through the Vercel `/backend-proxy` function. Users can translate definitions or reader highlight selections via DeepL, and converse, correct, or roleplay with the AI Tutor screen via OpenAI backend proxy when Supabase auth and provider env vars are configured. Quota limits are enforced server-side.
+Status: Implemented and wired for v1.2.2 through the Vercel `/backend-proxy` function. Users can translate definitions or reader highlight selections via DeepL, and converse, correct, or roleplay with the AI Tutor screen via OpenAI backend proxy when Supabase auth and provider env vars are configured. Quota limits are enforced server-side.
 
 Accepted:
 - DeepL translation and glossary support through backend proxy

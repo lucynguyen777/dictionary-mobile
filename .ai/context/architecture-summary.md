@@ -33,7 +33,7 @@ Each language or language pair should declare:
 - romanization/transliteration if needed
 
 ## Local-first Principle
-Do not make local features depend on backend availability. Backend/Auth/Cloud Sync may be configured in v1.2.1, but every core lookup, library, reader, flashcard, import/export, profile, and reset flow must keep working when Supabase or the backend proxy is unconfigured.
+Do not make local features depend on backend availability. Backend/Auth/Cloud Sync may be configured in v1.2.2, but every core lookup, library, reader, flashcard, import/export, profile, and reset flow must keep working when Supabase or the backend proxy is unconfigured.
 
 ## Backend-sensitive Areas
 These require production env, smoke verification, and rollback gates before being treated as fully live:

@@ -65,7 +65,7 @@ See [Testing And Build Guide](docs/testing-and-build-guide.md) for the full QA m
 
 ## Deployment
 
-The current deployable release is v1.2.1. It keeps local-first data ownership while enabling Supabase Auth, manual beta Cloud Sync, DeepL translation, and AI Tutor only when the required production environment variables and backend proxy are configured. The selected web deployment path is Vercel with Expo static output plus a Vercel Function for `/backend-proxy`.
+The current deployable release is v1.2.2. It keeps local-first data ownership while enabling Supabase Auth, manual beta Cloud Sync, DeepL translation, and AI Tutor only when the required production environment variables and backend proxy are configured. The selected web deployment path is Vercel with Expo static output plus a Vercel Function for `/backend-proxy`.
 
 ```bash
 npm run build:web:clean

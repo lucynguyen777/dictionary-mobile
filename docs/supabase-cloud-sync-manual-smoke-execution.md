@@ -35,7 +35,7 @@ Run smoke in this order:
    - `npm run lint`
 2. **Auth smoke**
    - Follow `docs/supabase-auth-manual-smoke.md`.
-   - Record platform, env state, auth mode, sign-in, callback, recovery, foreground/background, and sign-out results.
+   - Record platform, env state, auth mode, sign-in, callback, recovery, auth auto-refresh foreground/background, and sign-out results.
 3. **SQL/RLS migration review**
    - Apply `supabase/migrations/001_cloud_sync_mvp.sql` only to a disposable project.
    - Confirm all tables and policies from `docs/supabase-cloud-sync-manual-smoke.md`.
@@ -49,7 +49,7 @@ Run smoke in this order:
    - Run the create/update/delete/tombstone/sign-out/re-sign-in flow from `docs/supabase-cloud-sync-manual-smoke.md`.
 7. **Export/rollback check**
    - Confirm JSON export remains readable.
-   - Confirm the production toggle remains hidden/unimplemented.
+   - Confirm production sync remains manual beta only and never runs from app launch/foreground automatically.
    - Confirm disabling env or signing out stops sync without deleting local data.
 
 ## Result Template
@@ -110,7 +110,7 @@ Two-device smoke:
 Export/rollback:
 - JSON export readable:
 - Remove env disables sync safely:
-- Production UI toggle remains absent:
+- Production sync remains manual beta only:
 
 Decision:
 - PASS / FAIL / BLOCKED
@@ -125,7 +125,7 @@ Manual smoke can be considered passed only when:
 - auth smoke passes on web and at least one native/dev-client path;
 - SQL/RLS probes pass for own-user and cross-user access;
 - manual runtime harness does not mutate local data when disabled, unconfigured, signed-out, or offline;
-- two-device create/update/delete/tombstone flow passes;
+- two-device create/update/delete/tombstone flow passes through explicit "Sync now" actions;
 - sign-out and rollback preserve local data;
 - JSON export remains readable;
 - no secrets or disposable project identifiers are committed.
@@ -134,7 +134,7 @@ Manual smoke can be considered passed only when:
 
 If any smoke step fails:
 
-- keep production sync toggle blocked;
+- keep automatic production sync blocked;
 - record the failure in local notes outside git;
 - create a follow-up module with 3-5 focused tasks;
 - do not broaden the module to realtime, background sync, encrypted backup, or restore UX;

@@ -14,8 +14,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: no active easy task selected; v1.2.1 deploy is focused on release truth, backend proxy availability, and verification.
-- Medium next tasks: manual beta sync UX and docs/version reconciliation are selected for v1.2.1 stabilization.
+- Easy next tasks: release metadata and docs/copy consistency are selected for v1.2.2 support readiness.
+- Medium next tasks: manual beta sync smoke documentation and Profile support surface are selected for v1.2.2 stabilization.
 - Hard next tasks: Supabase Auth, Vercel backend proxy, DeepL/OpenAI, and manual beta Cloud Sync are implemented but remain production-gated by env vars, smoke verification, quotas, and RLS checks.
 - Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
 - Deferred scope: OCR/STT thật, Google Sheets export, encrypted cloud backup/restore, account deletion backend, feedback submission, specialized document translation/glossary persistence, pronunciation scoring, unsupported language/source gates, and production etymology/conjugation.
@@ -642,6 +642,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: v1.2.2 Release Consistency And Support Readiness** - IN PROGRESS
+- Module Completion Plan: ship v1.2.2 as a small stabilization release that keeps v1.2.1 behavior intact, makes the app/reporting surface clearly identify the deployed version, and removes stale docs/copy that still implies automatic cloud sync.
+- Acceptance criteria: version metadata says `1.2.2`, Profile exposes a compact release/support status without adding a new dependency or changing data models, cloud sync docs consistently describe manual beta sync only, static/unit verification passes, and the verified commit is pushed before deploy.
+- [x] DONE [EASY]: Bumped package/app release metadata and synced top-level release docs/context to v1.2.2.
+- [x] DONE [MEDIUM]: Added a small shared release metadata helper and Profile support/status surface so deployed builds show version and local-first/manual-sync scope.
+- [x] DONE [MEDIUM]: Rewrote Supabase Cloud Sync smoke docs to use explicit "Sync now" manual steps instead of foreground/start sync wording.
+- [x] DONE [EASY]: Added release consistency tests covering metadata alignment and manual-sync doc guardrails.
+- [~] IN PROGRESS [MEDIUM]: Run static/unit/build verification, commit/push, deploy the pushed version, and smoke test production.
 
 **Module: v1.2.1 Stabilization And Deploy Wiring** - DONE
 - Module Completion Plan: stabilize the already implemented v1.2.0 Supabase/Auth/AI/translation work for v1.2.1 deploy without expanding into broad v1.3 feature scope.

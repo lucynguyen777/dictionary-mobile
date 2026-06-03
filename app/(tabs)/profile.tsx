@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
+import { APP_RELEASE, getAppReleaseSummary } from '@/constants/appRelease';
 import { triggerManualSync } from '@/data/supabaseSyncLifecycle';
 import {
   ActivityState,
@@ -792,6 +793,15 @@ export default function ProfileScreen() {
                 <Text style={styles.sidebarProfileMeta} numberOfLines={1}>
                   {authSession.email ?? (profile.username ? `@${profile.username}` : profile.email || 'Hồ sơ local')}
                 </Text>
+              </View>
+            </View>
+            <View style={styles.releaseStatusPanel}>
+              <View style={styles.releaseStatusIcon}>
+                <Ionicons name="rocket-outline" size={14} color="#5645D4" />
+              </View>
+              <View style={styles.releaseStatusCopy}>
+                <Text style={styles.releaseStatusTitle} numberOfLines={1}>{getAppReleaseSummary()}</Text>
+                <Text style={styles.releaseStatusText} numberOfLines={2}>{APP_RELEASE.deployScope}</Text>
               </View>
             </View>
 
@@ -1992,6 +2002,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     marginTop: 2,
+  },
+  releaseStatusPanel: {
+    alignItems: 'center',
+    backgroundColor: '#F8F7FF',
+    borderColor: '#D8D3FF',
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 9,
+    marginBottom: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  releaseStatusIcon: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E7E5FF',
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 28,
+    justifyContent: 'center',
+    width: 28,
+  },
+  releaseStatusCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  releaseStatusTitle: {
+    color: '#2F247F',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  releaseStatusText: {
+    color: '#5F5A8F',
+    fontSize: 11,
+    fontWeight: '700',
+    lineHeight: 15,
+    marginTop: 1,
   },
   sidebarGroupLabel: {
     color: '#787671',
