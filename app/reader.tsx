@@ -42,7 +42,7 @@ const PREFS_STORAGE_KEY = 'dictionary-mobile.reader-prefs.v1';
 
 type ReaderTheme = 'light' | 'dark' | 'sepia';
 type VoiceProfile = 'female' | 'male' | 'child' | 'old';
-type ReaderSheet = 'settings' | 'audio' | 'toc' | null;
+type ReaderSheet = 'settings' | 'toc' | null;
 
 type ReaderPreferences = {
   theme: ReaderTheme;
@@ -120,11 +120,15 @@ export default function ReaderScreen() {
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [scrubberWidth, setScrubberWidth] = useState(0);
+  const [audioScrubberWidth, setAudioScrubberWidth] = useState(0);
 
   // TTS State
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
   const [activeSheet, setActiveSheet] = useState<ReaderSheet>(null);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [showAudioProgress, setShowAudioProgress] = useState(false);
+  const autoScrollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load preferences and state
   useFocusEffect(
@@ -163,6 +167,35 @@ export default function ReaderScreen() {
       Speech.stop();
     };
   }, []);
+
+  useEffect(() => {
+    if (!isAutoScrolling) {
+      if (autoScrollTimerRef.current) {
+        clearInterval(autoScrollTimerRef.current);
+        autoScrollTimerRef.current = null;
+      }
+      return;
+    }
+
+    autoScrollTimerRef.current = setInterval(() => {
+      if (!scrollViewRef.current || contentHeight <= scrollViewHeight) return;
+
+      setScrollOffset((currentOffset) => {
+        const maxOffset = Math.max(0, contentHeight - scrollViewHeight);
+        const nextOffset = Math.min(maxOffset, currentOffset + Math.max(2, preferences.ttsSpeed * 3));
+        scrollViewRef.current?.scrollTo({ y: nextOffset, animated: false });
+        if (nextOffset >= maxOffset) setIsAutoScrolling(false);
+        return nextOffset;
+      });
+    }, 80);
+
+    return () => {
+      if (autoScrollTimerRef.current) {
+        clearInterval(autoScrollTimerRef.current);
+        autoScrollTimerRef.current = null;
+      }
+    };
+  }, [contentHeight, isAutoScrolling, preferences.ttsSpeed, scrollViewHeight]);
 
   const selectedDocument = readerState.documents.find((document) => document.id === readerState.selectedDocumentId);
   const readerTokens = useMemo(() => tokenizeReaderText(selectedDocument?.content ?? ''), [selectedDocument?.content]);
@@ -363,19 +396,28 @@ export default function ReaderScreen() {
 
   const handleNextPage = () => {
     if (!scrollViewRef.current) return;
+    setIsAutoScrolling(false);
     const nextOffset = Math.min(Math.max(0, contentHeight - scrollViewHeight), scrollOffset + scrollViewHeight * 0.82);
     scrollViewRef.current.scrollTo({ y: nextOffset, animated: true });
   };
 
   const handlePrevPage = () => {
     if (!scrollViewRef.current) return;
+    setIsAutoScrolling(false);
     const prevOffset = Math.max(0, scrollOffset - scrollViewHeight * 0.82);
     scrollViewRef.current.scrollTo({ y: prevOffset, animated: true });
   };
 
-  const handleJumpToSentence = (index: number) => {
+  const handleJumpToProgress = (pct: number) => {
     setActiveSheet(null);
-    scrollToActiveSentence(index);
+    setIsAutoScrolling(false);
+    handleProgressChange(pct);
+  };
+
+  const handleSelectDocumentFromToc = (documentId: string) => {
+    handleSelectDocument(documentId);
+    setActiveSheet(null);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   // ----------------------------------------------------
@@ -451,6 +493,11 @@ export default function ReaderScreen() {
     }
   };
 
+  const handleAutoScrollToggle = () => {
+    if (contentHeight <= scrollViewHeight) return;
+    setIsAutoScrolling((value) => !value);
+  };
+
   const handleStop = () => {
     Speech.stop();
     setIsSpeaking(false);
@@ -469,6 +516,18 @@ export default function ReaderScreen() {
     if (prevIdx >= 0) {
       startSpeaking(prevIdx, preferences.ttsSpeed, preferences.ttsVoice);
     }
+  };
+
+  const audioProgress = useMemo(() => {
+    if (!sentences.length) return 0;
+    return Math.min(100, Math.max(0, (((activeSentenceIndex ?? 0) + 1) / sentences.length) * 100));
+  }, [activeSentenceIndex, sentences.length]);
+
+  const handleAudioScrubberTouch = (event: GestureResponderEvent) => {
+    if (!sentences.length || audioScrubberWidth <= 0) return;
+    const pct = Math.min(100, Math.max(0, (event.nativeEvent.locationX / audioScrubberWidth) * 100));
+    const index = Math.min(sentences.length - 1, Math.max(0, Math.floor((pct / 100) * sentences.length)));
+    startSpeaking(index, preferences.ttsSpeed, preferences.ttsVoice);
   };
 
   return (
@@ -634,11 +693,7 @@ export default function ReaderScreen() {
         <View style={[styles.scrubberPanel, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
           <View style={styles.scrubberInfo}>
             <Text style={[styles.scrubberPercentage, { color: activeTheme.text }]}>{Math.round(progress)}%</Text>
-            {sentences.length > 0 && (
-              <Text style={[styles.scrubberSentences, { color: activeTheme.secondaryText }]}>
-                Câu {activeSentenceIndex !== null ? activeSentenceIndex + 1 : 1}/{sentences.length}
-              </Text>
-            )}
+            <Text style={[styles.scrubberSentences, { color: activeTheme.secondaryText }]}>Tiến trình đọc</Text>
           </View>
           
           <View
@@ -652,11 +707,36 @@ export default function ReaderScreen() {
             </View>
             <View style={[styles.scrubberThumbCircle, { left: `${Math.min(97, Math.max(0, progress))}%`, backgroundColor: activeTheme.accent, borderColor: activeTheme.cardBg }]} />
           </View>
+          {showAudioProgress ? (
+            <View style={[styles.audioProgressPanel, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
+              <TouchableOpacity activeOpacity={0.82} onPress={handlePrevSentence} style={styles.audioSeekButton}>
+                <Ionicons name="play-skip-back" size={18} color={activeTheme.accent} />
+              </TouchableOpacity>
+              <View
+                style={styles.audioScrubberTouchArea}
+                onLayout={(e) => setAudioScrubberWidth(e.nativeEvent.layout.width)}
+                onTouchMove={handleAudioScrubberTouch}
+                onTouchStart={handleAudioScrubberTouch}>
+                <View style={[styles.audioScrubberTrack, { backgroundColor: activeTheme.border }]}>
+                  <View style={[styles.audioScrubberProgress, { backgroundColor: activeTheme.accent, width: `${audioProgress}%` }]} />
+                </View>
+              </View>
+              <Text style={[styles.audioProgressText, { color: activeTheme.secondaryText }]}>
+                {sentences.length ? `${Math.min(sentences.length, (activeSentenceIndex ?? 0) + 1)}/${sentences.length}` : '0/0'}
+              </Text>
+              <TouchableOpacity activeOpacity={0.82} onPress={handlePlayPause} style={styles.audioSeekButton}>
+                <Ionicons name={isSpeaking ? 'pause' : 'play'} size={18} color={activeTheme.accent} />
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.82} onPress={handleNextSentence} style={styles.audioSeekButton}>
+                <Ionicons name="play-skip-forward" size={18} color={activeTheme.accent} />
+              </TouchableOpacity>
+            </View>
+          ) : null}
           <View style={styles.readerDockControls}>
             <ReaderDockButton icon="chevron-back" label="Trang trước" onPress={handlePrevPage} theme={activeTheme} />
             <ReaderDockButton icon="settings-outline" label="Cài đặt" onPress={() => setActiveSheet('settings')} theme={activeTheme} />
-            <ReaderDockButton icon={isSpeaking ? 'pause' : 'play'} isPrimary label="Đọc TTS" onPress={handlePlayPause} theme={activeTheme} />
-            <ReaderDockButton icon="headset-outline" label="Audio" onPress={() => setActiveSheet('audio')} theme={activeTheme} />
+            <ReaderDockButton icon={isAutoScrolling ? 'pause' : 'play'} isPrimary label="Tự động cuộn" onPress={handleAutoScrollToggle} theme={activeTheme} />
+            <ReaderDockButton icon="headset-outline" isActive={showAudioProgress} label="Audio" onPress={() => setShowAudioProgress((value) => !value)} theme={activeTheme} />
             <ReaderDockButton icon="list-outline" label="Mục lục" onPress={() => setActiveSheet('toc')} theme={activeTheme} />
             <ReaderDockButton icon="chevron-forward" label="Trang sau" onPress={handleNextPage} theme={activeTheme} />
           </View>
@@ -678,7 +758,7 @@ export default function ReaderScreen() {
                 <Ionicons name="close" size={20} color={activeTheme.accent} />
               </TouchableOpacity>
               <Text style={[styles.sheetTitle, { color: activeTheme.text }]}>
-                {activeSheet === 'audio' ? 'Thiết lập audio' : activeSheet === 'toc' ? 'Mục lục' : 'Thiết lập giao diện'}
+                {activeSheet === 'toc' ? 'Mục lục' : 'Thiết lập giao diện'}
               </Text>
               <View style={styles.sheetHeaderSpacer} />
             </View>
@@ -691,22 +771,15 @@ export default function ReaderScreen() {
                   backgroundOptions={backgroundOptions}
                   handleSelectBackground={handleSelectBackground}
                   handleUpdateSettings={handleUpdateSettings}
-                  preferences={preferences}
-                  readerState={readerState}
-                  themeOptions={themeOptions}
-                  updatePreferences={updatePreferences}
-                />
-              ) : null}
-              {activeSheet === 'audio' ? (
-                <ReaderAudioSheet
-                  activeTheme={activeTheme}
                   handleNextSentence={handleNextSentence}
                   handlePlayPause={handlePlayPause}
                   handlePrevSentence={handlePrevSentence}
                   handleStop={handleStop}
                   isSpeaking={isSpeaking}
                   preferences={preferences}
+                  readerState={readerState}
                   speedOptions={speedOptions}
+                  themeOptions={themeOptions}
                   updatePreferences={updatePreferences}
                   voiceProfiles={voiceProfiles}
                 />
@@ -715,10 +788,9 @@ export default function ReaderScreen() {
                 <ReaderTocSheet
                   activeTheme={activeTheme}
                   documents={readerState.documents}
-                  handleJumpToSentence={handleJumpToSentence}
-                  handleSelectDocument={handleSelectDocument}
+                  handleJumpToProgress={handleJumpToProgress}
+                  handleSelectDocument={handleSelectDocumentFromToc}
                   selectedDocumentId={readerState.selectedDocumentId}
-                  sentences={sentences}
                 />
               ) : null}
             </ScrollView>
@@ -731,12 +803,14 @@ export default function ReaderScreen() {
 
 function ReaderDockButton({
   icon,
+  isActive = false,
   isPrimary = false,
   label,
   onPress,
   theme,
 }: {
   icon: ComponentProps<typeof Ionicons>['name'];
+  isActive?: boolean;
   isPrimary?: boolean;
   label: string;
   onPress: () => void;
@@ -750,6 +824,7 @@ function ReaderDockButton({
       style={[
         styles.readerDockButton,
         { backgroundColor: isPrimary ? theme.accent : theme.bg, borderColor: theme.border },
+        isActive && { backgroundColor: theme.accentLight, borderColor: theme.accent },
         isPrimary && styles.readerDockPrimaryButton,
       ]}>
       <Ionicons name={icon} size={isPrimary ? 23 : 21} color={isPrimary ? '#FFFFFF' : theme.accent} />
@@ -763,20 +838,34 @@ function ReaderSettingsSheet({
   fontOptions,
   handleSelectBackground,
   handleUpdateSettings,
+  handleNextSentence,
+  handlePlayPause,
+  handlePrevSentence,
+  handleStop,
+  isSpeaking,
   preferences,
   readerState,
+  speedOptions,
   themeOptions,
   updatePreferences,
+  voiceProfiles,
 }: {
   activeTheme: ReaderThemeColors;
   backgroundOptions: { label: string; value: string; text: string; name: string }[];
   fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[];
   handleSelectBackground: (bgColor: string, themeMode: ReaderTheme) => void;
   handleUpdateSettings: (settings: Partial<ReaderSettings>) => void;
+  handleNextSentence: () => void;
+  handlePlayPause: () => void;
+  handlePrevSentence: () => void;
+  handleStop: () => void;
+  isSpeaking: boolean;
   preferences: ReaderPreferences;
   readerState: ReaderState;
+  speedOptions: number[];
   themeOptions: { label: string; value: ReaderTheme; name: string }[];
   updatePreferences: (newPrefs: Partial<ReaderPreferences>) => Promise<void>;
+  voiceProfiles: { label: string; value: VoiceProfile; desc: string }[];
 }) {
   return (
     <>
@@ -864,35 +953,8 @@ function ReaderSettingsSheet({
           );
         })}
       </View>
-    </>
-  );
-}
 
-function ReaderAudioSheet({
-  activeTheme,
-  handleNextSentence,
-  handlePlayPause,
-  handlePrevSentence,
-  handleStop,
-  isSpeaking,
-  preferences,
-  speedOptions,
-  updatePreferences,
-  voiceProfiles,
-}: {
-  activeTheme: ReaderThemeColors;
-  handleNextSentence: () => void;
-  handlePlayPause: () => void;
-  handlePrevSentence: () => void;
-  handleStop: () => void;
-  isSpeaking: boolean;
-  preferences: ReaderPreferences;
-  speedOptions: number[];
-  updatePreferences: (newPrefs: Partial<ReaderPreferences>) => Promise<void>;
-  voiceProfiles: { label: string; value: VoiceProfile; desc: string }[];
-}) {
-  return (
-    <>
+      <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Thiết lập audio</Text>
       <View style={styles.ttsControlBar}>
         <TouchableOpacity activeOpacity={0.8} onPress={handlePrevSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="play-skip-back" size={20} color={activeTheme.accent} />
@@ -957,19 +1019,23 @@ function ReaderAudioSheet({
 function ReaderTocSheet({
   activeTheme,
   documents,
-  handleJumpToSentence,
+  handleJumpToProgress,
   handleSelectDocument,
   selectedDocumentId,
-  sentences,
 }: {
   activeTheme: ReaderThemeColors;
   documents: ReaderState['documents'];
-  handleJumpToSentence: (index: number) => void;
+  handleJumpToProgress: (pct: number) => void;
   handleSelectDocument: (documentId: string) => void;
   selectedDocumentId: string;
-  sentences: string[];
 }) {
-  const sentenceSamples = sentences.slice(0, 24);
+  const readingAnchors = [
+    { label: 'Đầu tài liệu', pct: 0 },
+    { label: '25%', pct: 25 },
+    { label: '50%', pct: 50 },
+    { label: '75%', pct: 75 },
+    { label: 'Cuối tài liệu', pct: 100 },
+  ];
 
   return (
     <>
@@ -996,20 +1062,18 @@ function ReaderTocSheet({
         })}
       </View>
 
-      <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Đoạn nhanh</Text>
-      {sentenceSamples.length ? sentenceSamples.map((sentence, index) => (
+      <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Vị trí đọc nhanh</Text>
+      {readingAnchors.map((anchor) => (
         <TouchableOpacity
           activeOpacity={0.82}
-          key={`${sentence}-${index}`}
-          onPress={() => handleJumpToSentence(index)}
+          key={anchor.label}
+          onPress={() => handleJumpToProgress(anchor.pct)}
           style={[styles.tocRow, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
-          <Text style={[styles.tocRowText, { color: activeTheme.text }]} numberOfLines={2}>
-            {index + 1}. {sentence}
+          <Text style={[styles.tocRowText, { color: activeTheme.text }]}>
+            {anchor.label}
           </Text>
         </TouchableOpacity>
-      )) : (
-        <Text style={[styles.emptyText, { color: activeTheme.secondaryText }]}>Chưa có mục lục cho tài liệu này.</Text>
-      )}
+      ))}
     </>
   );
 }
@@ -1095,7 +1159,7 @@ function createReaderDictionaryEntry(word: string): DictionaryEntry {
 
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: 156,
+    paddingBottom: 190,
     paddingHorizontal: 18,
     paddingTop: 14,
   },
@@ -1454,6 +1518,43 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '50%',
     width: 14,
+  },
+  audioProgressPanel: {
+    alignItems: 'center',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  audioSeekButton: {
+    alignItems: 'center',
+    borderRadius: 999,
+    height: 30,
+    justifyContent: 'center',
+    width: 30,
+  },
+  audioScrubberTouchArea: {
+    flex: 1,
+    height: 24,
+    justifyContent: 'center',
+  },
+  audioScrubberTrack: {
+    borderRadius: 3,
+    height: 4,
+    overflow: 'hidden',
+  },
+  audioScrubberProgress: {
+    borderRadius: 3,
+    height: '100%',
+  },
+  audioProgressText: {
+    fontSize: 11,
+    fontWeight: '800',
+    minWidth: 42,
+    textAlign: 'center',
   },
   readerDockControls: {
     alignItems: 'center',
