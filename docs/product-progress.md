@@ -49,6 +49,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Current Baseline
 - Latest completed commits:
+  - `42f1cc3` feat(release): prepare v1.3.0 product readiness
   - `37dfa88` feat(reader): add dark mode, theme customization, AI TTS voice reader, and reading progress scrubber
   - `ad5c9f2` feat(profile): refine streak heatmap
   - `5c7fb30` feat(ui): restyle analytics charts
