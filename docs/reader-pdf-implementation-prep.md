@@ -45,7 +45,7 @@ Why this path:
 - `digital-columns.pdf` either extracts readable order or returns a layout warning.
 - `empty.pdf` maps to the existing empty-text error.
 - `scanned-image.pdf` maps to OCR-required unsupported copy.
-- Oversize local fixture hits the 10MB guard before parser work.
+- Oversize local fixture hits the 50MB guard before parser work.
 - Expo Go behavior is explicit if any native parser is selected.
 
 ## Next Implementation Slice

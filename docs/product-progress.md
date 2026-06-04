@@ -47,6 +47,18 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Source-gated/unavailable: Cantonese, Uyghur, VI to FR, Basque, Ainu, Quechua, Nahuatl, and Guarani remain blocked until source/license gates pass.
 - Anh-Viet parity criteria: enough headword coverage, morphology, examples, related words, attribution, import/offline packaging path, UI smoke, and tests. Machine translation must not be used as dictionary data.
 
+### Language Parity Completion Plan
+
+Goal: raise preview languages toward the Anh-Viet production standard without pretending fixture-backed dictionaries are already production dictionaries.
+
+1. **Coverage Inventory Module**: for every preview adapter, count current local/API source coverage, morphology coverage, example availability, related words, attribution metadata, UI smoke, and tests. Output a per-language readiness table.
+2. **Source And License Gate Module**: for each preview/gated language, select an approved primary lexical source, record license/attribution/export obligations, and reject any path that only uses machine translation as dictionary data.
+3. **Packaged Corpus Module**: build or connect larger Wiktionary/Kaikki/raw-dump based corpora with attribution metadata, import/offline packaging, checksum, and source date.
+4. **Parity Adapter Module**: expand adapters beyond tiny fixtures with production lookup behavior: exact lookup, morphology, examples, related words, pronunciation/romanization where available, and missing-result behavior.
+5. **Parity QA Module**: add language-specific fixture tests, UI smoke tests for Word/Reader/Library flows, offline pack smoke where available, and dashboard status updates before moving any language from preview to production parity.
+
+Recommended execution order: Spanish/French/English-family Latin-script expansion first, then already implemented high-usage scripts (Arabic/Hebrew, Japanese/Korean/Mandarin, Hindi), then remaining preview families, then source-gated languages only after the matching source gate passes.
+
 ## Current Baseline
 - Latest completed commits:
   - `42f1cc3` feat(release): prepare v1.3.0 product readiness
@@ -358,7 +370,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [HARD]: Import EPUB/PDF/DOCX after HTML; DOCX Mammoth-to-HTML, EPUB spine/chapter, and PDF.js-style extraction are fully integrated and verified via unit tests and browser smoke tests.
 - [x] DONE [MEDIUM]: Better text selection/highlight behavior beyond tap-token flow (commit `4ed73c1`).
 - [x] DONE: Create flashcards directly from Reader highlights.
-- [x] DONE [HARD]: Harden Reader structured imports: add file-size (10MB limit) and empty-text limits.
+- [x] DONE [HARD]: Harden Reader structured imports: add file-size (50MB limit) and empty-text limits.
 - [x] DONE [HARD]: Reader PDF extraction fixture gate: dev-client/web fixture expectations are documented and PDF remains disabled until a digital PDF test path is verified.
 - [x] DONE [HARD]: Reader PDF extraction implementation preparation: repo-owned digital/empty/image-only fixtures are committed, parser path is selected as web-first PDF.js-style prototype before native dev-client evaluation, and PDF remains disabled.
 - [x] DONE [HARD]: Reader PDF extraction parser prototype: PDF.js-style parser abstraction and fixture tests cover digital, empty, and image-only PDFs while app PDF import remains disabled.
@@ -678,6 +690,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: v1.3.1 Guest Theme Reader Hotfix And Language Parity Plan** - DONE
+- Module Completion Plan: fix the immediately visible product-readiness gaps reported after v1.3.0, keep guest mode honest, make app theme toggling actually affect the root shell, refine Reader selection/TOC/import/layout behavior, run CodeGraph as a local dev tool, and turn language parity from a dashboard into an execution plan.
+- Acceptance criteria: guest default profile no longer shows fake avatar/goal/proficiency data; Home light/dark toggle updates root theme and token consumers; Reader highlight actions sit above the reading text and use dropdown language selectors; Reader TOC shows document headings/chapters only when present; Reader import cap is 50MB and rough headings/lists/tables survive import; CodeGraph local index has been created but remains ignored; language parity plan has concrete modules and source gates; verification passes before commit/push/deploy.
+- [x] DONE [EASY]: Run CodeGraph locally with `npx @colbymchenry/codegraph init -i` and keep `.codegraph/` ignored.
+- [x] DONE [MEDIUM]: Fix guest profile presentation and app-wide theme toggle plumbing.
+- [x] DONE [MEDIUM]: Refine Reader highlight dropdowns, overlay placement, real TOC extraction, 50MB import cap, and rough layout preservation.
+- [x] DONE [MEDIUM]: Add language parity completion plan for preview/gated languages without claiming production parity prematurely.
+- [x] DONE [MEDIUM]: Run verification/security checks and prepare the commit/push/deploy handoff.
 
 **Module: v1.3.0 Product Readiness, Reader Fixes, Auth, Language Parity, Progress Dashboard** - DONE
 - Module Completion Plan: ship one larger milestone that fixes Reader product-readiness gaps, clarifies guest/auth capability, adds lookup source detection, corrects language/readiness dashboards, and documents CodeGraph as optional dev tooling without adding runtime dependency.

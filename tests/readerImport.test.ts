@@ -32,8 +32,19 @@ describe('readerImport', () => {
     const result = extractReaderText('sample.html', '<h1>Hello</h1><p>Reader&nbsp;text</p>');
 
     expect(result.sourceFormat).toBe('html');
-    expect(result.content).toContain('Hello');
+    expect(result.content).toContain('# Hello');
     expect(result.content).toContain('Reader text');
+  });
+
+  it('preserves rough layout markers for headings, lists, and table cells', () => {
+    const result = extractReaderText(
+      'layout.html',
+      '<h2>Chapter One</h2><ul><li>First term</li></ul><table><tr><td>Word</td><td>Meaning</td></tr></table>'
+    );
+
+    expect(result.content).toContain('## Chapter One');
+    expect(result.content).toContain('- First term');
+    expect(result.content).toContain('Word | Meaning');
   });
 
   it('detects unsupported structured document formats before parsing binary content', () => {
@@ -61,7 +72,7 @@ describe('readerImport', () => {
       value: '<h1>Lesson</h1><p>Hello&nbsp;DOCX</p><script>ignore()</script>',
     }));
 
-    expect(text).toBe('Lesson\n\nHello DOCX');
+    expect(text).toBe('# Lesson\n\nHello DOCX');
   });
 
   it('extracts EPUB chapters in spine order', async () => {
@@ -90,7 +101,7 @@ describe('readerImport', () => {
 
     const buffer = await epub.generateAsync({ type: 'arraybuffer' });
 
-    await expect(extractEpubReaderText(buffer)).resolves.toBe('One\n\nHello EPUB.\n\nTwo\n\nSecond chapter.');
+    await expect(extractEpubReaderText(buffer)).resolves.toBe('# One\n\nHello EPUB.\n\n# Two\n\nSecond chapter.');
   });
 
   it('imports EPUB documents through the async Reader document path', async () => {
@@ -163,7 +174,7 @@ describe('readerImport', () => {
   });
 
   it('rejects files exceeding the size limit', async () => {
-    const largeContent = 'a'.repeat(10 * 1024 * 1024 + 1); // > 10MB
+    const largeContent = 'a'.repeat(50 * 1024 * 1024 + 1); // > 50MB
     await expect(extractReaderDocument('large.txt', largeContent)).rejects.toThrow('Kích thước file quá lớn');
   });
 

@@ -514,7 +514,14 @@ export default function ProfileScreen() {
   const offlinePackRuntimeOptions = { supportsSqliteRuntime: Platform.OS !== 'web' };
   const offlinePackSummary = getOfflinePackSummary(offlineDictionaryPacks, offlinePackRuntimeOptions);
   const offlinePackInstallSummary = getOfflinePackInstallSummary(offlinePackInstallState);
-  const avatarUri = profile.avatarUrl || defaultAvatarUri;
+  const isSignedIn = authSession.status === 'authenticated' || authSession.status === 'needs_verification';
+  const isDefaultGuestProfile =
+    !isSignedIn &&
+    profile.displayName === getDefaultProfile().displayName &&
+    !profile.email &&
+    !profile.username &&
+    !profile.avatarUrl;
+  const avatarUri = profile.avatarUrl || (isDefaultGuestProfile ? '' : defaultAvatarUri);
   const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
   const dashboardNow = new Date();
   const activitySummary = getActivitySummary(activityState, dashboardNow);
@@ -556,12 +563,20 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHero}>
           <View style={styles.heroTopRow}>
-            <Image source={{ uri: avatarUri }} style={styles.heroAvatar} />
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.heroAvatar} />
+            ) : (
+              <View style={styles.heroGuestAvatar}>
+                <Ionicons name="person-outline" size={26} color="#6D5B8F" />
+              </View>
+            )}
             <View style={styles.heroIdentity}>
               <Text style={styles.heroEyebrow}>Hồ sơ học tập</Text>
               <Text style={styles.heroName} numberOfLines={1}>{profile.displayName}</Text>
               <Text style={styles.heroMeta} numberOfLines={2}>
-                {nativeLanguage?.label ?? profile.nativeLanguage} → {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel}
+                {isDefaultGuestProfile
+                  ? 'Chưa thiết lập hồ sơ · dữ liệu học tập chỉ lưu local'
+                  : `${nativeLanguage?.label ?? profile.nativeLanguage} → ${learningLanguage?.label ?? profile.learningLanguage} · ${profile.proficiencyLevel}`}
               </Text>
               <View style={styles.heroAuthBadge}>
                 <Ionicons
@@ -585,13 +600,20 @@ export default function ProfileScreen() {
             </Pressable>
           </View>
 
-          <View style={styles.heroGoalRow}>
-            <View style={styles.goalBadge}>
-              <Ionicons name="flame-outline" size={16} color="#EA580C" />
-              <Text style={styles.goalBadgeText} numberOfLines={1}>{profile.dailyGoal}</Text>
+          {!isDefaultGuestProfile ? (
+            <View style={styles.heroGoalRow}>
+              <View style={styles.goalBadge}>
+                <Ionicons name="flame-outline" size={16} color="#EA580C" />
+                <Text style={styles.goalBadgeText} numberOfLines={1}>{profile.dailyGoal}</Text>
+              </View>
+              <Text style={styles.goalText} numberOfLines={2}>{profile.learningGoal}</Text>
             </View>
-            <Text style={styles.goalText} numberOfLines={2}>{profile.learningGoal}</Text>
-          </View>
+          ) : (
+            <View style={styles.guestSetupNotice}>
+              <Ionicons name="information-circle-outline" size={16} color="#5645D4" />
+              <Text style={styles.guestSetupText}>Khách chưa có hồ sơ cá nhân. Bạn vẫn có thể học local, hoặc mở cài đặt để đăng nhập/thiết lập hồ sơ.</Text>
+            </View>
+          )}
 
           <View style={styles.heroMetricRow}>
             <ProfileMetric value={libraryState.savedWords.length} label="Từ đã lưu" />
@@ -1668,6 +1690,16 @@ const styles = StyleSheet.create({
     height: 60,
     width: 60,
   },
+  heroGuestAvatar: {
+    alignItems: 'center',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+    borderRadius: 30,
+    borderWidth: 1,
+    height: 60,
+    justifyContent: 'center',
+    width: 60,
+  },
   heroIdentity: {
     flex: 1,
     minWidth: 0,
@@ -1730,6 +1762,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     padding: 10,
+  },
+  guestSetupNotice: {
+    alignItems: 'center',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 14,
+    padding: 12,
+  },
+  guestSetupText: {
+    color: '#4C1D95',
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
   },
   goalBadge: {
     alignItems: 'center',

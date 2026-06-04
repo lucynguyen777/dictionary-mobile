@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
-import { ComponentProps, Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   GestureResponderEvent,
@@ -46,6 +46,12 @@ const PREFS_STORAGE_KEY = 'dictionary-mobile.reader-prefs.v1';
 
 type VoiceProfile = 'female' | 'male' | 'child' | 'old';
 type ReaderSheet = 'settings' | 'toc' | null;
+type ReaderTocItem = {
+  id: string;
+  label: string;
+  level: number;
+  pct: number;
+};
 
 type ReaderPreferences = {
   theme: ReaderThemeMode;
@@ -216,6 +222,7 @@ export default function ReaderScreen() {
 
   const selectedDocument = readerState.documents.find((document) => document.id === readerState.selectedDocumentId);
   const readerTokens = useMemo(() => tokenizeReaderText(selectedDocument?.content ?? ''), [selectedDocument?.content]);
+  const readerTocItems = useMemo(() => buildReaderTocItems(selectedDocument?.content ?? ''), [selectedDocument?.content]);
   const isRtl = useMemo(() => /[\u0600-\u06FF\u0590-\u05FF]/.test(selectedDocument?.content ?? ''), [selectedDocument?.content]);
 
   // Compute sentences inside the document content
@@ -638,68 +645,67 @@ export default function ReaderScreen() {
             <Text style={[styles.readerTitle, { color: activeTheme.text }, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>
               {selectedDocument.title}
             </Text>
+            {selectionRange && selectedHighlightText ? (
+              <ReaderHighlightPanel
+                activeTheme={activeTheme}
+                quickNote={quickNote}
+                readerSaveMessage={readerSaveMessage}
+                selectedHighlightText={selectedHighlightText}
+                sourceLanguageCode={readerSourceLang}
+                targetLanguageCode={readerTargetLang}
+                onClose={handleCloseSelection}
+                onCreateFlashcard={handleCreateFlashcardFromSelection}
+                onLookup={handleOpenLookup}
+                onSave={handleSaveSelection}
+                onSelectLanguage={handleReaderLanguageSelect}
+                onUpdateNote={setQuickNote}
+              />
+            ) : null}
             <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
               {readerTokens.map((token, index) => {
                 const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F]/.test(token);
                 const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
-                const shouldShowInlinePanel = selectionRange && selectedHighlightText && index === selectionRange.end;
 
                 // Highlight active sentence currently being read by AI
                 const tokenSentenceIdx = tokenToSentenceMap[index];
                 const isActiveSentence = activeSentenceIndex !== null && tokenSentenceIdx === activeSentenceIndex;
 
                 return (
-                  <Fragment key={`${token}-${index}`}>
-                    {isWord ? (
-                      <TouchableOpacity
-                        activeOpacity={0.72}
-                        onPress={() => handleTokenPress(index)}
-                        style={[
-                          inSelection && styles.selectedRangeWord,
-                          isActiveSentence && { backgroundColor: activeTheme.highlightBg, borderRadius: 2 },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.readerWord,
-                            { color: readerPageTextColor },
-                            getReaderTextStyle(readerState.settings),
-                            inSelection && { color: activeTheme.highlightText },
-                            isActiveSentence && { color: activeTheme.highlightText },
-                          ]}
-                        >
-                          {token}
-                        </Text>
-                      </TouchableOpacity>
-                    ) : (
+                  isWord ? (
+                    <TouchableOpacity
+                      key={`${token}-${index}`}
+                      activeOpacity={0.72}
+                      onPress={() => handleTokenPress(index)}
+                      style={[
+                        inSelection && styles.selectedRangeWord,
+                        isActiveSentence && { backgroundColor: activeTheme.highlightBg, borderRadius: 2 },
+                      ]}
+                    >
                       <Text
                         style={[
                           styles.readerWord,
                           { color: readerPageTextColor },
                           getReaderTextStyle(readerState.settings),
-                          isActiveSentence && { backgroundColor: activeTheme.highlightBg, color: activeTheme.highlightText, borderRadius: 2 },
+                          inSelection && { color: activeTheme.highlightText },
+                          isActiveSentence && { color: activeTheme.highlightText },
                         ]}
                       >
                         {token}
                       </Text>
-                    )}
-                    {shouldShowInlinePanel ? (
-                      <ReaderHighlightPanel
-                        activeTheme={activeTheme}
-                        quickNote={quickNote}
-                        readerSaveMessage={readerSaveMessage}
-                        selectedHighlightText={selectedHighlightText}
-                        sourceLanguageCode={readerSourceLang}
-                        targetLanguageCode={readerTargetLang}
-                        onClose={handleCloseSelection}
-                        onCreateFlashcard={handleCreateFlashcardFromSelection}
-                        onLookup={handleOpenLookup}
-                        onSave={handleSaveSelection}
-                        onSelectLanguage={handleReaderLanguageSelect}
-                        onUpdateNote={setQuickNote}
-                      />
-                    ) : null}
-                  </Fragment>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text
+                      key={`${token}-${index}`}
+                      style={[
+                        styles.readerWord,
+                        { color: readerPageTextColor },
+                        getReaderTextStyle(readerState.settings),
+                        isActiveSentence && { backgroundColor: activeTheme.highlightBg, color: activeTheme.highlightText, borderRadius: 2 },
+                      ]}
+                    >
+                      {token}
+                    </Text>
+                  )
                 );
               })}
             </View>
@@ -815,6 +821,7 @@ export default function ReaderScreen() {
                 <ReaderTocSheet
                   activeTheme={activeTheme}
                   documents={readerState.documents}
+                  tocItems={readerTocItems}
                   handleJumpToProgress={handleJumpToProgress}
                   handleSelectDocument={handleSelectDocumentFromToc}
                   selectedDocumentId={readerState.selectedDocumentId}
@@ -886,6 +893,7 @@ function ReaderHighlightPanel({
   onSelectLanguage: (field: 'source' | 'target', languageCode: LanguageCode) => void;
   onUpdateNote: (note: string) => void;
 }) {
+  const [activeLanguageMenu, setActiveLanguageMenu] = useState<'source' | 'target' | null>(null);
   const sourceLanguage = getLanguageByCode(sourceLanguageCode, 'en');
   const targetLanguage = getLanguageByCode(targetLanguageCode, 'vi');
   const selectableLanguages = languageOptions.filter((language) => language.dictionaryStatus !== 'unavailable').slice(0, 12);
@@ -904,18 +912,28 @@ function ReaderHighlightPanel({
 
       <View style={styles.readerLanguageRow}>
         <ReaderInlineLanguageMenu
+          active={activeLanguageMenu === 'source'}
           activeTheme={activeTheme}
           label="Ngôn ngữ gốc"
           languages={selectableLanguages}
           selectedLanguageCode={sourceLanguage.code}
-          onSelect={(languageCode) => onSelectLanguage('source', languageCode)}
+          onPress={() => setActiveLanguageMenu((current) => (current === 'source' ? null : 'source'))}
+          onSelect={(languageCode) => {
+            onSelectLanguage('source', languageCode);
+            setActiveLanguageMenu(null);
+          }}
         />
         <ReaderInlineLanguageMenu
+          active={activeLanguageMenu === 'target'}
           activeTheme={activeTheme}
           label="Dịch sang"
           languages={selectableLanguages}
           selectedLanguageCode={targetLanguage.code}
-          onSelect={(languageCode) => onSelectLanguage('target', languageCode)}
+          onPress={() => setActiveLanguageMenu((current) => (current === 'target' ? null : 'target'))}
+          onSelect={(languageCode) => {
+            onSelectLanguage('target', languageCode);
+            setActiveLanguageMenu(null);
+          }}
         />
       </View>
 
@@ -949,16 +967,20 @@ function ReaderHighlightPanel({
 }
 
 function ReaderInlineLanguageMenu({
+  active,
   activeTheme,
   label,
   languages,
   selectedLanguageCode,
+  onPress,
   onSelect,
 }: {
+  active: boolean;
   activeTheme: ReaderThemeColors;
   label: string;
   languages: typeof languageOptions;
   selectedLanguageCode: LanguageCode;
+  onPress: () => void;
   onSelect: (languageCode: LanguageCode) => void;
 }) {
   const selectedLanguage = getLanguageByCode(selectedLanguageCode, 'en');
@@ -966,26 +988,32 @@ function ReaderInlineLanguageMenu({
   return (
     <View style={styles.readerInlineLanguageBox}>
       <Text style={[styles.readerInlineLanguageLabel, { color: activeTheme.secondaryText }]}>{label}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.readerInlineLanguageList}>
-        {languages.map((language) => {
-          const isSelected = language.code === selectedLanguage.code;
-          return (
-            <TouchableOpacity
-              activeOpacity={0.82}
-              key={`${label}-${language.code}`}
-              onPress={() => onSelect(language.code)}
-              style={[
-                styles.readerInlineLanguageChip,
-                { backgroundColor: activeTheme.bg, borderColor: activeTheme.border },
-                isSelected && { backgroundColor: activeTheme.accentLight, borderColor: activeTheme.accent },
-              ]}>
-              <Text style={[styles.readerInlineLanguageText, { color: isSelected ? activeTheme.accent : activeTheme.text }]}>
-                {language.code.toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      <TouchableOpacity
+        activeOpacity={0.82}
+        onPress={onPress}
+        style={[styles.readerLanguageDropdownButton, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
+        <Text style={[styles.readerLanguageDropdownText, { color: activeTheme.text }]}>{selectedLanguage.label}</Text>
+        <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={15} color={activeTheme.secondaryText} />
+      </TouchableOpacity>
+      {active ? (
+        <View style={[styles.readerLanguageDropdownMenu, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
+          {languages.map((language) => {
+            const isSelected = language.code === selectedLanguage.code;
+            return (
+              <TouchableOpacity
+                activeOpacity={0.82}
+                key={`${label}-${language.code}`}
+                onPress={() => onSelect(language.code)}
+                style={[styles.readerLanguageDropdownOption, isSelected && { backgroundColor: activeTheme.accentLight }]}>
+                <Text style={[styles.readerLanguageDropdownOptionText, { color: isSelected ? activeTheme.accent : activeTheme.text }]}>
+                  {language.label}
+                </Text>
+                {isSelected ? <Ionicons name="checkmark" size={14} color={activeTheme.accent} /> : null}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -1183,21 +1211,15 @@ function ReaderTocSheet({
   handleJumpToProgress,
   handleSelectDocument,
   selectedDocumentId,
+  tocItems,
 }: {
   activeTheme: ReaderThemeColors;
   documents: ReaderState['documents'];
   handleJumpToProgress: (pct: number) => void;
   handleSelectDocument: (documentId: string) => void;
   selectedDocumentId: string;
+  tocItems: ReaderTocItem[];
 }) {
-  const readingAnchors = [
-    { label: 'Đầu tài liệu', pct: 0 },
-    { label: '25%', pct: 25 },
-    { label: '50%', pct: 50 },
-    { label: '75%', pct: 75 },
-    { label: 'Cuối tài liệu', pct: 100 },
-  ];
-
   return (
     <>
       <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Tài liệu</Text>
@@ -1223,20 +1245,69 @@ function ReaderTocSheet({
         })}
       </View>
 
-      <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Vị trí đọc nhanh</Text>
-      {readingAnchors.map((anchor) => (
-        <TouchableOpacity
-          activeOpacity={0.82}
-          key={anchor.label}
-          onPress={() => handleJumpToProgress(anchor.pct)}
-          style={[styles.tocRow, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
-          <Text style={[styles.tocRowText, { color: activeTheme.text }]}>
-            {anchor.label}
+      <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Mục lục tài liệu</Text>
+      {tocItems.length ? (
+        tocItems.map((item) => (
+          <TouchableOpacity
+            activeOpacity={0.82}
+            key={item.id}
+            onPress={() => handleJumpToProgress(item.pct)}
+            style={[
+              styles.tocRow,
+              { backgroundColor: activeTheme.bg, borderColor: activeTheme.border, paddingLeft: 12 + item.level * 12 },
+            ]}>
+            <Text style={[styles.tocRowText, { color: activeTheme.text }]} numberOfLines={2}>
+              {item.label}
+            </Text>
+            <Text style={[styles.tocRowMeta, { color: activeTheme.secondaryText }]}>{Math.round(item.pct)}%</Text>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <View style={[styles.tocEmptyState, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
+          <Ionicons name="list-outline" size={18} color={activeTheme.secondaryText} />
+          <Text style={[styles.tocEmptyText, { color: activeTheme.secondaryText }]}>
+            Tài liệu này chưa có heading/chapter rõ ràng để tạo mục lục.
           </Text>
-        </TouchableOpacity>
-      ))}
+        </View>
+      )}
     </>
   );
+}
+
+function buildReaderTocItems(content: string): ReaderTocItem[] {
+  if (!content.trim()) return [];
+
+  const lines = content.split(/\n+/);
+  const totalLength = Math.max(1, content.length);
+  let cursor = 0;
+  const items: ReaderTocItem[] = [];
+
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    const headingMatch = /^(#{1,6})\s+(.{2,120})$/.exec(trimmedLine);
+    const chapterMatch = /^(chapter|chương|phần|part|section)\s+[\w\dIVXLCDM.-]+[:.\-\s].{0,120}$/iu.exec(trimmedLine);
+    const numberedHeadingMatch = /^\d+(\.\d+){0,3}\s+.{3,120}$/.exec(trimmedLine);
+    const isAllCapsHeading =
+      trimmedLine.length >= 6 &&
+      trimmedLine.length <= 80 &&
+      trimmedLine === trimmedLine.toLocaleUpperCase() &&
+      /[A-ZÀ-Ỹ]/.test(trimmedLine);
+
+    if (headingMatch || chapterMatch || numberedHeadingMatch || isAllCapsHeading) {
+      const level = headingMatch ? Math.min(5, headingMatch[1].length - 1) : chapterMatch ? 0 : 1;
+      const label = headingMatch ? headingMatch[2].trim() : trimmedLine.replace(/^#+\s*/, '');
+      items.push({
+        id: `toc-${index}-${cursor}`,
+        label,
+        level,
+        pct: Math.min(100, Math.max(0, (cursor / totalLength) * 100)),
+      });
+    }
+
+    cursor += line.length + 1;
+  });
+
+  return items.slice(0, 80);
 }
 
 function tokenizeReaderText(text: string) {
@@ -1505,30 +1576,58 @@ const styles = StyleSheet.create({
     width: 32,
   },
   readerLanguageRow: {
+    flexDirection: 'row',
     gap: 10,
     marginTop: 12,
+    zIndex: 20,
   },
   readerInlineLanguageBox: {
+    flex: 1,
     gap: 7,
+    position: 'relative',
+    zIndex: 20,
   },
   readerInlineLanguageLabel: {
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
   },
-  readerInlineLanguageList: {
-    gap: 7,
-    paddingRight: 8,
-  },
-  readerInlineLanguageChip: {
+  readerLanguageDropdownButton: {
+    alignItems: 'center',
     borderRadius: 999,
     borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 9,
   },
-  readerInlineLanguageText: {
-    fontSize: 11,
-    fontWeight: '900',
+  readerLanguageDropdownText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  readerLanguageDropdownMenu: {
+    borderRadius: 10,
+    borderWidth: 1,
+    left: 0,
+    maxHeight: 230,
+    overflow: 'hidden',
+    position: 'absolute',
+    right: 0,
+    top: 58,
+    zIndex: 30,
+  },
+  readerLanguageDropdownOption: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 36,
+    paddingHorizontal: 11,
+  },
+  readerLanguageDropdownOptionText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
   },
   quickNoteInput: {
     borderRadius: 8,
@@ -1856,5 +1955,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     marginTop: 4,
+  },
+  tocEmptyState: {
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+    padding: 12,
+  },
+  tocEmptyText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
   },
 });

@@ -21,7 +21,7 @@ Use small local files committed only if licensing and file size are acceptable. 
 | `digital-columns.pdf` | Two-column or layout-heavy PDF | Either extracts readable text or returns a clear unsupported/layout warning. |
 | `scanned-image.pdf` | Image-only scanned PDF | Must stay on the OCR-required path unless a Chandra OCR parser is explicitly injected. |
 | `empty.pdf` | Valid PDF with no extractable text | Throws the existing empty-text error path. |
-| `oversize.pdf` | Larger than 10MB | Throws the existing 10MB size-limit error before parsing. |
+| `oversize.pdf` | Larger than 50MB | Throws the existing 50MB size-limit error before parsing. |
 
 The small fixtures except `oversize.pdf` are committed in `tests/fixtures/reader-pdf/` and can be regenerated with `node scripts/create-reader-pdf-fixtures.mjs`.
 

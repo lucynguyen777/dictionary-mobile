@@ -26,6 +26,7 @@ Reference checked: `https://github.com/datalab-to/chandra`. Chandra OCR 2 conver
 ## Existing Reader Pipeline
 - `app/reader.tsx` uses `DocumentPicker`, identifies the import format with `getReaderImportFormat()`, then calls `extractReaderDocument()` for DOCX/EPUB/PDF or `extractReaderText()` for TXT/HTML.
 - Imported content is stored through `importReaderText()` from `data/readerStore.ts`.
+- Reader import now preserves rough Markdown-like layout markers for headings, list items, and table cell separators before the text enters the Reader. This is intentionally lightweight; it helps TOC extraction and readability without introducing a new rich-document renderer.
 - Once imported, Reader tokenization/highlight flows already support:
   - selecting text,
   - lookup routing,
@@ -52,10 +53,16 @@ Reference checked: `https://github.com/datalab-to/chandra`. Chandra OCR 2 conver
 - Keep `app/reader.tsx` unchanged for now unless a later module explicitly wires mobile/web networking and privacy copy.
 - Create `backend/chandra-service/` as a standalone service with `/ocr/image` and `/ocr/pdf`, but do not connect it to the mobile app in this module.
 
+## Layout Preservation Notes
+
+Chandra is most useful for scanned/image PDFs because it can return structured Markdown/HTML/page metadata instead of a flat OCR string. The current mobile Reader still stores a plain text document, so it can only preserve rough structure such as headings, bullet lines, table separators, and page breaks. Full layout preservation should be a later Reader module that stores/imports Chandra page blocks or sanitized HTML/Markdown sections, then renders them with the existing highlight/lookup/save/flashcard overlay on top.
+
+Non-goal for the current hotfix: do not replace the Reader text model or flashcard/lookup flows with a separate document viewer. The next safe step is to keep Chandra Markdown/HTML output as structured section metadata alongside the current plain-text content.
+
 ## Refactoring Risks
 - Contract drift: adding PDF-specific interfaces to `OcrEngine` would fork the architecture. Mitigation: keep Chandra image OCR on `OcrEngine` and pass document OCR through Reader import parser hooks.
 - Accidental cloud upload: scanned PDFs can contain sensitive notes or research documents. Mitigation: no default mobile networking; Chandra OCR must be explicitly injected/configured later with privacy and auth gates.
 - Digital PDF regression: OCRing digital PDFs would be slower and less accurate for selectable text. Mitigation: always run existing PDF text extraction first and only call OCR when it returns empty text.
-- DoS/memory risk: PDFs/images can be large. Mitigation: keep the existing 10MB Reader import cap and add backend service request-size limits/timeouts.
+- DoS/memory risk: PDFs/images can be large. Mitigation: keep the existing 50MB Reader import cap and add backend service request-size limits/timeouts.
 - Licensing risk: Chandra code and model weights have different licenses. Mitigation: keep service setup documented and require model-license review before production.
 - Reader feature duplication: adding special scanned-PDF Reader UI would risk breaking highlight/save/flashcard parity. Mitigation: Chandra output enters the same Reader document model as existing imports.

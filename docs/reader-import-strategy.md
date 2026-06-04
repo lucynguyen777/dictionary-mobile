@@ -1,20 +1,20 @@
 # Reader Import Parser Strategy
 
-Status: selected strategy; TXT/HTML/DOCX/EPUB prototypes are enabled, digital PDF remains guarded, and scanned PDF OCR now has a Chandra integration hook without mobile networking.
+Status: selected strategy; TXT/HTML/DOCX/EPUB prototypes are enabled, digital PDF is enabled on Expo web, and scanned PDF OCR has a Chandra integration hook that requires an explicit backend endpoint.
 
 ## Current Safe Support
 - TXT: read as local plain text.
-- HTML: sanitize script/style/svg content, preserve rough block breaks, and import as Reader text.
-- DOCX: prototype enabled with Mammoth converting DOCX to semantic HTML before the existing sanitizer converts it into Reader text.
+- HTML: sanitize script/style/svg content, preserve rough block breaks/headings/lists/table separators, and import as Reader text.
+- DOCX: prototype enabled with Mammoth converting DOCX to semantic HTML before the existing sanitizer converts it into Markdown-like Reader text.
 - EPUB: prototype enabled with local ZIP/OPF/spine parsing, chapter HTML extraction, and the existing sanitizer.
 
 ## Planned Structured Formats
-- PDF: keep disabled by default until platform testing is done. Use the existing PDF.js-style web parser for digital PDFs behind the existing gate. Scanned/image-based PDFs can route through the injected Chandra OCR parser, but app networking remains unwired until a separate production privacy/auth/config module.
+- PDF: digital PDFs are enabled by default on Expo web through the PDF.js-style parser. Native/Expo Go PDF remains blocked. Scanned/image-based PDFs can route through the injected Chandra OCR parser only when a Chandra backend endpoint is configured.
 - Fixture gate: see `docs/reader-pdf-fixture-gate.md` before enabling any PDF parser.
 - Implementation prep: repo-owned fixtures now live in `tests/fixtures/reader-pdf/`; the PDF.js-style parser prototype is covered by fixture tests and wired behind `READER_ENABLE_PDF=true` on Expo web, but PDF import remains disabled by default until Expo web manual smoke is verified.
 
 ## Guardrails
-- Keep PDF disabled by default until parser prototypes pass tests with small local samples and manual browser smoke is verified.
+- Keep native PDF disabled until parser prototypes pass tests with small local samples and manual browser smoke is verified.
 - Do not send documents to a backend or external API unless a future production module explicitly wires the Chandra service with privacy/auth/config gates.
 - Add file size and empty-text guards before enabling any structured format.
 - Preserve the current unsupported-format message path so Expo web and mobile fail safely.

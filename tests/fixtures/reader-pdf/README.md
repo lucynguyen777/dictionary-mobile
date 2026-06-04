@@ -14,4 +14,4 @@ They are intentionally tiny, self-owned fixtures for future Reader PDF parser te
 | `scanned-image.pdf` | Image-only placeholder with no text objects. | `51ed8c7a97c40e444eed9d0d93ffeb7a0cb01d791910ee1f019aee868570d1c6` |
 
 ## Oversize Fixture
-Do not commit a `>10MB` PDF fixture. Generate it locally when parser tests are added so the existing `MAX_READER_FILE_SIZE_BYTES` guard can be verified without storing large binary files in git.
+Do not commit a `>50MB` PDF fixture. Generate it locally when parser tests are added so the existing `MAX_READER_FILE_SIZE_BYTES` guard can be verified without storing large binary files in git.

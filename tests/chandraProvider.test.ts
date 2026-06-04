@@ -100,7 +100,7 @@ describe('Chandra OCR provider integration', () => {
 
     expect(result).toEqual({
       title: 'scanned-lecture',
-      content: 'Scanned Lecture\nhighlight lookup save flashcard',
+      content: '# Scanned Lecture\nhighlight lookup save flashcard',
       sourceFormat: 'pdf',
     });
     expect(extractReaderTextFromOcrResult({ pages: [{ markdown: 'Reader\n\nvocabulary mining' }] })).toBe(

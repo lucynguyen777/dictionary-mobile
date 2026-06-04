@@ -73,7 +73,7 @@ type PdfJsLoader = () => Promise<PdfJsModule>;
 
 export type ReaderPdfParser = (fileName: string, rawContent: ArrayBuffer) => Promise<ReaderPdfImportResult>;
 
-export const MAX_READER_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+export const MAX_READER_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
 const PDFJS_DIST_VERSION = '5.7.284';
 
 
@@ -142,7 +142,7 @@ export async function extractReaderDocument(
 ): Promise<ReaderImportResult> {
   const size = typeof rawContent === 'string' ? rawContent.length : rawContent.byteLength;
   if (size > MAX_READER_FILE_SIZE_BYTES) {
-    throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 10MB.');
+    throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 50MB.');
   }
 
   const sourceFormat = getReaderImportFormat(fileName, mimeType);
@@ -246,7 +246,7 @@ export async function extractPdfReaderDocument(
   options: { ocrParser?: ReaderPdfOcrParser } = {}
 ): Promise<ReaderPdfImportResult> {
   if (rawContent.byteLength > MAX_READER_FILE_SIZE_BYTES) {
-    throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 10MB.');
+    throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 50MB.');
   }
 
   const classification = await classifyPdfForReaderImport(rawContent, parser);
@@ -430,7 +430,7 @@ function normalizeReaderImportedText(text: string) {
 function markdownToReaderText(text: string) {
   return normalizeReaderImportedText(
     text
-      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/^#{1,6}\s+/gm, (match) => `${match.trim()} `)
       .replace(/[*_`~]+/g, '')
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
   );
@@ -555,8 +555,14 @@ function htmlToPlainText(html: string) {
       .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
       .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
       .replace(/<(br|hr)\s*\/?>/gi, '\n')
-      .replace(/<\/(p|div|section|article|header|footer|li|h[1-6]|blockquote|tr)>/gi, '\n')
+      .replace(/<h1[^>]*>/gi, '\n# ')
+      .replace(/<h2[^>]*>/gi, '\n## ')
+      .replace(/<h3[^>]*>/gi, '\n### ')
+      .replace(/<h[4-6][^>]*>/gi, '\n#### ')
+      .replace(/<\/(p|div|section|article|header|footer|li|h[1-6]|blockquote|tr|table)>/gi, '\n')
       .replace(/<li[^>]*>/gi, '- ')
+      .replace(/<\/t[hd]>\s*<t[hd][^>]*>/gi, ' | ')
+      .replace(/<\/t[hd]>/gi, ' ')
       .replace(/<[^>]+>/g, ' ')
   )
     .split('\n')
