@@ -252,7 +252,7 @@ describe('userDatabaseRuntime', () => {
 
     expect(reloaded.documents).toHaveLength(3);
     expect(reloaded.selectedDocumentId).toBe(reloaded.documents[0].id);
-    expect(reloaded.settings).toEqual({
+    expect(reloaded.settings).toMatchObject({
       backgroundColor: '#FFF7ED',
       fontFamily: 'serif',
       fontSize: 22,
@@ -277,7 +277,7 @@ describe('userDatabaseRuntime', () => {
     expect((await loadLibraryState()).savedWords).toHaveLength(0);
     expect((await loadLibraryState()).flashcards).toHaveLength(0);
     expect((await loadReaderState()).documents).toHaveLength(0);
-    expect((await loadUserProfile()).displayName).toBe('Mai Anh');
+    expect((await loadUserProfile()).displayName).toBe('Khách học tập');
 
     await exportAllLocalData();
     const exportedPayload = JSON.parse(writtenFiles.at(-1) ?? '{}');
@@ -383,8 +383,12 @@ const fixtureReader: ReaderState = {
   selectedDocumentId: 'reader-runtime',
   settings: {
     backgroundColor: '#ECFDF5',
+    backgroundPresetId: 'cool-mist',
     fontFamily: 'mono',
     fontSize: 21,
+    sourceLanguage: 'en',
+    targetLanguage: 'vi',
+    themeMode: 'light',
   },
 };
 

@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
-import { ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ComponentProps, Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   GestureResponderEvent,
@@ -34,24 +34,29 @@ import {
   selectReaderDocument,
   updateReaderSettings,
 } from '@/data/readerStore';
+import { loadUserProfile } from '@/data/profileStore';
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
 import { TranslationPanel } from '@/components/TranslationPanel';
+import { loadAppColorSchemePreference, resolveAppColorScheme } from '@/data/appThemePreference';
+import { getLanguageByCode, languageOptions, type LanguageCode } from '@/data/languages';
+import { getReaderBackgroundPreset, readerBackgroundPresets, type ReaderBackgroundPresetId, type ReaderThemeMode } from '@/data/readerTheme';
 
 // Extra Local Preferences Storage Keys
 const PREFS_STORAGE_KEY = 'dictionary-mobile.reader-prefs.v1';
 
-type ReaderTheme = 'light' | 'dark' | 'sepia';
 type VoiceProfile = 'female' | 'male' | 'child' | 'old';
 type ReaderSheet = 'settings' | 'toc' | null;
 
 type ReaderPreferences = {
-  theme: ReaderTheme;
+  theme: ReaderThemeMode;
+  backgroundPresetId: ReaderBackgroundPresetId;
   ttsVoice: VoiceProfile;
   ttsSpeed: number;
 };
 
 const defaultPrefs: ReaderPreferences = {
-  theme: 'light',
+  backgroundPresetId: 'auto',
+  theme: 'system',
   ttsVoice: 'female',
   ttsSpeed: 1.0,
 };
@@ -62,23 +67,11 @@ const fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[] = [
   { label: 'Mono (Clean)', value: 'mono' },
 ];
 
-const themeOptions: { label: string; value: ReaderTheme; name: string }[] = [
+const themeOptions: { label: string; value: ReaderThemeMode; name: string }[] = [
+  { label: 'Theo hệ thống', value: 'system', name: 'phone-portrait-outline' },
   { label: 'Sáng', value: 'light', name: 'sunny-outline' },
-  { label: 'Ấm (Sepia)', value: 'sepia', name: 'cafe-outline' },
+  { label: 'Ấm', value: 'sepia', name: 'cafe-outline' },
   { label: 'Tối', value: 'dark', name: 'moon-outline' },
-];
-
-const backgroundOptions = [
-  // Warm tones
-  { label: 'Ấm Cream', value: '#FDF6E3', text: '#5C4033', name: 'sepia' },
-  { label: 'Ấm Cam', value: '#FFF7ED', text: '#431407', name: 'sepia' },
-  // Cool tones
-  { label: 'Mint Mát', value: '#ECFDF5', text: '#064E3B', name: 'light' },
-  { label: 'Sáng Xám', value: '#F1F5F9', text: '#0F172A', name: 'light' },
-  { label: 'Sáng Trắng', value: '#F8FAFC', text: '#0F172A', name: 'light' },
-  // Dark tones
-  { label: 'Tối Đen', value: '#121016', text: '#E2E8F7', name: 'dark' },
-  { label: 'Tối Than', value: '#1E1E24', text: '#CCCCCC', name: 'dark' },
 ];
 
 const voiceProfiles: { label: string; value: VoiceProfile; desc: string }[] = [
@@ -110,6 +103,9 @@ export default function ReaderScreen() {
   const [quickNote, setQuickNote] = useState('');
   const [readerSaveMessage, setReaderSaveMessage] = useState('');
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
+  const [readerSourceLang, setReaderSourceLang] = useState<LanguageCode>('en');
+  const [readerTargetLang, setReaderTargetLang] = useState<LanguageCode>('vi');
+  const [resolvedAppTheme, setResolvedAppTheme] = useState<'light' | 'dark'>('light');
 
   // Custom Local Preferences (Theme, TTS Voice, TTS Speed)
   const [preferences, setPreferences] = useState<ReaderPreferences>(defaultPrefs);
@@ -138,19 +134,40 @@ export default function ReaderScreen() {
       Promise.all([
         loadReaderState(),
         loadLibraryState(),
+        loadUserProfile(),
+        loadAppColorSchemePreference(),
         getStoredItem(PREFS_STORAGE_KEY),
-      ]).then(([nextReaderState, nextLibraryState, rawPrefs]) => {
+      ]).then(([nextReaderState, nextLibraryState, profile, appThemePreference, rawPrefs]) => {
         if (!isMounted) return;
 
         setReaderState(nextReaderState);
         setLibraryState(nextLibraryState);
+        setResolvedAppTheme(resolveAppColorScheme(appThemePreference));
+        setReaderSourceLang(nextReaderState.settings.sourceLanguage);
+        setReaderTargetLang(nextReaderState.settings.targetLanguage || profile.nativeLanguage || 'vi');
 
         if (rawPrefs) {
           try {
-            setPreferences({ ...defaultPrefs, ...JSON.parse(rawPrefs) });
+            const parsedPrefs = JSON.parse(rawPrefs) as Partial<ReaderPreferences>;
+            const backgroundPreset = getReaderBackgroundPreset(
+              parsedPrefs.backgroundPresetId ?? nextReaderState.settings.backgroundPresetId,
+              nextReaderState.settings.backgroundColor
+            );
+            setPreferences({
+              ...defaultPrefs,
+              ...parsedPrefs,
+              backgroundPresetId: backgroundPreset.id,
+              theme: parsedPrefs.theme ?? nextReaderState.settings.themeMode ?? defaultPrefs.theme,
+            });
           } catch {
             // ignore
           }
+        } else {
+          setPreferences({
+            ...defaultPrefs,
+            backgroundPresetId: nextReaderState.settings.backgroundPresetId,
+            theme: nextReaderState.settings.themeMode,
+          });
         }
       });
 
@@ -229,8 +246,22 @@ export default function ReaderScreen() {
     return readerTokens.slice(selectionRange.start, selectionRange.end + 1).join('').trim();
   }, [selectionRange, readerTokens]);
 
+  const selectedBackgroundPreset = useMemo(
+    () => getReaderBackgroundPreset(preferences.backgroundPresetId, readerState.settings.backgroundColor),
+    [preferences.backgroundPresetId, readerState.settings.backgroundColor]
+  );
+  const activeReaderThemeMode = useMemo(() => {
+    if (preferences.theme !== 'system') return preferences.theme;
+
+    if (selectedBackgroundPreset.themeMode !== 'system') return selectedBackgroundPreset.themeMode;
+
+    return resolvedAppTheme;
+  }, [preferences.theme, resolvedAppTheme, selectedBackgroundPreset.themeMode]);
+  const readerPageBackground = selectedBackgroundPreset.color;
+  const readerPageTextColor = selectedBackgroundPreset.textColor;
+
   const activeTheme = useMemo(() => {
-    const themeMode = preferences.theme;
+    const themeMode = activeReaderThemeMode;
     if (themeMode === 'dark') {
       return {
         bg: '#0F0E17',
@@ -274,7 +305,7 @@ export default function ReaderScreen() {
         shadow: 'rgba(15, 23, 42, 0.05)',
       };
     }
-  }, [preferences.theme]);
+  }, [activeReaderThemeMode]);
 
   // Save local preferences
   const updatePreferences = async (newPrefs: Partial<ReaderPreferences>) => {
@@ -284,9 +315,14 @@ export default function ReaderScreen() {
   };
 
   // Adjust application background color to match specific preset background if selected
-  const handleSelectBackground = (bgColor: string, themeMode: ReaderTheme) => {
-    handleUpdateSettings({ backgroundColor: bgColor as any });
-    updatePreferences({ theme: themeMode });
+  const handleSelectBackground = (presetId: ReaderBackgroundPresetId) => {
+    const preset = getReaderBackgroundPreset(presetId);
+    handleUpdateSettings({
+      backgroundColor: preset.color,
+      backgroundPresetId: preset.id,
+      themeMode: preset.themeMode,
+    });
+    updatePreferences({ backgroundPresetId: preset.id, theme: preset.themeMode });
   };
 
   const handleSelectDocument = (documentId: string) => {
@@ -324,7 +360,18 @@ export default function ReaderScreen() {
 
   const handleOpenLookup = () => {
     if (!selectedHighlightText) return;
-    router.push({ pathname: '/word', params: { sourceLang: 'en', targetLang: 'vi', word: selectedHighlightText } });
+    router.push({ pathname: '/word', params: { sourceLang: readerSourceLang, targetLang: readerTargetLang, word: selectedHighlightText } });
+  };
+
+  const handleReaderLanguageSelect = (field: 'source' | 'target', languageCode: LanguageCode) => {
+    if (field === 'source') {
+      setReaderSourceLang(languageCode);
+      handleUpdateSettings({ sourceLanguage: languageCode });
+      return;
+    }
+
+    setReaderTargetLang(languageCode);
+    handleUpdateSettings({ targetLanguage: languageCode });
   };
 
   const handleCloseSelection = () => {
@@ -587,53 +634,72 @@ export default function ReaderScreen() {
 
         {/* Reader Book Content display */}
         {selectedDocument ? (
-          <View style={[styles.readerPage, { backgroundColor: readerState.settings.backgroundColor as any }]}>
+          <View style={[styles.readerPage, { backgroundColor: readerPageBackground }]}>
             <Text style={[styles.readerTitle, { color: activeTheme.text }, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>
               {selectedDocument.title}
             </Text>
             <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
-              {readerTokens.slice(0, 900).map((token, index) => {
+              {readerTokens.map((token, index) => {
                 const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F]/.test(token);
                 const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
+                const shouldShowInlinePanel = selectionRange && selectedHighlightText && index === selectionRange.end;
 
                 // Highlight active sentence currently being read by AI
                 const tokenSentenceIdx = tokenToSentenceMap[index];
                 const isActiveSentence = activeSentenceIndex !== null && tokenSentenceIdx === activeSentenceIndex;
 
-                return isWord ? (
-                  <TouchableOpacity
-                    key={`${token}-${index}`}
-                    activeOpacity={0.72}
-                    onPress={() => handleTokenPress(index)}
-                    style={[
-                      inSelection && styles.selectedRangeWord,
-                      isActiveSentence && { backgroundColor: activeTheme.highlightBg, borderRadius: 2 },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.readerWord,
-                        { color: activeTheme.text },
-                        getReaderTextStyle(readerState.settings),
-                        inSelection && { color: activeTheme.highlightText },
-                        isActiveSentence && { color: activeTheme.highlightText },
-                      ]}
-                    >
-                      {token}
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <Text
-                    key={`${token}-${index}`}
-                    style={[
-                      styles.readerWord,
-                      { color: activeTheme.text },
-                      getReaderTextStyle(readerState.settings),
-                      isActiveSentence && { backgroundColor: activeTheme.highlightBg, color: activeTheme.highlightText, borderRadius: 2 },
-                    ]}
-                  >
-                    {token}
-                  </Text>
+                return (
+                  <Fragment key={`${token}-${index}`}>
+                    {isWord ? (
+                      <TouchableOpacity
+                        activeOpacity={0.72}
+                        onPress={() => handleTokenPress(index)}
+                        style={[
+                          inSelection && styles.selectedRangeWord,
+                          isActiveSentence && { backgroundColor: activeTheme.highlightBg, borderRadius: 2 },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.readerWord,
+                            { color: readerPageTextColor },
+                            getReaderTextStyle(readerState.settings),
+                            inSelection && { color: activeTheme.highlightText },
+                            isActiveSentence && { color: activeTheme.highlightText },
+                          ]}
+                        >
+                          {token}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <Text
+                        style={[
+                          styles.readerWord,
+                          { color: readerPageTextColor },
+                          getReaderTextStyle(readerState.settings),
+                          isActiveSentence && { backgroundColor: activeTheme.highlightBg, color: activeTheme.highlightText, borderRadius: 2 },
+                        ]}
+                      >
+                        {token}
+                      </Text>
+                    )}
+                    {shouldShowInlinePanel ? (
+                      <ReaderHighlightPanel
+                        activeTheme={activeTheme}
+                        quickNote={quickNote}
+                        readerSaveMessage={readerSaveMessage}
+                        selectedHighlightText={selectedHighlightText}
+                        sourceLanguageCode={readerSourceLang}
+                        targetLanguageCode={readerTargetLang}
+                        onClose={handleCloseSelection}
+                        onCreateFlashcard={handleCreateFlashcardFromSelection}
+                        onLookup={handleOpenLookup}
+                        onSave={handleSaveSelection}
+                        onSelectLanguage={handleReaderLanguageSelect}
+                        onUpdateNote={setQuickNote}
+                      />
+                    ) : null}
+                  </Fragment>
                 );
               })}
             </View>
@@ -647,45 +713,6 @@ export default function ReaderScreen() {
             </Text>
           </View>
         )}
-
-        {/* Word lookup highlight actions panel */}
-        {selectionRange && selectedHighlightText ? (
-          <View style={[styles.readerActionPanel, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
-            <View style={styles.readerActionHeader}>
-              <View>
-                <Text style={[styles.readerActionKicker, { color: activeTheme.secondaryText }]}>Highlight</Text>
-                <Text style={[styles.readerActionWord, { color: activeTheme.text }]}>{selectedHighlightText}</Text>
-              </View>
-              <TouchableOpacity activeOpacity={0.75} onPress={handleCloseSelection} style={[styles.readerActionClose, { backgroundColor: activeTheme.bg }]}>
-                <Ionicons name="close" size={18} color={activeTheme.secondaryText} />
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              multiline
-              onChangeText={setQuickNote}
-              placeholder="Ghi chú cho cụm từ..."
-              placeholderTextColor={activeTheme.secondaryText}
-              style={[styles.quickNoteInput, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border, color: activeTheme.text }]}
-              value={quickNote}
-            />
-            <TranslationPanel sourceText={selectedHighlightText} targetLang="VI" />
-            {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
-            <View style={styles.readerActionButtons}>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleOpenLookup} style={[styles.lookupActionButton, { backgroundColor: activeTheme.bg }]}>
-                <Ionicons name="search" size={17} color={activeTheme.accent} />
-                <Text style={[styles.lookupActionText, { color: activeTheme.accent }]}>Tra nghĩa</Text>
-              </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleSaveSelection} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
-                <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
-                <Text style={styles.saveActionText}>Lưu cụm từ</Text>
-              </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleCreateFlashcardFromSelection} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
-                <Ionicons name="albums-outline" size={17} color="#FFFFFF" />
-                <Text style={styles.saveActionText}>Tạo thẻ</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : null}
       </ScrollView>
 
       {/* Novel Reading Progress Scrubber fixed to bottom */}
@@ -768,7 +795,7 @@ export default function ReaderScreen() {
                 <ReaderSettingsSheet
                   activeTheme={activeTheme}
                   fontOptions={fontOptions}
-                  backgroundOptions={backgroundOptions}
+                  backgroundOptions={readerBackgroundPresets}
                   handleSelectBackground={handleSelectBackground}
                   handleUpdateSettings={handleUpdateSettings}
                   handleNextSentence={handleNextSentence}
@@ -832,6 +859,137 @@ function ReaderDockButton({
   );
 }
 
+function ReaderHighlightPanel({
+  activeTheme,
+  quickNote,
+  readerSaveMessage,
+  selectedHighlightText,
+  sourceLanguageCode,
+  targetLanguageCode,
+  onClose,
+  onCreateFlashcard,
+  onLookup,
+  onSave,
+  onSelectLanguage,
+  onUpdateNote,
+}: {
+  activeTheme: ReaderThemeColors;
+  quickNote: string;
+  readerSaveMessage: string;
+  selectedHighlightText: string;
+  sourceLanguageCode: LanguageCode;
+  targetLanguageCode: LanguageCode;
+  onClose: () => void;
+  onCreateFlashcard: () => void;
+  onLookup: () => void;
+  onSave: () => void;
+  onSelectLanguage: (field: 'source' | 'target', languageCode: LanguageCode) => void;
+  onUpdateNote: (note: string) => void;
+}) {
+  const sourceLanguage = getLanguageByCode(sourceLanguageCode, 'en');
+  const targetLanguage = getLanguageByCode(targetLanguageCode, 'vi');
+  const selectableLanguages = languageOptions.filter((language) => language.dictionaryStatus !== 'unavailable').slice(0, 12);
+
+  return (
+    <View style={[styles.readerActionPanel, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
+      <View style={styles.readerActionHeader}>
+        <View>
+          <Text style={[styles.readerActionKicker, { color: activeTheme.secondaryText }]}>Highlight</Text>
+          <Text style={[styles.readerActionWord, { color: activeTheme.text }]}>{selectedHighlightText}</Text>
+        </View>
+        <TouchableOpacity activeOpacity={0.75} onPress={onClose} style={[styles.readerActionClose, { backgroundColor: activeTheme.bg }]}>
+          <Ionicons name="close" size={18} color={activeTheme.secondaryText} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.readerLanguageRow}>
+        <ReaderInlineLanguageMenu
+          activeTheme={activeTheme}
+          label="Ngôn ngữ gốc"
+          languages={selectableLanguages}
+          selectedLanguageCode={sourceLanguage.code}
+          onSelect={(languageCode) => onSelectLanguage('source', languageCode)}
+        />
+        <ReaderInlineLanguageMenu
+          activeTheme={activeTheme}
+          label="Dịch sang"
+          languages={selectableLanguages}
+          selectedLanguageCode={targetLanguage.code}
+          onSelect={(languageCode) => onSelectLanguage('target', languageCode)}
+        />
+      </View>
+
+      <TranslationPanel sourceText={selectedHighlightText} sourceLang={sourceLanguage.code.toUpperCase()} targetLang={targetLanguage.code.toUpperCase()} />
+
+      <TextInput
+        multiline
+        onChangeText={onUpdateNote}
+        placeholder="Ghi chú cho cụm từ..."
+        placeholderTextColor={activeTheme.secondaryText}
+        style={[styles.quickNoteInput, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border, color: activeTheme.text }]}
+        value={quickNote}
+      />
+      {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
+      <View style={styles.readerActionButtons}>
+        <TouchableOpacity activeOpacity={0.82} onPress={onLookup} style={[styles.lookupActionButton, { backgroundColor: activeTheme.bg }]}>
+          <Ionicons name="search" size={17} color={activeTheme.accent} />
+          <Text style={[styles.lookupActionText, { color: activeTheme.accent }]}>Tra nghĩa</Text>
+        </TouchableOpacity>
+        <TouchableOpacity activeOpacity={0.82} onPress={onSave} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
+          <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
+          <Text style={styles.saveActionText}>Lưu</Text>
+        </TouchableOpacity>
+        <TouchableOpacity activeOpacity={0.82} onPress={onCreateFlashcard} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
+          <Ionicons name="albums-outline" size={17} color="#FFFFFF" />
+          <Text style={styles.saveActionText}>Tạo thẻ</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function ReaderInlineLanguageMenu({
+  activeTheme,
+  label,
+  languages,
+  selectedLanguageCode,
+  onSelect,
+}: {
+  activeTheme: ReaderThemeColors;
+  label: string;
+  languages: typeof languageOptions;
+  selectedLanguageCode: LanguageCode;
+  onSelect: (languageCode: LanguageCode) => void;
+}) {
+  const selectedLanguage = getLanguageByCode(selectedLanguageCode, 'en');
+
+  return (
+    <View style={styles.readerInlineLanguageBox}>
+      <Text style={[styles.readerInlineLanguageLabel, { color: activeTheme.secondaryText }]}>{label}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.readerInlineLanguageList}>
+        {languages.map((language) => {
+          const isSelected = language.code === selectedLanguage.code;
+          return (
+            <TouchableOpacity
+              activeOpacity={0.82}
+              key={`${label}-${language.code}`}
+              onPress={() => onSelect(language.code)}
+              style={[
+                styles.readerInlineLanguageChip,
+                { backgroundColor: activeTheme.bg, borderColor: activeTheme.border },
+                isSelected && { backgroundColor: activeTheme.accentLight, borderColor: activeTheme.accent },
+              ]}>
+              <Text style={[styles.readerInlineLanguageText, { color: isSelected ? activeTheme.accent : activeTheme.text }]}>
+                {language.code.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
 function ReaderSettingsSheet({
   activeTheme,
   backgroundOptions,
@@ -851,9 +1009,9 @@ function ReaderSettingsSheet({
   voiceProfiles,
 }: {
   activeTheme: ReaderThemeColors;
-  backgroundOptions: { label: string; value: string; text: string; name: string }[];
+  backgroundOptions: typeof readerBackgroundPresets;
   fontOptions: { label: string; value: ReaderSettings['fontFamily'] }[];
-  handleSelectBackground: (bgColor: string, themeMode: ReaderTheme) => void;
+  handleSelectBackground: (presetId: ReaderBackgroundPresetId) => void;
   handleUpdateSettings: (settings: Partial<ReaderSettings>) => void;
   handleNextSentence: () => void;
   handlePlayPause: () => void;
@@ -863,7 +1021,7 @@ function ReaderSettingsSheet({
   preferences: ReaderPreferences;
   readerState: ReaderState;
   speedOptions: number[];
-  themeOptions: { label: string; value: ReaderTheme; name: string }[];
+  themeOptions: { label: string; value: ReaderThemeMode; name: string }[];
   updatePreferences: (newPrefs: Partial<ReaderPreferences>) => Promise<void>;
   voiceProfiles: { label: string; value: VoiceProfile; desc: string }[];
 }) {
@@ -897,7 +1055,10 @@ function ReaderSettingsSheet({
             <TouchableOpacity
               activeOpacity={0.82}
               key={option.value}
-              onPress={() => updatePreferences({ theme: option.value })}
+              onPress={() => {
+                handleUpdateSettings({ themeMode: option.value });
+                updatePreferences({ theme: option.value });
+              }}
               style={[
                 styles.sheetOptionButton,
                 { backgroundColor: activeTheme.bg, borderColor: activeTheme.border },
@@ -915,18 +1076,18 @@ function ReaderSettingsSheet({
       <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Màu nền trang sách</Text>
       <View style={styles.bgOptionContainer}>
         {backgroundOptions.map((option) => {
-          const isSelected = readerState.settings.backgroundColor === option.value;
+          const isSelected = readerState.settings.backgroundPresetId === option.id;
           return (
             <TouchableOpacity
               activeOpacity={0.82}
-              key={option.value}
-              onPress={() => handleSelectBackground(option.value, option.name as ReaderTheme)}
+              key={option.id}
+              onPress={() => handleSelectBackground(option.id)}
               style={[
                 styles.bgCircleButton,
-                { backgroundColor: option.value, borderColor: activeTheme.border },
+                { backgroundColor: option.color, borderColor: activeTheme.border },
                 isSelected && { borderColor: activeTheme.accent, borderWidth: 2 },
               ]}>
-              <Text style={[styles.bgCircleText, { color: option.text }]}>{option.label.split(' ').slice(1).join(' ')}</Text>
+              <Text style={[styles.bgCircleText, { color: option.textColor }]}>{option.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -1342,6 +1503,32 @@ const styles = StyleSheet.create({
     height: 32,
     justifyContent: 'center',
     width: 32,
+  },
+  readerLanguageRow: {
+    gap: 10,
+    marginTop: 12,
+  },
+  readerInlineLanguageBox: {
+    gap: 7,
+  },
+  readerInlineLanguageLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  readerInlineLanguageList: {
+    gap: 7,
+    paddingRight: 8,
+  },
+  readerInlineLanguageChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  readerInlineLanguageText: {
+    fontSize: 11,
+    fontWeight: '900',
   },
   quickNoteInput: {
     borderRadius: 8,

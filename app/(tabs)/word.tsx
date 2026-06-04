@@ -45,6 +45,7 @@ import {
   formatEtymologyWithAttribution,
   resolveEtymologyDisplay,
 } from '@/data/etymologyAdapter';
+import { detectLookupSourceLanguage, type LookupLanguageDetection } from '@/data/languageDetection';
 import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair, languageOptions } from '@/data/languages';
 import {
   LibraryState,
@@ -102,6 +103,7 @@ export default function WordScreen() {
   const [libraryLoaded, setLibraryLoaded] = useState(false);
   const [showLanguageControls, setShowLanguageControls] = useState(false);
   const [activeLanguageField, setActiveLanguageField] = useState<LanguageField | null>(null);
+  const [detectedLanguage, setDetectedLanguage] = useState<LookupLanguageDetection | null>(null);
   const [recognitionModalOpen, setRecognitionModalOpen] = useState(false);
   const [recognitionMode, setRecognitionMode] = useState<RecognitionKind>('speech');
   const [recognitionStatus, setRecognitionStatus] = useState<RecognitionStatus>('idle');
@@ -347,6 +349,21 @@ export default function WordScreen() {
     const trimmedWord = normalizeLookupTerm(word);
     if (!trimmedWord) return;
 
+    const detection = detectLookupSourceLanguage(trimmedWord, sourceLanguage.code);
+    if (detection.confidence === 'high' && detection.languageCode !== sourceLanguage.code) {
+      const nextLanguage = getLanguageByCode(detection.languageCode, sourceLanguage.code);
+      if (nextLanguage.dictionaryStatus !== 'unavailable') {
+        router.setParams({
+          sourceLang: nextLanguage.code,
+          targetLang: targetLanguage.code,
+        });
+        setDetectedLanguage(detection);
+        setShowLanguageControls(true);
+      }
+    } else if (detection.confidence === 'low') {
+      setDetectedLanguage(null);
+    }
+
     setSelectedWord(trimmedWord);
     setActiveIndex(0);
     scrollRef.current?.scrollTo({ x: 0, animated: true });
@@ -547,6 +564,22 @@ export default function WordScreen() {
             <Text style={styles.languageCaption}>
               Đang tra: {sourceLanguage.label} → {targetLanguage.label}
             </Text>
+          ) : null}
+          {detectedLanguage ? (
+            <View style={styles.detectedLanguageChip}>
+              <Ionicons name="sparkles-outline" size={14} color="#7C3AED" />
+              <Text style={styles.detectedLanguageText}>
+                Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => {
+                  setDetectedLanguage(null);
+                  router.setParams({ sourceLang: sourceLanguage.code, targetLang: targetLanguage.code });
+                }}>
+                <Text style={styles.detectedLanguageUndo}>Hoàn tác</Text>
+              </TouchableOpacity>
+            </View>
           ) : null}
           {showLanguageControls ? (
             <View style={styles.recognitionActionRow}>
@@ -1242,6 +1275,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     marginTop: 8,
+  },
+  detectedLanguageChip: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  detectedLanguageText: {
+    color: '#5B21B6',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  detectedLanguageUndo: {
+    color: '#7C3AED',
+    fontSize: 12,
+    fontWeight: '900',
   },
   recognitionActionRow: {
     flexDirection: 'row',

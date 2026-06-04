@@ -563,6 +563,18 @@ export default function ProfileScreen() {
               <Text style={styles.heroMeta} numberOfLines={2}>
                 {nativeLanguage?.label ?? profile.nativeLanguage} → {learningLanguage?.label ?? profile.learningLanguage} · {profile.proficiencyLevel}
               </Text>
+              <View style={styles.heroAuthBadge}>
+                <Ionicons
+                  name={authSession.status === 'authenticated' || authSession.status === 'needs_verification' ? 'cloud-done-outline' : 'phone-portrait-outline'}
+                  size={13}
+                  color="#5645D4"
+                />
+                <Text style={styles.heroAuthBadgeText}>
+                  {authSession.status === 'authenticated' || authSession.status === 'needs_verification'
+                    ? 'Signed in · cloud actions available'
+                    : 'Guest local mode · lookup, Reader, Library, Flashcards vẫn dùng được'}
+                </Text>
+              </View>
             </View>
             <Pressable
               accessibilityLabel="Mở cài đặt"
@@ -1678,6 +1690,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 3,
+  },
+  heroAuthBadge: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 7,
+    maxWidth: '100%',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  heroAuthBadgeText: {
+    color: '#4C1D95',
+    flexShrink: 1,
+    fontSize: 11,
+    fontWeight: '800',
   },
   heroIconButton: {
     alignItems: 'center',

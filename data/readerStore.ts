@@ -1,5 +1,12 @@
 import { getStoredItem, removeStoredItem, setStoredItem } from '@/data/storageAdapter';
 import type { EnabledReaderImportFormat } from '@/data/readerImport';
+import type { LanguageCode } from '@/data/languages';
+import {
+  normalizeReaderBackgroundPresetId,
+  normalizeReaderThemeMode,
+  type ReaderBackgroundPresetId,
+  type ReaderThemeMode,
+} from './readerTheme';
 
 const STORAGE_KEY = 'dictionary-mobile.reader.v1';
 
@@ -15,7 +22,11 @@ export type ReaderDocument = {
 export type ReaderSettings = {
   fontSize: number;
   fontFamily: 'system' | 'serif' | 'mono';
-  backgroundColor: '#F8FAFC' | '#FFF7ED' | '#ECFDF5';
+  backgroundColor: string;
+  backgroundPresetId: ReaderBackgroundPresetId;
+  themeMode: ReaderThemeMode;
+  sourceLanguage: LanguageCode;
+  targetLanguage: LanguageCode;
 };
 
 export type ReaderState = {
@@ -105,6 +116,10 @@ export function getDefaultReaderState(): ReaderState {
       fontSize: 18,
       fontFamily: 'system',
       backgroundColor: '#F8FAFC',
+      backgroundPresetId: 'auto',
+      sourceLanguage: 'en',
+      targetLanguage: 'vi',
+      themeMode: 'system',
     },
   };
 }
@@ -139,7 +154,9 @@ export async function removeReaderStateFromAsyncStorage() {
   await removeStoredItem(STORAGE_KEY);
 }
 
-export function normalizeReaderState(state: Partial<ReaderState>): ReaderState {
+export function normalizeReaderState(
+  state: Partial<Omit<ReaderState, 'settings'>> & { settings?: Partial<ReaderSettings> }
+): ReaderState {
   const defaultState = getDefaultReaderState();
   const documents = state.documents ?? [];
   const selectedDocumentId = documents.some((document) => document.id === state.selectedDocumentId)
@@ -152,6 +169,13 @@ export function normalizeReaderState(state: Partial<ReaderState>): ReaderState {
     settings: {
       ...defaultState.settings,
       ...state.settings,
+      backgroundPresetId: normalizeReaderBackgroundPresetId(
+        state.settings?.backgroundPresetId,
+        state.settings?.backgroundColor
+      ),
+      sourceLanguage: state.settings?.sourceLanguage ?? defaultState.settings.sourceLanguage,
+      targetLanguage: state.settings?.targetLanguage ?? defaultState.settings.targetLanguage,
+      themeMode: normalizeReaderThemeMode(state.settings?.themeMode),
     },
   };
 }

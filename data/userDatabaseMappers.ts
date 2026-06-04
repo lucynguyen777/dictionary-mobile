@@ -415,8 +415,12 @@ export function parseReaderStateFromSqliteRows(rows: {
     settings: rows.settings
       ? {
           backgroundColor: rows.settings.background_color as ReaderState['settings']['backgroundColor'],
+          backgroundPresetId: undefined,
           fontFamily: rows.settings.font_family as ReaderState['settings']['fontFamily'],
           fontSize: rows.settings.font_size,
+          sourceLanguage: undefined,
+          targetLanguage: undefined,
+          themeMode: undefined,
         }
       : undefined,
   });

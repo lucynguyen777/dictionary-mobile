@@ -20,6 +20,33 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
 - Deferred scope: encrypted cloud backup/restore, unsupported language/source gates, production bulk/offline etymology/conjugation, billing for extra agents, and any feature whose provider/source smoke gate has not passed.
 
+## Product Readiness Dashboard
+
+| Hạng mục | Tiến độ | Production status | Top blocker | Next module |
+| --- | ---: | --- | --- | --- |
+| Dictionary Core | 90% | Production-ready core with ongoing coverage growth | Larger headword/example coverage and offline packs | Language parity expansion |
+| Library System | 95% | Production-ready local-first | Cloud conflict smoke still gated | Cloud sync production smoke |
+| Flashcards | 95% | Production-ready local-first | Cross-device sync verification | Cloud sync production smoke |
+| Reader | 78% | Product-ready for text/HTML/DOCX/EPUB and web digital PDF gate | Native PDF/scanned PDF OCR and long-doc polish | v1.3.0 Reader fixes |
+| Import/Export | 90% | Production-ready for CSV/TSV/XLS/Anki/local export | Google Sheets OAuth and remote exports | Google Sheets export |
+| Profile & Privacy | 85% | Guest/local-first ready; cloud identity gated | Production auth smoke and backend account deletion | v1.3.0 auth/guest polish |
+| SQLite Local-first Architecture | 95% | Production-ready local runtime | Optional schema expansion for newer Reader prefs | Local DB schema follow-up |
+| Offline Dictionary | 85% | MVP pack runtime ready | More hosted packs and attribution packaging | Offline pack expansion |
+| Multilingual Architecture | 88% | Adapter architecture ready | Most languages remain fixture/Wiktionary preview | Language parity expansion |
+| Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
+| Cloud Sync | 70% | Manual beta runner available | RLS/two-device production smoke | Cloud sync production smoke |
+| AI Infrastructure | 70% | Backend proxy foundation ready | Provider env, quota, privacy smoke | AI/provider production gates |
+| OCR Infrastructure | 65% | Contracts/preview/provider registry foundation | Native/dev-client and Chandra service smoke | OCR backend/native smoke |
+| Real OCR Engine | 20% | Scanned PDF/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
+| Pronunciation Assessment | 10% | Decision accepted only | Azure backend upload/proxy/privacy/quota | Speech scoring MVP |
+
+## Language Parity Dashboard
+
+- Production dictionary parity: English, Vietnamese, French to Vietnamese where supported.
+- Monolingual preview: languages backed by small Wiktionary/local fixtures remain preview until they meet Anh-Viet parity.
+- Source-gated/unavailable: Cantonese, Uyghur, VI to FR, Basque, Ainu, Quechua, Nahuatl, and Guarani remain blocked until source/license gates pass.
+- Anh-Viet parity criteria: enough headword coverage, morphology, examples, related words, attribution, import/offline packaging path, UI smoke, and tests. Machine translation must not be used as dictionary data.
+
 ## Current Baseline
 - Latest completed commits:
   - `37dfa88` feat(reader): add dark mode, theme customization, AI TTS voice reader, and reading progress scrubber
@@ -651,6 +678,15 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 ## Next Work Module
 
+**Module: v1.3.0 Product Readiness, Reader Fixes, Auth, Language Parity, Progress Dashboard** - DONE
+- Module Completion Plan: ship one larger milestone that fixes Reader product-readiness gaps, clarifies guest/auth capability, adds lookup source detection, corrects language/readiness dashboards, and documents CodeGraph as optional dev tooling without adding runtime dependency.
+- Acceptance criteria: Reader backgrounds are distinct and long docs are not silently truncated; web digital PDF is enabled while scanned/native PDF remains clearly gated; highlight actions appear near selected text with source/target language controls; Home has a quick theme toggle; default profile is neutral guest copy; guest/local-first access policy is explicit; lookup detection is covered; dashboard/docs are synced; verification passes before commit/push/deploy.
+- [x] DONE [MEDIUM]: Reader import/theme/highlight UX fixes: distinct background presets, web digital PDF gate, scanned PDF Chandra gate copy, no 900-token truncation, inline highlight panel with language selectors.
+- [x] DONE [MEDIUM]: Home theme preference toggle and Reader Auto/System behavior using existing local storage and design tokens.
+- [x] DONE [HARD]: Auth and guest capability model: neutral guest profile, clear Profile guest/signed-in state, central feature-access policy, no local data deletion on sign-out.
+- [x] DONE [MEDIUM]: Lookup source language detection with script-first and local dictionary fallback behavior.
+- [x] DONE [EASY]: Product progress dashboard, language parity dashboard, v1.3.0 release metadata, and optional CodeGraph dev-tooling docs.
+
 **Module: Training Reader Library And AI Entry Consolidation** - DONE
 - Module Completion Plan: remove duplicate training entry confusion by keeping AI Tutor out of the bottom tab bar while preserving quick access, and turn `Đọc sách kèm tra từ` into a document library/import surface so `Trình đọc Novel` remains focused on reading, highlight, lookup, save-word, flashcard, and TTS flows.
 - Acceptance criteria: `AI Tutor` no longer appears as a separate bottom tab competing with `AI hội thoại`; Home has a quick AI chat button above the scroll-up button; `Đọc sách kèm tra từ` lists imported Reader documents and owns the import action; selecting a document opens the existing Reader route with the selected document; `/reader` no longer has a duplicate import button; existing Reader highlight/lookup/save/flashcard behavior is untouched; static/unit verification passes before commit.
@@ -660,12 +696,12 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [x] DONE [MEDIUM]: Moved Reader file import from `Trình đọc Novel` into the `Đọc sách kèm tra từ` tool page without changing import parser contracts.
 - [x] DONE [MEDIUM]: Wired document selection from the library into the existing Reader route so highlight, lookup, save-word, flashcard, and TTS flows continue without duplication.
 
-**Module: Reader Theme And Novel Controls Polish** - TODO
+**Module: Reader Theme And Novel Controls Polish** - DONE
 - Module Completion Plan: fix the Reader/novel reading experience so it follows the app theme by default, offers clearly distinct book background presets, adds a Home quick light/dark switch, and replaces the current always-visible Reader settings blocks with a bottom progress/control surface and settings sheet that preserves lookup, highlight, save-word, flashcard, import, and TTS behavior.
 - Acceptance criteria: Home has a reachable light/dark toggle using the app design system; Reader first open follows the main app/system theme and can still be overridden in Reader settings; background presets are visually distinct with no duplicate Cream/Cam, cool/gray/white, or black/gray confusion; bottom Reader controls include audio, previous page, next page, settings, play/pause TTS, and table of contents actions; settings menu matches the reference structure while staying mobile/web responsive; existing Reader highlight/lookup/save/flashcard/import/TTS flows still work; static/unit verification passes before commit.
-- [ ] TODO [MEDIUM]: Add shared app color-scheme preference plumbing and a Home tab quick light/dark toggle using current design-system tokens.
-- [ ] TODO [MEDIUM]: Rework Reader theme initialization so `auto/system` follows the main app light/dark color on first open and only diverges after a Reader-specific user choice.
-- [ ] TODO [MEDIUM]: Replace Reader background presets with distinct swatches and labels for Auto, White, Ivory, Sepia, Warm Amber, Paper Gray, Cool Mist, Charcoal, and Black.
+- [x] DONE [MEDIUM]: Add shared app color-scheme preference plumbing and a Home tab quick light/dark toggle using current design-system tokens.
+- [x] DONE [MEDIUM]: Rework Reader theme initialization so `auto/system` follows the main app light/dark color on first open and only diverges after a Reader-specific user choice.
+- [x] DONE [MEDIUM]: Replace Reader background presets with distinct swatches and labels for Auto, White, Ivory, Sepia, Warm Amber, Paper Gray, Cool Mist, Charcoal, and Black.
 - [x] DONE [MEDIUM]: Add bottom Reader reading-progress bar and novel control panel where previous/next scroll pages, center play toggles auto-scroll, headphones toggles a separate audio progress bar, and table-of-contents jumps to stable reading positions.
 - [x] DONE [MEDIUM]: Move Reader appearance/font controls and audio settings into the same gear settings sheet inspired by the reference screens and verify mobile/web layout, no overflow, and feature parity.
 

@@ -111,7 +111,7 @@ export const readerImportPlans: Record<ReaderImportFormat, ReaderImportPlan> = {
     status: 'planned',
     parser: 'expo-pdf-text-extract for dev-client/native, PDF.js-style fallback for web',
     note: 'PDF text extraction phụ thuộc nền tảng; digital PDFs khác scanned PDFs và Expo Go không phù hợp cho native module.',
-    nextStep: 'PDF chỉ bật sau gate: READER_ENABLE_PDF=true trên Expo web; native/Expo Go vẫn hiển thị trạng thái chưa hỗ trợ.',
+    nextStep: 'Digital PDF bật mặc định trên Expo web; native/Expo Go và scanned PDF vẫn cần gate rõ ràng.',
   },
 };
 
@@ -194,7 +194,9 @@ export async function extractReaderDocument(
       throw new Error('PDF cần đọc ở dạng ArrayBuffer trước khi chuyển sang Reader text.');
     }
 
-    return extractPdfReaderDocument(fileName, rawContent);
+    return extractPdfReaderDocument(fileName, rawContent, extractPdfReaderText, {
+      ocrParser: getConfiguredChandraPdfOcrParser(),
+    });
   }
 
   if (!isSupportedReaderImportFormat(sourceFormat)) {
@@ -347,7 +349,9 @@ export function isEnabledReaderImportFormat(format: ReaderImportFormat): format 
 
 export function isPdfImportEnabled(): boolean {
   try {
-    return Boolean(process.env.READER_ENABLE_PDF === 'true' && process.env.EXPO_OS === 'web');
+    if (process.env.EXPO_OS === 'web') return process.env.EXPO_PUBLIC_READER_ENABLE_PDF !== 'false';
+
+    return false;
   } catch {
     return false;
   }
@@ -357,7 +361,7 @@ export function getUnsupportedReaderImportMessage(format: UnsupportedReaderImpor
   const plan = readerImportPlans[format];
 
   if (format === 'pdf') {
-    return `${plan.label} cần parser riêng trước khi import vào Reader. Chiến lược: ${plan.parser}. ${plan.nextStep} Scanned PDF cần OCR riêng nên vẫn chưa hỗ trợ.`;
+    return `${plan.label} digital đã hỗ trợ trên Expo web. Native/Expo Go vẫn chặn an toàn; scanned PDF cần OCR backend như Chandra trước khi import.`;
   }
 
   return `${plan.label} cần parser riêng trước khi import vào Reader. Chiến lược: ${plan.parser}. ${plan.nextStep} Hiện app mới hỗ trợ TXT và HTML an toàn.`;
@@ -376,9 +380,41 @@ async function extractImageBasedPdfReaderText(
   rawContent: ArrayBuffer,
   ocrParser?: ReaderPdfOcrParser
 ) {
-  if (!ocrParser) return '';
+  if (!ocrParser) {
+    throw new Error('PDF dạng ảnh/scanned cần OCR backend Chandra trước khi import vào Reader.');
+  }
 
   return extractReaderTextFromOcrResult(await ocrParser({ fileName, rawContent }));
+}
+
+function getConfiguredChandraPdfOcrParser(): ReaderPdfOcrParser | undefined {
+  const endpoint = getChandraOcrEndpoint();
+  if (!endpoint) return undefined;
+
+  return async ({ fileName, rawContent }) => {
+    const response = await fetch(`${endpoint}/ocr/pdf`, {
+      body: rawContent,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'X-Reader-File-Name': encodeURIComponent(fileName),
+      },
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Chandra OCR chưa thể xử lý PDF scanned (${response.status}).`);
+    }
+
+    return response.json() as Promise<ReaderPdfOcrResult>;
+  };
+}
+
+function getChandraOcrEndpoint() {
+  try {
+    return process.env.EXPO_PUBLIC_CHANDRA_OCR_URL?.replace(/\/+$/, '') ?? '';
+  } catch {
+    return '';
+  }
 }
 
 function normalizeReaderImportedText(text: string) {

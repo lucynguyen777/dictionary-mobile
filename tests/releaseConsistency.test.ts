@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { APP_RELEASE } from '../constants/appRelease';
 
-const releaseVersion = '1.2.2';
+const releaseVersion = '1.3.0';
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(resolve(process.cwd(), path), 'utf8')) as T;
@@ -33,7 +33,7 @@ describe('release consistency', () => {
   it('keeps release docs pointing at the current deployable version', () => {
     expect(readText('README.md')).toContain(`current deployable release is v${releaseVersion}`);
     expect(readText('docs/deployment-options.md')).toContain(`ready to ship as v${releaseVersion}`);
-    expect(readText('.ai/context/current-product-state.md')).toContain(`v${releaseVersion} release consistency`);
+    expect(readText('.ai/context/current-product-state.md')).toContain(`v${releaseVersion} product-readiness`);
   });
 
   it('keeps cloud sync smoke docs manual-only', () => {

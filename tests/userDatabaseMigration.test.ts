@@ -69,7 +69,7 @@ describe('user database migration bridge', () => {
     expect(database.rows.user_profile[0]).toMatchObject({
       app_lock_enabled: 1,
       daily_reminder_enabled: 0,
-      display_name: 'Mai Anh',
+      display_name: 'Khách học tập',
       reminder_time: '07:30',
       weekly_summary_enabled: 1,
     });
@@ -202,7 +202,7 @@ const fixtureProfile: UserProfile = {
   cloudSyncEnabled: false,
   avatarUrl: '',
   dailyGoal: '20 từ/ngày',
-  displayName: 'Mai Anh',
+  displayName: 'Khách học tập',
   email: '',
   learningGoal: 'Travel',
   learningLanguage: 'en',
@@ -335,8 +335,12 @@ const fixtureReader: ReaderState = {
   selectedDocumentId: 'missing-doc',
   settings: {
     backgroundColor: '#FFF7ED',
+    backgroundPresetId: 'sepia',
     fontFamily: 'serif',
     fontSize: 20,
+    sourceLanguage: 'en',
+    targetLanguage: 'vi',
+    themeMode: 'sepia',
   },
 };
 

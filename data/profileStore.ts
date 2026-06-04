@@ -42,7 +42,7 @@ export const loginMethodOptions: { value: LoginMethod; label: string }[] = [
 
 export function getDefaultProfile(): UserProfile {
   return {
-    displayName: 'Mai Anh',
+    displayName: 'Khách học tập',
     email: '',
     username: '',
     phone: '',

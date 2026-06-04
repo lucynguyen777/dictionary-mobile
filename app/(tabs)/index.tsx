@@ -4,8 +4,10 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
+import { loadAppColorSchemePreference, saveAppColorSchemePreference, type AppColorSchemePreference } from '@/data/appThemePreference';
 import { dictionaryEntries, getWordOfDay, studyStats } from '@/data/dictionary';
-import { LanguageOption, languageOptions } from '@/data/languages';
+import { detectLookupSourceLanguage, type LookupLanguageDetection } from '@/data/languageDetection';
+import { getLanguageByCode, LanguageOption, languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import { normalizeLookupTerm } from '@/data/localLexicon';
 
@@ -29,13 +31,18 @@ export default function HomeScreen() {
   const [sourceLanguage, setSourceLanguage] = useState<LanguageOption>(languageOptions[0]);
   const [targetLanguage, setTargetLanguage] = useState<LanguageOption>(languageOptions[1]);
   const [activeLanguageField, setActiveLanguageField] = useState<LanguageField | null>(null);
+  const [themePreference, setThemePreference] = useState<AppColorSchemePreference>('system');
+  const [detectedLanguage, setDetectedLanguage] = useState<LookupLanguageDetection | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
 
-      loadLibraryState().then((state) => {
-        if (isMounted) setLibraryState(state);
+      Promise.all([loadLibraryState(), loadAppColorSchemePreference()]).then(([state, preference]) => {
+        if (!isMounted) return;
+
+        setLibraryState(state);
+        setThemePreference(preference);
       });
 
       return () => {
@@ -72,14 +79,31 @@ export default function HomeScreen() {
       return;
     }
 
+    const detection = detectLookupSourceLanguage(normalizedLookupQuery, sourceLanguage.code);
+    const nextSourceLanguage =
+      detection.confidence === 'high' && detection.languageCode !== sourceLanguage.code
+        ? getLanguageByCode(detection.languageCode, sourceLanguage.code)
+        : sourceLanguage;
+
+    if (nextSourceLanguage.code !== sourceLanguage.code) {
+      setSourceLanguage(nextSourceLanguage);
+      setDetectedLanguage(detection);
+    }
+
     router.push({
       pathname: '/word',
       params: {
         word: normalizedLookupQuery,
-        sourceLang: sourceLanguage.code,
+        sourceLang: nextSourceLanguage.code,
         targetLang: targetLanguage.code,
       },
     });
+  };
+
+  const handleToggleThemePreference = async () => {
+    const nextPreference = themePreference === 'dark' ? 'light' : 'dark';
+    setThemePreference(nextPreference);
+    await saveAppColorSchemePreference(nextPreference);
   };
 
   const handleLanguagePress = (field: LanguageField) => {
@@ -105,9 +129,18 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>Chào buổi học mới</Text>
             <Text style={styles.title}>Dictionaire</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.8} style={styles.iconButton}>
-            <Ionicons name="notifications-outline" size={22} color="#0F172A" />
-          </TouchableOpacity>
+          <View style={styles.topBarActions}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              accessibilityLabel="Đổi nhanh chế độ sáng tối"
+              onPress={handleToggleThemePreference}
+              style={styles.iconButton}>
+              <Ionicons name={themePreference === 'dark' ? 'moon' : 'sunny'} size={22} color="#0F172A" />
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.iconButton}>
+              <Ionicons name="notifications-outline" size={22} color="#0F172A" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.hero}>
@@ -180,6 +213,22 @@ export default function HomeScreen() {
                 onSelect={handleSelectLanguage}
               />
             </View>
+            {detectedLanguage ? (
+              <View style={styles.detectedLanguageChip}>
+                <Ionicons name="sparkles-outline" size={14} color="#7C3AED" />
+                <Text style={styles.detectedLanguageText}>
+                  Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={() => {
+                    setDetectedLanguage(null);
+                    setSourceLanguage(languageOptions[0]);
+                  }}>
+                  <Text style={styles.detectedLanguageUndo}>Hoàn tác</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
             <TouchableOpacity
               activeOpacity={0.85}
               disabled={!canSubmitLookup}
@@ -387,6 +436,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  topBarActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   greeting: {
     color: '#64748B',
     fontSize: 14,
@@ -405,6 +458,29 @@ const styles = StyleSheet.create({
     height: 42,
     justifyContent: 'center',
     width: 42,
+  },
+  detectedLanguageChip: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  detectedLanguageText: {
+    color: '#5B21B6',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  detectedLanguageUndo: {
+    color: '#7C3AED',
+    fontSize: 12,
+    fontWeight: '900',
   },
   hero: {
     backgroundColor: '#1F1B2E',

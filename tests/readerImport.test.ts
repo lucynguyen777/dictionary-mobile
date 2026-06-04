@@ -19,11 +19,11 @@ import {
 
 const pdfFixtureDir = join(process.cwd(), 'tests', 'fixtures', 'reader-pdf');
 const standardFontDataUrl = join(process.cwd(), 'node_modules', 'pdfjs-dist', 'standard_fonts') + '/';
-const originalReaderEnablePdf = process.env.READER_ENABLE_PDF;
+const originalReaderEnablePdf = process.env.EXPO_PUBLIC_READER_ENABLE_PDF;
 const originalExpoOs = process.env.EXPO_OS;
 
 afterEach(() => {
-  restoreEnv('READER_ENABLE_PDF', originalReaderEnablePdf);
+  restoreEnv('EXPO_PUBLIC_READER_ENABLE_PDF', originalReaderEnablePdf);
   restoreEnv('EXPO_OS', originalExpoOs);
 });
 
@@ -44,15 +44,15 @@ describe('readerImport', () => {
     ];
 
     expect(formats.every((format) => !isSupportedReaderImportFormat(format))).toBe(true);
-    expect(getUnsupportedReaderImportMessage('pdf')).toContain('PDF cần parser riêng');
-    expect(getUnsupportedReaderImportMessage('pdf')).toContain(readerImportPlans.pdf.parser);
+    expect(getUnsupportedReaderImportMessage('pdf')).toContain('PDF digital');
+    expect(getUnsupportedReaderImportMessage('pdf')).toContain('Chandra');
   });
 
   it('keeps parser strategy explicit for structured reader formats', () => {
     expect(readerImportPlans.docx.parser).toContain('Mammoth');
     expect(readerImportPlans.epub.parser).toContain('ZIP spine');
     expect(readerImportPlans.pdf.parser).toContain('expo-pdf-text-extract');
-    expect(readerImportPlans.pdf.nextStep).toContain('READER_ENABLE_PDF=true');
+    expect(readerImportPlans.pdf.nextStep).toContain('Expo web');
   });
 
   it('converts DOCX HTML output into Reader text', async () => {
@@ -126,8 +126,7 @@ describe('readerImport', () => {
     expect(isEnabledReaderImportFormat('pdf')).toBe(false);
   });
 
-  it('imports PDF documents through the async Reader document path only when the web gate is enabled', async () => {
-    process.env.READER_ENABLE_PDF = 'true';
+  it('imports PDF documents through the async Reader document path on Expo web by default', async () => {
     process.env.EXPO_OS = 'web';
 
     const buffer = await readFixtureArrayBuffer('digital-simple.pdf');
@@ -151,16 +150,16 @@ describe('readerImport', () => {
     expect(result.content).toContain('Final line confirms extraction reaches the end of the page.');
   });
 
-  it('rejects PDF fixtures with no extractable text', async () => {
+  it('routes PDF fixtures with no extractable text to the OCR-required path', async () => {
     const buffer = await readFixtureArrayBuffer('empty.pdf');
 
-    await expect(extractPdfReaderDocument('empty.pdf', buffer)).rejects.toThrow('Tài liệu trống');
+    await expect(extractPdfReaderDocument('empty.pdf', buffer)).rejects.toThrow('OCR backend Chandra');
   });
 
   it('keeps image-only PDF fixtures on the empty/OCR-required path', async () => {
     const buffer = await readFixtureArrayBuffer('scanned-image.pdf');
 
-    await expect(extractPdfReaderDocument('scanned-image.pdf', buffer)).rejects.toThrow('Tài liệu trống');
+    await expect(extractPdfReaderDocument('scanned-image.pdf', buffer)).rejects.toThrow('OCR backend Chandra');
   });
 
   it('rejects files exceeding the size limit', async () => {
