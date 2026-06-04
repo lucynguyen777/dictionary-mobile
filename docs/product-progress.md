@@ -666,8 +666,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - [ ] TODO [MEDIUM]: Add shared app color-scheme preference plumbing and a Home tab quick light/dark toggle using current design-system tokens.
 - [ ] TODO [MEDIUM]: Rework Reader theme initialization so `auto/system` follows the main app light/dark color on first open and only diverges after a Reader-specific user choice.
 - [ ] TODO [MEDIUM]: Replace Reader background presets with distinct swatches and labels for Auto, White, Ivory, Sepia, Warm Amber, Paper Gray, Cool Mist, Charcoal, and Black.
-- [ ] TODO [MEDIUM]: Add bottom Reader progress bar and novel control panel with audio, previous/next page, settings, play/pause TTS, and table-of-contents buttons without covering selected-word actions.
-- [ ] TODO [MEDIUM]: Move Reader appearance/audio/font/reading-mode controls into a modal settings sheet inspired by the reference screens and verify mobile/web layout, no overflow, and feature parity.
+- [x] DONE [MEDIUM]: Add bottom Reader progress bar and novel control panel with audio, previous/next page, settings, play/pause TTS, and table-of-contents buttons without covering selected-word actions.
+- [x] DONE [MEDIUM]: Move Reader appearance/audio/font/reading-mode controls into a modal settings sheet inspired by the reference screens and verify mobile/web layout, no overflow, and feature parity.
 
 **Module: Chandra OCR Reader Integration** - DONE
 - Module Completion Plan: integrate Chandra as a document OCR provider for scanned/image-based PDFs while preserving the existing OCR engine contract, Reader import pipeline, PDF text parser, highlight/lookup/save/flashcard flows, and MLKit camera OCR direction.
