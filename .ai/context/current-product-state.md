@@ -97,7 +97,7 @@
 - Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- v1.3.3 product-readiness verification for language coverage inventory and language parity expansion planning.
+- No active implementation module after v1.3.3 product-readiness language coverage inventory; recommended next module is source/license and packaged-corpus smoke for the highest-priority preview languages.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)

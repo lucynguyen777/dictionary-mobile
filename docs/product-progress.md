@@ -62,6 +62,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Current Baseline
 - Latest completed commits:
+  - `316f1dd` feat(lang): add language coverage inventory
   - `91430a6` feat(ui): ship v1.3.2 design system upgrade
   - `4b1bcdb` fix(reader): refine guest theme and document reading flows
   - `42f1cc3` feat(release): prepare v1.3.0 product readiness
@@ -694,14 +695,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Next Work Module
 
-**Module: v1.3.3 Language Coverage Inventory** - IN PROGRESS
+**Module: v1.3.3 Language Coverage Inventory** - DONE
 - Module Completion Plan: turn the existing language parity plan into a test-backed inventory that shows which languages have production parity, preview adapters, source gates, local/API coverage, morphology, examples, related words, attribution, and the next safe action before any broader language expansion.
 - Acceptance criteria: every `data/languages.ts` language appears in the inventory; production parity is limited to approved dictionary pairs/languages; preview languages are not mislabeled as production; source-gated rows keep legal/source blockers visible; docs include a readable coverage table; static/unit verification passes before commit/push/deploy.
 - [x] DONE [MEDIUM]: Audit current language metadata, adapter registration, local/API sources, fixture counts, morphology, examples, related words, attribution, and current test coverage.
 - [x] DONE [MEDIUM]: Add a machine-readable language coverage inventory helper that derives rows from the existing language registry and local lexicon without changing lookup behavior.
 - [x] DONE [MEDIUM]: Add focused tests that guard coverage inventory completeness, status honesty, and source-gated language handling.
 - [x] DONE [EASY]: Document the per-language readiness table and next execution order for language parity expansion.
-- [~] IN PROGRESS [MEDIUM]: Run verification/security checks, commit, push, deploy, and record the deployed v1.3.3 handoff.
+- [x] DONE [MEDIUM]: Ran verification/security checks and prepared commit/push/deploy handoff: `git diff --check`, `git diff --cached --check`, `npx tsc --noEmit --pretty false`, `npm run lint -- --max-warnings=0`, `npm test -- --run`, and `npm run build:web:clean` passed; security audit found only documented env var names and dependency package names, no committed secret values.
 
 **Module: v1.3.2 Design System Dark Mode And Motion Upgrade** - DONE
 - Module Completion Plan: turn `DESIGN.md` into the app-specific design-system source of truth, expand tokens and reusable primitives without breaking existing exports, repair the most visible dark-mode surface mismatches across Home/Word/Profile/Library/Advanced/Reader, add expressive but purposeful motion under a 400ms response budget, and record CodeGraph audit output before commit/push/deploy.
