@@ -61,6 +61,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Current Baseline
 - Latest completed commits:
+  - `91430a6` feat(ui): ship v1.3.2 design system upgrade
   - `4b1bcdb` fix(reader): refine guest theme and document reading flows
   - `42f1cc3` feat(release): prepare v1.3.0 product readiness
   - `37dfa88` feat(reader): add dark mode, theme customization, AI TTS voice reader, and reading progress scrubber
