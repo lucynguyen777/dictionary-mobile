@@ -46,6 +46,18 @@ export type ReaderPdfOcrParser = (input: {
   fileName: string;
   rawContent: ArrayBuffer;
 }) => Promise<ReaderPdfOcrResult>;
+export type ReaderPdfOcrFetch = (
+  input: string,
+  init: {
+    body: string;
+    headers: Record<string, string>;
+    method: 'POST';
+  }
+) => Promise<{
+  json: () => Promise<ReaderPdfOcrResult>;
+  ok: boolean;
+  status: number;
+}>;
 
 type MammothConvertToHtml = typeof mammoth.convertToHtml;
 type XmlNode = Record<string, unknown>;
@@ -387,21 +399,41 @@ async function extractImageBasedPdfReaderText(
   return extractReaderTextFromOcrResult(await ocrParser({ fileName, rawContent }));
 }
 
-function getConfiguredChandraPdfOcrParser(): ReaderPdfOcrParser | undefined {
+export function getConfiguredChandraPdfOcrParser(): ReaderPdfOcrParser | undefined {
   const endpoint = getChandraOcrEndpoint();
-  if (!endpoint) return undefined;
+
+  return createChandraPdfOcrParser(endpoint);
+}
+
+export function createChandraPdfOcrParser(
+  endpoint: string,
+  fetchImpl: ReaderPdfOcrFetch = fetch as ReaderPdfOcrFetch
+): ReaderPdfOcrParser | undefined {
+  const normalizedEndpoint = normalizeChandraOcrEndpoint(endpoint);
+  if (!normalizedEndpoint) return undefined;
 
   return async ({ fileName, rawContent }) => {
-    const response = await fetch(`${endpoint}/ocr/pdf`, {
-      body: rawContent,
+    if (rawContent.byteLength > MAX_READER_FILE_SIZE_BYTES) {
+      throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 50MB.');
+    }
+
+    const response = await fetchImpl(`${normalizedEndpoint}/ocr/pdf`, {
+      body: JSON.stringify({
+        fileBase64: arrayBufferToBase64(rawContent),
+        fileName,
+      }),
       headers: {
-        'Content-Type': 'application/pdf',
-        'X-Reader-File-Name': encodeURIComponent(fileName),
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
       method: 'POST',
     });
 
     if (!response.ok) {
+      if (response.status === 413) {
+        throw new Error('Chandra OCR từ chối file quá lớn. Vui lòng dùng file nhỏ hơn hoặc tăng giới hạn backend.');
+      }
+
       throw new Error(`Chandra OCR chưa thể xử lý PDF scanned (${response.status}).`);
     }
 
@@ -409,12 +441,48 @@ function getConfiguredChandraPdfOcrParser(): ReaderPdfOcrParser | undefined {
   };
 }
 
-function getChandraOcrEndpoint() {
+export function getChandraOcrEndpoint() {
   try {
-    return process.env.EXPO_PUBLIC_CHANDRA_OCR_URL?.replace(/\/+$/, '') ?? '';
+    return normalizeChandraOcrEndpoint(process.env.EXPO_PUBLIC_CHANDRA_OCR_URL ?? '');
   } catch {
     return '';
   }
+}
+
+export function isChandraPdfOcrConfigured() {
+  return Boolean(getChandraOcrEndpoint());
+}
+
+function normalizeChandraOcrEndpoint(endpoint: string) {
+  return endpoint.trim().replace(/\/+$/, '');
+}
+
+function arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
+  const bytes = new Uint8Array(arrayBuffer);
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  let output = '';
+  let index = 0;
+
+  for (; index + 2 < bytes.length; index += 3) {
+    output += alphabet[bytes[index] >> 2];
+    output += alphabet[((bytes[index] & 0x03) << 4) | (bytes[index + 1] >> 4)];
+    output += alphabet[((bytes[index + 1] & 0x0f) << 2) | (bytes[index + 2] >> 6)];
+    output += alphabet[bytes[index + 2] & 0x3f];
+  }
+
+  if (index < bytes.length) {
+    output += alphabet[bytes[index] >> 2];
+    if (index + 1 < bytes.length) {
+      output += alphabet[((bytes[index] & 0x03) << 4) | (bytes[index + 1] >> 4)];
+      output += alphabet[(bytes[index + 1] & 0x0f) << 2];
+      output += '=';
+    } else {
+      output += alphabet[(bytes[index] & 0x03) << 4];
+      output += '==';
+    }
+  }
+
+  return output;
 }
 
 function normalizeReaderImportedText(text: string) {

@@ -7,7 +7,7 @@ const dashboardRows = [
   'Dictionary Core | 90%',
   'Library System | 95%',
   'Flashcards | 95%',
-  'Reader | 86%',
+  'Reader | 88%',
   'Import/Export | 90%',
   'Profile & Privacy | 85%',
   'SQLite Local-first Architecture | 95%',
@@ -16,8 +16,8 @@ const dashboardRows = [
   'Supabase Auth | 75%',
   'Cloud Sync | 70%',
   'AI Infrastructure | 70%',
-  'OCR Infrastructure | 65%',
-  'Real OCR Engine | 20%',
+  'OCR Infrastructure | 70%',
+  'Real OCR Engine | 30%',
   'Pronunciation Assessment | 10%',
 ];
 

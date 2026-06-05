@@ -2,7 +2,7 @@ export const APP_RELEASE = {
   cloudSyncMode: 'Manual beta sync',
   deployScope: 'Local-first + backend-gated AI/translation',
   label: 'Dictionary Mobile',
-  version: '1.3.6',
+  version: '1.3.8',
 } as const;
 
 export function getAppReleaseSummary() {

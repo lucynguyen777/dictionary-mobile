@@ -97,9 +97,9 @@
 - Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- No active implementation module after v1.3.6 product-readiness language source/corpus smoke.
+- No active implementation module after v1.3.8 product-readiness Reader OCR production wiring.
 - v1.3.7 Supabase Auth And Cloud Sync Production Smoke is blocked in this environment because Supabase public env, disposable project/users, and two-device sessions are not available.
-- Recommended next implementation module while v1.3.7 is blocked is v1.3.8 Reader OCR Production Wiring, unless the user provides the Supabase smoke setup from `docs/supabase-auth-sync-production-smoke-status.md`.
+- Recommended next implementation module while v1.3.7 is blocked is v1.3.9 Provider Feature Gates, unless the user provides the Supabase smoke setup from `docs/supabase-auth-sync-production-smoke-status.md`.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)

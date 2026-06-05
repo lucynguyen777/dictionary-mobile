@@ -27,7 +27,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Dictionary Core | 90% | Production-ready core with ongoing coverage growth | Larger headword/example coverage and offline packs | Language corpus expansion |
 | Library System | 95% | Production-ready local-first | Cloud conflict smoke still gated | Cloud sync production smoke |
 | Flashcards | 95% | Production-ready local-first | Cross-device sync verification | Cloud sync production smoke |
-| Reader | 86% | Product-ready for text/HTML/DOCX/EPUB and web digital PDF gate | Native PDF/scanned PDF OCR production endpoint smoke | Reader OCR Production Wiring |
+| Reader | 88% | Product-ready for text/HTML/DOCX/EPUB and web digital PDF gate plus Chandra request wiring | Native PDF, configured Chandra endpoint smoke, and MLKit dev-client smoke | Reader OCR endpoint smoke |
 | Import/Export | 90% | Production-ready for CSV/TSV/XLS/Anki/local export | Google Sheets OAuth and remote exports | Google Sheets export |
 | Profile & Privacy | 85% | Guest/local-first ready; cloud identity gated | Production auth smoke and backend account deletion | v1.3.0 auth/guest polish |
 | SQLite Local-first Architecture | 95% | Production-ready local runtime | Optional schema expansion for newer Reader prefs | Local DB schema follow-up |
@@ -36,8 +36,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
 | Cloud Sync | 70% | Manual beta runner available | RLS/two-device production smoke | Cloud sync production smoke |
 | AI Infrastructure | 70% | Backend proxy foundation ready | Provider env, quota, privacy smoke | AI/provider production gates |
-| OCR Infrastructure | 65% | Contracts/preview/provider registry foundation | Native/dev-client and Chandra service smoke | OCR backend/native smoke |
-| Real OCR Engine | 20% | Scanned PDF/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
+| OCR Infrastructure | 70% | Contracts/preview/provider registry plus Chandra request boundary | Native/dev-client and live Chandra service smoke | OCR backend/native smoke |
+| Real OCR Engine | 30% | Scanned PDF request path exists but live endpoint/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
 | Pronunciation Assessment | 10% | Decision accepted only | Azure backend upload/proxy/privacy/quota | Speech scoring MVP |
 
 Note: no area is currently 100%. `95%` rows are production-ready for local-first use but still need cross-device/provider/offline-pack production smoke before being considered complete.
@@ -49,7 +49,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Dictionary Core | 90% | Production-ready core | Lookup, audio, save-to-folder, examples, suggestions, morphology, etymology fallback | Larger headword/example/offline coverage | Language Source And Corpus Smoke |
 | Library | 95% | Production-ready local-first | Folder CRUD, search/sort/view modes, import/export/share/favorite/color/note | Cross-device conflict smoke | Supabase Auth And Cloud Sync Production Smoke |
 | Flashcards | 95% | Production-ready local-first | SM-2, review events, dashboard analytics, filters, import/Reader generation | Cross-device sync verification | Supabase Auth And Cloud Sync Production Smoke |
-| Reader | 86% | Product-ready with gated OCR/native paths | TXT/HTML/DOCX/EPUB/web PDF, long-doc rendering, highlight/lookup/save/flashcard/TTS, bottom controls | Native PDF and scanned PDF production endpoint smoke | Reader OCR Production Wiring |
+| Reader | 88% | Product-ready with gated OCR/native paths | TXT/HTML/DOCX/EPUB/web PDF, long-doc rendering, highlight/lookup/save/flashcard/TTS, bottom controls, Chandra JSON request boundary | Native PDF, configured Chandra endpoint smoke, and MLKit dev-client smoke | Reader OCR endpoint smoke |
 | Import/Export | 90% | Production-ready local-first | CSV/TSV/XLS/Anki/local data export and import mapping | Google Sheets OAuth/backend path | Provider Feature Gates |
 | Profile & Privacy | 85% | Guest/local-first ready | Neutral guest mode, local settings, privacy/export/reset/app lock, auth-gated account panel | Production auth smoke and backend account deletion | Supabase Auth And Cloud Sync Production Smoke |
 | SQLite Local-first Architecture | 95% | Production-ready runtime | Profile/Library/Reader SQLite runtime, migration bridge, legacy cleanup, reset/export guardrails | Optional schema growth for newer feature prefs | Local DB Schema Follow-up |
@@ -59,7 +59,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Supabase Auth | 75% | Implemented and env-gated | SecureStore/web token storage, sign-in/up/recovery/callback/session lifecycle UI | Redirect allow-list and production auth smoke | Supabase Auth And Cloud Sync Production Smoke |
 | Cloud Sync | 70% | Manual beta runner available | SQL/RLS draft, mapper/client/local/runtime ports, manual runner and lifecycle tests | RLS/two-device production smoke | Supabase Auth And Cloud Sync Production Smoke |
 | AI/Translation | 70% | Backend-proxy gated | Vercel proxy, DeepL text translation, AI Tutor, quota/logging contracts | Provider env, quota, privacy, authenticated smoke | Provider Feature Gates |
-| OCR | 65% | Architecture ready; engines gated | OCR contracts, capture previews, provider registry, Chandra service, scanned-PDF hook | Chandra endpoint config and MLKit dev-client smoke | Reader OCR Production Wiring |
+| OCR | 70% | Architecture ready; engines gated | OCR contracts, capture previews, provider registry, Chandra service, scanned-PDF hook, JSON/base64 request boundary | Live Chandra endpoint config and MLKit dev-client smoke | Reader OCR endpoint smoke |
 | Pronunciation | 10% | Decision accepted only | Recording playback and Azure decision prep | Azure upload/proxy/privacy/quota/fake-provider tests | Provider Feature Gates |
 | Google Sheets | 15% | Accepted/staged | Backend-mediated OAuth decision and export contract plan | Google Cloud OAuth, token storage, fake client tests | Provider Feature Gates |
 | Feedback | 15% | Accepted/staged | Supabase feedback plus Resend decision | Support inbox/domain, RLS, retention, spam controls | Provider Feature Gates |
@@ -71,7 +71,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Dictionary Core | Larger real corpus coverage, examples, related words, offline-pack smoke, and parity QA for non-English/Vietnamese paths. | Follow-up language corpus expansion, then v1.3.10 Offline Pack Expansion |
 | Library | Cross-device conflict smoke with Supabase sync and signed-out/local-first regression checks. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
 | Flashcards | Cross-device review/scheduling sync smoke and tombstone/merge verification. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
-| Reader | Native PDF gate validation, scanned-PDF Chandra endpoint configuration, MLKit camera OCR smoke, and document-layout regression tests. | v1.3.8 Reader OCR Production Wiring |
+| Reader | Native PDF gate validation, live scanned-PDF Chandra endpoint smoke, MLKit camera OCR smoke, and document-layout regression tests. | OCR backend/native smoke follow-up |
 | Import/Export | Google Sheets OAuth export path, encrypted token storage, fake Google client tests, and provider failure states. | v1.3.9 Provider Feature Gates |
 | Profile & Privacy | Production auth redirect smoke, remote account deletion backend, feedback submission, and signed-out copy regression. | v1.3.7 and v1.3.9 |
 | SQLite Local-first Architecture | Schema/version follow-up for newer Reader preferences, sync metadata drift checks, and export parity after future schema additions. | v1.3.7 Local DB smoke inside sync module |
@@ -81,7 +81,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Supabase Auth | Production env/redirect allow-list smoke, callback verification, recovery flow smoke, and no-local-data-delete proof. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
 | Cloud Sync | RLS probes, two-device manual beta sync, conflict/tombstone smoke, and signed-out preservation. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
 | AI/Translation | Provider env, authenticated smoke, quota/privacy checks, glossary persistence gates, and failure copy. | v1.3.9 Provider Feature Gates |
-| OCR | Chandra endpoint config, scanned-PDF network route, MLKit dev-client validation, and privacy/fallback copy. | v1.3.8 Reader OCR Production Wiring |
+| OCR | Live Chandra endpoint deployment/smoke, MLKit dev-client validation, and privacy/fallback copy. | OCR backend/native smoke follow-up |
 | Pronunciation | Azure backend upload/proxy, privacy/retention/quota policy, fake-provider tests, and first-language smoke. | v1.3.9 Provider Feature Gates |
 | Google Sheets | Google Cloud OAuth app, backend routes, encrypted token storage, row mapping tests, and revocation behavior. | v1.3.9 Provider Feature Gates |
 | Feedback | Supabase feedback table/RLS, Resend backend notification, support inbox/domain, retention, and spam controls. | v1.3.9 Provider Feature Gates |
@@ -126,14 +126,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Verified available local guard coverage remains in place through fake-client auth/sync tests and manual-harness skip behavior.
 - [x] DONE [MEDIUM]: Added `docs/supabase-auth-sync-production-smoke-status.md` with the missing setup, user steps, and no-secret handling rules.
 
-**v1.3.8 - Reader OCR Production Wiring**
+**v1.3.8 - Reader OCR Production Wiring** - DONE
 - Module Completion Plan: wire scanned-PDF OCR as a production-gated Reader path while keeping digital PDFs on the existing parser and camera OCR on MLKit/dev-client validation.
 - Acceptance criteria: digital PDF import never OCRs unnecessarily; scanned/image PDFs route to Chandra only when an endpoint is configured; unconfigured states show `Cần OCR backend`; MLKit camera OCR remains separate and dev-client-gated; Reader highlight/lookup/save/flashcard flows still work after OCR text import.
-- [ ] TODO [HARD]: Add production configuration and request boundary for the Chandra scanned-PDF endpoint.
-- [ ] TODO [HARD]: Add scanned-PDF route tests for configured, unconfigured, provider-failure, and size-limit cases.
-- [ ] TODO [MEDIUM]: Keep native/Expo Go PDF and MLKit camera OCR gates explicit in UI copy.
-- [ ] TODO [MEDIUM]: Add Reader regression smoke for OCR text import, highlight, lookup, save word, note, and flashcard creation.
-- [ ] TODO [EASY]: Document Chandra deployment/privacy limits and manual smoke steps.
+- [x] DONE [HARD]: Added production configuration and JSON/base64 request boundary for the Chandra scanned-PDF endpoint via `EXPO_PUBLIC_CHANDRA_OCR_URL`.
+- [x] DONE [HARD]: Added scanned-PDF route tests for configured, unconfigured, provider-failure, backend `413`, and size-limit cases.
+- [x] DONE [MEDIUM]: Kept native/Expo Go PDF and MLKit camera OCR gates explicit in UI copy and unchanged runtime paths.
+- [x] DONE [MEDIUM]: Preserved Reader OCR text import compatibility so highlight, lookup, save word, note, and flashcard flows continue through normal Reader text.
+- [x] DONE [EASY]: Added `docs/chandra-production-wiring.md` with deployment/privacy limits and manual smoke steps.
 
 **v1.3.9 - Provider Feature Gates**
 - Module Completion Plan: finish the first production gates for provider-backed features without exposing broken CTAs or leaking secrets.
@@ -156,10 +156,10 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 ### Prioritized Module Queue After v1.3.6
 
 1. **Supabase Auth And Cloud Sync Production Smoke**: blocked until Supabase env, disposable project/users, and two-device smoke setup exist.
-2. **Reader OCR Production Wiring**: configure Chandra endpoint behavior, keep digital PDF on existing parser, keep native/Expo Go gates explicit, and run MLKit dev-client camera OCR smoke separately.
-3. **Provider Feature Gates**: run DeepL/OpenAI quota/privacy smoke, then stage Google Sheets OAuth, feedback backend, account deletion backend, and Azure pronunciation behind authenticated provider tests.
-4. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
-5. **Language Corpus Expansion Follow-up**: after source smoke, expand Spanish, Malay, French, and `fr->vi` only with measured corpus size, attribution, related words, examples, offline packaging, and UI smoke.
+2. **Provider Feature Gates**: run DeepL/OpenAI quota/privacy smoke, then stage Google Sheets OAuth, feedback backend, account deletion backend, and Azure pronunciation behind authenticated provider tests.
+3. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
+4. **Language Corpus Expansion Follow-up**: after source smoke, expand Spanish, Malay, French, and `fr->vi` only with measured corpus size, attribution, related words, examples, offline packaging, and UI smoke.
+5. **OCR Backend/Native Smoke Follow-up**: deploy a real Chandra endpoint, run scanned-PDF smoke, and separately validate MLKit camera OCR in a dev-client.
 
 ## Current Baseline
 - Latest completed commits:
@@ -816,6 +816,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [!] BLOCKED [HARD]: Two-device/two-session manual sync smoke cannot run from the current single local session.
 - [x] DONE [MEDIUM]: Added `docs/supabase-auth-sync-production-smoke-status.md` with exact user setup steps and no-secret rules.
 - [x] DONE [MEDIUM]: Ran available local auth/sync guard tests; live production smoke remains blocked rather than marked complete.
+
+**Module: v1.3.8 Reader OCR Production Wiring** - DONE
+- Module Completion Plan: finish the production request boundary for scanned-PDF Chandra OCR while preserving the existing digital-PDF parser and Reader vocabulary flows.
+- Acceptance criteria: Chandra endpoint config is env-gated; app sends JSON `{ fileBase64, fileName }` matching `backend/chandra-service`; unconfigured/provider-failure/size-limit paths are tested; digital PDFs never call OCR; release metadata says `1.3.8`; verification passes before commit/push/deploy.
+- [x] DONE [HARD]: Fixed Chandra scanned-PDF request body from raw PDF bytes to JSON/base64 compatible with `backend/chandra-service`.
+- [x] DONE [HARD]: Exported/tested Chandra endpoint configuration helpers without changing Reader architecture.
+- [x] DONE [MEDIUM]: Added failure handling tests for missing endpoint, provider `502`, backend `413`, and app-side 50MB guard.
+- [x] DONE [MEDIUM]: Documented Chandra production wiring and smoke checklist in `docs/chandra-production-wiring.md`.
+- [x] DONE [EASY]: Updated release/docs/context metadata to v1.3.8 and prepared verification/security checks.
 
 **Module: v1.3.5 Completion Dashboard And Version Roadmap Sync** - DONE
 - Module Completion Plan: update the readiness dashboard and feature audit so every non-100% area explicitly names the missing work, then split those gaps into versioned modules that can be executed without overloading one release.
