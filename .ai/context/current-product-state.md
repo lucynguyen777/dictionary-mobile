@@ -98,8 +98,8 @@
 
 ## In Progress
 - No active implementation module after v1.3.6 product-readiness language source/corpus smoke.
-- Recommended next implementation module is v1.3.7 Supabase Auth And Cloud Sync Production Smoke.
-- Product completion remains split into versioned modules: v1.3.7 Supabase auth/sync smoke, v1.3.8 Reader/OCR wiring, v1.3.9 provider gates, and v1.3.10 offline pack expansion.
+- v1.3.7 Supabase Auth And Cloud Sync Production Smoke is blocked in this environment because Supabase public env, disposable project/users, and two-device sessions are not available.
+- Recommended next implementation module while v1.3.7 is blocked is v1.3.8 Reader OCR Production Wiring, unless the user provides the Supabase smoke setup from `docs/supabase-auth-sync-production-smoke-status.md`.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)

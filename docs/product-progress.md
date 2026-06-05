@@ -117,14 +117,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Added `data/languageSourceCorpusSmoke.ts` and `tests/languageSourceCorpusSmoke.test.ts` so preview languages cannot be mislabeled as production parity.
 - [x] DONE [EASY]: Produced the next language-module decision: keep `es`, `ms`, and monolingual `fr` as preview; keep `fr->vi` as a production pair that still needs coverage/offline growth.
 
-**v1.3.7 - Supabase Auth And Cloud Sync Production Smoke**
+**v1.3.7 - Supabase Auth And Cloud Sync Production Smoke** - BLOCKED BY ENV
 - Module Completion Plan: prove the implemented auth and manual beta sync paths are production-safe without deleting local data or enabling automatic background sync.
 - Acceptance criteria: Supabase redirect allow-list, sign-up/sign-in/recovery/callback, RLS probes, two-device manual sync, tombstone handling, signed-out preservation, and local-first guest behavior are verified and documented.
-- [ ] TODO [HARD]: Run Supabase env and redirect allow-list smoke for web and native callback paths.
-- [ ] TODO [HARD]: Execute RLS own-row/cross-user probes for all MVP sync tables.
-- [ ] TODO [HARD]: Run two-device manual beta sync smoke for profile, folders, saved words, flashcards, reader docs/settings, and tombstones.
-- [ ] TODO [MEDIUM]: Verify sign-out never deletes local data and guest/local-first flows remain available.
-- [ ] TODO [MEDIUM]: Update docs/tests/status copy based on smoke outcomes and keep any failed gate clearly staged.
+- [!] BLOCKED [HARD]: Run Supabase env and redirect allow-list smoke for web and native callback paths; local environment is missing `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+- [!] BLOCKED [HARD]: Execute RLS own-row/cross-user probes for all MVP sync tables; disposable project/users are not available in this environment.
+- [!] BLOCKED [HARD]: Run two-device manual beta sync smoke for profile, folders, saved words, flashcards, reader docs/settings, and tombstones; two signed-in sessions/devices are not available in this environment.
+- [x] DONE [MEDIUM]: Verified available local guard coverage remains in place through fake-client auth/sync tests and manual-harness skip behavior.
+- [x] DONE [MEDIUM]: Added `docs/supabase-auth-sync-production-smoke-status.md` with the missing setup, user steps, and no-secret handling rules.
 
 **v1.3.8 - Reader OCR Production Wiring**
 - Module Completion Plan: wire scanned-PDF OCR as a production-gated Reader path while keeping digital PDFs on the existing parser and camera OCR on MLKit/dev-client validation.
@@ -155,7 +155,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ### Prioritized Module Queue After v1.3.6
 
-1. **Supabase Auth And Cloud Sync Production Smoke**: verify redirect allow-list, auth callbacks, RLS probes, two-device manual sync, signed-out behavior, and no local data deletion.
+1. **Supabase Auth And Cloud Sync Production Smoke**: blocked until Supabase env, disposable project/users, and two-device smoke setup exist.
 2. **Reader OCR Production Wiring**: configure Chandra endpoint behavior, keep digital PDF on existing parser, keep native/Expo Go gates explicit, and run MLKit dev-client camera OCR smoke separately.
 3. **Provider Feature Gates**: run DeepL/OpenAI quota/privacy smoke, then stage Google Sheets OAuth, feedback backend, account deletion backend, and Azure pronunciation behind authenticated provider tests.
 4. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
@@ -807,6 +807,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Added `docs/language-source-corpus-smoke.md` with decisions, blockers, source notes, and next language actions.
 - [x] DONE [MEDIUM]: Added guard tests to keep preview candidates out of production parity after smoke.
 - [x] DONE [EASY]: Updated release/docs/context metadata to v1.3.6 and prepared verification/security checks.
+
+**Module: v1.3.7 Supabase Auth And Cloud Sync Production Smoke** - BLOCKED
+- Module Completion Plan: run the production Supabase auth/sync smoke only after a real disposable Supabase environment and two signed-in sessions exist.
+- Acceptance criteria: redirect allow-list, auth callbacks, RLS probes, two-device manual sync, tombstone handling, signed-out preservation, and no-local-data-delete behavior pass with no committed secrets.
+- [!] BLOCKED [HARD]: Production Supabase env is missing locally: `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are not set.
+- [!] BLOCKED [HARD]: Disposable Supabase project/users for RLS probes are not available in this environment.
+- [!] BLOCKED [HARD]: Two-device/two-session manual sync smoke cannot run from the current single local session.
+- [x] DONE [MEDIUM]: Added `docs/supabase-auth-sync-production-smoke-status.md` with exact user setup steps and no-secret rules.
+- [x] DONE [MEDIUM]: Ran available local auth/sync guard tests; live production smoke remains blocked rather than marked complete.
 
 **Module: v1.3.5 Completion Dashboard And Version Roadmap Sync** - DONE
 - Module Completion Plan: update the readiness dashboard and feature audit so every non-100% area explicitly names the missing work, then split those gaps into versioned modules that can be executed without overloading one release.

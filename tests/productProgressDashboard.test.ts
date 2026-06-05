@@ -77,6 +77,8 @@ describe('product progress dashboard', () => {
     for (const moduleName of versionedModules) {
       expect(progress).toContain(moduleName);
     }
+    expect(progress).toContain('v1.3.7 - Supabase Auth And Cloud Sync Production Smoke** - BLOCKED BY ENV');
+    expect(progress).toContain('docs/supabase-auth-sync-production-smoke-status.md');
     expect(progress).toContain('v1.3.5 Completion Dashboard And Version Roadmap Sync');
     for (const moduleName of nextModuleQueue) {
       expect(progress).toContain(moduleName);
