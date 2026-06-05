@@ -97,9 +97,9 @@
 - Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- No active implementation module after v1.3.5 completion-dashboard roadmap sync.
-- Recommended next implementation module is v1.3.6 Language Source And Corpus Smoke for Spanish, Malay, French, and `fr->vi` coverage.
-- Product completion is now split into versioned modules: v1.3.6 languages, v1.3.7 Supabase auth/sync smoke, v1.3.8 Reader/OCR wiring, v1.3.9 provider gates, and v1.3.10 offline pack expansion.
+- No active implementation module after v1.3.6 product-readiness language source/corpus smoke.
+- Recommended next implementation module is v1.3.7 Supabase Auth And Cloud Sync Production Smoke.
+- Product completion remains split into versioned modules: v1.3.7 Supabase auth/sync smoke, v1.3.8 Reader/OCR wiring, v1.3.9 provider gates, and v1.3.10 offline pack expansion.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)

@@ -14,8 +14,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: keep dashboard/docs truth synchronized with the v1.3.5 completion roadmap and avoid marking gated work as production-ready.
-- Medium next tasks: language source/corpus smoke, auth/sync production smoke, Reader OCR endpoint wiring, provider gate implementation, and offline pack expansion are now split into versioned modules.
+- Easy next tasks: keep dashboard/docs truth synchronized with the v1.3.6 source/corpus smoke and avoid marking gated work as production-ready.
+- Medium next tasks: auth/sync production smoke, Reader OCR endpoint wiring, provider gate implementation, offline pack expansion, and follow-up language corpus expansion are split into versioned modules.
 - Hard next tasks: Google Sheets, feedback submission, native OCR/STT, Azure pronunciation scoring, specialized glossary persistence, account deletion backend, and source-gated languages require external setup, legal sources, env vars, native/dev-client validation, provider smoke gates, or production backend wiring.
 - Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
 - Deferred scope: encrypted cloud backup/restore, unsupported language/source gates, production bulk/offline etymology/conjugation, billing for extra agents, and any feature whose provider/source smoke gate has not passed.
@@ -24,7 +24,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 
 | Hạng mục | Tiến độ | Production status | Top blocker | Next module |
 | --- | ---: | --- | --- | --- |
-| Dictionary Core | 90% | Production-ready core with ongoing coverage growth | Larger headword/example coverage and offline packs | Language parity expansion |
+| Dictionary Core | 90% | Production-ready core with ongoing coverage growth | Larger headword/example coverage and offline packs | Language corpus expansion |
 | Library System | 95% | Production-ready local-first | Cloud conflict smoke still gated | Cloud sync production smoke |
 | Flashcards | 95% | Production-ready local-first | Cross-device sync verification | Cloud sync production smoke |
 | Reader | 86% | Product-ready for text/HTML/DOCX/EPUB and web digital PDF gate | Native PDF/scanned PDF OCR production endpoint smoke | Reader OCR Production Wiring |
@@ -32,7 +32,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Profile & Privacy | 85% | Guest/local-first ready; cloud identity gated | Production auth smoke and backend account deletion | v1.3.0 auth/guest polish |
 | SQLite Local-first Architecture | 95% | Production-ready local runtime | Optional schema expansion for newer Reader prefs | Local DB schema follow-up |
 | Offline Dictionary | 85% | MVP pack runtime ready | More hosted packs and attribution packaging | Offline pack expansion |
-| Multilingual Architecture | 88% | Adapter architecture ready | Most languages remain fixture/Wiktionary preview | Language parity expansion |
+| Multilingual Architecture | 88% | Adapter architecture ready with v1.3.6 source smoke | Most languages remain fixture/Wiktionary preview | Language corpus expansion |
 | Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
 | Cloud Sync | 70% | Manual beta runner available | RLS/two-device production smoke | Cloud sync production smoke |
 | AI Infrastructure | 70% | Backend proxy foundation ready | Provider env, quota, privacy smoke | AI/provider production gates |
@@ -68,7 +68,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 
 | Area | Missing to reach 100% | Target version/module |
 | --- | --- | --- |
-| Dictionary Core | Larger real corpus coverage, examples, related words, offline-pack smoke, and parity QA for non-English/Vietnamese paths. | v1.3.6 Language Source And Corpus Smoke, then v1.3.10 Offline Pack Expansion |
+| Dictionary Core | Larger real corpus coverage, examples, related words, offline-pack smoke, and parity QA for non-English/Vietnamese paths. | Follow-up language corpus expansion, then v1.3.10 Offline Pack Expansion |
 | Library | Cross-device conflict smoke with Supabase sync and signed-out/local-first regression checks. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
 | Flashcards | Cross-device review/scheduling sync smoke and tombstone/merge verification. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
 | Reader | Native PDF gate validation, scanned-PDF Chandra endpoint configuration, MLKit camera OCR smoke, and document-layout regression tests. | v1.3.8 Reader OCR Production Wiring |
@@ -76,8 +76,8 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Profile & Privacy | Production auth redirect smoke, remote account deletion backend, feedback submission, and signed-out copy regression. | v1.3.7 and v1.3.9 |
 | SQLite Local-first Architecture | Schema/version follow-up for newer Reader preferences, sync metadata drift checks, and export parity after future schema additions. | v1.3.7 Local DB smoke inside sync module |
 | Offline Dictionary | More hosted packs, checksum/source-date/attribution metadata, and offline lookup smoke for production-parity languages. | v1.3.10 Offline Pack Expansion |
-| Multilingual Architecture | Per-language source/corpus audit and preview-to-production promotion gates. | v1.3.6 Language Source And Corpus Smoke |
-| Language Production Parity | Production corpus size, attribution, examples, related words, offline packaging, UI smoke, and tests for preview languages. | v1.3.6 onward language modules |
+| Multilingual Architecture | Broader per-language corpus expansion and preview-to-production promotion gates after v1.3.6 smoke. | Follow-up language corpus expansion |
+| Language Production Parity | Production corpus size, attribution, examples, related words, offline packaging, UI smoke, and tests for preview languages. | Follow-up language corpus expansion |
 | Supabase Auth | Production env/redirect allow-list smoke, callback verification, recovery flow smoke, and no-local-data-delete proof. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
 | Cloud Sync | RLS probes, two-device manual beta sync, conflict/tombstone smoke, and signed-out preservation. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
 | AI/Translation | Provider env, authenticated smoke, quota/privacy checks, glossary persistence gates, and failure copy. | v1.3.9 Provider Feature Gates |
@@ -108,14 +108,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ### Versioned Completion Roadmap
 
-**v1.3.6 - Language Source And Corpus Smoke**
+**v1.3.6 - Language Source And Corpus Smoke** - DONE
 - Module Completion Plan: convert the v1.3.3 language inventory into source/corpus smoke reports for the first production-promotion candidates before changing lookup behavior.
 - Acceptance criteria: Spanish, Malay, French, and `fr->vi` have source coverage notes, license/attribution status, example/related-word availability, offline-pack viability, failure-state notes, and a clear promote/keep-preview decision.
-- [ ] TODO [MEDIUM]: Audit WiktAPI/live-source coverage for `es`, `ms`, `fr`, and supported `fr->vi` dictionary data.
-- [ ] TODO [MEDIUM]: Record license, attribution, dump/API source date, and packaging obligations for each candidate.
-- [ ] TODO [MEDIUM]: Measure examples, related words, morphology behavior, and missing-result quality against Anh-Viet parity criteria.
-- [ ] TODO [MEDIUM]: Add/update coverage docs and guard tests so preview languages cannot be mislabeled as production parity.
-- [ ] TODO [EASY]: Produce the next language-module decision: promote, expand corpus first, or keep preview.
+- [x] DONE [MEDIUM]: Audited WiktAPI/live-source coverage for `es`, `ms`, `fr`, and supported `fr->vi` dictionary data with bounded live probes.
+- [x] DONE [MEDIUM]: Recorded license, attribution, source/API route, and packaging obligations for each candidate in `docs/language-source-corpus-smoke.md`.
+- [x] DONE [MEDIUM]: Measured examples, related words, morphology behavior, and missing-result quality against Anh-Viet parity criteria.
+- [x] DONE [MEDIUM]: Added `data/languageSourceCorpusSmoke.ts` and `tests/languageSourceCorpusSmoke.test.ts` so preview languages cannot be mislabeled as production parity.
+- [x] DONE [EASY]: Produced the next language-module decision: keep `es`, `ms`, and monolingual `fr` as preview; keep `fr->vi` as a production pair that still needs coverage/offline growth.
 
 **v1.3.7 - Supabase Auth And Cloud Sync Production Smoke**
 - Module Completion Plan: prove the implemented auth and manual beta sync paths are production-safe without deleting local data or enabling automatic background sync.
@@ -153,16 +153,17 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [ ] TODO [MEDIUM]: Update Profile/offline-pack UI copy so installed/readiness states remain clear.
 - [ ] TODO [EASY]: Refresh Product Readiness and Feature Completion Audit percentages after each accepted pack.
 
-### Prioritized Module Queue After v1.3.5
+### Prioritized Module Queue After v1.3.6
 
-1. **Language Source And Corpus Smoke**: audit WiktAPI/dump coverage for `es`, `ms`, `fr`, and `fr->vi`; record source/license, examples, related words, attribution, offline-pack viability, and failure states before any production promotion.
-2. **Supabase Auth And Cloud Sync Production Smoke**: verify redirect allow-list, auth callbacks, RLS probes, two-device manual sync, signed-out behavior, and no local data deletion.
-3. **Reader OCR Production Wiring**: configure Chandra endpoint behavior, keep digital PDF on existing parser, keep native/Expo Go gates explicit, and run MLKit dev-client camera OCR smoke separately.
-4. **Provider Feature Gates**: run DeepL/OpenAI quota/privacy smoke, then stage Google Sheets OAuth, feedback backend, account deletion backend, and Azure pronunciation behind authenticated provider tests.
-5. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
+1. **Supabase Auth And Cloud Sync Production Smoke**: verify redirect allow-list, auth callbacks, RLS probes, two-device manual sync, signed-out behavior, and no local data deletion.
+2. **Reader OCR Production Wiring**: configure Chandra endpoint behavior, keep digital PDF on existing parser, keep native/Expo Go gates explicit, and run MLKit dev-client camera OCR smoke separately.
+3. **Provider Feature Gates**: run DeepL/OpenAI quota/privacy smoke, then stage Google Sheets OAuth, feedback backend, account deletion backend, and Azure pronunciation behind authenticated provider tests.
+4. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
+5. **Language Corpus Expansion Follow-up**: after source smoke, expand Spanish, Malay, French, and `fr->vi` only with measured corpus size, attribution, related words, examples, offline packaging, and UI smoke.
 
 ## Current Baseline
 - Latest completed commits:
+  - `4b7f138` docs(progress): plan completion roadmap
   - `c0f9512` docs(progress): audit v1.3.4 feature completion
   - `316f1dd` feat(lang): add language coverage inventory
   - `91430a6` feat(ui): ship v1.3.2 design system upgrade
@@ -796,6 +797,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: v1.3.6 Language Source And Corpus Smoke** - DONE
+- Module Completion Plan: execute the first language parity module by freezing source/corpus smoke results for Spanish, Malay, French, and `fr->vi` without changing lookup runtime behavior or falsely promoting preview languages.
+- Acceptance criteria: source probes are documented; report/test data exists; `es`, `ms`, and monolingual `fr` remain preview; `fr->vi` remains a supported production pair but not 100% complete; release metadata says `1.3.6`; verification passes before commit/push/deploy.
+- [x] DONE [MEDIUM]: Ran bounded live source probes for WiktAPI Spanish/Malay/French and MinhQnd `fr->vi`.
+- [x] DONE [MEDIUM]: Added frozen source/corpus smoke data in `data/languageSourceCorpusSmoke.ts`.
+- [x] DONE [MEDIUM]: Added `docs/language-source-corpus-smoke.md` with decisions, blockers, source notes, and next language actions.
+- [x] DONE [MEDIUM]: Added guard tests to keep preview candidates out of production parity after smoke.
+- [x] DONE [EASY]: Updated release/docs/context metadata to v1.3.6 and prepared verification/security checks.
 
 **Module: v1.3.5 Completion Dashboard And Version Roadmap Sync** - DONE
 - Module Completion Plan: update the readiness dashboard and feature audit so every non-100% area explicitly names the missing work, then split those gaps into versioned modules that can be executed without overloading one release.
