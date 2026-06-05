@@ -163,6 +163,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Current Baseline
 - Latest completed commits:
+  - `bbba1b3` feat(lang): ship v1.3.6 source corpus smoke
   - `4b7f138` docs(progress): plan completion roadmap
   - `c0f9512` docs(progress): audit v1.3.4 feature completion
   - `316f1dd` feat(lang): add language coverage inventory
