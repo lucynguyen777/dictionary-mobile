@@ -99,7 +99,8 @@
 ## In Progress
 - No active implementation module after v1.3.8 product-readiness Reader OCR production wiring.
 - v1.3.7 Supabase Auth And Cloud Sync Production Smoke is blocked in this environment because Supabase public env, disposable project/users, and two-device sessions are not available.
-- Recommended next implementation module while v1.3.7 is blocked is v1.3.9 Provider Feature Gates, unless the user provides the Supabase smoke setup from `docs/supabase-auth-sync-production-smoke-status.md`.
+- v1.3.9 Provider Feature Gates is also blocked because DeepL/OpenAI/Google/Resend/Azure provider setup and Supabase auth smoke prerequisites are missing.
+- Recommended next implementation module while v1.3.7/v1.3.9 are blocked is v1.3.10 Offline Pack Expansion if a source/pack candidate is selected, or OCR backend/native smoke if a Chandra endpoint/dev-client is available.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)

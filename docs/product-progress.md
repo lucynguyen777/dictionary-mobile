@@ -135,14 +135,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Preserved Reader OCR text import compatibility so highlight, lookup, save word, note, and flashcard flows continue through normal Reader text.
 - [x] DONE [EASY]: Added `docs/chandra-production-wiring.md` with deployment/privacy limits and manual smoke steps.
 
-**v1.3.9 - Provider Feature Gates**
+**v1.3.9 - Provider Feature Gates** - BLOCKED BY PROVIDER SETUP
 - Module Completion Plan: finish the first production gates for provider-backed features without exposing broken CTAs or leaking secrets.
 - Acceptance criteria: DeepL/OpenAI proxy smoke, quota/privacy copy, Google Sheets OAuth implementation plan or code slice, feedback backend plan/code slice, account deletion backend plan, and Azure pronunciation MVP contract are all classified accurately as production-ready or staged.
-- [ ] TODO [HARD]: Run authenticated DeepL/OpenAI quota, privacy, and failure-state smoke.
-- [ ] TODO [HARD]: Build or stage Google Sheets OAuth backend routes, encrypted token storage, row mapping tests, and fake Google client tests.
-- [ ] TODO [HARD]: Build or stage Supabase feedback submission with RLS, Resend notification, retention, and spam controls.
-- [ ] TODO [HARD]: Define account deletion backend execution/recovery contract and no-local-data-loss tests.
-- [ ] TODO [HARD]: Define Azure pronunciation upload/proxy/quota/privacy MVP tests before enabling scoring UI.
+- [!] BLOCKED [HARD]: Run authenticated DeepL/OpenAI quota, privacy, and failure-state smoke; provider and Supabase auth env are missing in this environment.
+- [!] BLOCKED [HARD]: Build or stage Google Sheets OAuth backend routes, encrypted token storage, row mapping tests, and fake Google client tests; Google OAuth app/client setup is not available.
+- [!] BLOCKED [HARD]: Build or stage Supabase feedback submission with RLS, Resend notification, retention, and spam controls; Supabase/Resend setup is not available.
+- [!] BLOCKED [HARD]: Define account deletion backend execution/recovery contract and no-local-data-loss tests; admin backend route and Supabase smoke setup are not available.
+- [x] DONE [MEDIUM]: Added `docs/provider-feature-gates-status.md` with provider setup gaps, no-secret rules, and next smoke requirements; Azure pronunciation remains staged behind provider setup.
 
 **v1.3.10 - Offline Pack Expansion**
 - Module Completion Plan: expand offline dictionary coverage only for languages that pass source/corpus gates, with attribution and checksum metadata preserved end to end.
@@ -156,7 +156,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 ### Prioritized Module Queue After v1.3.6
 
 1. **Supabase Auth And Cloud Sync Production Smoke**: blocked until Supabase env, disposable project/users, and two-device smoke setup exist.
-2. **Provider Feature Gates**: run DeepL/OpenAI quota/privacy smoke, then stage Google Sheets OAuth, feedback backend, account deletion backend, and Azure pronunciation behind authenticated provider tests.
+2. **Provider Feature Gates**: blocked until provider env/OAuth/backend setup exists; see `docs/provider-feature-gates-status.md`.
 3. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
 4. **Language Corpus Expansion Follow-up**: after source smoke, expand Spanish, Malay, French, and `fr->vi` only with measured corpus size, attribution, related words, examples, offline packaging, and UI smoke.
 5. **OCR Backend/Native Smoke Follow-up**: deploy a real Chandra endpoint, run scanned-PDF smoke, and separately validate MLKit camera OCR in a dev-client.
@@ -826,6 +826,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Added failure handling tests for missing endpoint, provider `502`, backend `413`, and app-side 50MB guard.
 - [x] DONE [MEDIUM]: Documented Chandra production wiring and smoke checklist in `docs/chandra-production-wiring.md`.
 - [x] DONE [EASY]: Updated release/docs/context metadata to v1.3.8 and prepared verification/security checks.
+
+**Module: v1.3.9 Provider Feature Gates** - BLOCKED
+- Module Completion Plan: execute provider-gate smoke only after real provider credentials, OAuth/backend setup, Supabase auth, RLS, quota, privacy, and fake-provider tests exist.
+- Acceptance criteria: DeepL/OpenAI, Google Sheets, feedback, account deletion backend, and Azure pronunciation are either production-smoked or accurately kept staged/blocked with setup instructions.
+- [!] BLOCKED [HARD]: DeepL/OpenAI live smoke cannot run because `DEEPL_API_BASE_URL`, `DEEPL_API_KEY`, `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL`, and Supabase auth env are missing.
+- [!] BLOCKED [HARD]: Google Sheets export cannot proceed because Google OAuth app/client setup and backend token storage are not implemented/configured.
+- [!] BLOCKED [HARD]: Feedback/account deletion backend cannot proceed because Supabase/Resend/admin backend setup is not available.
+- [!] BLOCKED [HARD]: Azure pronunciation scoring cannot proceed because Azure Speech credentials and backend audio upload/privacy/quota contract are not configured.
+- [x] DONE [MEDIUM]: Added `docs/provider-feature-gates-status.md` with exact setup steps and no-secret rules.
 
 **Module: v1.3.5 Completion Dashboard And Version Roadmap Sync** - DONE
 - Module Completion Plan: update the readiness dashboard and feature audit so every non-100% area explicitly names the missing work, then split those gaps into versioned modules that can be executed without overloading one release.
