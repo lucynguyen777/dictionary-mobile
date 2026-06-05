@@ -92,6 +92,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Current Baseline
 - Latest completed commits:
+  - `c0f9512` docs(progress): audit v1.3.4 feature completion
   - `316f1dd` feat(lang): add language coverage inventory
   - `91430a6` feat(ui): ship v1.3.2 design system upgrade
   - `4b1bcdb` fix(reader): refine guest theme and document reading flows
