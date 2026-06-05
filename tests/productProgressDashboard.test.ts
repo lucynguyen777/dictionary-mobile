@@ -21,6 +21,21 @@ const dashboardRows = [
   'Pronunciation Assessment | 10%',
 ];
 
+const completionAuditRows = [
+  'Dictionary Core | 90%',
+  'Language Production Parity | 35%',
+  'Google Sheets | 15%',
+  'Feedback | 15%',
+];
+
+const nextModuleQueue = [
+  'Language Source And Corpus Smoke',
+  'Supabase Auth And Cloud Sync Production Smoke',
+  'Reader OCR Production Wiring',
+  'Provider Feature Gates',
+  'Offline Pack Expansion',
+];
+
 describe('product progress dashboard', () => {
   it('documents readiness percent, status, blocker, and next module rows', () => {
     const progress = readFileSync(resolve(process.cwd(), 'docs/product-progress.md'), 'utf8');
@@ -33,5 +48,13 @@ describe('product progress dashboard', () => {
     expect(progress).toContain('## Language Parity Dashboard');
     expect(progress).toContain('docs/language-coverage-inventory.md');
     expect(progress).toContain('Machine translation must not be used as dictionary data.');
+    expect(progress).toContain('## Feature Completion Audit');
+    expect(progress).toContain('| Feature group | Completion | State | Completed evidence | Main blocker | Next module |');
+    for (const row of completionAuditRows) {
+      expect(progress).toContain(row);
+    }
+    for (const moduleName of nextModuleQueue) {
+      expect(progress).toContain(moduleName);
+    }
   });
 });

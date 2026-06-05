@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { APP_RELEASE } from '../constants/appRelease';
 
-const releaseVersion = '1.3.3';
+const releaseVersion = '1.3.4';
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(resolve(process.cwd(), path), 'utf8')) as T;

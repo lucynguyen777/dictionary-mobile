@@ -14,8 +14,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: keep dashboard/docs truth synchronized with the v1.3.3 language coverage inventory.
-- Medium next tasks: source/license smoke, packaged corpus planning, and per-language parity QA are selected before any preview language is promoted.
+- Easy next tasks: keep dashboard/docs truth synchronized with the v1.3.4 product completion audit.
+- Medium next tasks: source/license smoke, packaged corpus planning, per-language parity QA, and production smoke gates are selected before new feature expansion.
 - Hard next tasks: Google Sheets, feedback submission, native OCR/STT, Azure pronunciation scoring, specialized glossary persistence, account deletion backend, and source-gated languages require external setup, legal sources, env vars, native/dev-client validation, or provider smoke gates.
 - Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
 - Deferred scope: encrypted cloud backup/restore, unsupported language/source gates, production bulk/offline etymology/conjugation, billing for extra agents, and any feature whose provider/source smoke gate has not passed.
@@ -40,6 +40,28 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Real OCR Engine | 20% | Scanned PDF/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
 | Pronunciation Assessment | 10% | Decision accepted only | Azure backend upload/proxy/privacy/quota | Speech scoring MVP |
 
+## Feature Completion Audit
+
+| Feature group | Completion | State | Completed evidence | Main blocker | Next module |
+| --- | ---: | --- | --- | --- | --- |
+| Dictionary Core | 90% | Production-ready core | Lookup, audio, save-to-folder, examples, suggestions, morphology, etymology fallback | Larger headword/example/offline coverage | Language Source And Corpus Smoke |
+| Library | 95% | Production-ready local-first | Folder CRUD, search/sort/view modes, import/export/share/favorite/color/note | Cross-device conflict smoke | Supabase Auth And Cloud Sync Production Smoke |
+| Flashcards | 95% | Production-ready local-first | SM-2, review events, dashboard analytics, filters, import/Reader generation | Cross-device sync verification | Supabase Auth And Cloud Sync Production Smoke |
+| Reader | 86% | Product-ready with gated OCR/native paths | TXT/HTML/DOCX/EPUB/web PDF, long-doc rendering, highlight/lookup/save/flashcard/TTS, bottom controls | Native PDF and scanned PDF production endpoint smoke | Reader OCR Production Wiring |
+| Import/Export | 90% | Production-ready local-first | CSV/TSV/XLS/Anki/local data export and import mapping | Google Sheets OAuth/backend path | Provider Feature Gates |
+| Profile & Privacy | 85% | Guest/local-first ready | Neutral guest mode, local settings, privacy/export/reset/app lock, auth-gated account panel | Production auth smoke and backend account deletion | Supabase Auth And Cloud Sync Production Smoke |
+| SQLite Local-first Architecture | 95% | Production-ready runtime | Profile/Library/Reader SQLite runtime, migration bridge, legacy cleanup, reset/export guardrails | Optional schema growth for newer feature prefs | Local DB Schema Follow-up |
+| Offline Dictionary | 85% | MVP runtime ready | Pack manifest/import/download/delete/SQLite lookup and hosted English lite pack | More hosted packs and attribution packaging | Offline Pack Expansion |
+| Multilingual Architecture | 88% | Adapter architecture ready | Language metadata, adapter registry, morphology helpers, coverage inventory | Most languages remain preview fixtures/API | Language Source And Corpus Smoke |
+| Language Production Parity | 35% | Limited production parity | English, Vietnamese, supported `en->vi`, `vi->en`, `fr->vi`; 34-language inventory exists | Corpus size/source/offline/UI smoke for preview languages | Language Source And Corpus Smoke |
+| Supabase Auth | 75% | Implemented and env-gated | SecureStore/web token storage, sign-in/up/recovery/callback/session lifecycle UI | Redirect allow-list and production auth smoke | Supabase Auth And Cloud Sync Production Smoke |
+| Cloud Sync | 70% | Manual beta runner available | SQL/RLS draft, mapper/client/local/runtime ports, manual runner and lifecycle tests | RLS/two-device production smoke | Supabase Auth And Cloud Sync Production Smoke |
+| AI/Translation | 70% | Backend-proxy gated | Vercel proxy, DeepL text translation, AI Tutor, quota/logging contracts | Provider env, quota, privacy, authenticated smoke | Provider Feature Gates |
+| OCR | 65% | Architecture ready; engines gated | OCR contracts, capture previews, provider registry, Chandra service, scanned-PDF hook | Chandra endpoint config and MLKit dev-client smoke | Reader OCR Production Wiring |
+| Pronunciation | 10% | Decision accepted only | Recording playback and Azure decision prep | Azure upload/proxy/privacy/quota/fake-provider tests | Provider Feature Gates |
+| Google Sheets | 15% | Accepted/staged | Backend-mediated OAuth decision and export contract plan | Google Cloud OAuth, token storage, fake client tests | Provider Feature Gates |
+| Feedback | 15% | Accepted/staged | Supabase feedback plus Resend decision | Support inbox/domain, RLS, retention, spam controls | Provider Feature Gates |
+
 ## Language Parity Dashboard
 
 - Production dictionary parity: English, Vietnamese, French to Vietnamese where supported.
@@ -59,6 +81,14 @@ Goal: raise preview languages toward the Anh-Viet production standard without pr
 5. **Parity QA Module**: add language-specific fixture tests, UI smoke tests for Word/Reader/Library flows, offline pack smoke where available, and dashboard status updates before moving any language from preview to production parity.
 
 Recommended execution order: Spanish/French/English-family Latin-script expansion first, then already implemented high-usage scripts (Arabic/Hebrew, Japanese/Korean/Mandarin, Hindi), then remaining preview families, then source-gated languages only after the matching source gate passes.
+
+### Prioritized Module Queue After v1.3.4
+
+1. **Language Source And Corpus Smoke**: audit WiktAPI/dump coverage for `es`, `ms`, `fr`, and `fr->vi`; record source/license, examples, related words, attribution, offline-pack viability, and failure states before any production promotion.
+2. **Supabase Auth And Cloud Sync Production Smoke**: verify redirect allow-list, auth callbacks, RLS probes, two-device manual sync, signed-out behavior, and no local data deletion.
+3. **Reader OCR Production Wiring**: configure Chandra endpoint behavior, keep digital PDF on existing parser, keep native/Expo Go gates explicit, and run MLKit dev-client camera OCR smoke separately.
+4. **Provider Feature Gates**: run DeepL/OpenAI quota/privacy smoke, then stage Google Sheets OAuth, feedback backend, account deletion backend, and Azure pronunciation behind authenticated provider tests.
+5. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
 
 ## Current Baseline
 - Latest completed commits:
@@ -229,7 +259,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [EASY]: Add bottom-right scroll-to-top controls on long lookup and folder pages.
 - [x] DONE [EASY]: Fix Word tab recognition preview so camera permission is requested only after the user opens the camera capture action, not when entering the `Tra cứu` tab.
 - [x] DONE [EASY]: Scope the Flashcard due-review challenge card in `Luyện tập` so it appears only on the tool overview or Flashcard tool, not every tool detail page.
-- [ ] TODO [MEDIUM]: Add a Home tab quick toggle for app light/dark mode so users can switch the main shell theme without opening deeper settings.
+- [x] DONE [MEDIUM]: Add a Home tab quick toggle for app light/dark mode so users can switch the main shell theme without opening deeper settings (completed in v1.3.0/v1.3.1 theme modules).
 
 
 ### Dictionary Lookup
@@ -340,10 +370,10 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Theme customization (font, background, accent) persisted per-user
 - [x] DONE [HARD]: AI-powered TTS voice reader integrated into Reader reading flow
 - [x] DONE [MEDIUM]: Reading progress scrubber for long documents
-- [ ] TODO [MEDIUM]: Fix Reader background palette so warm/cool/light/dark choices are visually distinct and labels no longer present identical-looking options.
-- [ ] TODO [MEDIUM]: Make Reader first-open theme follow the main app light/dark system color, then persist user overrides from the Reader setting menu.
-- [ ] TODO [MEDIUM]: Move Reader novel settings into a modal sheet opened from the bottom control panel, matching the provided reference layout.
-- [ ] TODO [MEDIUM]: Add bottom Reader progress bar plus control panel with audio, previous/next page, settings, play/pause TTS, and table-of-contents buttons.
+- [x] DONE [MEDIUM]: Fix Reader background palette so warm/cool/light/dark choices are visually distinct and labels no longer present identical-looking options (completed in Reader Theme And Novel Controls Polish).
+- [x] DONE [MEDIUM]: Make Reader first-open theme follow the main app light/dark system color, then persist user overrides from the Reader setting menu (completed in v1.3.0/v1.3.1 Reader modules).
+- [x] DONE [MEDIUM]: Move Reader novel settings into a modal sheet opened from the bottom control panel, matching the provided reference layout (completed in Reader Theme And Novel Controls Polish).
+- [x] DONE [MEDIUM]: Add bottom Reader progress bar plus control panel with audio, previous/next page, settings, play/pause TTS, and table-of-contents buttons (completed in Reader Theme And Novel Controls Polish).
 - Module delivered in commit `37dfa88`.
 
 ### Developer Security Audit Harden
@@ -694,6 +724,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: v1.3.4 Product Completion Audit And Module Roadmap Sync** - DONE
+- Module Completion Plan: make `docs/product-progress.md` the accurate post-v1.3.3 source of truth by auditing completion state across all feature groups, reconciling stale checklist rows, adding a Feature Completion Audit table, and selecting the next module queue for languages, auth/sync, Reader/OCR, provider gates, and offline packs.
+- Acceptance criteria: Home/Reader stale TODO rows match completed modules; every major feature group has percent, state, evidence, blocker, and next module; language parity keeps preview/source-gated rows honest; `.ai/context/current-product-state.md` points to this audit; docs guard tests cover the audit and next module queue; verification/security checks pass before commit/push/deploy.
+- [x] DONE [MEDIUM]: Audit current roadmap/dashboard/checklist against implemented modules and language inventory.
+- [x] DONE [MEDIUM]: Reconcile stale TODO/IN PROGRESS rows so checklist matches current code and completed modules.
+- [x] DONE [MEDIUM]: Add Feature Completion Audit table with percent/state/evidence/blocker/next module.
+- [x] DONE [MEDIUM]: Add prioritized module queue covering languages, auth/sync, Reader/OCR, provider features, and offline packs.
+- [x] DONE [EASY]: Added/updated docs guard tests and ran verification/security checks: `git diff --check`, `npx tsc --noEmit --pretty false`, `npm run lint -- --max-warnings=0`, focused docs/release/language coverage tests, and `npm run build:web:clean` passed; security audit found only documented env var names and dependency package names, no committed secret values.
 
 **Module: v1.3.3 Language Coverage Inventory** - DONE
 - Module Completion Plan: turn the existing language parity plan into a test-backed inventory that shows which languages have production parity, preview adapters, source gates, local/API coverage, morphology, examples, related words, attribution, and the next safe action before any broader language expansion.

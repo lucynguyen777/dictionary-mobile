@@ -88,7 +88,7 @@
 - Supabase Authentication (email registration, login, secure token management via SecureStore, and session refresh callbacks) when public Supabase env vars are configured.
 - Manual beta cloud sync runner for user profiles, library folders, saved words, word memberships, search history, flashcards, Reader documents, Reader settings, and tombstones.
 - Soft-deleted record tracking with tombstones and cursor-based sync polling.
-- No automatic foreground/background/realtime sync in v1.3.3; users must explicitly enable beta sync and tap "Đồng bộ ngay".
+- No automatic foreground/background/realtime sync in v1.3.4; users must explicitly enable beta sync and tap "Đồng bộ ngay".
 
 ### AI Assistant & Translation Proxy
 - Vercel-backed API proxy executing requests with Supabase auth session token headers.
@@ -97,7 +97,7 @@
 - Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- No active implementation module after v1.3.3 product-readiness language coverage inventory; recommended next module is source/license and packaged-corpus smoke for the highest-priority preview languages.
+- No active implementation module after v1.3.4 product-readiness audit; recommended next module is Language Source And Corpus Smoke for Spanish, Malay, French, and `fr->vi` coverage.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)
