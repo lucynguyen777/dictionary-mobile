@@ -97,10 +97,11 @@
 - Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- No active implementation module after v1.3.8 product-readiness Reader OCR production wiring.
+- No active implementation module after v1.3.10 offline-pack expansion audit.
 - v1.3.7 Supabase Auth And Cloud Sync Production Smoke is blocked in this environment because Supabase public env, disposable project/users, and two-device sessions are not available.
 - v1.3.9 Provider Feature Gates is also blocked because DeepL/OpenAI/Google/Resend/Azure provider setup and Supabase auth smoke prerequisites are missing.
-- Recommended next implementation module while v1.3.7/v1.3.9 are blocked is v1.3.10 Offline Pack Expansion if a source/pack candidate is selected, or OCR backend/native smoke if a Chandra endpoint/dev-client is available.
+- v1.3.10 Offline Pack Expansion is blocked because no new production-safe source/pack candidate exists beyond the current English lite development smoke pack.
+- Recommended next implementation module is Language Corpus Expansion Follow-up if the goal is language/offline progress, or OCR backend/native smoke if a Chandra endpoint/dev-client is available.
 
 ## Blocked
 - Google Sheets export (OAuth flow and Google API blocked)

@@ -31,7 +31,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Import/Export | 90% | Production-ready for CSV/TSV/XLS/Anki/local export | Google Sheets OAuth and remote exports | Google Sheets export |
 | Profile & Privacy | 85% | Guest/local-first ready; cloud identity gated | Production auth smoke and backend account deletion | v1.3.0 auth/guest polish |
 | SQLite Local-first Architecture | 95% | Production-ready local runtime | Optional schema expansion for newer Reader prefs | Local DB schema follow-up |
-| Offline Dictionary | 85% | MVP pack runtime ready | More hosted packs and attribution packaging | Offline pack expansion |
+| Offline Dictionary | 85% | MVP pack runtime ready | More hosted packs blocked until source/corpus packaging candidates pass | Language Corpus Expansion Follow-up |
 | Multilingual Architecture | 88% | Adapter architecture ready with v1.3.6 source smoke | Most languages remain fixture/Wiktionary preview | Language corpus expansion |
 | Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
 | Cloud Sync | 70% | Manual beta runner available | RLS/two-device production smoke | Cloud sync production smoke |
@@ -53,7 +53,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Import/Export | 90% | Production-ready local-first | CSV/TSV/XLS/Anki/local data export and import mapping | Google Sheets OAuth/backend path | Provider Feature Gates |
 | Profile & Privacy | 85% | Guest/local-first ready | Neutral guest mode, local settings, privacy/export/reset/app lock, auth-gated account panel | Production auth smoke and backend account deletion | Supabase Auth And Cloud Sync Production Smoke |
 | SQLite Local-first Architecture | 95% | Production-ready runtime | Profile/Library/Reader SQLite runtime, migration bridge, legacy cleanup, reset/export guardrails | Optional schema growth for newer feature prefs | Local DB Schema Follow-up |
-| Offline Dictionary | 85% | MVP runtime ready | Pack manifest/import/download/delete/SQLite lookup and hosted English lite pack | More hosted packs and attribution packaging | Offline Pack Expansion |
+| Offline Dictionary | 85% | MVP runtime ready | Pack manifest/import/download/delete/SQLite lookup and hosted English lite pack | More hosted packs blocked until source/corpus packaging candidates pass | Language Corpus Expansion Follow-up |
 | Multilingual Architecture | 88% | Adapter architecture ready | Language metadata, adapter registry, morphology helpers, coverage inventory | Most languages remain preview fixtures/API | Language Source And Corpus Smoke |
 | Language Production Parity | 35% | Limited production parity | English, Vietnamese, supported `en->vi`, `vi->en`, `fr->vi`; 34-language inventory exists | Corpus size/source/offline/UI smoke for preview languages | Language Source And Corpus Smoke |
 | Supabase Auth | 75% | Implemented and env-gated | SecureStore/web token storage, sign-in/up/recovery/callback/session lifecycle UI | Redirect allow-list and production auth smoke | Supabase Auth And Cloud Sync Production Smoke |
@@ -75,7 +75,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Import/Export | Google Sheets OAuth export path, encrypted token storage, fake Google client tests, and provider failure states. | v1.3.9 Provider Feature Gates |
 | Profile & Privacy | Production auth redirect smoke, remote account deletion backend, feedback submission, and signed-out copy regression. | v1.3.7 and v1.3.9 |
 | SQLite Local-first Architecture | Schema/version follow-up for newer Reader preferences, sync metadata drift checks, and export parity after future schema additions. | v1.3.7 Local DB smoke inside sync module |
-| Offline Dictionary | More hosted packs, checksum/source-date/attribution metadata, and offline lookup smoke for production-parity languages. | v1.3.10 Offline Pack Expansion |
+| Offline Dictionary | More hosted packs, checksum/source-date/attribution metadata, and offline lookup smoke for production-parity languages. Current v1.3.10 audit found no safe new pack candidate beyond the English lite development smoke pack. | Language Corpus Expansion Follow-up before the next Offline Pack Expansion |
 | Multilingual Architecture | Broader per-language corpus expansion and preview-to-production promotion gates after v1.3.6 smoke. | Follow-up language corpus expansion |
 | Language Production Parity | Production corpus size, attribution, examples, related words, offline packaging, UI smoke, and tests for preview languages. | Follow-up language corpus expansion |
 | Supabase Auth | Production env/redirect allow-list smoke, callback verification, recovery flow smoke, and no-local-data-delete proof. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
@@ -144,21 +144,21 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [!] BLOCKED [HARD]: Define account deletion backend execution/recovery contract and no-local-data-loss tests; admin backend route and Supabase smoke setup are not available.
 - [x] DONE [MEDIUM]: Added `docs/provider-feature-gates-status.md` with provider setup gaps, no-secret rules, and next smoke requirements; Azure pronunciation remains staged behind provider setup.
 
-**v1.3.10 - Offline Pack Expansion**
+**v1.3.10 - Offline Pack Expansion** - BLOCKED BY SOURCE/PACK CANDIDATE
 - Module Completion Plan: expand offline dictionary coverage only for languages that pass source/corpus gates, with attribution and checksum metadata preserved end to end.
 - Acceptance criteria: each new pack has approved source/license, source date, checksum, attribution UI, import/delete smoke, offline lookup smoke, and no preview/source-gated language is promoted without matching tests.
-- [ ] TODO [MEDIUM]: Select first pack candidates from production-parity or newly approved language smoke results.
-- [ ] TODO [HARD]: Build hosted pack artifacts with source metadata, checksums, and attribution records.
-- [ ] TODO [HARD]: Add offline import/delete/lookup smoke for each pack and fallback behavior when a pack is unavailable.
-- [ ] TODO [MEDIUM]: Update Profile/offline-pack UI copy so installed/readiness states remain clear.
-- [ ] TODO [EASY]: Refresh Product Readiness and Feature Completion Audit percentages after each accepted pack.
+- [!] BLOCKED [MEDIUM]: Select first pack candidates from production-parity or newly approved language smoke results; v1.3.6 kept `es`, `ms`, and monolingual `fr` as preview, and `fr->vi` still lacks measured offline packaging metadata.
+- [!] BLOCKED [HARD]: Build hosted pack artifacts with source metadata, checksums, and attribution records; no approved new source/dump candidate is ready to package in this environment.
+- [!] BLOCKED [HARD]: Add offline import/delete/lookup smoke for each new pack; no new pack artifact exists beyond the current English lite development smoke pack.
+- [x] DONE [MEDIUM]: Audited the existing offline pack inventory and confirmed `public/offline-packs/enwiktionary-lite/` remains a development smoke pack, not production coverage.
+- [x] DONE [EASY]: Added `docs/offline-pack-expansion-status.md` with candidate decisions, blockers, no-secret rules, and the next safe Language Corpus Expansion Follow-up path.
 
 ### Prioritized Module Queue After v1.3.6
 
 1. **Supabase Auth And Cloud Sync Production Smoke**: blocked until Supabase env, disposable project/users, and two-device smoke setup exist.
 2. **Provider Feature Gates**: blocked until provider env/OAuth/backend setup exists; see `docs/provider-feature-gates-status.md`.
-3. **Offline Pack Expansion**: add hosted packs/corpus packaging for production-ready languages only, with source date, checksum, license, attribution, and offline lookup smoke.
-4. **Language Corpus Expansion Follow-up**: after source smoke, expand Spanish, Malay, French, and `fr->vi` only with measured corpus size, attribution, related words, examples, offline packaging, and UI smoke.
+3. **Language Corpus Expansion Follow-up**: after source smoke, expand Spanish, Malay, French, and `fr->vi` only with measured corpus size, attribution, related words, examples, offline packaging, and UI smoke.
+4. **Offline Pack Expansion Retry**: add hosted packs/corpus packaging for production-ready languages only after Language Corpus Expansion produces an approved source/dump candidate with source date, checksum, license, attribution, and offline lookup smoke.
 5. **OCR Backend/Native Smoke Follow-up**: deploy a real Chandra endpoint, run scanned-PDF smoke, and separately validate MLKit camera OCR in a dev-client.
 
 ## Current Baseline
