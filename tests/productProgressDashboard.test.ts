@@ -7,7 +7,7 @@ const dashboardRows = [
   'Dictionary Core | 90%',
   'Library System | 95%',
   'Flashcards | 95%',
-  'Reader | 78%',
+  'Reader | 86%',
   'Import/Export | 90%',
   'Profile & Privacy | 85%',
   'SQLite Local-first Architecture | 95%',
@@ -36,6 +36,21 @@ const nextModuleQueue = [
   'Offline Pack Expansion',
 ];
 
+const completionGapRows = [
+  'Dictionary Core | Larger real corpus coverage',
+  'Reader | Native PDF gate validation',
+  'Cloud Sync | RLS probes',
+  'Pronunciation | Azure backend upload/proxy',
+];
+
+const versionedModules = [
+  'v1.3.6 - Language Source And Corpus Smoke',
+  'v1.3.7 - Supabase Auth And Cloud Sync Production Smoke',
+  'v1.3.8 - Reader OCR Production Wiring',
+  'v1.3.9 - Provider Feature Gates',
+  'v1.3.10 - Offline Pack Expansion',
+];
+
 describe('product progress dashboard', () => {
   it('documents readiness percent, status, blocker, and next module rows', () => {
     const progress = readFileSync(resolve(process.cwd(), 'docs/product-progress.md'), 'utf8');
@@ -53,6 +68,16 @@ describe('product progress dashboard', () => {
     for (const row of completionAuditRows) {
       expect(progress).toContain(row);
     }
+    expect(progress).toContain('### Completion Gaps Under 100%');
+    expect(progress).toContain('| Area | Missing to reach 100% | Target version/module |');
+    for (const row of completionGapRows) {
+      expect(progress).toContain(row);
+    }
+    expect(progress).toContain('### Versioned Completion Roadmap');
+    for (const moduleName of versionedModules) {
+      expect(progress).toContain(moduleName);
+    }
+    expect(progress).toContain('v1.3.5 Completion Dashboard And Version Roadmap Sync');
     for (const moduleName of nextModuleQueue) {
       expect(progress).toContain(moduleName);
     }

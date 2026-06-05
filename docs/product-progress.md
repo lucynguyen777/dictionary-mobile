@@ -14,9 +14,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: keep dashboard/docs truth synchronized with the v1.3.4 product completion audit.
-- Medium next tasks: source/license smoke, packaged corpus planning, per-language parity QA, and production smoke gates are selected before new feature expansion.
-- Hard next tasks: Google Sheets, feedback submission, native OCR/STT, Azure pronunciation scoring, specialized glossary persistence, account deletion backend, and source-gated languages require external setup, legal sources, env vars, native/dev-client validation, or provider smoke gates.
+- Easy next tasks: keep dashboard/docs truth synchronized with the v1.3.5 completion roadmap and avoid marking gated work as production-ready.
+- Medium next tasks: language source/corpus smoke, auth/sync production smoke, Reader OCR endpoint wiring, provider gate implementation, and offline pack expansion are now split into versioned modules.
+- Hard next tasks: Google Sheets, feedback submission, native OCR/STT, Azure pronunciation scoring, specialized glossary persistence, account deletion backend, and source-gated languages require external setup, legal sources, env vars, native/dev-client validation, provider smoke gates, or production backend wiring.
 - Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
 - Deferred scope: encrypted cloud backup/restore, unsupported language/source gates, production bulk/offline etymology/conjugation, billing for extra agents, and any feature whose provider/source smoke gate has not passed.
 
@@ -27,7 +27,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Dictionary Core | 90% | Production-ready core with ongoing coverage growth | Larger headword/example coverage and offline packs | Language parity expansion |
 | Library System | 95% | Production-ready local-first | Cloud conflict smoke still gated | Cloud sync production smoke |
 | Flashcards | 95% | Production-ready local-first | Cross-device sync verification | Cloud sync production smoke |
-| Reader | 78% | Product-ready for text/HTML/DOCX/EPUB and web digital PDF gate | Native PDF/scanned PDF OCR and long-doc polish | v1.3.0 Reader fixes |
+| Reader | 86% | Product-ready for text/HTML/DOCX/EPUB and web digital PDF gate | Native PDF/scanned PDF OCR production endpoint smoke | Reader OCR Production Wiring |
 | Import/Export | 90% | Production-ready for CSV/TSV/XLS/Anki/local export | Google Sheets OAuth and remote exports | Google Sheets export |
 | Profile & Privacy | 85% | Guest/local-first ready; cloud identity gated | Production auth smoke and backend account deletion | v1.3.0 auth/guest polish |
 | SQLite Local-first Architecture | 95% | Production-ready local runtime | Optional schema expansion for newer Reader prefs | Local DB schema follow-up |
@@ -39,6 +39,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | OCR Infrastructure | 65% | Contracts/preview/provider registry foundation | Native/dev-client and Chandra service smoke | OCR backend/native smoke |
 | Real OCR Engine | 20% | Scanned PDF/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
 | Pronunciation Assessment | 10% | Decision accepted only | Azure backend upload/proxy/privacy/quota | Speech scoring MVP |
+
+Note: no area is currently 100%. `95%` rows are production-ready for local-first use but still need cross-device/provider/offline-pack production smoke before being considered complete.
 
 ## Feature Completion Audit
 
@@ -62,6 +64,28 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Google Sheets | 15% | Accepted/staged | Backend-mediated OAuth decision and export contract plan | Google Cloud OAuth, token storage, fake client tests | Provider Feature Gates |
 | Feedback | 15% | Accepted/staged | Supabase feedback plus Resend decision | Support inbox/domain, RLS, retention, spam controls | Provider Feature Gates |
 
+### Completion Gaps Under 100%
+
+| Area | Missing to reach 100% | Target version/module |
+| --- | --- | --- |
+| Dictionary Core | Larger real corpus coverage, examples, related words, offline-pack smoke, and parity QA for non-English/Vietnamese paths. | v1.3.6 Language Source And Corpus Smoke, then v1.3.10 Offline Pack Expansion |
+| Library | Cross-device conflict smoke with Supabase sync and signed-out/local-first regression checks. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
+| Flashcards | Cross-device review/scheduling sync smoke and tombstone/merge verification. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
+| Reader | Native PDF gate validation, scanned-PDF Chandra endpoint configuration, MLKit camera OCR smoke, and document-layout regression tests. | v1.3.8 Reader OCR Production Wiring |
+| Import/Export | Google Sheets OAuth export path, encrypted token storage, fake Google client tests, and provider failure states. | v1.3.9 Provider Feature Gates |
+| Profile & Privacy | Production auth redirect smoke, remote account deletion backend, feedback submission, and signed-out copy regression. | v1.3.7 and v1.3.9 |
+| SQLite Local-first Architecture | Schema/version follow-up for newer Reader preferences, sync metadata drift checks, and export parity after future schema additions. | v1.3.7 Local DB smoke inside sync module |
+| Offline Dictionary | More hosted packs, checksum/source-date/attribution metadata, and offline lookup smoke for production-parity languages. | v1.3.10 Offline Pack Expansion |
+| Multilingual Architecture | Per-language source/corpus audit and preview-to-production promotion gates. | v1.3.6 Language Source And Corpus Smoke |
+| Language Production Parity | Production corpus size, attribution, examples, related words, offline packaging, UI smoke, and tests for preview languages. | v1.3.6 onward language modules |
+| Supabase Auth | Production env/redirect allow-list smoke, callback verification, recovery flow smoke, and no-local-data-delete proof. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
+| Cloud Sync | RLS probes, two-device manual beta sync, conflict/tombstone smoke, and signed-out preservation. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
+| AI/Translation | Provider env, authenticated smoke, quota/privacy checks, glossary persistence gates, and failure copy. | v1.3.9 Provider Feature Gates |
+| OCR | Chandra endpoint config, scanned-PDF network route, MLKit dev-client validation, and privacy/fallback copy. | v1.3.8 Reader OCR Production Wiring |
+| Pronunciation | Azure backend upload/proxy, privacy/retention/quota policy, fake-provider tests, and first-language smoke. | v1.3.9 Provider Feature Gates |
+| Google Sheets | Google Cloud OAuth app, backend routes, encrypted token storage, row mapping tests, and revocation behavior. | v1.3.9 Provider Feature Gates |
+| Feedback | Supabase feedback table/RLS, Resend backend notification, support inbox/domain, retention, and spam controls. | v1.3.9 Provider Feature Gates |
+
 ## Language Parity Dashboard
 
 - Production dictionary parity: English, Vietnamese, French to Vietnamese where supported.
@@ -82,7 +106,54 @@ Goal: raise preview languages toward the Anh-Viet production standard without pr
 
 Recommended execution order: Spanish/French/English-family Latin-script expansion first, then already implemented high-usage scripts (Arabic/Hebrew, Japanese/Korean/Mandarin, Hindi), then remaining preview families, then source-gated languages only after the matching source gate passes.
 
-### Prioritized Module Queue After v1.3.4
+### Versioned Completion Roadmap
+
+**v1.3.6 - Language Source And Corpus Smoke**
+- Module Completion Plan: convert the v1.3.3 language inventory into source/corpus smoke reports for the first production-promotion candidates before changing lookup behavior.
+- Acceptance criteria: Spanish, Malay, French, and `fr->vi` have source coverage notes, license/attribution status, example/related-word availability, offline-pack viability, failure-state notes, and a clear promote/keep-preview decision.
+- [ ] TODO [MEDIUM]: Audit WiktAPI/live-source coverage for `es`, `ms`, `fr`, and supported `fr->vi` dictionary data.
+- [ ] TODO [MEDIUM]: Record license, attribution, dump/API source date, and packaging obligations for each candidate.
+- [ ] TODO [MEDIUM]: Measure examples, related words, morphology behavior, and missing-result quality against Anh-Viet parity criteria.
+- [ ] TODO [MEDIUM]: Add/update coverage docs and guard tests so preview languages cannot be mislabeled as production parity.
+- [ ] TODO [EASY]: Produce the next language-module decision: promote, expand corpus first, or keep preview.
+
+**v1.3.7 - Supabase Auth And Cloud Sync Production Smoke**
+- Module Completion Plan: prove the implemented auth and manual beta sync paths are production-safe without deleting local data or enabling automatic background sync.
+- Acceptance criteria: Supabase redirect allow-list, sign-up/sign-in/recovery/callback, RLS probes, two-device manual sync, tombstone handling, signed-out preservation, and local-first guest behavior are verified and documented.
+- [ ] TODO [HARD]: Run Supabase env and redirect allow-list smoke for web and native callback paths.
+- [ ] TODO [HARD]: Execute RLS own-row/cross-user probes for all MVP sync tables.
+- [ ] TODO [HARD]: Run two-device manual beta sync smoke for profile, folders, saved words, flashcards, reader docs/settings, and tombstones.
+- [ ] TODO [MEDIUM]: Verify sign-out never deletes local data and guest/local-first flows remain available.
+- [ ] TODO [MEDIUM]: Update docs/tests/status copy based on smoke outcomes and keep any failed gate clearly staged.
+
+**v1.3.8 - Reader OCR Production Wiring**
+- Module Completion Plan: wire scanned-PDF OCR as a production-gated Reader path while keeping digital PDFs on the existing parser and camera OCR on MLKit/dev-client validation.
+- Acceptance criteria: digital PDF import never OCRs unnecessarily; scanned/image PDFs route to Chandra only when an endpoint is configured; unconfigured states show `Cần OCR backend`; MLKit camera OCR remains separate and dev-client-gated; Reader highlight/lookup/save/flashcard flows still work after OCR text import.
+- [ ] TODO [HARD]: Add production configuration and request boundary for the Chandra scanned-PDF endpoint.
+- [ ] TODO [HARD]: Add scanned-PDF route tests for configured, unconfigured, provider-failure, and size-limit cases.
+- [ ] TODO [MEDIUM]: Keep native/Expo Go PDF and MLKit camera OCR gates explicit in UI copy.
+- [ ] TODO [MEDIUM]: Add Reader regression smoke for OCR text import, highlight, lookup, save word, note, and flashcard creation.
+- [ ] TODO [EASY]: Document Chandra deployment/privacy limits and manual smoke steps.
+
+**v1.3.9 - Provider Feature Gates**
+- Module Completion Plan: finish the first production gates for provider-backed features without exposing broken CTAs or leaking secrets.
+- Acceptance criteria: DeepL/OpenAI proxy smoke, quota/privacy copy, Google Sheets OAuth implementation plan or code slice, feedback backend plan/code slice, account deletion backend plan, and Azure pronunciation MVP contract are all classified accurately as production-ready or staged.
+- [ ] TODO [HARD]: Run authenticated DeepL/OpenAI quota, privacy, and failure-state smoke.
+- [ ] TODO [HARD]: Build or stage Google Sheets OAuth backend routes, encrypted token storage, row mapping tests, and fake Google client tests.
+- [ ] TODO [HARD]: Build or stage Supabase feedback submission with RLS, Resend notification, retention, and spam controls.
+- [ ] TODO [HARD]: Define account deletion backend execution/recovery contract and no-local-data-loss tests.
+- [ ] TODO [HARD]: Define Azure pronunciation upload/proxy/quota/privacy MVP tests before enabling scoring UI.
+
+**v1.3.10 - Offline Pack Expansion**
+- Module Completion Plan: expand offline dictionary coverage only for languages that pass source/corpus gates, with attribution and checksum metadata preserved end to end.
+- Acceptance criteria: each new pack has approved source/license, source date, checksum, attribution UI, import/delete smoke, offline lookup smoke, and no preview/source-gated language is promoted without matching tests.
+- [ ] TODO [MEDIUM]: Select first pack candidates from production-parity or newly approved language smoke results.
+- [ ] TODO [HARD]: Build hosted pack artifacts with source metadata, checksums, and attribution records.
+- [ ] TODO [HARD]: Add offline import/delete/lookup smoke for each pack and fallback behavior when a pack is unavailable.
+- [ ] TODO [MEDIUM]: Update Profile/offline-pack UI copy so installed/readiness states remain clear.
+- [ ] TODO [EASY]: Refresh Product Readiness and Feature Completion Audit percentages after each accepted pack.
+
+### Prioritized Module Queue After v1.3.5
 
 1. **Language Source And Corpus Smoke**: audit WiktAPI/dump coverage for `es`, `ms`, `fr`, and `fr->vi`; record source/license, examples, related words, attribution, offline-pack viability, and failure states before any production promotion.
 2. **Supabase Auth And Cloud Sync Production Smoke**: verify redirect allow-list, auth callbacks, RLS probes, two-device manual sync, signed-out behavior, and no local data deletion.
@@ -725,6 +796,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: v1.3.5 Completion Dashboard And Version Roadmap Sync** - DONE
+- Module Completion Plan: update the readiness dashboard and feature audit so every non-100% area explicitly names the missing work, then split those gaps into versioned modules that can be executed without overloading one release.
+- Acceptance criteria: Product Readiness and Feature Completion Audit are synchronized; every area under 100% has a concrete missing-work row; future modules are split across sensible versions; language parity remains included; docs/context and guard tests are updated; verification passes; commit is created without deployment.
+- [x] DONE [MEDIUM]: Reconciled readiness percentages and next-module labels against the latest feature audit.
+- [x] DONE [MEDIUM]: Added a completion-gap table for all areas still below 100%.
+- [x] DONE [MEDIUM]: Split unfinished work into versioned modules from v1.3.6 through v1.3.10, including language parity.
+- [x] DONE [EASY]: Updated context and docs guard tests for the new roadmap sections.
+- [x] DONE [EASY]: Ran docs verification/security checks and committed without production deploy as requested.
 
 **Module: v1.3.4 Product Completion Audit And Module Roadmap Sync** - DONE
 - Module Completion Plan: make `docs/product-progress.md` the accurate post-v1.3.3 source of truth by auditing completion state across all feature groups, reconciling stale checklist rows, adding a Feature Completion Audit table, and selecting the next module queue for languages, auth/sync, Reader/OCR, provider gates, and offline packs.
