@@ -4,6 +4,46 @@ export type MorphologyCandidate = {
   reason: string;
 };
 
+export const morphologySupportedLanguageCodes = [
+  'en',
+  'es',
+  'ms',
+  'fi',
+  'et',
+  'hi',
+  'tr',
+  'uz',
+  'kk',
+  'ja',
+  'ko',
+  'sw',
+  'hu',
+  'ar',
+  'he',
+  'tl',
+  'am',
+  'ru',
+  'zh',
+  'jv',
+  'so',
+  'my',
+  'bo',
+  'yo',
+  'zu',
+  'ig',
+  'haw',
+  'ta',
+  'te',
+  'kn',
+  'ml',
+] as const;
+
+const morphologySupportedLanguageSet = new Set<string>(morphologySupportedLanguageCodes);
+
+export function supportsMorphology(languageCode: string) {
+  return morphologySupportedLanguageSet.has(languageCode);
+}
+
 const irregularEnglishBaseForms: Record<string, string[]> = {
   ate: ['eat'],
   began: ['begin'],

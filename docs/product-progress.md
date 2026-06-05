@@ -14,9 +14,9 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - `[HARD]`: needs backend, auth, external APIs, speech/AI engine, OAuth, or licensed resource decisions.
 
 ## Difficulty Overview
-- Easy next tasks: roadmap truth reconciliation and production-gate instructions are selected for v1.2.3 readiness.
-- Medium next tasks: production smoke packaging for Supabase Auth, manual beta Cloud Sync, and backend proxy is selected before opening more user-visible cloud features.
-- Hard next tasks: Google Sheets, feedback submission, native OCR/STT, Azure pronunciation scoring, specialized glossary persistence, and account deletion backend are accepted/staged but require external setup, env vars, native/dev-client validation, or provider smoke gates.
+- Easy next tasks: keep dashboard/docs truth synchronized with the v1.3.3 language coverage inventory.
+- Medium next tasks: source/license smoke, packaged corpus planning, and per-language parity QA are selected before any preview language is promoted.
+- Hard next tasks: Google Sheets, feedback submission, native OCR/STT, Azure pronunciation scoring, specialized glossary persistence, account deletion backend, and source-gated languages require external setup, legal sources, env vars, native/dev-client validation, or provider smoke gates.
 - Deploy scope hiện tại: lookup/search/audio/save-to-folder, library/folders, CSV/XLS/Anki import/export, reader import/read/select/save/TTS/progress, flashcards, profile local privacy/settings/export/reset/app lock, Supabase Auth when configured, manual beta Cloud Sync, DeepL translation, AI Tutor, offline pack status shell, and current minimal futuristic UI polish.
 - Deferred scope: encrypted cloud backup/restore, unsupported language/source gates, production bulk/offline etymology/conjugation, billing for extra agents, and any feature whose provider/source smoke gate has not passed.
 
@@ -46,6 +46,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 - Monolingual preview: languages backed by small Wiktionary/local fixtures remain preview until they meet Anh-Viet parity.
 - Source-gated/unavailable: Cantonese, Uyghur, VI to FR, Basque, Ainu, Quechua, Nahuatl, and Guarani remain blocked until source/license gates pass.
 - Anh-Viet parity criteria: enough headword coverage, morphology, examples, related words, attribution, import/offline packaging path, UI smoke, and tests. Machine translation must not be used as dictionary data.
+- Inventory baseline: `docs/language-coverage-inventory.md` records the v1.3.3 per-language table generated from `data/languageCoverageInventory.ts`.
 
 ### Language Parity Completion Plan
 
@@ -692,6 +693,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - Acceptance gate: real email login, verification, sign out, and account deletion can move into a staged implementation module using accepted `expo-secure-store` native token storage plus web fallback once dependencies and adapter tests are added.
 
 ## Next Work Module
+
+**Module: v1.3.3 Language Coverage Inventory** - IN PROGRESS
+- Module Completion Plan: turn the existing language parity plan into a test-backed inventory that shows which languages have production parity, preview adapters, source gates, local/API coverage, morphology, examples, related words, attribution, and the next safe action before any broader language expansion.
+- Acceptance criteria: every `data/languages.ts` language appears in the inventory; production parity is limited to approved dictionary pairs/languages; preview languages are not mislabeled as production; source-gated rows keep legal/source blockers visible; docs include a readable coverage table; static/unit verification passes before commit/push/deploy.
+- [x] DONE [MEDIUM]: Audit current language metadata, adapter registration, local/API sources, fixture counts, morphology, examples, related words, attribution, and current test coverage.
+- [x] DONE [MEDIUM]: Add a machine-readable language coverage inventory helper that derives rows from the existing language registry and local lexicon without changing lookup behavior.
+- [x] DONE [MEDIUM]: Add focused tests that guard coverage inventory completeness, status honesty, and source-gated language handling.
+- [x] DONE [EASY]: Document the per-language readiness table and next execution order for language parity expansion.
+- [~] IN PROGRESS [MEDIUM]: Run verification/security checks, commit, push, deploy, and record the deployed v1.3.3 handoff.
 
 **Module: v1.3.2 Design System Dark Mode And Motion Upgrade** - DONE
 - Module Completion Plan: turn `DESIGN.md` into the app-specific design-system source of truth, expand tokens and reusable primitives without breaking existing exports, repair the most visible dark-mode surface mismatches across Home/Word/Profile/Library/Advanced/Reader, add expressive but purposeful motion under a 400ms response budget, and record CodeGraph audit output before commit/push/deploy.

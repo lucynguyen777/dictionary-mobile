@@ -31,6 +31,7 @@ describe('product progress dashboard', () => {
       expect(progress).toContain(row);
     }
     expect(progress).toContain('## Language Parity Dashboard');
+    expect(progress).toContain('docs/language-coverage-inventory.md');
     expect(progress).toContain('Machine translation must not be used as dictionary data.');
   });
 });
