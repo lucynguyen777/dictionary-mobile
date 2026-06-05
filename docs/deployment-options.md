@@ -1,6 +1,6 @@
 # Deployment Options
 
-This app is ready to ship as v1.3.0 with the completed feature set documented in `docs/product-progress.md`.
+This app is ready to ship as v1.3.2 with the completed feature set documented in `docs/product-progress.md`.
 
 ## Current Deploy Scope
 
@@ -129,7 +129,7 @@ Before store submission:
 
 - Confirm the bundle/package identifiers match the real Apple Developer and Google Play Console app records.
 - Replace placeholder app display metadata, screenshots, privacy policy URL, support URL, and store listing copy.
-- Confirm App Privacy/Data Safety answers match v1.3.0: local-first guest mode, local export/reset, Supabase Auth/manual beta Cloud Sync only when configured, AI/DeepL through backend proxy only when configured, and no Google OAuth in this release.
+- Confirm App Privacy/Data Safety answers match v1.3.2: local-first guest mode, local export/reset, Supabase Auth/manual beta Cloud Sync only when configured, AI/DeepL through backend proxy only when configured, and no Google OAuth in this release.
 - Camera, microphone, and photo-library permissions are intentionally not declared for this production config because Voice/OCR are parked for a later version.
 - Re-add native permissions only when real OCR/STT is production-enabled and tested in a dev-client/custom native build.
 

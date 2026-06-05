@@ -5,11 +5,11 @@
  */
 
 import {
-    DesignSystem,
-    Motion,
-    Radius,
-    Spacing,
-    Typography,
+  DesignSystem,
+  Motion,
+  Radius,
+  Spacing,
+  Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -22,6 +22,8 @@ export function useToken() {
     typography: Typography,
     motion: Motion,
     colors: DesignSystem[theme].colors,
+    interactions: DesignSystem[theme].interactions,
+    shadows: DesignSystem[theme].shadows,
     theme,
   };
 }

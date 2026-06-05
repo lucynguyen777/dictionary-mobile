@@ -137,9 +137,18 @@ export const Typography = {
 
 /** Motion/animation durations (milliseconds) */
 export const Motion = {
-  fast: 100,
-  normal: 250,
+  instant: 80,
+  press: 120,
+  fast: 160,
+  normal: 240,
+  entrance: 320,
   slow: 400,
+  reduced: 0,
+  easing: {
+    standard: 'cubic-bezier(0.2, 0, 0, 1)',
+    decelerate: 'cubic-bezier(0, 0, 0, 1)',
+    accelerate: 'cubic-bezier(0.3, 0, 1, 1)',
+  },
 } as const;
 
 /** Color palette (theme-aware) - Minimalism + Futuristic */
@@ -151,12 +160,21 @@ export const DesignSystem = {
       canvasAlt: '#f8fafc',
       canvasElevated: '#ffffff',
       canvasOverlay: 'rgba(0, 0, 0, 0.05)',
+      surface: '#ffffff',
+      surfaceMuted: '#f8fafc',
+      surfaceRaised: '#ffffff',
+      surfaceGlass: 'rgba(255, 255, 255, 0.84)',
+      surfaceHero: '#1F1B2E',
+      surfaceHeroAlt: '#241B36',
 
       // Text hierarchy
       textPrimary: '#11181C',
       textSecondary: '#5f6673',
       textTertiary: '#8b92a1',
       textInverse: '#ffffff',
+      textOnAccent: '#ffffff',
+      textOnHero: '#ffffff',
+      textOnHeroMuted: '#d7e3f1',
 
       // Accent colors (minimalist + futuristic)
       accentPrimary: '#7c3aed', // Electric purple for primary actions
@@ -178,6 +196,8 @@ export const DesignSystem = {
       // Interactive states
       hoverOverlay: 'rgba(0, 0, 0, 0.04)',
       activeOverlay: 'rgba(0, 0, 0, 0.08)',
+      pressedOverlay: 'rgba(124, 58, 237, 0.12)',
+      focusOverlay: 'rgba(124, 58, 237, 0.14)',
       disabledText: '#a1a1aa',
       disabledBg: '#f4f4f5',
 
@@ -186,6 +206,51 @@ export const DesignSystem = {
       statusWarning: '#fef3c7',
       statusError: '#fee2e2',
       statusInfo: '#cffafe',
+    },
+    shadows: {
+      none: {
+        boxShadow: 'none',
+        elevation: 0,
+        shadowOpacity: 0,
+      },
+      sm: {
+        boxShadow: '0px 1px 2px rgba(15, 23, 42, 0.06)',
+        elevation: 2,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+      },
+      md: {
+        boxShadow: '0px 6px 14px rgba(15, 23, 42, 0.10)',
+        elevation: 8,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.10,
+        shadowRadius: 12,
+      },
+      lg: {
+        boxShadow: '0px 14px 28px rgba(15, 23, 42, 0.14)',
+        elevation: 18,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.14,
+        shadowRadius: 24,
+      },
+      glow: {
+        boxShadow: '0px 0px 0px 1px rgba(124, 58, 237, 0.22), 0px 10px 24px rgba(124, 58, 237, 0.16)',
+        elevation: 10,
+        shadowColor: '#7c3aed',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.16,
+        shadowRadius: 18,
+      },
+    },
+    interactions: {
+      pressScale: 0.97,
+      hoverScale: 1.012,
+      liftY: -2,
+      reducedScale: 1,
     },
   },
 
@@ -196,12 +261,21 @@ export const DesignSystem = {
       canvasAlt: '#18181b',
       canvasElevated: '#202026',
       canvasOverlay: 'rgba(255, 255, 255, 0.05)',
+      surface: '#18181b',
+      surfaceMuted: '#202026',
+      surfaceRaised: '#24242c',
+      surfaceGlass: 'rgba(24, 24, 27, 0.86)',
+      surfaceHero: '#17131F',
+      surfaceHeroAlt: '#20182D',
 
       // Text hierarchy
       textPrimary: '#ECEDEE',
       textSecondary: '#a1a1aa',
       textTertiary: '#71717a',
       textInverse: '#11181C',
+      textOnAccent: '#ffffff',
+      textOnHero: '#f8fafc',
+      textOnHeroMuted: '#c7c7d1',
 
       // Accent colors
       accentPrimary: '#a78bfa',
@@ -223,6 +297,8 @@ export const DesignSystem = {
       // Interactive states
       hoverOverlay: 'rgba(255, 255, 255, 0.08)',
       activeOverlay: 'rgba(255, 255, 255, 0.12)',
+      pressedOverlay: 'rgba(167, 139, 250, 0.18)',
+      focusOverlay: 'rgba(167, 139, 250, 0.20)',
       disabledText: '#444444',
       disabledBg: '#262626',
 
@@ -231,6 +307,51 @@ export const DesignSystem = {
       statusWarning: '#78350f',
       statusError: '#7c2d12',
       statusInfo: '#164e63',
+    },
+    shadows: {
+      none: {
+        boxShadow: 'none',
+        elevation: 0,
+        shadowOpacity: 0,
+      },
+      sm: {
+        boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.18)',
+        elevation: 2,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.18,
+        shadowRadius: 2,
+      },
+      md: {
+        boxShadow: '0px 8px 18px rgba(0, 0, 0, 0.26)',
+        elevation: 8,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.24,
+        shadowRadius: 16,
+      },
+      lg: {
+        boxShadow: '0px 18px 36px rgba(0, 0, 0, 0.34)',
+        elevation: 18,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.30,
+        shadowRadius: 28,
+      },
+      glow: {
+        boxShadow: '0px 0px 0px 1px rgba(167, 139, 250, 0.24), 0px 12px 28px rgba(34, 211, 238, 0.12)',
+        elevation: 10,
+        shadowColor: '#22d3ee',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.14,
+        shadowRadius: 24,
+      },
+    },
+    interactions: {
+      pressScale: 0.97,
+      hoverScale: 1.012,
+      liftY: -2,
+      reducedScale: 1,
     },
   },
 } as const;

@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   AppState,
@@ -72,6 +72,7 @@ import {
     saveUserProfile,
 } from '@/data/profileStore';
 import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
+import { useToken } from '@/hooks/use-token';
 
 type WordChartRange = 'day' | 'week' | 'month' | 'year';
 
@@ -118,7 +119,46 @@ const initialAuthSession: AuthSessionSnapshot = {
 };
 
 export default function ProfileScreen() {
+  const { colors, radius, shadows } = useToken();
   const insets = useSafeAreaInsets();
+  const themed = useMemo(
+    () =>
+      StyleSheet.create({
+        card: {
+          backgroundColor: colors.surfaceRaised,
+          borderColor: colors.borderDefault,
+        },
+        guestAvatar: {
+          backgroundColor: colors.accentSoft,
+          borderColor: colors.focusRing,
+        },
+        hero: {
+          backgroundColor: colors.surfaceRaised,
+          borderColor: colors.borderDefault,
+          borderRadius: radius.lg,
+          ...shadows.sm,
+        },
+        iconButton: {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderDefault,
+        },
+        mutedText: {
+          color: colors.textSecondary,
+        },
+        primaryText: {
+          color: colors.textPrimary,
+        },
+        softBadge: {
+          backgroundColor: colors.accentSoft,
+          borderColor: colors.focusRing,
+        },
+        warningBadge: {
+          backgroundColor: colors.statusWarning,
+          borderColor: colors.accentWarning,
+        },
+      }),
+    [colors, radius.lg, shadows.sm]
+  );
   const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
   const [activityState, setActivityState] = useState<ActivityState>(getDefaultActivityState());
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
@@ -561,30 +601,30 @@ export default function ProfileScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileHero}>
+        <View style={[styles.profileHero, themed.hero]}>
           <View style={styles.heroTopRow}>
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.heroAvatar} />
             ) : (
-              <View style={styles.heroGuestAvatar}>
-                <Ionicons name="person-outline" size={26} color="#6D5B8F" />
+              <View style={[styles.heroGuestAvatar, themed.guestAvatar]}>
+                <Ionicons name="person-outline" size={26} color={colors.accentPrimary} />
               </View>
             )}
             <View style={styles.heroIdentity}>
-              <Text style={styles.heroEyebrow}>Hồ sơ học tập</Text>
-              <Text style={styles.heroName} numberOfLines={1}>{profile.displayName}</Text>
-              <Text style={styles.heroMeta} numberOfLines={2}>
+              <Text style={[styles.heroEyebrow, themed.mutedText]}>Hồ sơ học tập</Text>
+              <Text style={[styles.heroName, themed.primaryText]} numberOfLines={1}>{profile.displayName}</Text>
+              <Text style={[styles.heroMeta, themed.mutedText]} numberOfLines={2}>
                 {isDefaultGuestProfile
                   ? 'Chưa thiết lập hồ sơ · dữ liệu học tập chỉ lưu local'
                   : `${nativeLanguage?.label ?? profile.nativeLanguage} → ${learningLanguage?.label ?? profile.learningLanguage} · ${profile.proficiencyLevel}`}
               </Text>
-              <View style={styles.heroAuthBadge}>
+              <View style={[styles.heroAuthBadge, themed.softBadge]}>
                 <Ionicons
                   name={authSession.status === 'authenticated' || authSession.status === 'needs_verification' ? 'cloud-done-outline' : 'phone-portrait-outline'}
                   size={13}
-                  color="#5645D4"
+                  color={colors.accentPrimary}
                 />
-                <Text style={styles.heroAuthBadgeText}>
+                <Text style={[styles.heroAuthBadgeText, { color: colors.accentPrimary }]}>
                   {authSession.status === 'authenticated' || authSession.status === 'needs_verification'
                     ? 'Signed in · cloud actions available'
                     : 'Guest local mode · lookup, Reader, Library, Flashcards vẫn dùng được'}
@@ -595,13 +635,13 @@ export default function ProfileScreen() {
               accessibilityLabel="Mở cài đặt"
               accessibilityRole="button"
               onPress={() => openSidebarSection()}
-              style={({ pressed }) => [styles.heroIconButton, pressed && styles.settingsButtonPressed]}>
-              <Ionicons name="settings-outline" size={20} color="#1A1A1A" />
+              style={({ pressed }) => [styles.heroIconButton, themed.iconButton, pressed && styles.settingsButtonPressed]}>
+              <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
             </Pressable>
           </View>
 
           {!isDefaultGuestProfile ? (
-            <View style={styles.heroGoalRow}>
+            <View style={[styles.heroGoalRow, themed.warningBadge]}>
               <View style={styles.goalBadge}>
                 <Ionicons name="flame-outline" size={16} color="#EA580C" />
                 <Text style={styles.goalBadgeText} numberOfLines={1}>{profile.dailyGoal}</Text>
@@ -609,9 +649,9 @@ export default function ProfileScreen() {
               <Text style={styles.goalText} numberOfLines={2}>{profile.learningGoal}</Text>
             </View>
           ) : (
-            <View style={styles.guestSetupNotice}>
-              <Ionicons name="information-circle-outline" size={16} color="#5645D4" />
-              <Text style={styles.guestSetupText}>Khách chưa có hồ sơ cá nhân. Bạn vẫn có thể học local, hoặc mở cài đặt để đăng nhập/thiết lập hồ sơ.</Text>
+            <View style={[styles.guestSetupNotice, themed.softBadge]}>
+              <Ionicons name="information-circle-outline" size={16} color={colors.accentPrimary} />
+              <Text style={[styles.guestSetupText, { color: colors.accentPrimary }]}>Khách chưa có hồ sơ cá nhân. Bạn vẫn có thể học local, hoặc mở cài đặt để đăng nhập/thiết lập hồ sơ.</Text>
             </View>
           )}
 
@@ -623,11 +663,11 @@ export default function ProfileScreen() {
           {saveMessage ? <Text style={styles.saveMessage}>{saveMessage}</Text> : null}
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, themed.card]}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderCopy}>
-              <Text style={styles.cardTitle}>Tổng quan học tập</Text>
-              <Text style={styles.cardSubtitle}>Các chỉ số chính từ dữ liệu local trên thiết bị.</Text>
+              <Text style={[styles.cardTitle, themed.primaryText]}>Tổng quan học tập</Text>
+              <Text style={[styles.cardSubtitle, themed.mutedText]}>Các chỉ số chính từ dữ liệu local trên thiết bị.</Text>
             </View>
           </View>
           <View style={styles.compactDataRow}>
@@ -1492,19 +1532,23 @@ function ProfileInput({
 }
 
 function ProfileMetric({ label, value }: { label: string; value: number }) {
+  const { colors } = useToken();
+
   return (
-    <View style={styles.profileMetric}>
-      <Text style={styles.profileMetricValue}>{value}</Text>
-      <Text style={styles.profileMetricLabel} numberOfLines={1}>{label}</Text>
+    <View style={[styles.profileMetric, { backgroundColor: colors.surfaceMuted, borderColor: colors.borderDefault }]}>
+      <Text style={[styles.profileMetricValue, { color: colors.textPrimary }]}>{value}</Text>
+      <Text style={[styles.profileMetricLabel, { color: colors.textSecondary }]} numberOfLines={1}>{label}</Text>
     </View>
   );
 }
 
 function DataStat({ label, value }: { label: string; value: number }) {
+  const { colors } = useToken();
+
   return (
-    <View style={styles.dataStat}>
-      <Text style={styles.dataStatValue}>{value}</Text>
-      <Text style={styles.dataStatLabel}>{label}</Text>
+    <View style={[styles.dataStat, { backgroundColor: colors.surfaceMuted, borderColor: colors.borderDefault }]}>
+      <Text style={[styles.dataStatValue, { color: colors.textPrimary }]}>{value}</Text>
+      <Text style={[styles.dataStatLabel, { color: colors.textSecondary }]}>{label}</Text>
     </View>
   );
 }

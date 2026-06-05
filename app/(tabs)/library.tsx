@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Screen from '@/components/app/Screen';
+import { useToken } from '@/hooks/use-token';
 import {
   VocabularyImportField,
   VocabularyImportOptions,
@@ -101,6 +102,69 @@ const folderColorOptions = ['#E8F0FF', '#EAF8F0', '#FFF1E8', '#F1ECFF', '#FFEFF3
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
+  const { colors, radius, shadows } = useToken();
+  const themed = useMemo(
+    () =>
+      StyleSheet.create({
+        activeChip: {
+          backgroundColor: colors.accentSoft,
+          borderColor: colors.accentPrimary,
+        },
+        activeChipText: {
+          color: colors.accentPrimary,
+        },
+        bottomSheet: {
+          backgroundColor: colors.surfaceRaised,
+          borderColor: colors.borderDefault,
+          ...shadows.lg,
+        },
+        card: {
+          backgroundColor: colors.surface,
+          borderColor: colors.borderDefault,
+          ...shadows.sm,
+        },
+        dangerText: {
+          color: colors.accentError,
+        },
+        input: {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderDefault,
+          color: colors.textPrimary,
+        },
+        mutedPanel: {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderDefault,
+        },
+        mutedText: {
+          color: colors.textSecondary,
+        },
+        primaryText: {
+          color: colors.textPrimary,
+        },
+        primaryButton: {
+          backgroundColor: colors.accentPrimary,
+          borderRadius: radius.md,
+          ...shadows.glow,
+        },
+        secondaryButton: {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderDefault,
+        },
+        segment: {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderDefault,
+          borderWidth: 1,
+        },
+        surface: {
+          backgroundColor: colors.canvasAlt,
+        },
+        tonalButton: {
+          backgroundColor: colors.accentSoft,
+          borderColor: colors.focusRing,
+        },
+      }),
+    [colors, radius.md, shadows.glow, shadows.lg, shadows.sm]
+  );
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
   const [activeSegment, setActiveSegment] = useState<LibrarySegment>('folders');
@@ -435,7 +499,7 @@ export default function LibraryScreen() {
 
   return (
     <Screen>
-      <View style={styles.screenBody}>
+      <View style={[styles.screenBody, themed.surface]}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: scrollBottomPadding }]}
         keyboardShouldPersistTaps="handled"
@@ -444,12 +508,12 @@ export default function LibraryScreen() {
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.kicker}>Thư viện</Text>
-            <Text style={styles.title}>Tủ từ của bạn</Text>
+            <Text style={[styles.kicker, themed.mutedText]}>Thư viện</Text>
+            <Text style={[styles.title, themed.primaryText]}>Tủ từ của bạn</Text>
           </View>
         </View>
 
-        <View style={styles.segment}>
+        <View style={[styles.segment, themed.segment]}>
           {segments.map((segment) => {
             const isActive = activeSegment === segment.key;
 
@@ -458,23 +522,23 @@ export default function LibraryScreen() {
                 key={segment.key}
                 activeOpacity={0.82}
                 onPress={() => setActiveSegment(segment.key)}
-                style={isActive ? styles.segmentActive : styles.segmentItem}>
-                <Text style={isActive ? styles.segmentActiveText : styles.segmentText}>{segment.label}</Text>
+                style={isActive ? [styles.segmentActive, themed.activeChip] : styles.segmentItem}>
+                <Text style={isActive ? [styles.segmentActiveText, themed.activeChipText] : [styles.segmentText, themed.mutedText]}>{segment.label}</Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
-        <View style={styles.searchBox}>
-          <Ionicons name="search" size={20} color="#7C3AED" />
+        <View style={[styles.searchBox, themed.card]}>
+          <Ionicons name="search" size={20} color={colors.accentPrimary} />
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
             placeholder="Tìm bộ từ đã lưu"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textTertiary}
             value={query}
             onChangeText={setQuery}
-            style={styles.searchInput}
+            style={[styles.searchInput, themed.primaryText]}
           />
         </View>
 
@@ -485,14 +549,14 @@ export default function LibraryScreen() {
               setActiveFolderMenuId('');
               setSortPanelOpen((isOpen) => !isOpen);
             }}
-            style={styles.toolbarLeft}>
-            <Ionicons name="swap-vertical" size={18} color="#64748B" />
-            <Text ellipsizeMode="tail" numberOfLines={1} style={styles.toolbarText}>
+            style={[styles.toolbarLeft, themed.card]}>
+            <Ionicons name="swap-vertical" size={18} color={colors.textSecondary} />
+            <Text ellipsizeMode="tail" numberOfLines={1} style={[styles.toolbarText, themed.mutedText]}>
               {getSortLabel(folderSort)}
             </Text>
-            <Ionicons name="chevron-down" size={15} color="#94A3B8" />
+            <Ionicons name="chevron-down" size={15} color={colors.textTertiary} />
           </TouchableOpacity>
-          <View style={styles.viewToggle}>
+          <View style={[styles.viewToggle, themed.card]}>
             {viewModeOptions.map((option) => {
               const isActive = folderViewMode === option.value;
 
@@ -506,11 +570,11 @@ export default function LibraryScreen() {
                     setSortPanelOpen(false);
                     setFolderViewMode(option.value);
                   }}
-                  style={[styles.viewIconButton, isActive && styles.viewIconButtonActive]}>
+                  style={[styles.viewIconButton, isActive && styles.viewIconButtonActive, isActive && themed.tonalButton]}>
                   <Ionicons
                     name={option.icon}
                     size={18}
-                    color={isActive ? '#7C3AED' : '#94A3B8'}
+                    color={isActive ? colors.accentPrimary : colors.textTertiary}
                   />
                 </TouchableOpacity>
               );
@@ -535,8 +599,8 @@ export default function LibraryScreen() {
                     setFolderSort(option.value);
                     setSortPanelOpen(false);
                   }}
-                  style={[styles.controlChip, isActive && styles.controlChipActive]}>
-                  <Text style={[styles.controlChipText, isActive && styles.controlChipTextActive]}>{option.label}</Text>
+                  style={[styles.controlChip, themed.card, isActive && styles.controlChipActive, isActive && themed.activeChip]}>
+                  <Text style={[styles.controlChipText, themed.mutedText, isActive && styles.controlChipTextActive, isActive && themed.activeChipText]}>{option.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -552,8 +616,10 @@ export default function LibraryScreen() {
               key={folder.id}
               style={[
                 styles.folderCard,
+                themed.card,
                 isList && styles.folderCardList,
                 activeFolderMenuId === folder.id && styles.folderCardMenuOpen,
+                activeFolderMenuId === folder.id && { borderColor: colors.focusRing },
               ]}
               activeOpacity={0.85}
               onPress={() => {
@@ -569,13 +635,13 @@ export default function LibraryScreen() {
                   {folder.avatarUri ? (
                     <Image source={{ uri: folder.avatarUri }} style={styles.folderAvatarImage} />
                   ) : (
-                    <Ionicons name="folder-open-outline" size={28} color="#0F172A" />
+                    <Ionicons name="folder-open-outline" size={28} color={colors.textPrimary} />
                   )}
                 </View>
                 <View style={[styles.folderInfo, isList && styles.folderInfoList]}>
                   <View style={styles.folderCopy}>
                     <View style={styles.folderNameRow}>
-                      <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
+                      <Text numberOfLines={1} style={[styles.folderName, themed.primaryText]}>{folder.name}</Text>
                       {folder.isFavorite ? (
                         <View style={styles.folderFavoritePill}>
                           <Ionicons name="star" size={11} color="#B45309" />
@@ -583,9 +649,9 @@ export default function LibraryScreen() {
                         </View>
                       ) : null}
                     </View>
-                    <Text style={styles.wordNumber}>{wordCount} từ</Text>
+                    <Text style={[styles.wordNumber, themed.mutedText]}>{wordCount} từ</Text>
                     {folder.tags.length ? (
-                      <Text numberOfLines={1} style={styles.folderTagText}>{folder.tags.join(', ')}</Text>
+                      <Text numberOfLines={1} style={[styles.folderTagText, themed.mutedText]}>{folder.tags.join(', ')}</Text>
                     ) : null}
                   </View>
                   <TouchableOpacity
@@ -594,15 +660,15 @@ export default function LibraryScreen() {
                       event.stopPropagation();
                       handleToggleFolderMenu(folder.id);
                     }}
-                    style={styles.folderMenuButton}>
-                    <Ionicons name="ellipsis-vertical" size={18} color="#64748B" />
+                    style={[styles.folderMenuButton, themed.secondaryButton]}>
+                    <Ionicons name="ellipsis-vertical" size={18} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
               </View>
               {activeFolderMenuId === folder.id ? (
                 <ScrollView
                   nestedScrollEnabled
-                  style={styles.folderActionPanel}
+                  style={[styles.folderActionPanel, themed.mutedPanel]}
                   onStartShouldSetResponder={() => true}
                   showsVerticalScrollIndicator={false}>
                   <TouchableOpacity
@@ -717,7 +783,7 @@ export default function LibraryScreen() {
       {createPanelOpen ? (
         <View style={styles.addSheetOverlay}>
           <TouchableOpacity activeOpacity={1} onPress={closeAddPanel} style={styles.addSheetBackdrop} />
-          <View style={[styles.addSheet, { paddingBottom: 16 + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0) }]}>
+          <View style={[styles.addSheet, themed.bottomSheet, { paddingBottom: 16 + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0) }]}>
             <ScrollView
               contentContainerStyle={styles.addSheetContent}
               keyboardShouldPersistTaps="handled"
@@ -725,36 +791,36 @@ export default function LibraryScreen() {
               showsVerticalScrollIndicator={false}>
               {addPanelMode === 'choice' ? (
                 <>
-                  <Text style={styles.addSheetTitle}>Thêm vào Tủ từ</Text>
-                  <TouchableOpacity activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={styles.addChoiceCard}>
-                    <Ionicons name="folder-outline" size={23} color="#7C3AED" />
+                  <Text style={[styles.addSheetTitle, themed.primaryText]}>Thêm vào Tủ từ</Text>
+                  <TouchableOpacity activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={[styles.addChoiceCard, themed.mutedPanel]}>
+                    <Ionicons name="folder-outline" size={23} color={colors.accentPrimary} />
                     <View style={styles.addChoiceCopy}>
-                      <Text style={styles.addChoiceTitle}>Tạo mới</Text>
-                      <Text style={styles.addChoiceText}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
+                      <Text style={[styles.addChoiceTitle, themed.primaryText]}>Tạo mới</Text>
+                      <Text style={[styles.addChoiceText, themed.mutedText]}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
                     </View>
                   </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.84} onPress={handlePickCsv} style={styles.addChoiceCard}>
-                    <Ionicons name="cloud-upload-outline" size={23} color="#7C3AED" />
+                  <TouchableOpacity activeOpacity={0.84} onPress={handlePickCsv} style={[styles.addChoiceCard, themed.mutedPanel]}>
+                    <Ionicons name="cloud-upload-outline" size={23} color={colors.accentPrimary} />
                     <View style={styles.addChoiceCopy}>
-                      <Text style={styles.addChoiceTitle}>Tải lên file</Text>
-                      <Text style={styles.addChoiceText}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
+                      <Text style={[styles.addChoiceTitle, themed.primaryText]}>Tải lên file</Text>
+                      <Text style={[styles.addChoiceText, themed.mutedText]}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
                     </View>
                   </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.addSheetClose}>
-                    <Text style={styles.addSheetCloseText}>Đóng</Text>
+                  <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetClose, themed.secondaryButton]}>
+                    <Text style={[styles.addSheetCloseText, themed.mutedText]}>Đóng</Text>
                   </TouchableOpacity>
                 </>
               ) : null}
               {addPanelMode === 'create' ? (
                 <>
                   <View style={styles.addSheetHeaderRow}>
-                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
-                      <Ionicons name="chevron-back" size={18} color="#7C3AED" />
+                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                      <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
                     </TouchableOpacity>
-                    <Text style={styles.addSheetTitle}>Tạo bộ từ mới</Text>
+                    <Text style={[styles.addSheetTitle, themed.primaryText]}>Tạo bộ từ mới</Text>
                   </View>
-                  <View style={styles.createInputBox}>
-                    <Ionicons name="folder-outline" size={19} color="#7C3AED" />
+                  <View style={[styles.createInputBox, themed.input]}>
+                    <Ionicons name="folder-outline" size={19} color={colors.accentPrimary} />
                     <TextInput
                       autoCorrect={false}
                       onChangeText={(text) => {
@@ -762,8 +828,8 @@ export default function LibraryScreen() {
                         setCreateFolderError('');
                       }}
                       placeholder="Tên bộ từ"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.createInput}
+                      placeholderTextColor={colors.textTertiary}
+                      style={[styles.createInput, themed.primaryText]}
                       value={folderNameDraft}
                     />
                   </View>
@@ -781,10 +847,10 @@ export default function LibraryScreen() {
                     />
                   ) : null}
                   <View style={styles.addSheetActions}>
-                    <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={styles.addSheetSecondary}>
-                      <Text style={styles.addSheetSecondaryText}>Hủy</Text>
+                    <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetSecondary, themed.secondaryButton]}>
+                      <Text style={[styles.addSheetSecondaryText, themed.mutedText]}>Hủy</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.84} onPress={handleCreateFolder} style={styles.addSheetPrimary}>
+                    <TouchableOpacity activeOpacity={0.84} onPress={handleCreateFolder} style={[styles.addSheetPrimary, themed.primaryButton]}>
                       <Text style={styles.addSheetPrimaryText}>Tạo bộ từ</Text>
                     </TouchableOpacity>
                   </View>
@@ -793,18 +859,18 @@ export default function LibraryScreen() {
               {addPanelMode === 'import' ? (
                 <>
                   <View style={styles.addSheetHeaderRow}>
-                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
-                      <Ionicons name="chevron-back" size={18} color="#7C3AED" />
+                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                      <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
                     </TouchableOpacity>
-                    <Text style={styles.addSheetTitle}>Tải lên file</Text>
+                    <Text style={[styles.addSheetTitle, themed.primaryText]}>Tải lên file</Text>
                   </View>
-                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
-                    <Ionicons name="cloud-upload-outline" size={18} color="#7C3AED" />
-                    <Text style={styles.importPickText}>{importFileName ? 'Đổi file' : 'Chọn CSV/TSV'}</Text>
+                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={[styles.importPickButton, themed.tonalButton]}>
+                    <Ionicons name="cloud-upload-outline" size={18} color={colors.accentPrimary} />
+                    <Text style={[styles.importPickText, themed.activeChipText]}>{importFileName ? 'Đổi file' : 'Chọn CSV/TSV'}</Text>
                   </TouchableOpacity>
                   {importFileName ? (
                     <>
-                      <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
+                      <Text style={[styles.importFileName, themed.mutedText]}>{importFileName} · {importRows.length} từ hợp lệ</Text>
                       <FolderMetadataEditor
                         avatarUri={folderAvatarDraft}
                         color={folderColorDraft}

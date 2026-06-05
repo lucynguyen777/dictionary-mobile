@@ -7,6 +7,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import Svg, { Circle } from 'react-native-svg';
 
 import Screen from '@/components/app/Screen';
+import { useToken } from '@/hooks/use-token';
 import {
   Flashcard,
   FlashcardReviewState,
@@ -194,6 +195,58 @@ const importMappingPreview: Record<ImportSourceId, { source: string; target: str
 
 export default function AdvancedScreen() {
   const router = useRouter();
+  const { colors, radius, shadows } = useToken();
+  const themed = useMemo(
+    () =>
+      StyleSheet.create({
+        activeChip: {
+          backgroundColor: colors.accentSoft,
+          borderColor: colors.accentPrimary,
+        },
+        activeChipText: {
+          color: colors.accentPrimary,
+        },
+        card: {
+          backgroundColor: colors.surface,
+          borderColor: colors.borderDefault,
+          ...shadows.sm,
+        },
+        hero: {
+          backgroundColor: colors.surfaceHero,
+          borderColor: colors.borderMuted,
+          borderWidth: 1,
+          ...shadows.md,
+        },
+        input: {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderDefault,
+          color: colors.textPrimary,
+        },
+        mutedPanel: {
+          backgroundColor: colors.surfaceMuted,
+          borderColor: colors.borderDefault,
+        },
+        mutedText: {
+          color: colors.textSecondary,
+        },
+        primaryButton: {
+          backgroundColor: colors.accentPrimary,
+          borderRadius: radius.md,
+          ...shadows.glow,
+        },
+        primaryText: {
+          color: colors.textPrimary,
+        },
+        screen: {
+          backgroundColor: colors.canvasAlt,
+        },
+        softBadge: {
+          backgroundColor: colors.accentSoft,
+          borderColor: colors.focusRing,
+        },
+      }),
+    [colors, radius.md, shadows.glow, shadows.md, shadows.sm]
+  );
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [isImportingReaderDocument, setIsImportingReaderDocument] = useState(false);
@@ -391,35 +444,35 @@ export default function AdvancedScreen() {
   };
 
   return (
-    <Screen>
+    <Screen style={themed.screen}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.kicker}>Phòng luyện tập</Text>
-        <Text style={styles.title}>Công cụ học nâng cao</Text>
+        <Text style={[styles.kicker, themed.mutedText]}>Phòng luyện tập</Text>
+        <Text style={[styles.title, themed.primaryText]}>Công cụ học nâng cao</Text>
         {(!activeToolId || activeToolId === 'flashcards') ? (
-          <View style={styles.challengeCard}>
-            <View style={styles.challengeIcon}>
+          <View style={[styles.challengeCard, themed.hero]}>
+            <View style={[styles.challengeIcon, { backgroundColor: colors.accentPrimary }]}>
               <Ionicons name="flash" size={26} color="#FFFFFF" />
             </View>
             <View style={styles.challengeCopy}>
-              <Text style={styles.challengeTitle}>{dueFlashcards} thẻ cần ôn</Text>
-              <Text style={styles.challengeText}>Lọc theo bộ từ, loại thẻ hoặc trạng thái để ôn đúng nhóm cần học.</Text>
+              <Text style={[styles.challengeTitle, { color: colors.textOnHero }]}>{dueFlashcards} thẻ cần ôn</Text>
+              <Text style={[styles.challengeText, { color: colors.textOnHeroMuted }]}>Lọc theo bộ từ, loại thẻ hoặc trạng thái để ôn đúng nhóm cần học.</Text>
             </View>
           </View>
         ) : null}
 
         {activeTool ? (
-          <View style={styles.toolDetailHeader}>
+          <View style={[styles.toolDetailHeader, themed.card]}>
             <TouchableOpacity
               activeOpacity={0.78}
               accessibilityLabel="Quay lại danh sách luyện tập"
               onPress={() => setActiveToolId(null)}
-              style={styles.toolBackButton}>
-              <Ionicons name="chevron-back" size={18} color="#7C3AED" />
+              style={[styles.toolBackButton, themed.softBadge]}>
+              <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
             </TouchableOpacity>
             <View style={[styles.toolDetailHeaderIcon, { backgroundColor: activeTool.accent }]}>
               <Ionicons name={activeTool.icon} size={18} color="#0F172A" />
             </View>
-            <Text style={styles.toolDetailTitle} numberOfLines={1}>{activeTool.title}</Text>
+            <Text style={[styles.toolDetailTitle, themed.primaryText]} numberOfLines={1}>{activeTool.title}</Text>
           </View>
         ) : (
           <View style={styles.toolList}>
@@ -434,25 +487,25 @@ export default function AdvancedScreen() {
         )}
 
         {activeToolId === 'flashcards' ? (
-          <View style={styles.flashcardPanel}>
+          <View style={[styles.flashcardPanel, themed.card]}>
           <View style={styles.panelHeader}>
             <View>
-              <Text style={styles.panelKicker}>Flashcard local</Text>
-              <Text style={styles.panelTitle}>{filteredFlashcards.length} / {libraryState.flashcards.length} thẻ</Text>
+              <Text style={[styles.panelKicker, themed.mutedText]}>Flashcard local</Text>
+              <Text style={[styles.panelTitle, themed.primaryText]}>{filteredFlashcards.length} / {libraryState.flashcards.length} thẻ</Text>
             </View>
-            <View style={styles.savedWordPill}>
-              <Text style={styles.savedWordPillText}>{libraryState.savedWords.length} từ</Text>
+            <View style={[styles.savedWordPill, themed.softBadge]}>
+              <Text style={[styles.savedWordPillText, themed.activeChipText]}>{libraryState.savedWords.length} từ</Text>
             </View>
           </View>
 
-          <View style={styles.flashcardModeTabs}>
+          <View style={[styles.flashcardModeTabs, themed.mutedPanel]}>
             {flashcardModeOptions.map((mode) => (
               <TouchableOpacity
                 key={mode.value}
                 activeOpacity={0.82}
                 onPress={() => setFlashcardMode(mode.value)}
-                style={[styles.flashcardModeTab, flashcardMode === mode.value && styles.flashcardModeTabActive]}>
-                <Text style={[styles.flashcardModeTabText, flashcardMode === mode.value && styles.flashcardModeTabTextActive]}>
+                style={[styles.flashcardModeTab, flashcardMode === mode.value && styles.flashcardModeTabActive, flashcardMode === mode.value && themed.primaryButton]}>
+                <Text style={[styles.flashcardModeTabText, themed.mutedText, flashcardMode === mode.value && styles.flashcardModeTabTextActive]}>
                   {mode.label}
                 </Text>
               </TouchableOpacity>
@@ -485,22 +538,22 @@ export default function AdvancedScreen() {
             </View>
           </View>
 
-          <View style={styles.flashcardSettingsPanel}>
+          <View style={[styles.flashcardSettingsPanel, themed.mutedPanel]}>
             <View style={styles.settingInputGroup}>
-              <Text style={styles.filterLabel}>Điểm TB để completed</Text>
+              <Text style={[styles.filterLabel, themed.mutedText]}>Điểm TB để completed</Text>
               <TextInput
                 keyboardType="numeric"
                 onChangeText={(value) => handleUpdateCompletionSetting('completionMinAverageQuality', value)}
-                style={styles.settingInput}
+                style={[styles.settingInput, themed.input]}
                 value={`${libraryState.flashcardLearningSettings?.completionMinAverageQuality ?? 4}`}
               />
             </View>
             <View style={styles.settingInputGroup}>
-              <Text style={styles.filterLabel}>Số lần test tối thiểu</Text>
+              <Text style={[styles.filterLabel, themed.mutedText]}>Số lần test tối thiểu</Text>
               <TextInput
                 keyboardType="numeric"
                 onChangeText={(value) => handleUpdateCompletionSetting('completionMinReviewCount', value)}
-                style={styles.settingInput}
+                style={[styles.settingInput, themed.input]}
                 value={`${libraryState.flashcardLearningSettings?.completionMinReviewCount ?? 3}`}
               />
             </View>
@@ -519,15 +572,15 @@ export default function AdvancedScreen() {
                   key={option.type}
                   activeOpacity={0.82}
                   onPress={() => handleToggleFlashcardType(option.type)}
-                  style={[styles.checkItem, isSelected && styles.checkItemActive]}>
+                  style={[styles.checkItem, themed.mutedPanel, isSelected && styles.checkItemActive, isSelected && themed.activeChip]}>
                   <Ionicons
                     name={isSelected ? 'checkbox' : 'square-outline'}
                     size={21}
-                    color={isSelected ? '#7C3AED' : '#94A3B8'}
+                    color={isSelected ? colors.accentPrimary : colors.textTertiary}
                   />
                   <View style={styles.checkCopy}>
-                    <Text style={styles.checkLabel}>{option.label}</Text>
-                    <Text style={styles.checkDescription}>{option.description}</Text>
+                    <Text style={[styles.checkLabel, themed.primaryText]}>{option.label}</Text>
+                    <Text style={[styles.checkDescription, themed.mutedText]}>{option.description}</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -540,6 +593,7 @@ export default function AdvancedScreen() {
             onPress={handleCreateFlashcards}
             style={[
               styles.generateButton,
+              themed.primaryButton,
               (!selectedFlashcardTypes.length || !libraryState.savedWords.length) && styles.generateButtonDisabled,
             ]}>
             <Ionicons name="albums-outline" size={18} color="#FFFFFF" />
@@ -558,8 +612,8 @@ export default function AdvancedScreen() {
             <Text style={styles.exportButtonText}>{isExporting ? 'Đang xuất...' : 'Xuất Anki (text)'}</Text>
           </TouchableOpacity>
 
-          <View style={styles.filterBlock}>
-            <Text style={styles.filterLabel}>Bộ từ</Text>
+          <View style={[styles.filterBlock, themed.mutedPanel]}>
+            <Text style={[styles.filterLabel, themed.mutedText]}>Bộ từ</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
               <FilterChip label="Tất cả" isSelected={folderFilterId === 'all'} onPress={() => setFolderFilterId('all')} />
               {libraryState.folders.map((folder) => (
@@ -571,7 +625,7 @@ export default function AdvancedScreen() {
                 />
               ))}
             </ScrollView>
-            <Text style={styles.filterLabel}>Loại thẻ</Text>
+            <Text style={[styles.filterLabel, themed.mutedText]}>Loại thẻ</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
               {typeFilterOptions.map((option) => (
                 <FilterChip
@@ -582,7 +636,7 @@ export default function AdvancedScreen() {
                 />
               ))}
             </ScrollView>
-            <Text style={styles.filterLabel}>Trạng thái</Text>
+            <Text style={[styles.filterLabel, themed.mutedText]}>Trạng thái</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
               {reviewFilterOptions.map((option) => (
                 <FilterChip
@@ -599,8 +653,8 @@ export default function AdvancedScreen() {
 
           {flashcardMode === 'study' ? (
           activeCard ? (
-            <View style={styles.reviewCard}>
-              <Text style={styles.reviewType}>{formatFlashcardType(activeCard.type)} · {formatReviewState(activeCard.reviewState)}</Text>
+            <View style={[styles.reviewCard, themed.mutedPanel]}>
+              <Text style={[styles.reviewType, themed.mutedText]}>{formatFlashcardType(activeCard.type)} · {formatReviewState(activeCard.reviewState)}</Text>
               <TouchableOpacity activeOpacity={0.86} onPress={() => setShowBack((value) => !value)} style={styles.flashcardFace}>
                 <Text style={styles.faceLabel}>{showBack ? 'Back' : 'Front'}</Text>
                 <Text style={styles.faceText}>{showBack ? activeCard.back : activeCard.front}</Text>
@@ -625,10 +679,10 @@ export default function AdvancedScreen() {
               </View>
             </View>
           ) : (
-            <View style={styles.emptyFlashcard}>
-              <Ionicons name="albums-outline" size={23} color="#94A3B8" />
-              <Text style={styles.emptyFlashcardTitle}>{libraryState.flashcards.length ? 'Không có thẻ phù hợp' : 'Chưa có flashcard'}</Text>
-              <Text style={styles.emptyFlashcardText}>
+            <View style={[styles.emptyFlashcard, themed.mutedPanel]}>
+              <Ionicons name="albums-outline" size={23} color={colors.textTertiary} />
+              <Text style={[styles.emptyFlashcardTitle, themed.primaryText]}>{libraryState.flashcards.length ? 'Không có thẻ phù hợp' : 'Chưa có flashcard'}</Text>
+              <Text style={[styles.emptyFlashcardText, themed.mutedText]}>
                 {libraryState.flashcards.length
                   ? 'Đổi bộ lọc để xem nhóm thẻ khác.'
                   : 'Lưu vài từ trong tab Tra cứu, chọn loại thẻ, rồi tạo flashcard tại đây.'}
@@ -667,39 +721,52 @@ function ToolTab({
   onPress: () => void;
   tool: (typeof learningTools)[number];
 }) {
+  const { colors, shadows } = useToken();
+
   return (
-    <TouchableOpacity activeOpacity={0.82} onPress={onPress} style={[styles.toolTab, tool.future && styles.futureFeatureMuted]}>
+    <TouchableOpacity
+      activeOpacity={0.82}
+      onPress={onPress}
+      style={[
+        styles.toolTab,
+        { backgroundColor: colors.surface, borderColor: colors.borderDefault, ...shadows.sm },
+        tool.future && styles.futureFeatureMuted,
+      ]}>
       <View style={[styles.toolTabIcon, { backgroundColor: tool.accent }]}>
         <Ionicons name={tool.icon} size={18} color="#0F172A" />
       </View>
       <View style={styles.toolTabCopy}>
         <View style={styles.futureTitleRow}>
-          <Text style={styles.toolTabText} numberOfLines={1}>{tool.title}</Text>
+          <Text style={[styles.toolTabText, { color: colors.textPrimary }]} numberOfLines={1}>{tool.title}</Text>
           {tool.future ? <FutureFeatureBadge /> : null}
         </View>
-        <Text style={styles.toolTabDescription} numberOfLines={2}>{tool.description}</Text>
+        <Text style={[styles.toolTabDescription, { color: colors.textSecondary }]} numberOfLines={2}>{tool.description}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
     </TouchableOpacity>
   );
 }
 
 function FutureFeatureBadge() {
+  const { colors } = useToken();
+
   return (
-    <View style={styles.futureFeatureBadge}>
-      <Ionicons name="time-outline" size={12} color="#92400E" />
-      <Text style={styles.futureFeatureBadgeText}>Cập nhật trong phiên bản sau</Text>
+    <View style={[styles.futureFeatureBadge, { backgroundColor: colors.statusWarning, borderColor: colors.accentWarning }]}>
+      <Ionicons name="time-outline" size={12} color={colors.accentWarning} />
+      <Text style={[styles.futureFeatureBadgeText, { color: colors.accentWarning }]}>Cập nhật trong phiên bản sau</Text>
     </View>
   );
 }
 
 function FutureFeatureNotice({ reason }: { reason: string }) {
+  const { colors } = useToken();
+
   return (
-    <View style={styles.futureFeatureNotice}>
-      <Ionicons name="lock-closed-outline" size={16} color="#92400E" />
+    <View style={[styles.futureFeatureNotice, { backgroundColor: colors.statusWarning, borderColor: colors.accentWarning }]}>
+      <Ionicons name="lock-closed-outline" size={16} color={colors.accentWarning} />
       <View style={styles.futureFeatureNoticeCopy}>
-        <Text style={styles.futureFeatureNoticeTitle}>Cập nhật trong phiên bản sau</Text>
-        <Text style={styles.futureFeatureNoticeText}>{reason}</Text>
+        <Text style={[styles.futureFeatureNoticeTitle, { color: colors.accentWarning }]}>Cập nhật trong phiên bản sau</Text>
+        <Text style={[styles.futureFeatureNoticeText, { color: colors.textSecondary }]}>{reason}</Text>
       </View>
     </View>
   );
@@ -1503,29 +1570,30 @@ function ReaderLibraryToolPanel({
   onOpenDocument: (documentId: string) => void;
   readerState: ReaderState;
 }) {
+  const { colors, shadows } = useToken();
   const documents = readerState.documents;
 
   return (
-    <View style={styles.toolPanel}>
+    <View style={[styles.toolPanel, { backgroundColor: colors.surface, borderColor: colors.borderDefault, ...shadows.sm }]}>
       <View style={styles.toolPanelHeader}>
         <View style={[styles.iconWrap, { backgroundColor: '#F1ECFF' }]}>
           <Ionicons name="reader-outline" size={28} color="#0F172A" />
         </View>
         <View style={styles.copy}>
-          <Text style={styles.featureTitle}>Đọc sách kèm tra từ</Text>
-          <Text style={styles.description}>Thư viện tài liệu đã nhập. Chọn một file để mở Trình đọc Novel và dùng highlight, tra từ, lưu từ, tạo flashcard như cũ.</Text>
+          <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>Đọc sách kèm tra từ</Text>
+          <Text style={[styles.description, { color: colors.textSecondary }]}>Thư viện tài liệu đã nhập. Chọn một file để mở Trình đọc Novel và dùng highlight, tra từ, lưu từ, tạo flashcard như cũ.</Text>
         </View>
       </View>
 
       <View style={styles.readerLibraryToolbar}>
-        <View style={styles.toolStatusPill}>
-          <Text style={styles.toolStatusText}>{documents.length} tài liệu</Text>
+        <View style={[styles.toolStatusPill, { backgroundColor: colors.accentSoft }]}>
+          <Text style={[styles.toolStatusText, { color: colors.accentPrimary }]}>{documents.length} tài liệu</Text>
         </View>
         <TouchableOpacity
           activeOpacity={0.85}
           disabled={isImporting}
           onPress={onImport}
-          style={[styles.readerImportButton, isImporting && styles.exportButtonDisabled]}>
+          style={[styles.readerImportButton, { backgroundColor: colors.accentPrimary, ...shadows.glow }, isImporting && styles.exportButtonDisabled]}>
           <Ionicons name="document-text-outline" size={17} color="#FFFFFF" />
           <Text style={styles.openToolButtonText}>{isImporting ? 'Đang nhập...' : 'Nhập file'}</Text>
         </TouchableOpacity>
@@ -1543,10 +1611,10 @@ function ReaderLibraryToolPanel({
           ))}
         </View>
       ) : (
-        <View style={styles.toolStateCard}>
-          <Ionicons name="library-outline" size={24} color="#94A3B8" />
-          <Text style={styles.toolStateTitle}>Chưa có tài liệu đọc</Text>
-          <Text style={styles.toolStateText}>
+        <View style={[styles.toolStateCard, { backgroundColor: colors.surfaceMuted, borderColor: colors.borderDefault }]}>
+          <Ionicons name="library-outline" size={24} color={colors.textTertiary} />
+          <Text style={[styles.toolStateTitle, { color: colors.textPrimary }]}>Chưa có tài liệu đọc</Text>
+          <Text style={[styles.toolStateText, { color: colors.textSecondary }]}>
             Nhập TXT, HTML, EPUB, DOCX hoặc PDF đã bật gate để tạo thư viện đọc. Màn Trình đọc Novel chỉ tập trung vào đọc và tra từ.
           </Text>
         </View>
@@ -1564,40 +1632,47 @@ function ReaderDocumentCard({
   isSelected: boolean;
   onPress: () => void;
 }) {
+  const { colors, shadows } = useToken();
   const wordCount = getReaderDocumentWordCount(document.content);
 
   return (
     <TouchableOpacity
       activeOpacity={0.84}
       onPress={onPress}
-      style={[styles.readerDocumentCard, isSelected && styles.readerDocumentCardActive]}>
+      style={[
+        styles.readerDocumentCard,
+        { backgroundColor: colors.surfaceMuted, borderColor: colors.borderDefault, ...shadows.sm },
+        isSelected && styles.readerDocumentCardActive,
+        isSelected && { backgroundColor: colors.accentSoft, borderColor: colors.focusRing },
+      ]}>
       <View style={styles.readerDocumentHeader}>
-        <View style={styles.readerDocumentIcon}>
-          <Ionicons name="book-outline" size={18} color="#7C3AED" />
+        <View style={[styles.readerDocumentIcon, { backgroundColor: colors.accentSoft }]}>
+          <Ionicons name="book-outline" size={18} color={colors.accentPrimary} />
         </View>
-        <Text style={styles.readerDocumentFormat}>{(document.sourceFormat ?? 'txt').toUpperCase()}</Text>
+        <Text style={[styles.readerDocumentFormat, { color: colors.accentPrimary }]}>{(document.sourceFormat ?? 'txt').toUpperCase()}</Text>
       </View>
-      <Text style={styles.readerDocumentTitle} numberOfLines={2}>{document.title}</Text>
-      <Text style={styles.readerDocumentMeta}>{wordCount} từ · {formatReaderDocumentDate(document.updatedAt)}</Text>
+      <Text style={[styles.readerDocumentTitle, { color: colors.textPrimary }]} numberOfLines={2}>{document.title}</Text>
+      <Text style={[styles.readerDocumentMeta, { color: colors.textSecondary }]}>{wordCount} từ · {formatReaderDocumentDate(document.updatedAt)}</Text>
       <View style={styles.readerDocumentOpenRow}>
-        <Text style={styles.readerDocumentOpenText}>Mở trình đọc</Text>
-        <Ionicons name="arrow-forward" size={15} color="#7C3AED" />
+        <Text style={[styles.readerDocumentOpenText, { color: colors.accentPrimary }]}>Mở trình đọc</Text>
+        <Ionicons name="arrow-forward" size={15} color={colors.accentPrimary} />
       </View>
     </TouchableOpacity>
   );
 }
 
 function LearningToolPanel({ tool }: { tool: (typeof learningTools)[number] }) {
+  const { colors, shadows } = useToken();
 
   return (
-    <View style={styles.toolPanel}>
+    <View style={[styles.toolPanel, { backgroundColor: colors.surface, borderColor: colors.borderDefault, ...shadows.sm }]}>
       <View style={styles.toolPanelHeader}>
         <View style={[styles.iconWrap, { backgroundColor: tool.accent }]}>
           <Ionicons name={tool.icon} size={28} color="#0F172A" />
         </View>
         <View style={styles.copy}>
-          <Text style={styles.featureTitle}>{tool.title}</Text>
-          <Text style={styles.description}>{tool.description}</Text>
+          <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>{tool.title}</Text>
+          <Text style={[styles.description, { color: colors.textSecondary }]}>{tool.description}</Text>
         </View>
       </View>
       <View style={styles.toolStatusPill}>

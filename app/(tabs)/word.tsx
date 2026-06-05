@@ -77,6 +77,7 @@ import {
   createImageCapturePreview,
   formatCapturePreviewMeta,
 } from '@/data/recognitionCapture';
+import { useToken } from '@/hooks/use-token';
 
 const { width } = Dimensions.get('window');
 
@@ -88,6 +89,9 @@ type RecognitionStatus = 'idle' | 'requesting' | 'recording' | 'processing' | 'r
 
 export default function WordScreen() {
   const insets = useSafeAreaInsets();
+  const token = useToken();
+  const styles = useMemo(() => createWordStyles(token), [token]);
+  const { colors } = token;
   const params = useLocalSearchParams<{ word?: string; sourceLang?: string; targetLang?: string }>();
   const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState('');
@@ -532,13 +536,13 @@ export default function WordScreen() {
       <View style={styles.lookupPanel}>
         <View style={styles.lookupSearchCard}>
           <View style={styles.inputBox}>
-            <Ionicons name="search" size={22} color="#7C3AED" />
+            <Ionicons name="search" size={22} color={colors.accentPrimary} />
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
               placeholder="Tìm từ, nghĩa, chủ đề..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textTertiary}
               value={query}
               onChangeText={setQuery}
               onFocus={() => setShowLanguageControls(true)}
@@ -550,14 +554,14 @@ export default function WordScreen() {
             />
             {query ? (
               <TouchableOpacity onPress={() => setQuery('')}>
-                <Ionicons name="close-circle" size={20} color="#94A3B8" />
+                <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity
               activeOpacity={0.78}
               onPress={() => setShowLanguageControls((value) => !value)}
               style={styles.languageToggle}>
-              <Ionicons name="language-outline" size={18} color="#7C3AED" />
+              <Ionicons name="language-outline" size={18} color={colors.accentPrimary} />
             </TouchableOpacity>
           </View>
           {showLanguageControls ? (
@@ -567,7 +571,7 @@ export default function WordScreen() {
           ) : null}
           {detectedLanguage ? (
             <View style={styles.detectedLanguageChip}>
-              <Ionicons name="sparkles-outline" size={14} color="#7C3AED" />
+              <Ionicons name="sparkles-outline" size={14} color={colors.accentPrimary} />
               <Text style={styles.detectedLanguageText}>
                 Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
               </Text>
@@ -588,7 +592,7 @@ export default function WordScreen() {
                 activeOpacity={0.82}
                 onPress={() => showFutureFeatureNotice('Voice Search cần dev-client/native STT và kiểm thử quyền microphone trước khi mở production.')}
                 style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
-                <Ionicons name="time-outline" size={17} color="#7C6F8E" />
+                <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
                 <Text style={styles.recognitionActionText}>Voice</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -596,7 +600,7 @@ export default function WordScreen() {
                 activeOpacity={0.82}
                 onPress={() => showFutureFeatureNotice('OCR Camera Lookup cần dev-client/native OCR engine và dữ liệu kiểm thử ảnh trước khi mở production.')}
                 style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
-                <Ionicons name="time-outline" size={17} color="#7C6F8E" />
+                <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
                 <Text style={styles.recognitionActionText}>OCR</Text>
               </TouchableOpacity>
             </View>
@@ -615,7 +619,7 @@ export default function WordScreen() {
                 onSelect={handleLanguageSelect}
               />
               <View style={styles.languageSwap}>
-                <Ionicons name="swap-horizontal" size={17} color="#64748B" />
+                <Ionicons name="swap-horizontal" size={17} color={colors.textSecondary} />
               </View>
               <LookupLanguageSelect
                 active={activeLanguageField === 'target'}
@@ -779,6 +783,9 @@ function RecognitionPrototypeModal({
   onStopSpeech: () => void;
   onUseText: (text: string) => void;
 }) {
+  const token = useToken();
+  const styles = useMemo(() => createWordStyles(token), [token]);
+  const { colors } = token;
   const isSpeechMode = mode === 'speech';
   const isBusy = status === 'requesting' || status === 'processing';
 
@@ -796,19 +803,19 @@ function RecognitionPrototypeModal({
               activeOpacity={0.78}
               onPress={onClose}
               style={styles.recognitionCloseButton}>
-              <Ionicons name="close" size={20} color="#334155" />
+              <Ionicons name="close" size={20} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.recognitionStatusCard}>
             <View style={styles.recognitionStatusIcon}>
               {isBusy ? (
-                <ActivityIndicator color="#0F766E" />
+                <ActivityIndicator color={colors.accentSuccess} />
               ) : (
                 <Ionicons
                   name={isSpeechMode ? (status === 'recording' ? 'radio-button-on' : 'mic-outline') : 'image-outline'}
                   size={24}
-                  color={status === 'recording' ? '#DC2626' : '#0F766E'}
+                  color={status === 'recording' ? colors.accentError : colors.accentSuccess}
                 />
               )}
             </View>
@@ -826,7 +833,7 @@ function RecognitionPrototypeModal({
                 <Image source={{ uri: preview.uri }} style={styles.recognitionPreviewImage} />
               ) : (
                 <View style={styles.recognitionPreviewAudio}>
-                  <Ionicons name="musical-notes" size={20} color="#0F766E" />
+                  <Ionicons name="musical-notes" size={20} color={colors.accentSuccess} />
                 </View>
               )}
               <View style={styles.recognitionPreviewCopy}>
@@ -889,7 +896,7 @@ function RecognitionPrototypeModal({
                   status === 'recording' && styles.recognitionStopButton,
                   isBusy && styles.recognitionDisabledButton,
                 ]}>
-                <Ionicons name={status === 'recording' ? 'stop-circle' : 'mic'} size={18} color="#FFFFFF" />
+                <Ionicons name={status === 'recording' ? 'stop-circle' : 'mic'} size={18} color={colors.textOnAccent} />
                 <Text style={styles.recognitionPrimaryText}>{status === 'recording' ? 'Dừng ghi' : 'Bắt đầu'}</Text>
               </TouchableOpacity>
             ) : (
@@ -900,7 +907,7 @@ function RecognitionPrototypeModal({
                   disabled={isBusy}
                   onPress={onPickImage}
                   style={[styles.recognitionPrimaryButton, isBusy && styles.recognitionDisabledButton]}>
-                  <Ionicons name="image" size={18} color="#FFFFFF" />
+                  <Ionicons name="image" size={18} color={colors.textOnAccent} />
                   <Text style={styles.recognitionPrimaryText}>Chọn ảnh</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -909,14 +916,14 @@ function RecognitionPrototypeModal({
                   disabled={isBusy}
                   onPress={onOpenCamera}
                   style={[styles.recognitionSecondaryButton, isBusy && styles.recognitionDisabledButton]}>
-                  <Ionicons name="camera" size={17} color="#0F766E" />
+                  <Ionicons name="camera" size={17} color={colors.accentSuccess} />
                   <Text style={styles.recognitionSecondaryText}>Camera</Text>
                 </TouchableOpacity>
               </>
             )}
             {result ? (
               <TouchableOpacity activeOpacity={0.82} onPress={() => onUseText(result.suggestions[0] ?? result.text)} style={styles.recognitionSecondaryButton}>
-                <Ionicons name="search" size={17} color="#0F766E" />
+                <Ionicons name="search" size={17} color={colors.accentSuccess} />
                 <Text style={styles.recognitionSecondaryText}>Tra kết quả</Text>
               </TouchableOpacity>
             ) : null}
@@ -942,6 +949,10 @@ function LookupLanguageSelect({
   onPress: (field: LanguageField | null) => void;
   onSelect: (field: LanguageField, language: LanguageOption) => void;
 }) {
+  const token = useToken();
+  const styles = useMemo(() => createWordStyles(token), [token]);
+  const { colors } = token;
+
   return (
     <View style={styles.languageSelectWrap}>
       <TouchableOpacity
@@ -951,7 +962,7 @@ function LookupLanguageSelect({
         <Text style={styles.languageSelectLabel}>{label}</Text>
         <View style={styles.languageSelectValueRow}>
           <Text numberOfLines={1} style={styles.languageSelectValue}>{selectedLanguage.label}</Text>
-          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={15} color="#64748B" />
+          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={15} color={colors.textSecondary} />
         </View>
       </TouchableOpacity>
       {active ? (
@@ -982,8 +993,8 @@ function LookupLanguageSelect({
                     {isUnavailable ? 'Cập nhật trong phiên bản sau · Cần nguồn dữ liệu' : language.hint}
                   </Text>
                 </View>
-                {isSelected ? <Ionicons name="checkmark" size={16} color="#7C3AED" /> : null}
-                {!isSelected && isUnavailable ? <Ionicons name="time-outline" size={15} color="#7C6F8E" /> : null}
+                {isSelected ? <Ionicons name="checkmark" size={16} color={colors.accentPrimary} /> : null}
+                {!isSelected && isUnavailable ? <Ionicons name="time-outline" size={15} color={colors.textSecondary} /> : null}
               </TouchableOpacity>
             );
           })}
@@ -1229,27 +1240,34 @@ function createDictionaryUnavailableEntry(
   };
 }
 
-const styles = StyleSheet.create({
+function createWordStyles({
+  colors,
+  radius,
+  shadows,
+  spacing,
+}: ReturnType<typeof useToken>) {
+return StyleSheet.create({
   container: {
-    backgroundColor: '#F7F8FA',
+    backgroundColor: colors.canvasAlt,
     flex: 1,
   },
   lookupPanel: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
   lookupSearchCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     padding: 10,
+    ...shadows.sm,
   },
   inputBox: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#DDD6FE',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.focusRing,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
@@ -1257,21 +1275,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   input: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     flex: 1,
     fontSize: 16,
     fontWeight: '700',
   },
   languageToggle: {
     alignItems: 'center',
-    backgroundColor: '#F3E8FF',
-    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
     height: 34,
     justifyContent: 'center',
     width: 34,
   },
   languageCaption: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '800',
     marginTop: 8,
@@ -1279,9 +1297,9 @@ const styles = StyleSheet.create({
   detectedLanguageChip: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#F5F3FF',
-    borderColor: '#DDD6FE',
-    borderRadius: 999,
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.focusRing,
+    borderRadius: radius.full,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 7,
@@ -1290,12 +1308,12 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   detectedLanguageText: {
-    color: '#5B21B6',
+    color: colors.accentPrimary,
     fontSize: 12,
     fontWeight: '800',
   },
   detectedLanguageUndo: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -1306,9 +1324,9 @@ const styles = StyleSheet.create({
   },
   recognitionActionButton: {
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
-    borderRadius: 8,
+    backgroundColor: colors.statusSuccess,
+    borderColor: colors.accentSuccess,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
@@ -1316,17 +1334,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   futureRecognitionButton: {
-    backgroundColor: '#F5F3FF',
-    borderColor: '#DDD6FE',
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.focusRing,
     opacity: 0.58,
   },
   recognitionActionText: {
-    color: '#6D5B8F',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
   },
   futureRecognitionHint: {
-    color: '#7C6F8E',
+    color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '700',
     marginTop: 7,
@@ -1341,18 +1359,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   languageSelect: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     minHeight: 62,
     padding: 10,
   },
   activeLanguageSelect: {
-    borderColor: '#7C3AED',
+    borderColor: colors.accentPrimary,
   },
   languageSelectLabel: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -1364,31 +1382,31 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   languageSelectValue: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     flex: 1,
     fontSize: 14,
     fontWeight: '700',
   },
   languageSwap: {
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
-    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
     height: 34,
     justifyContent: 'center',
     marginTop: 14,
     width: 34,
   },
   languageMenu: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginTop: 7,
     overflow: 'hidden',
   },
   languageOption: {
     alignItems: 'center',
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: colors.borderDefault,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1396,10 +1414,10 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   activeLanguageOption: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: colors.accentSoft,
   },
   futureLanguageOption: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surfaceMuted,
     opacity: 0.58,
   },
   languageOptionCopy: {
@@ -1407,24 +1425,24 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   languageOptionText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
   activeLanguageOptionText: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
   },
   futureLanguageOptionText: {
-    color: '#6D5B8F',
+    color: colors.textSecondary,
   },
   languageOptionHint: {
-    color: '#94A3B8',
+    color: colors.textTertiary,
     fontSize: 11,
     fontWeight: '700',
     marginTop: 2,
   },
   futureLanguageHint: {
-    color: '#7C6F8E',
+    color: colors.textSecondary,
   },
   resultRow: {
     gap: 10,
@@ -1432,55 +1450,55 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   resultChip: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     minWidth: 116,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   activeResultChip: {
-    backgroundColor: '#7C3AED',
-    borderColor: '#7C3AED',
+    backgroundColor: colors.accentPrimary,
+    borderColor: colors.accentPrimary,
   },
   resultWord: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '700',
   },
   activeResultText: {
-    color: '#FFFFFF',
+    color: colors.textOnAccent,
   },
   resultMeta: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '700',
     marginTop: 4,
   },
   activeResultMeta: {
-    color: '#C4B5FD',
+    color: colors.textOnAccent,
   },
   apiLookupChip: {
-    backgroundColor: '#1F1B2E',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceHero,
+    borderRadius: radius.md,
     minWidth: 132,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   apiLookupTitle: {
-    color: '#FFFFFF',
+    color: colors.textOnHero,
     fontSize: 15,
     fontWeight: '700',
   },
   apiLookupMeta: {
-    color: '#C4B5FD',
+    color: colors.accentPrimary,
     fontSize: 11,
     fontWeight: '700',
     marginTop: 4,
   },
   emptyText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
     paddingBottom: 10,
@@ -1489,7 +1507,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   historyTitle: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 8,
@@ -1499,15 +1517,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   historyChip: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 999,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.full,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   historyText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '800',
   },
@@ -1515,7 +1533,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   suggestionTitle: {
-    color: '#DC2626',
+    color: colors.accentError,
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 8,
@@ -1525,15 +1543,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   suggestionChip: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
-    borderRadius: 999,
+    backgroundColor: colors.statusError,
+    borderColor: colors.accentError,
+    borderRadius: radius.full,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   suggestionText: {
-    color: '#DC2626',
+    color: colors.accentError,
     fontSize: 13,
     fontWeight: '800',
   },
@@ -1541,28 +1559,28 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   morphologyTitle: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 8,
     textTransform: 'uppercase',
   },
   morphologyChip: {
-    backgroundColor: '#F5F3FF',
-    borderColor: '#C4B5FD',
-    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.focusRing,
+    borderRadius: radius.md,
     borderWidth: 1,
     minWidth: 104,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   morphologyText: {
-    color: '#6D28D9',
+    color: colors.accentPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
   morphologyMeta: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 10,
     fontWeight: '800',
     marginTop: 3,
@@ -1575,8 +1593,10 @@ const styles = StyleSheet.create({
     padding: 18,
   },
   recognitionSheet: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
+    borderWidth: 1,
     maxWidth: 430,
     padding: 16,
     width: '100%',
@@ -1588,30 +1608,30 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   recognitionEyebrow: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
   recognitionTitle: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 20,
     fontWeight: '700',
     marginTop: 2,
   },
   recognitionCloseButton: {
     alignItems: 'center',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.md,
     height: 34,
     justifyContent: 'center',
     width: 34,
   },
   recognitionStatusCard: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
@@ -1620,8 +1640,8 @@ const styles = StyleSheet.create({
   },
   recognitionStatusIcon: {
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
-    borderRadius: 8,
+    backgroundColor: colors.statusSuccess,
+    borderRadius: radius.md,
     height: 44,
     justifyContent: 'center',
     width: 44,
@@ -1630,23 +1650,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recognitionStatusTitle: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '700',
   },
   recognitionStatusText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
     marginTop: 3,
   },
   recognitionError: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FECACA',
-    borderRadius: 8,
+    backgroundColor: colors.statusError,
+    borderColor: colors.accentError,
+    borderRadius: radius.md,
     borderWidth: 1,
-    color: '#B91C1C',
+    color: colors.accentError,
     fontSize: 12,
     fontWeight: '800',
     lineHeight: 17,
@@ -1655,9 +1675,9 @@ const styles = StyleSheet.create({
   },
   recognitionPreviewCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#CCFBF1',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
@@ -1665,15 +1685,15 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   recognitionPreviewImage: {
-    backgroundColor: '#F1F5F9',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.md,
     height: 52,
     width: 52,
   },
   recognitionPreviewAudio: {
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
-    borderRadius: 8,
+    backgroundColor: colors.statusSuccess,
+    borderRadius: radius.md,
     height: 52,
     justifyContent: 'center',
     width: 52,
@@ -1683,12 +1703,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   recognitionPreviewTitle: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
   recognitionPreviewMeta: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     marginTop: 4,
@@ -1697,19 +1717,19 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   recognitionResultLabel: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
   recognitionResultText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 22,
     fontWeight: '700',
     marginTop: 5,
   },
   recognitionNotice: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 17,
@@ -1721,9 +1741,9 @@ const styles = StyleSheet.create({
   },
   recognitionOcrLine: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 8,
@@ -1732,13 +1752,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   recognitionOcrLineText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     flex: 1,
     fontSize: 13,
     fontWeight: '700',
   },
   recognitionOcrConfidence: {
-    color: '#0F766E',
+    color: colors.accentSuccess,
     fontSize: 11,
     fontWeight: '800',
   },
@@ -1747,15 +1767,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   recognitionSuggestionChip: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
-    borderRadius: 999,
+    backgroundColor: colors.statusSuccess,
+    borderColor: colors.accentSuccess,
+    borderRadius: radius.full,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   recognitionSuggestionText: {
-    color: '#0F766E',
+    color: colors.accentSuccess,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -1767,29 +1787,29 @@ const styles = StyleSheet.create({
   },
   recognitionPrimaryButton: {
     alignItems: 'center',
-    backgroundColor: '#0F766E',
-    borderRadius: 8,
+    backgroundColor: colors.accentSuccess,
+    borderRadius: radius.md,
     flexDirection: 'row',
     gap: 7,
     minHeight: 42,
     paddingHorizontal: 14,
   },
   recognitionStopButton: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.accentError,
   },
   recognitionDisabledButton: {
     opacity: 0.7,
   },
   recognitionPrimaryText: {
-    color: '#FFFFFF',
+    color: colors.textOnAccent,
     fontSize: 13,
     fontWeight: '700',
   },
   recognitionSecondaryButton: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#99F6E4',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.accentSuccess,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 7,
@@ -1797,8 +1817,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   recognitionSecondaryText: {
-    color: '#0F766E',
+    color: colors.accentSuccess,
     fontSize: 13,
     fontWeight: '700',
   },
 });
+}

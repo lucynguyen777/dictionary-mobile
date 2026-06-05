@@ -9,7 +9,7 @@ import {
 import type { AudioPlayer } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { router } from 'expo-router';
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { createContext, RefObject, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
@@ -17,6 +17,8 @@ import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/
 import { getLanguageByCode } from '@/data/languages';
 import { PhrasebookItem, getPhrasebookItems } from '@/data/phrasebook';
 import { TranslationPanel } from '@/components/TranslationPanel';
+import SkeletonBlock from '@/components/app/SkeletonBlock';
+import { useToken } from '@/hooks/use-token';
 
 type Props = {
   apiBilingualMeaning: ApiBilingualMeaningResult | null;
@@ -47,6 +49,21 @@ type MeaningDefinitionItem = {
 
 type StateTone = 'loading' | 'success' | 'warning' | 'empty' | 'preview';
 
+const TabPagerTokenContext = createContext<ReturnType<typeof useToken> | null>(null);
+
+function useTabPagerToken() {
+  const fallbackToken = useToken();
+  return useContext(TabPagerTokenContext) ?? fallbackToken;
+}
+
+function useTabPagerStyles() {
+  const token = useTabPagerToken();
+  return useMemo(
+    () => createTabPagerStyles(token),
+    [token]
+  );
+}
+
 export default function TabPager({
   apiBilingualMeaning,
   apiMeaning,
@@ -61,6 +78,8 @@ export default function TabPager({
   scrollRef,
   onIndexChange,
 }: Props) {
+  const token = useToken();
+  const styles = useMemo(() => createTabPagerStyles(token), [token]);
   const { width } = useWindowDimensions();
   const activeIndexRef = useRef(0);
   const pageScrollRefs = useRef<(ScrollView | null)[]>([]);
@@ -120,6 +139,7 @@ export default function TabPager({
   };
 
   return (
+    <TabPagerTokenContext.Provider value={token}>
     <View style={styles.pagerWrap}>
     <ScrollView
       ref={scrollRef}
@@ -162,6 +182,7 @@ export default function TabPager({
       <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
     </TouchableOpacity>
     </View>
+    </TabPagerTokenContext.Provider>
   );
 }
 
@@ -184,6 +205,8 @@ function MeaningTab({
   sourceLang: string;
   targetLang: string;
 }) {
+  const styles = useTabPagerStyles();
+  const { colors } = useTabPagerToken();
   const shouldPreferVietnamese = targetLang === 'vi' && sourceLang !== 'vi';
   const isBilingualLookup = sourceLang !== targetLang;
   const sourceLanguage = getLanguageByCode(sourceLang, 'en');
@@ -281,7 +304,7 @@ function MeaningTab({
                           activeOpacity={0.7}
                           onPress={() => speakExample(example.source)}
                           style={styles.exampleAudioButton}>
-                          <Ionicons name="volume-medium-outline" size={16} color="#7C3AED" />
+                          <Ionicons name="volume-medium-outline" size={16} color={colors.accentPrimary} />
                         </TouchableOpacity>
                         <Text
                           style={[
@@ -372,6 +395,8 @@ function DefinitionMetaRow({
   gender?: string;
   level?: string;
 }) {
+  const styles = useTabPagerStyles();
+  const { colors } = useTabPagerToken();
   const metaItems = [
     domain ? { label: domain, tone: 'blue' as const } : null,
     level ? { label: level, tone: 'green' as const } : null,
@@ -383,26 +408,24 @@ function DefinitionMetaRow({
   return (
     <View style={styles.definitionMetaRow}>
       {metaItems.map((item) => (
-        <View key={`${item.tone}-${item.label}`} style={[styles.definitionMetaPill, getMetaPillStyle(item.tone)]}>
-          <Text style={[styles.definitionMetaText, getMetaTextStyle(item.tone)]}>{item.label}</Text>
+        <View key={`${item.tone}-${item.label}`} style={[styles.definitionMetaPill, getMetaPillStyle(item.tone, colors)]}>
+          <Text style={[styles.definitionMetaText, getMetaTextStyle(item.tone, colors)]}>{item.label}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-function getMetaPillStyle(tone: 'blue' | 'green' | 'neutral') {
-  if (tone === 'green') return styles.greenMetaPill;
-  if (tone === 'neutral') return styles.neutralMetaPill;
-
-  return styles.blueMetaPill;
+function getMetaPillStyle(tone: 'blue' | 'green' | 'neutral', colors: ReturnType<typeof useToken>['colors']) {
+  return {
+    backgroundColor: tone === 'blue' ? colors.accentSoft : tone === 'green' ? colors.statusSuccess : colors.surfaceMuted,
+  };
 }
 
-function getMetaTextStyle(tone: 'blue' | 'green' | 'neutral') {
-  if (tone === 'green') return styles.greenMetaText;
-  if (tone === 'neutral') return styles.neutralMetaText;
-
-  return styles.blueMetaText;
+function getMetaTextStyle(tone: 'blue' | 'green' | 'neutral', colors: ReturnType<typeof useToken>['colors']) {
+  return {
+    color: tone === 'blue' ? colors.accentPrimary : tone === 'green' ? colors.accentSuccess : colors.textSecondary,
+  };
 }
 
 function SynonymsTab({
@@ -422,6 +445,7 @@ function SynonymsTab({
   sourceLang: string;
   targetLang: string;
 }) {
+  const styles = useTabPagerStyles();
   const apiSynonyms = apiMeaning?.definitions.flatMap((definition) => definition.synonyms) ?? [];
   const apiAntonyms = apiMeaning?.definitions.flatMap((definition) => definition.antonyms) ?? [];
   const synonyms = uniqueWords([...(apiRelatedWords?.synonyms ?? []), ...apiSynonyms, ...entry.synonyms]);
@@ -462,6 +486,8 @@ function WordChip({
   word: string;
   variant: 'primary' | 'ghost';
 }) {
+  const styles = useTabPagerStyles();
+
   return (
     <TouchableOpacity
       activeOpacity={0.82}
@@ -538,6 +564,7 @@ function CollocationTab({
   sourceLang: string;
   targetLang: string;
 }) {
+  const styles = useTabPagerStyles();
   const phraseItems = getCollocationItems(entry);
 
   return (
@@ -638,6 +665,8 @@ function formatPhraseType(type: PhrasebookItem['type']) {
 }
 
 function ConjugationTab({ entry }: { entry: DictionaryEntry }) {
+  const styles = useTabPagerStyles();
+
   return (
     <View>
       <PreviewNotice
@@ -655,6 +684,8 @@ function ConjugationTab({ entry }: { entry: DictionaryEntry }) {
 }
 
 function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
+  const styles = useTabPagerStyles();
+
   return (
     <View>
       <PreviewNotice
@@ -672,6 +703,8 @@ function EtymologyTab({ entry }: { entry: DictionaryEntry }) {
 }
 
 function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
+  const styles = useTabPagerStyles();
+  const { colors } = useTabPagerToken();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [isRecording, setIsRecording] = useState(false);
   const [playbackPlayer, setPlaybackPlayer] = useState<AudioPlayer | null>(null);
@@ -760,7 +793,7 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
             activeOpacity={0.82}
             onPress={isRecording ? handleStopRecording : handleStartRecording}
             style={[styles.recordingButton, isRecording && styles.stopRecordingButton]}>
-            <Ionicons name={isRecording ? 'stop' : 'mic-outline'} size={17} color={isRecording ? '#FFFFFF' : '#7C3AED'} />
+            <Ionicons name={isRecording ? 'stop' : 'mic-outline'} size={17} color={isRecording ? colors.textOnAccent : colors.accentPrimary} />
             <Text style={[styles.recordingButtonText, isRecording && styles.stopRecordingButtonText]}>
               {isRecording ? 'Dừng' : 'Ghi âm'}
             </Text>
@@ -770,7 +803,7 @@ function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
             disabled={!recordedUri || isRecording}
             onPress={handlePlayRecording}
             style={[styles.playRecordingButton, (!recordedUri || isRecording) && styles.disabledRecordingButton]}>
-            <Ionicons name="play-outline" size={17} color={recordedUri && !isRecording ? '#166534' : '#94A3B8'} />
+            <Ionicons name="play-outline" size={17} color={recordedUri && !isRecording ? colors.accentSuccess : colors.textTertiary} />
             <Text style={[styles.playRecordingText, (!recordedUri || isRecording) && styles.disabledRecordingText]}>
               Nghe lại
             </Text>
@@ -809,24 +842,37 @@ function StateCard({
   title: string;
   tone: StateTone;
 }) {
-  const toneStyle = getStateToneStyle(tone);
+  const styles = useTabPagerStyles();
+  const { colors } = useTabPagerToken();
+  const toneStyle = getStateToneStyle(tone, colors, styles);
 
   return (
     <View style={[styles.stateCard, toneStyle.card]}>
       <Ionicons name={icon} size={20} color={toneStyle.iconColor} />
       <View style={styles.stateCopy}>
         <Text style={[styles.stateTitle, toneStyle.title]}>{title}</Text>
-        <Text style={[styles.stateText, toneStyle.text]}>{text}</Text>
+        {tone === 'loading' ? (
+          <View style={styles.loadingSkeletonStack}>
+            <SkeletonBlock height={10} width="92%" />
+            <SkeletonBlock height={10} width="68%" />
+          </View>
+        ) : (
+          <Text style={[styles.stateText, toneStyle.text]}>{text}</Text>
+        )}
       </View>
     </View>
   );
 }
 
-function getStateToneStyle(tone: StateTone) {
+function getStateToneStyle(
+  tone: StateTone,
+  colors: ReturnType<typeof useToken>['colors'],
+  styles: ReturnType<typeof createTabPagerStyles>
+) {
   if (tone === 'success') {
     return {
       card: styles.successStateCard,
-      iconColor: '#166534',
+      iconColor: colors.accentSuccess,
       text: styles.successStateText,
       title: styles.successStateTitle,
     };
@@ -835,7 +881,7 @@ function getStateToneStyle(tone: StateTone) {
   if (tone === 'warning') {
     return {
       card: styles.warningStateCard,
-      iconColor: '#C2410C',
+      iconColor: colors.accentWarning,
       text: styles.warningStateText,
       title: styles.warningStateTitle,
     };
@@ -844,7 +890,7 @@ function getStateToneStyle(tone: StateTone) {
   if (tone === 'empty') {
     return {
       card: styles.emptyStateCard,
-      iconColor: '#64748B',
+      iconColor: colors.textSecondary,
       text: styles.emptyStateText,
       title: styles.emptyStateTitle,
     };
@@ -853,7 +899,7 @@ function getStateToneStyle(tone: StateTone) {
   if (tone === 'preview') {
     return {
       card: styles.previewStateCard,
-      iconColor: '#C2410C',
+      iconColor: colors.accentWarning,
       text: styles.warningStateText,
       title: styles.warningStateTitle,
     };
@@ -861,13 +907,19 @@ function getStateToneStyle(tone: StateTone) {
 
   return {
     card: styles.loadingStateCard,
-    iconColor: '#7C3AED',
+    iconColor: colors.accentPrimary,
     text: styles.loadingStateText,
     title: styles.loadingStateTitle,
   };
 }
 
-const styles = StyleSheet.create({
+function createTabPagerStyles({
+  colors,
+  radius,
+  shadows,
+  spacing,
+}: ReturnType<typeof useToken>) {
+return StyleSheet.create({
   pagerWrap: {
     flex: 1,
   },
@@ -876,17 +928,16 @@ const styles = StyleSheet.create({
   },
   scrollTopButton: {
     alignItems: 'center',
-    backgroundColor: '#7C3AED',
-    borderRadius: 22,
+    backgroundColor: colors.accentPrimary,
+    borderRadius: radius.full,
     bottom: 18,
-    elevation: 24,
     height: 44,
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
-    boxShadow: '0px 6px 12px rgba(15, 23, 42, 0.18)',
     width: 44,
     zIndex: 30,
+    ...shadows.md,
   },
   page: {
     flex: 1,
@@ -900,20 +951,20 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     width: '100%',
     paddingBottom: 118,
-    paddingHorizontal: 16,
-    paddingTop: 18,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   block: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginBottom: 14,
     padding: 18,
   },
   stateCard: {
     alignItems: 'flex-start',
-    borderRadius: 8,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
@@ -934,89 +985,89 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   loadingStateCard: {
-    backgroundColor: '#F3E8FF',
-    borderColor: '#C4B5FD',
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.focusRing,
   },
   loadingStateTitle: {
-    color: '#6D28D9',
+    color: colors.accentPrimary,
   },
   loadingStateText: {
-    color: '#475569',
+    color: colors.textSecondary,
   },
   successStateCard: {
-    backgroundColor: '#EAF8F0',
-    borderColor: '#BBF7D0',
+    backgroundColor: colors.statusSuccess,
+    borderColor: colors.accentSuccess,
   },
   successStateTitle: {
-    color: '#166534',
+    color: colors.accentSuccess,
   },
   successStateText: {
-    color: '#475569',
+    color: colors.textSecondary,
   },
   warningStateCard: {
-    backgroundColor: '#FFF7ED',
-    borderColor: '#FED7AA',
+    backgroundColor: colors.statusWarning,
+    borderColor: colors.accentWarning,
   },
   warningStateTitle: {
-    color: '#C2410C',
+    color: colors.accentWarning,
   },
   warningStateText: {
-    color: '#9A3412',
+    color: colors.textSecondary,
   },
   emptyStateCard: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderDefault,
   },
   emptyStateTitle: {
-    color: '#334155',
+    color: colors.textPrimary,
   },
   emptyStateText: {
-    color: '#64748B',
+    color: colors.textSecondary,
   },
   previewStateCard: {
-    backgroundColor: '#FFF7ED',
-    borderColor: '#FED7AA',
+    backgroundColor: colors.statusWarning,
+    borderColor: colors.accentWarning,
   },
   infoCard: {
-    backgroundColor: '#F3E8FF',
-    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
     marginBottom: 14,
     padding: 16,
   },
   infoTitle: {
-    color: '#6D28D9',
+    color: colors.accentPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
   infoText: {
-    color: '#475569',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 4,
   },
   warningCard: {
-    backgroundColor: '#FFF7ED',
-    borderColor: '#FED7AA',
-    borderRadius: 8,
+    backgroundColor: colors.statusWarning,
+    borderColor: colors.accentWarning,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginBottom: 14,
     padding: 16,
   },
   warningTitle: {
-    color: '#C2410C',
+    color: colors.accentWarning,
     fontSize: 13,
     fontWeight: '700',
   },
   warningText: {
-    color: '#9A3412',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 4,
   },
   heading: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 12,
@@ -1025,13 +1076,13 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   definitionItemDivider: {
-    borderTopColor: '#E2E8F0',
+    borderTopColor: colors.borderDefault,
     borderTopWidth: 1,
     marginTop: 16,
     paddingTop: 16,
   },
   definitionNumber: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 10,
@@ -1044,7 +1095,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   definitionMetaPill: {
-    borderRadius: 999,
+    borderRadius: radius.full,
     paddingHorizontal: 9,
     paddingVertical: 5,
   },
@@ -1053,44 +1104,44 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   blueMetaPill: {
-    backgroundColor: '#F3E8FF',
+    backgroundColor: colors.accentSoft,
   },
   blueMetaText: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
   },
   greenMetaPill: {
-    backgroundColor: '#EAF8F0',
+    backgroundColor: colors.statusSuccess,
   },
   greenMetaText: {
-    color: '#166534',
+    color: colors.accentSuccess,
   },
   neutralMetaPill: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.surfaceMuted,
   },
   neutralMetaText: {
-    color: '#475569',
+    color: colors.textSecondary,
   },
   body: {
-    color: '#334155',
+    color: colors.textPrimary,
     fontSize: 14,
     lineHeight: 22,
   },
   secondaryDefinition: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 20,
     marginTop: 8,
   },
   translation: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 14,
     fontWeight: '800',
     lineHeight: 22,
     marginTop: 10,
   },
   exampleLabel: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 6,
@@ -1106,13 +1157,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   exampleAudioButton: {
-    backgroundColor: '#F3E8FF',
-    borderRadius: 999,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.full,
     padding: 4,
     marginTop: 1,
   },
   example: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     flex: 1,
     fontSize: 14,
     fontWeight: '700',
@@ -1120,7 +1171,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   exampleTranslation: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 20,
@@ -1128,7 +1179,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 16,
@@ -1139,26 +1190,26 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   chipButton: {
-    backgroundColor: '#F3E8FF',
-    borderRadius: 999,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.full,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   chipText: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 14,
     fontWeight: '800',
   },
   ghostChipButton: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 999,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.full,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   ghostChipText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: '800',
   },
@@ -1166,35 +1217,35 @@ const styles = StyleSheet.create({
     marginTop: 28,
   },
   emptyState: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
   },
   previewCard: {
-    backgroundColor: '#FFF7ED',
-    borderColor: '#FED7AA',
-    borderRadius: 8,
+    backgroundColor: colors.statusWarning,
+    borderColor: colors.accentWarning,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginBottom: 14,
     padding: 14,
   },
   previewTitle: {
-    color: '#C2410C',
+    color: colors.accentWarning,
     fontSize: 13,
     fontWeight: '700',
   },
   previewText: {
-    color: '#9A3412',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 4,
   },
   smallBlock: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: radius.md,
     marginBottom: 12,
     padding: 18,
   },
@@ -1203,40 +1254,40 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   phraseType: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
   collocation: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 17,
     fontWeight: '700',
   },
   tenseBlock: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginBottom: 12,
     padding: 18,
   },
   noteCard: {
-    backgroundColor: '#EAF8F0',
-    borderRadius: 8,
+    backgroundColor: colors.statusSuccess,
+    borderRadius: radius.md,
     marginTop: 18,
     padding: 18,
   },
   noteTitle: {
-    color: '#166534',
+    color: colors.accentSuccess,
     fontSize: 15,
     fontWeight: '700',
     marginBottom: 8,
   },
   recordingCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDD6FE',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.focusRing,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginBottom: 18,
     padding: 14,
@@ -1245,12 +1296,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   recordingTitle: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '700',
   },
   recordingText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '700',
     lineHeight: 18,
@@ -1262,8 +1313,8 @@ const styles = StyleSheet.create({
   },
   recordingButton: {
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
-    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
     flex: 1,
     flexDirection: 'row',
     gap: 7,
@@ -1271,20 +1322,20 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   stopRecordingButton: {
-    backgroundColor: '#DC2626',
+    backgroundColor: colors.accentError,
   },
   recordingButtonText: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
   stopRecordingButtonText: {
-    color: '#FFFFFF',
+    color: colors.textOnAccent,
   },
   playRecordingButton: {
     alignItems: 'center',
-    backgroundColor: '#EAF8F0',
-    borderRadius: 8,
+    backgroundColor: colors.statusSuccess,
+    borderRadius: radius.md,
     flex: 1,
     flexDirection: 'row',
     gap: 7,
@@ -1292,24 +1343,24 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   playRecordingText: {
-    color: '#166534',
+    color: colors.accentSuccess,
     fontSize: 13,
     fontWeight: '700',
   },
   disabledRecordingButton: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.disabledBg,
   },
   disabledRecordingText: {
-    color: '#94A3B8',
+    color: colors.disabledText,
   },
   tableHeader: {
-    backgroundColor: '#F3E8FF',
-    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
     flexDirection: 'row',
     padding: 10,
   },
   tableRow: {
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: colors.borderDefault,
     borderBottomWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1317,14 +1368,19 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     flex: 1,
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '800',
   },
   note: {
-    color: '#64748B',
+    color: colors.textSecondary,
     flexBasis: '100%',
     fontSize: 12,
     marginTop: 6,
   },
+  loadingSkeletonStack: {
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
 });
+}

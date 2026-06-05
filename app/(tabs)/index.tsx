@@ -3,6 +3,7 @@ import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import MotionPressable from '@/components/app/MotionPressable';
 import Screen from '@/components/app/Screen';
 import { loadAppColorSchemePreference, saveAppColorSchemePreference, type AppColorSchemePreference } from '@/data/appThemePreference';
 import { dictionaryEntries, getWordOfDay, studyStats } from '@/data/dictionary';
@@ -10,6 +11,7 @@ import { detectLookupSourceLanguage, type LookupLanguageDetection } from '@/data
 import { getLanguageByCode, LanguageOption, languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import { normalizeLookupTerm } from '@/data/localLexicon';
+import { useToken } from '@/hooks/use-token';
 
 const reviewPlan = [
   { label: 'Từ cần ôn', value: studyStats.dueToday, icon: 'time-outline' as const },
@@ -23,6 +25,11 @@ type LanguageField = 'source' | 'target';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colors, radius, shadows, spacing, theme } = useToken();
+  const styles = useMemo(
+    () => createHomeStyles({ colors, radius, shadows, spacing, theme }),
+    [colors, radius, shadows, spacing, theme]
+  );
   const lookupInputRef = useRef<TextInput | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
@@ -130,16 +137,15 @@ export default function HomeScreen() {
             <Text style={styles.title}>Dictionaire</Text>
           </View>
           <View style={styles.topBarActions}>
-            <TouchableOpacity
-              activeOpacity={0.8}
+            <MotionPressable
               accessibilityLabel="Đổi nhanh chế độ sáng tối"
               onPress={handleToggleThemePreference}
               style={styles.iconButton}>
-              <Ionicons name={themePreference === 'dark' ? 'moon' : 'sunny'} size={22} color="#0F172A" />
-            </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.iconButton}>
-              <Ionicons name="notifications-outline" size={22} color="#0F172A" />
-            </TouchableOpacity>
+              <Ionicons name={themePreference === 'dark' ? 'moon' : 'sunny'} size={22} color={colors.textPrimary} />
+            </MotionPressable>
+            <MotionPressable accessibilityLabel="Thông báo" style={styles.iconButton}>
+              <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
+            </MotionPressable>
           </View>
         </View>
 
@@ -155,22 +161,21 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
+        <MotionPressable
           onPress={handleOpenLookup}
           style={styles.searchBox}>
-          <Ionicons name="search" size={23} color="#7C3AED" />
+          <Ionicons name="search" size={23} color={colors.accentPrimary} />
           <View style={styles.searchCopy}>
             <Text style={styles.searchLabel}>Tra cứu từ vựng</Text>
             <Text style={styles.searchHint}>Nhập từ, chọn ngôn ngữ rồi nhấn Enter</Text>
           </View>
-          <Ionicons name="create-outline" size={20} color="#64748B" />
-        </TouchableOpacity>
+          <Ionicons name="create-outline" size={20} color={colors.textSecondary} />
+        </MotionPressable>
 
         {showLanguagePicker ? (
           <View style={styles.languagePanel}>
             <View style={styles.homeLookupInputBox}>
-              <Ionicons name="text" size={20} color="#7C3AED" />
+              <Ionicons name="text" size={20} color={colors.accentPrimary} />
               <TextInput
                 ref={lookupInputRef}
                 autoCapitalize="none"
@@ -178,7 +183,7 @@ export default function HomeScreen() {
                 onChangeText={setLookupQuery}
                 onSubmitEditing={handleSubmitLookup}
                 placeholder="Nhập từ cần tra cứu..."
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textTertiary}
                 returnKeyType="search"
                 style={[
                   styles.homeLookupInput,
@@ -188,7 +193,7 @@ export default function HomeScreen() {
               />
               {lookupQuery ? (
                 <TouchableOpacity activeOpacity={0.75} onPress={() => setLookupQuery('')}>
-                  <Ionicons name="close-circle" size={20} color="#94A3B8" />
+                  <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -198,24 +203,28 @@ export default function HomeScreen() {
                 field="source"
                 label="Ngôn ngữ gốc"
                 selectedLanguage={sourceLanguage}
+                styles={styles}
+                colors={colors}
                 onPress={handleLanguagePress}
                 onSelect={handleSelectLanguage}
               />
               <View style={styles.languageSwap}>
-                <Ionicons name="swap-horizontal" size={18} color="#64748B" />
+                <Ionicons name="swap-horizontal" size={18} color={colors.textSecondary} />
               </View>
               <LanguageSelect
                 active={activeLanguageField === 'target'}
                 field="target"
                 label="Tra / dịch sang"
                 selectedLanguage={targetLanguage}
+                styles={styles}
+                colors={colors}
                 onPress={handleLanguagePress}
                 onSelect={handleSelectLanguage}
               />
             </View>
             {detectedLanguage ? (
               <View style={styles.detectedLanguageChip}>
-                <Ionicons name="sparkles-outline" size={14} color="#7C3AED" />
+                <Ionicons name="sparkles-outline" size={14} color={colors.accentPrimary} />
                 <Text style={styles.detectedLanguageText}>
                   Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
                 </Text>
@@ -229,21 +238,20 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             ) : null}
-            <TouchableOpacity
-              activeOpacity={0.85}
+            <MotionPressable
               disabled={!canSubmitLookup}
               onPress={handleSubmitLookup}
               style={[styles.startLookupButton, !canSubmitLookup && styles.disabledLookupButton]}>
               <Text style={styles.startLookupText}>Tra từ</Text>
-              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
+              <Ionicons name="arrow-forward" size={18} color={colors.textOnAccent} />
+            </MotionPressable>
           </View>
         ) : null}
 
         <View style={styles.statsRow}>
           {reviewPlan.map((item) => (
             <View key={item.label} style={styles.statCard}>
-              <Ionicons name={item.icon} size={20} color="#7C3AED" />
+              <Ionicons name={item.icon} size={20} color={colors.accentPrimary} />
               <Text style={styles.statValue}>{item.value}</Text>
               <Text style={styles.statLabel}>{item.label}</Text>
             </View>
@@ -263,7 +271,7 @@ export default function HomeScreen() {
           <TouchableOpacity activeOpacity={0.85} style={styles.wotdCard}>
             <View style={styles.wotdTopRow}>
               <View style={styles.wotdBadge}>
-                <Ionicons name="star" size={12} color="#FFFFFF" />
+                <Ionicons name="star" size={12} color={colors.textOnAccent} />
                 <Text style={styles.wotdBadgeText}>Word of the Day</Text>
               </View>
               <View style={styles.topicPill}>
@@ -276,7 +284,7 @@ export default function HomeScreen() {
             <Text style={styles.wotdDefinition}>{wordOfDay.shortDefinition}</Text>
             {wordOfDay.definitions[0]?.examples[0] ? (
               <View style={styles.wotdExample}>
-                <Ionicons name="chatbubble-ellipses-outline" size={14} color="#7C3AED" />
+                <Ionicons name="chatbubble-ellipses-outline" size={14} color={colors.accentPrimary} />
                 <Text style={styles.wotdExampleText}>“{wordOfDay.definitions[0].examples[0].source}”</Text>
               </View>
             ) : null}
@@ -312,27 +320,25 @@ export default function HomeScreen() {
         {!recentSearches.length ? (
           <Link href="/word" asChild>
             <TouchableOpacity activeOpacity={0.82} style={styles.emptyHistoryCard}>
-              <Ionicons name="time-outline" size={24} color="#94A3B8" />
+              <Ionicons name="time-outline" size={24} color={colors.textTertiary} />
               <Text style={styles.emptyHistoryTitle}>Chưa có lịch sử tra cứu</Text>
               <Text style={styles.emptyHistoryText}>Tra một từ tiếng Anh để lịch sử xuất hiện ở đây.</Text>
             </TouchableOpacity>
           </Link>
         ) : null}
       </ScrollView>
-      <TouchableOpacity
+      <MotionPressable
         accessibilityLabel="Chat nhanh với AI"
-        activeOpacity={0.84}
         onPress={() => router.push('/ai-assistant' as Href)}
         style={styles.quickAiButton}>
-        <Ionicons name="chatbubble-ellipses" size={20} color="#FFFFFF" />
-      </TouchableOpacity>
-      <TouchableOpacity
+        <Ionicons name="chatbubble-ellipses" size={20} color={colors.textOnAccent} />
+      </MotionPressable>
+      <MotionPressable
         accessibilityLabel="Lên đầu trang"
-        activeOpacity={0.84}
         onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
         style={styles.scrollTopButton}>
-        <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
-      </TouchableOpacity>
+        <Ionicons name="arrow-up" size={20} color={colors.textOnAccent} />
+      </MotionPressable>
       </View>
     </Screen>
   );
@@ -343,6 +349,8 @@ function LanguageSelect({
   field,
   label,
   selectedLanguage,
+  styles,
+  colors,
   onPress,
   onSelect,
 }: {
@@ -350,6 +358,8 @@ function LanguageSelect({
   field: LanguageField;
   label: string;
   selectedLanguage: LanguageOption;
+  styles: ReturnType<typeof createHomeStyles>;
+  colors: ReturnType<typeof useToken>['colors'];
   onPress: (field: LanguageField) => void;
   onSelect: (field: LanguageField, language: LanguageOption) => void;
 }) {
@@ -359,10 +369,10 @@ function LanguageSelect({
         activeOpacity={0.82}
         onPress={() => onPress(field)}
         style={[styles.languageSelect, active && styles.activeLanguageSelect]}>
-        <Text style={styles.languageSelectLabel}>{label}</Text>
+          <Text style={styles.languageSelectLabel}>{label}</Text>
         <View style={styles.languageSelectValueRow}>
           <Text style={styles.languageSelectValue}>{selectedLanguage.label}</Text>
-          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={16} color="#64748B" />
+          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
         </View>
       </TouchableOpacity>
       {active ? (
@@ -382,7 +392,7 @@ function LanguageSelect({
                   </Text>
                   <Text style={styles.languageOptionHint}>{language.hint}</Text>
                 </View>
-                {isSelected ? <Ionicons name="checkmark" size={16} color="#7C3AED" /> : null}
+                {isSelected ? <Ionicons name="checkmark" size={16} color={colors.accentPrimary} /> : null}
               </TouchableOpacity>
             );
           })}
@@ -392,44 +402,49 @@ function LanguageSelect({
   );
 }
 
-const styles = StyleSheet.create({
+function createHomeStyles({
+  colors,
+  radius,
+  shadows,
+  spacing,
+  theme,
+}: Pick<ReturnType<typeof useToken>, 'colors' | 'radius' | 'shadows' | 'spacing' | 'theme'>) {
+return StyleSheet.create({
   screenBody: {
     flex: 1,
   },
   content: {
     paddingBottom: 96,
-    paddingHorizontal: 18,
-    paddingTop: 14,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
   },
   scrollTopButton: {
     alignItems: 'center',
-    backgroundColor: '#7C3AED',
-    borderRadius: 22,
+    backgroundColor: colors.accentPrimary,
+    borderRadius: radius.full,
     bottom: 18,
-    elevation: 24,
     height: 44,
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
-    boxShadow: '0px 6px 12px rgba(15, 23, 42, 0.18)',
     width: 44,
     zIndex: 30,
+    ...shadows.md,
   },
   quickAiButton: {
     alignItems: 'center',
-    backgroundColor: '#06B6D4',
-    borderColor: 'rgba(255, 255, 255, 0.72)',
-    borderRadius: 22,
+    backgroundColor: colors.accentNeo,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.full,
     borderWidth: 1,
     bottom: 72,
-    elevation: 24,
     height: 44,
     justifyContent: 'center',
     position: 'absolute',
     right: 18,
-    boxShadow: '0px 6px 12px rgba(15, 23, 42, 0.18)',
     width: 44,
     zIndex: 30,
+    ...shadows.md,
   },
   topBar: {
     alignItems: 'center',
@@ -441,30 +456,33 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   greeting: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 14,
     fontWeight: '700',
   },
   title: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 30,
     fontWeight: '700',
     marginTop: 2,
   },
   iconButton: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.full,
+    borderWidth: 1,
     height: 42,
     justifyContent: 'center',
     width: 42,
+    ...shadows.sm,
   },
   detectedLanguageChip: {
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#F5F3FF',
-    borderColor: '#DDD6FE',
-    borderRadius: 999,
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.focusRing,
+    borderRadius: radius.full,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 7,
@@ -473,43 +491,46 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   detectedLanguageText: {
-    color: '#5B21B6',
+    color: colors.accentPrimary,
     fontSize: 12,
     fontWeight: '800',
   },
   detectedLanguageUndo: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 12,
     fontWeight: '900',
   },
   hero: {
-    backgroundColor: '#1F1B2E',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceHero,
+    borderColor: theme === 'dark' ? colors.borderDefault : 'transparent',
+    borderRadius: radius.md,
+    borderWidth: 1,
     flexDirection: 'row',
     marginTop: 22,
     minHeight: 170,
     overflow: 'hidden',
     padding: 20,
+    ...shadows.glow,
   },
   heroCopy: {
     flex: 1,
     paddingRight: 12,
   },
   heroKicker: {
-    color: '#C4B5FD',
+    color: colors.accentPrimary,
     fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
   },
   heroTitle: {
-    color: '#FFFFFF',
+    color: colors.textOnHero,
     fontSize: 27,
     fontWeight: '700',
     lineHeight: 33,
     marginTop: 12,
   },
   heroText: {
-    color: '#D7E3F1',
+    color: colors.textOnHeroMuted,
     fontSize: 14,
     lineHeight: 20,
     marginTop: 12,
@@ -517,57 +538,61 @@ const styles = StyleSheet.create({
   heroBadge: {
     alignItems: 'center',
     alignSelf: 'flex-end',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceGlass,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
+    borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   heroBadgeNumber: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 25,
     fontWeight: '700',
   },
   heroBadgeLabel: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 10,
     fontWeight: '800',
   },
   searchBox: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
     marginTop: 16,
     padding: 14,
-    boxShadow: '0px 8px 16px rgba(15, 23, 42, 0.05)',
+    ...shadows.sm,
   },
   searchCopy: {
     flex: 1,
   },
   searchLabel: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '800',
   },
   searchHint: {
-    color: '#94A3B8',
+    color: colors.textTertiary,
     fontSize: 12,
     marginTop: 4,
   },
   languagePanel: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginTop: 10,
     padding: 12,
   },
   homeLookupInputBox: {
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderColor: '#DDD6FE',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.focusRing,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
@@ -576,7 +601,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   homeLookupInput: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     flex: 1,
     fontSize: 16,
     fontWeight: '800',
@@ -591,18 +616,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   languageSelect: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     minHeight: 72,
     padding: 12,
   },
   activeLanguageSelect: {
-    borderColor: '#7C3AED',
+    borderColor: colors.accentPrimary,
   },
   languageSelectLabel: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -614,31 +639,31 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   languageSelectValue: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     flex: 1,
     fontSize: 15,
     fontWeight: '700',
   },
   languageSwap: {
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
-    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
     height: 36,
     justifyContent: 'center',
     marginTop: 18,
     width: 36,
   },
   languageMenu: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginTop: 8,
     overflow: 'hidden',
   },
   languageOption: {
     alignItems: 'center',
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: colors.borderDefault,
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -646,30 +671,30 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   activeLanguageOption: {
-    backgroundColor: '#F5F3FF',
+    backgroundColor: colors.accentSoft,
   },
   languageOptionCopy: {
     flex: 1,
     paddingRight: 8,
   },
   languageOptionText: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
   activeLanguageOptionText: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
   },
   languageOptionHint: {
-    color: '#94A3B8',
+    color: colors.textTertiary,
     fontSize: 11,
     fontWeight: '700',
     marginTop: 2,
   },
   startLookupButton: {
     alignItems: 'center',
-    backgroundColor: '#7C3AED',
-    borderRadius: 8,
+    backgroundColor: colors.accentPrimary,
+    borderRadius: radius.md,
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'center',
@@ -677,10 +702,10 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   disabledLookupButton: {
-    backgroundColor: '#C4B5FD',
+    backgroundColor: colors.disabledBg,
   },
   startLookupText: {
-    color: '#FFFFFF',
+    color: colors.textOnAccent,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -691,19 +716,21 @@ const styles = StyleSheet.create({
   },
   statCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
+    borderWidth: 1,
     flex: 1,
     paddingVertical: 14,
   },
   statValue: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 22,
     fontWeight: '700',
     marginTop: 8,
   },
   statLabel: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '700',
     marginTop: 3,
@@ -716,19 +743,19 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   sectionTitle: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 20,
     fontWeight: '700',
   },
   sectionAction: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 13,
     fontWeight: '800',
   },
   wordCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     marginBottom: 12,
     padding: 16,
@@ -739,54 +766,54 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   word: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 20,
     fontWeight: '700',
   },
   ipa: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     marginTop: 4,
   },
   topicPill: {
-    backgroundColor: '#F5F3FF',
-    borderRadius: 999,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.full,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   topicText: {
-    color: '#7C3AED',
+    color: colors.accentPrimary,
     fontSize: 11,
     fontWeight: '800',
   },
   definition: {
-    color: '#334155',
+    color: colors.textPrimary,
     fontSize: 14,
     lineHeight: 20,
     marginTop: 14,
   },
   translation: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
     marginTop: 8,
   },
   emptyHistoryCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
     borderWidth: 1,
     padding: 18,
   },
   emptyHistoryTitle: {
-    color: '#0F172A',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
     marginTop: 10,
   },
   emptyHistoryText: {
-    color: '#64748B',
+    color: colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 19,
@@ -794,7 +821,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   wotdCard: {
-    backgroundColor: '#1F1B2E',
+    backgroundColor: colors.surfaceHeroAlt,
     borderRadius: 12,
     marginBottom: 4,
     padding: 18,
@@ -807,57 +834,58 @@ const styles = StyleSheet.create({
   },
   wotdBadge: {
     alignItems: 'center',
-    backgroundColor: '#7C3AED',
-    borderRadius: 999,
+    backgroundColor: colors.accentPrimary,
+    borderRadius: radius.full,
     flexDirection: 'row',
     gap: 5,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   wotdBadgeText: {
-    color: '#FFFFFF',
+    color: colors.textOnAccent,
     fontSize: 11,
     fontWeight: '800',
   },
   wotdWord: {
-    color: '#FFFFFF',
+    color: colors.textOnHero,
     fontSize: 30,
     fontWeight: '700',
   },
   wotdIpa: {
-    color: '#C4B5FD',
+    color: colors.accentPrimary,
     fontSize: 15,
     marginTop: 4,
   },
   wotdVietnamese: {
-    color: '#7DD3FC',
+    color: colors.accentNeo,
     fontSize: 14,
     fontWeight: '700',
     marginTop: 6,
   },
   wotdDefinition: {
-    color: '#CBD5E1',
+    color: colors.textOnHeroMuted,
     fontSize: 14,
     lineHeight: 20,
     marginTop: 8,
   },
   wotdExample: {
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 8,
+    backgroundColor: colors.canvasOverlay,
+    borderRadius: radius.md,
     flexDirection: 'row',
     gap: 8,
     marginTop: 12,
     padding: 10,
   },
   wotdExampleText: {
-    color: '#E2E8F0',
+    color: colors.textOnHero,
     flex: 1,
     fontSize: 13,
     fontStyle: 'italic',
     lineHeight: 19,
   },
 });
+}
 
 
 function formatLookedUpAt(value: string) {
