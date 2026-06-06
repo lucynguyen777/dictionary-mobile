@@ -17,7 +17,12 @@ export type SupabaseAuthConfig =
 function getDefaultEnv(): AuthEnv {
   if (typeof process === 'undefined') return {};
 
-  return process.env;
+  // Expo replaces direct EXPO_PUBLIC_* access at bundle time. Dynamic
+  // process.env[key] reads remain undefined in static web/native bundles.
+  return {
+    [SUPABASE_URL_ENV]: process.env.EXPO_PUBLIC_SUPABASE_URL,
+    [SUPABASE_PUBLISHABLE_KEY_ENV]: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  };
 }
 
 function readEnvValue(env: AuthEnv, key: string) {
@@ -47,4 +52,3 @@ export function readSupabaseAuthConfig(env: AuthEnv = getDefaultEnv()): Supabase
     publishableKey,
   };
 }
-

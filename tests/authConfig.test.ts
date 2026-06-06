@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import {
   readSupabaseAuthConfig,
@@ -26,5 +28,11 @@ describe('readSupabaseAuthConfig', () => {
       publishableKey: 'publishable-key',
     });
   });
-});
 
+  it('uses direct Expo public env access so static bundles receive Supabase config', () => {
+    const source = readFileSync(resolve(process.cwd(), 'data/authConfig.ts'), 'utf8');
+
+    expect(source).toContain('process.env.EXPO_PUBLIC_SUPABASE_URL');
+    expect(source).toContain('process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY');
+  });
+});
