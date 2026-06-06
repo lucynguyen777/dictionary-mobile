@@ -800,6 +800,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Next Work Module
 
+**Module: v1.3.11 Blocked Feature Resolution Audit And Setup Playbook** - DONE
+- Module Completion Plan: audit every unfinished roadmap row against code/config reality, consolidate blockers into actionable groups, and document at least three resolution options with a recommended path and clear Codex/user ownership.
+- Acceptance criteria: Supabase is no longer mislabeled as disconnected; provider/native/source blockers are separated accurately; each blocker group has three options; user-owned setup has detailed steps and official links; no runtime feature is falsely marked complete.
+- [x] DONE [MEDIUM]: Audited all TODO/IN PROGRESS/BLOCKED roadmap rows and related code, packages, migrations, backend routes, and env availability.
+- [x] DONE [MEDIUM]: Grouped unfinished work into Supabase smoke, providers, native recognition, pronunciation, languages/offline packs, specialized translation, and lexical data.
+- [x] DONE [MEDIUM]: Added `docs/blocked-feature-resolution-playbook.md` with at least three options per blocker group, recommendations, ownership, and execution order.
+- [x] DONE [EASY]: Corrected stale provider-gate copy so Supabase connection status is not confused with missing provider credentials.
+- [x] DONE [EASY]: Ran docs/static/security verification and prepared the audit for commit/push; no secret values are committed.
+
 **Module: v1.3.6 Language Source And Corpus Smoke** - DONE
 - Module Completion Plan: execute the first language parity module by freezing source/corpus smoke results for Spanish, Malay, French, and `fr->vi` without changing lookup runtime behavior or falsely promoting preview languages.
 - Acceptance criteria: source probes are documented; report/test data exists; `es`, `ms`, and monolingual `fr` remain preview; `fr->vi` remains a supported production pair but not 100% complete; release metadata says `1.3.6`; verification passes before commit/push/deploy.

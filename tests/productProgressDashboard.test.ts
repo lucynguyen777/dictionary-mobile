@@ -84,6 +84,8 @@ describe('product progress dashboard', () => {
     expect(progress).toContain('v1.3.10 - Offline Pack Expansion** - BLOCKED BY SOURCE/PACK CANDIDATE');
     expect(progress).toContain('docs/offline-pack-expansion-status.md');
     expect(progress).toContain('Language Corpus Expansion Follow-up before the next Offline Pack Expansion');
+    expect(progress).toContain('v1.3.11 Blocked Feature Resolution Audit And Setup Playbook');
+    expect(progress).toContain('docs/blocked-feature-resolution-playbook.md');
     expect(progress).toContain('v1.3.5 Completion Dashboard And Version Roadmap Sync');
     for (const moduleName of nextModuleQueue) {
       expect(progress).toContain(moduleName);

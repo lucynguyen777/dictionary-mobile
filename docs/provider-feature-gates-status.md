@@ -4,7 +4,9 @@ This is the v1.3.9 provider-gate execution status after v1.3.8 shipped. It recor
 
 ## Current Result
 
-Status: **BLOCKED - missing provider and auth environment**.
+Status: **BLOCKED - missing provider/OAuth/backend setup**.
+
+Supabase is connected and its public Expo configuration is available in local ignored env and Vercel Production/Development. Provider-backed features remain blocked by their own provider credentials, OAuth/backend routes, quotas, and production smoke.
 
 The local environment checked on 2026-06-05 does not expose the provider variables needed for live production smoke:
 
