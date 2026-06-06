@@ -98,7 +98,7 @@
 
 ## In Progress
 - No active implementation module after v1.3.10 offline-pack expansion audit.
-- v1.3.7 Supabase Auth And Cloud Sync Production Smoke is blocked in this environment because Supabase public env, disposable project/users, and two-device sessions are not available.
+- v1.3.7 Supabase Auth And Cloud Sync Production Smoke has a verified Supabase connection and configured local/Vercel Production/Development Expo env; it remains blocked by redirect allow-list verification, RLS/disposable-user probes, Preview-branch setup, and two-device sessions.
 - v1.3.9 Provider Feature Gates is also blocked because DeepL/OpenAI/Google/Resend/Azure provider setup and Supabase auth smoke prerequisites are missing.
 - v1.3.10 Offline Pack Expansion is blocked because no new production-safe source/pack candidate exists beyond the current English lite development smoke pack.
 - Recommended next implementation module is Language Corpus Expansion Follow-up if the goal is language/offline progress, or OCR backend/native smoke if a Chandra endpoint/dev-client is available.

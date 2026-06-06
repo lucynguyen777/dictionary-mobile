@@ -4,21 +4,24 @@ This is the v1.3.7 execution status after v1.3.6 shipped. It records the product
 
 ## Current Result
 
-Status: **BLOCKED - missing production/disposable Supabase smoke environment**.
+Status: **BLOCKED - production smoke setup is incomplete**.
 
-The local environment checked on 2026-06-05 does not expose the variables needed to run live Supabase auth, RLS, or two-device sync smoke:
+The Supabase project and publishable client configuration were re-verified on 2026-06-06. The project health endpoint responds successfully, local Expo env is configured without committing values, and Vercel Production/Development have the required Expo public variables. Live auth/RLS/two-device smoke is still incomplete:
 
 | Requirement | Status | Notes |
 | --- | --- | --- |
-| `EXPO_PUBLIC_SUPABASE_URL` | Missing | Required for Expo web/native auth UI smoke. |
-| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Missing | Required for public Supabase client creation. |
-| Disposable Supabase project or test schema | Not available in this environment | Required before applying migrations or probing RLS. |
+| `EXPO_PUBLIC_SUPABASE_URL` | Configured | Present locally through ignored `.env.local` and in Vercel Production/Development. |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Configured | Present locally through ignored `.env.local` and in Vercel Production/Development. |
+| Vercel Preview env | Needs branch selection | Vercel CLI requires a target preview Git branch before adding the variables. |
+| Disposable Supabase project or test schema | Not verified | Required before applying/reviewing migrations or probing RLS. |
 | Two disposable auth users | Not available in this environment | Required for cross-user RLS probes. |
 | Two devices/browsers/dev-client instances | Not available in this environment | Required for manual sync create/update/delete/tombstone smoke. |
 
 ## What Was Verified Locally
 
 - Release v1.3.6 is pushed and production-deployed.
+- Supabase project health responds successfully with the configured public client values.
+- Focused auth/config/controller/sync runtime/lifecycle tests pass with the local Expo env loaded.
 - The app still keeps Supabase Auth and Cloud Sync guarded by env/session availability.
 - Existing local guard tests continue to cover:
   - auth config/session/controller behavior without real Supabase network calls;
@@ -36,13 +39,7 @@ The local environment checked on 2026-06-05 does not expose the variables needed
    - any local Expo web callback URL used for smoke, for example `http://localhost:8081/auth/callback`
 3. Apply/review `supabase/migrations/001_cloud_sync_mvp.sql` in a disposable project or disposable schema.
 4. Create two disposable users for RLS probes.
-5. Configure local uncommitted env values:
-
-```bash
-EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
-```
-
+5. Add the public Expo variables to any Vercel Preview branch that will be used for smoke.
 6. Do not provide or commit a Supabase service-role key to the mobile/web app.
 7. Prepare two browsers, devices, or dev-client sessions signed in as the same user for the two-device sync smoke.
 
@@ -59,4 +56,4 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 
 ## Decision
 
-Do not mark v1.3.7 complete yet. Keep Supabase Auth at implemented/env-gated and Cloud Sync at manual beta until a real smoke environment exists and the pass/fail result is recorded without secrets.
+Do not mark v1.3.7 complete yet. Supabase is connected and configured, but keep Cloud Sync at manual beta until redirect, RLS, and two-device pass/fail results are recorded without secrets.
