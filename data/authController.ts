@@ -33,7 +33,7 @@ export type AuthControllerClient = {
         message: string;
       } | null;
     }>;
-    signUp: (credentials: AuthCredentials) => Promise<{
+    signUp: (credentials: AuthSignUpCredentials) => Promise<{
       data: {
         session: AuthSession | null;
         user: AuthUser | null;
@@ -82,7 +82,22 @@ export type AuthCredentials = {
   password: string;
 };
 
+export type AuthSignUpCredentials = AuthCredentials & {
+  options?: {
+    emailRedirectTo?: string;
+  };
+};
+
 export const AUTH_CALLBACK_URL = 'dictionairemobile://auth/callback';
+
+export function getAuthCallbackUrl(webOrigin?: string) {
+  const origin = webOrigin ?? (typeof window !== 'undefined' ? window.location?.origin : undefined);
+  if (origin) {
+    return `${origin.replace(/\/+$/, '')}/auth/callback`;
+  }
+
+  return AUTH_CALLBACK_URL;
+}
 
 export type AuthCallbackParams = {
   code?: string | string[];
@@ -191,7 +206,12 @@ export async function signUpAuthSession(
     return mapUnconfiguredAuthSnapshot(result.config.missingKeys);
   }
 
-  const { data, error } = await result.client.auth.signUp(credentials);
+  const { data, error } = await result.client.auth.signUp({
+    ...credentials,
+    options: {
+      emailRedirectTo: getAuthCallbackUrl(),
+    },
+  });
 
   if (error) {
     return mapAuthErrorToSnapshot(error.message, 'sign-up');
@@ -215,7 +235,7 @@ export async function sendPasswordRecoveryEmail(
   }
 
   const { error } = await result.client.auth.resetPasswordForEmail(email, {
-    redirectTo: AUTH_CALLBACK_URL,
+    redirectTo: getAuthCallbackUrl(),
   });
 
   if (error) {

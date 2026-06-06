@@ -161,7 +161,8 @@ describe('authController', () => {
   });
 
   it('maps sign-up without session to needs verification', async () => {
-    const { signUpAuthSession } = await import('../data/authController');
+    const { AUTH_CALLBACK_URL, signUpAuthSession } = await import('../data/authController');
+    const calls: unknown[] = [];
 
     await expect(
       signUpAuthSession(
@@ -182,7 +183,9 @@ describe('authController', () => {
               getSession: async () => ({ data: { session: null }, error: null }),
               signOut: async () => ({ error: null }),
               signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
-              signUp: async () => ({
+              signUp: async (credentials) => {
+                calls.push(credentials);
+                return {
                 data: {
                   session: null,
                   user: makeUser({
@@ -191,7 +194,8 @@ describe('authController', () => {
                   }),
                 },
                 error: null,
-              }),
+                };
+              },
               resetPasswordForEmail: async () => ({ data: null, error: null }),
               exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
             },
@@ -203,6 +207,19 @@ describe('authController', () => {
       email: 'reader@example.com',
       lastAuthEvent: 'sign-up',
     });
+    expect(calls).toEqual([{
+      email: 'reader@example.com',
+      password: 'new-password',
+      options: { emailRedirectTo: AUTH_CALLBACK_URL },
+    }]);
+  });
+
+  it('uses the active web origin for auth callback links', async () => {
+    const { getAuthCallbackUrl } = await import('../data/authController');
+
+    expect(getAuthCallbackUrl('https://dictionaire-mobile.vercel.app/')).toBe(
+      'https://dictionaire-mobile.vercel.app/auth/callback'
+    );
   });
 
   it('sends password recovery email with the app callback URL', async () => {

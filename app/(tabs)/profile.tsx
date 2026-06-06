@@ -6,6 +6,7 @@ import {
   Alert,
   AppState,
   Image,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -175,6 +176,8 @@ export default function ProfileScreen() {
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authBusyAction, setAuthBusyAction] = useState<'sign-in' | 'sign-up' | 'recovery' | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
   const [selectedStreakYear, setSelectedStreakYear] = useState(new Date().getFullYear());
   const [streakYearMenuOpen, setStreakYearMenuOpen] = useState(false);
@@ -260,11 +263,8 @@ export default function ProfileScreen() {
       return;
     }
 
-    Alert.alert(
-      'Đăng nhập cloud',
-      'Biểu mẫu đăng nhập sẽ khả dụng sau khi bật phiên cloud cho tài khoản.',
-      [{ text: 'OK' }]
-    );
+    setAuthModalMode('sign-in');
+    setAuthModalOpen(true);
   };
 
   const validateAuthEmail = () => {
@@ -309,6 +309,7 @@ export default function ProfileScreen() {
     }
 
     setAuthPassword('');
+    setAuthModalOpen(false);
     Alert.alert('Đã đăng nhập', 'Phiên cloud đã sẵn sàng. Dữ liệu local vẫn được giữ nguyên.', [{ text: 'OK' }]);
   };
 
@@ -327,6 +328,7 @@ export default function ProfileScreen() {
     }
 
     setAuthPassword('');
+    setAuthModalOpen(false);
     Alert.alert(
       nextAuthSession.status === 'needs_verification' ? 'Kiểm tra email' : 'Tài khoản đã sẵn sàng',
       nextAuthSession.status === 'needs_verification'
@@ -631,13 +633,25 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
-            <Pressable
-              accessibilityLabel="Mở cài đặt"
-              accessibilityRole="button"
-              onPress={() => openSidebarSection()}
-              style={({ pressed }) => [styles.heroIconButton, themed.iconButton, pressed && styles.settingsButtonPressed]}>
-              <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
-            </Pressable>
+            <View style={styles.heroActionRow}>
+              {!isSignedIn ? (
+                <Pressable
+                  accessibilityLabel="Đăng nhập hoặc đăng ký"
+                  accessibilityRole="button"
+                  onPress={handleAuthEntry}
+                  style={({ pressed }) => [styles.heroAuthButton, pressed && styles.settingsButtonPressed]}>
+                  <Ionicons name="log-in-outline" size={17} color="#FFFFFF" />
+                  <Text style={styles.heroAuthButtonText}>Đăng nhập</Text>
+                </Pressable>
+              ) : null}
+              <Pressable
+                accessibilityLabel="Mở cài đặt"
+                accessibilityRole="button"
+                onPress={() => openSidebarSection()}
+                style={({ pressed }) => [styles.heroIconButton, themed.iconButton, pressed && styles.settingsButtonPressed]}>
+                <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
+              </Pressable>
+            </View>
           </View>
 
           {!isDefaultGuestProfile ? (
@@ -840,6 +854,22 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
+      <AuthModal
+        authBusyAction={authBusyAction}
+        authEmail={authEmail}
+        authPassword={authPassword}
+        authSession={authSession}
+        mode={authModalMode}
+        onChangeEmail={setAuthEmail}
+        onChangeMode={setAuthModalMode}
+        onChangePassword={setAuthPassword}
+        onClose={() => setAuthModalOpen(false)}
+        onPasswordRecovery={handlePasswordRecovery}
+        onSignIn={handleSignInAuth}
+        onSignUp={handleSignUpAuth}
+        visible={authModalOpen}
+      />
+
       {sidebarOpen ? (
         <View style={styles.sidebarOverlay}>
           <TouchableOpacity
@@ -923,20 +953,8 @@ export default function ProfileScreen() {
               <SidebarSection title="Tài khoản">
                 <AuthStatusPanel
                   authSession={authSession}
-                  onPrimaryPress={handleAuthEntry}
                   onRefreshPress={handleRefreshAuthSession}
                   onSignOutPress={handleSignOutAuth}
-                />
-                <AuthFormShell
-                  authBusyAction={authBusyAction}
-                  authEmail={authEmail}
-                  authPassword={authPassword}
-                  authSession={authSession}
-                  onChangeEmail={setAuthEmail}
-                  onChangePassword={setAuthPassword}
-                  onPasswordRecovery={handlePasswordRecovery}
-                  onSignIn={handleSignInAuth}
-                  onSignUp={handleSignUpAuth}
                 />
                 <View style={styles.sidebarAvatarBlock}>
                   <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
@@ -1266,12 +1284,10 @@ function getAuthStatusCopy(authSession: AuthSessionSnapshot) {
 
 function AuthStatusPanel({
   authSession,
-  onPrimaryPress,
   onRefreshPress,
   onSignOutPress,
 }: {
   authSession: AuthSessionSnapshot;
-  onPrimaryPress: () => void;
   onRefreshPress: () => void;
   onSignOutPress: () => void;
 }) {
@@ -1296,20 +1312,22 @@ function AuthStatusPanel({
         <Text style={styles.authStatusBadge} numberOfLines={1}>{copy.badge}</Text>
       </View>
       <View style={styles.authStatusActions}>
-        <Pressable
-          accessibilityRole="button"
-          disabled={disabled}
-          onPress={canSignOut ? onSignOutPress : onPrimaryPress}
-          style={({ pressed }) => [
-            styles.authStatusButton,
-            canSignOut && styles.authStatusButtonSecondary,
-            pressed && styles.authStatusButtonPressed,
-            disabled && styles.authStatusButtonDisabled,
-          ]}>
-          <Text style={[styles.authStatusButtonText, canSignOut && styles.authStatusButtonTextSecondary]} numberOfLines={1}>
-            {canSignOut ? 'Đăng xuất cloud' : 'Đăng nhập'}
-          </Text>
-        </Pressable>
+        {canSignOut ? (
+          <Pressable
+            accessibilityRole="button"
+            disabled={disabled}
+            onPress={onSignOutPress}
+            style={({ pressed }) => [
+              styles.authStatusButton,
+              styles.authStatusButtonSecondary,
+              pressed && styles.authStatusButtonPressed,
+              disabled && styles.authStatusButtonDisabled,
+            ]}>
+            <Text style={[styles.authStatusButtonText, styles.authStatusButtonTextSecondary]} numberOfLines={1}>
+              Đăng xuất cloud
+            </Text>
+          </Pressable>
+        ) : null}
         <Pressable
           accessibilityLabel="Làm mới trạng thái đăng nhập"
           accessibilityRole="button"
@@ -1322,99 +1340,119 @@ function AuthStatusPanel({
   );
 }
 
-function AuthFormShell({
+function AuthModal({
   authBusyAction,
   authEmail,
   authPassword,
   authSession,
+  mode,
   onChangeEmail,
+  onChangeMode,
   onChangePassword,
+  onClose,
   onPasswordRecovery,
   onSignIn,
   onSignUp,
+  visible,
 }: {
   authBusyAction: 'sign-in' | 'sign-up' | 'recovery' | null;
   authEmail: string;
   authPassword: string;
   authSession: AuthSessionSnapshot;
+  mode: 'sign-in' | 'sign-up';
   onChangeEmail: (value: string) => void;
+  onChangeMode: (value: 'sign-in' | 'sign-up') => void;
   onChangePassword: (value: string) => void;
+  onClose: () => void;
   onPasswordRecovery: () => void;
   onSignIn: () => void;
   onSignUp: () => void;
+  visible: boolean;
 }) {
   const isBusy = Boolean(authBusyAction);
   const isUnconfigured = authSession.status === 'unconfigured';
-  const isFutureFeature = isUnconfigured;
+  const submit = mode === 'sign-in' ? onSignIn : onSignUp;
 
   return (
-    <View style={styles.authFormPanel}>
-      <Text style={styles.sidebarGroupLabel}>Đăng nhập cloud</Text>
-      {isUnconfigured && (
-        <FutureFeatureNotice reason="Cần hoàn tất cấu hình Supabase/Auth production trước khi bật đăng nhập cho người dùng." />
-      )}
-      <TextInput
-        autoCapitalize="none"
-        editable={!isBusy && !isFutureFeature}
-        keyboardType="email-address"
-        onChangeText={onChangeEmail}
-        placeholder="you@example.com"
-        placeholderTextColor="#94A3B8"
-        style={[styles.profileInput, (isBusy || isFutureFeature) && styles.profileInputDisabled]}
-        value={authEmail}
-      />
-      <TextInput
-        editable={!isBusy && !isFutureFeature}
-        onChangeText={onChangePassword}
-        placeholder="Mật khẩu"
-        placeholderTextColor="#94A3B8"
-        secureTextEntry
-        style={[styles.profileInput, styles.authPasswordInput, (isBusy || isFutureFeature) && styles.profileInputDisabled]}
-        value={authPassword}
-      />
-      <View style={styles.authFormButtonRow}>
-        <Pressable
-          accessibilityRole="button"
-          disabled={isBusy || isFutureFeature}
-          onPress={onSignIn}
-          style={({ pressed }) => [styles.authFormButton, pressed && styles.authStatusButtonPressed, (isBusy || isFutureFeature) && styles.authStatusButtonDisabled]}>
-          <Ionicons name="log-in-outline" size={15} color="#FFFFFF" />
-          <Text style={styles.authFormButtonText} numberOfLines={1}>
-            {authBusyAction === 'sign-in' ? 'Đang vào' : 'Đăng nhập'}
-          </Text>
+    <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
+      <Pressable onPress={onClose} style={styles.authModalBackdrop}>
+        <Pressable onPress={(event) => event.stopPropagation()} style={styles.authModalCard}>
+          <View style={styles.authModalHeader}>
+            <View style={styles.authModalHeaderCopy}>
+              <Text style={styles.authModalTitle}>{mode === 'sign-in' ? 'Đăng nhập' : 'Tạo tài khoản'}</Text>
+              <Text style={styles.authModalSubtitle}>
+                {mode === 'sign-in'
+                  ? 'Tiếp tục phiên cloud của bạn. Dữ liệu local vẫn được giữ nguyên.'
+                  : 'Tạo tài khoản để dùng đồng bộ cloud và các tính năng trực tuyến.'}
+              </Text>
+            </View>
+            <Pressable accessibilityLabel="Đóng" accessibilityRole="button" onPress={onClose} style={styles.authModalClose}>
+              <Ionicons name="close" size={20} color="#475569" />
+            </Pressable>
+          </View>
+
+          <View style={styles.authModeTabs}>
+            {(['sign-in', 'sign-up'] as const).map((value) => (
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: mode === value }}
+                key={value}
+                onPress={() => onChangeMode(value)}
+                style={[styles.authModeTab, mode === value && styles.authModeTabActive]}>
+                <Text style={[styles.authModeTabText, mode === value && styles.authModeTabTextActive]}>
+                  {value === 'sign-in' ? 'Đăng nhập' : 'Đăng ký'}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {isUnconfigured ? (
+            <FutureFeatureNotice reason="Cần cấu hình Supabase/Auth trên bản deploy này trước khi đăng nhập." />
+          ) : null}
+          <TextInput
+            autoCapitalize="none"
+            editable={!isBusy && !isUnconfigured}
+            keyboardType="email-address"
+            onChangeText={onChangeEmail}
+            placeholder="Email"
+            placeholderTextColor="#94A3B8"
+            style={[styles.profileInput, (isBusy || isUnconfigured) && styles.profileInputDisabled]}
+            value={authEmail}
+          />
+          <TextInput
+            editable={!isBusy && !isUnconfigured}
+            onChangeText={onChangePassword}
+            onSubmitEditing={submit}
+            placeholder="Mật khẩu"
+            placeholderTextColor="#94A3B8"
+            secureTextEntry
+            style={[styles.profileInput, styles.authPasswordInput, (isBusy || isUnconfigured) && styles.profileInputDisabled]}
+            value={authPassword}
+          />
+          <Pressable
+            accessibilityRole="button"
+            disabled={isBusy || isUnconfigured}
+            onPress={submit}
+            style={({ pressed }) => [styles.authModalSubmit, pressed && styles.authStatusButtonPressed, (isBusy || isUnconfigured) && styles.authStatusButtonDisabled]}>
+            <Ionicons name={mode === 'sign-in' ? 'log-in-outline' : 'person-add-outline'} size={17} color="#FFFFFF" />
+            <Text style={styles.authFormButtonText}>
+              {authBusyAction === mode ? (mode === 'sign-in' ? 'Đang đăng nhập...' : 'Đang tạo tài khoản...') : (mode === 'sign-in' ? 'Đăng nhập' : 'Tạo tài khoản')}
+            </Text>
+          </Pressable>
+          {mode === 'sign-in' ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={isBusy || isUnconfigured}
+              onPress={onPasswordRecovery}
+              style={({ pressed }) => [styles.authRecoveryButton, pressed && styles.authStatusButtonPressed, (isBusy || isUnconfigured) && styles.authStatusButtonDisabled]}>
+              <Text style={styles.authRecoveryButtonText}>
+                {authBusyAction === 'recovery' ? 'Đang gửi email...' : 'Quên mật khẩu?'}
+              </Text>
+            </Pressable>
+          ) : null}
         </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          disabled={isBusy || isFutureFeature}
-          onPress={onSignUp}
-          style={({ pressed }) => [
-            styles.authFormButton,
-            styles.authFormButtonSecondary,
-            pressed && styles.authStatusButtonPressed,
-            (isBusy || isFutureFeature) && styles.authStatusButtonDisabled,
-          ]}>
-          <Ionicons name="person-add-outline" size={15} color="#0075DE" />
-          <Text style={[styles.authFormButtonText, styles.authFormButtonTextSecondary]} numberOfLines={1}>
-            {authBusyAction === 'sign-up' ? 'Đang tạo' : 'Tạo tài khoản'}
-          </Text>
-        </Pressable>
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        disabled={isBusy || isFutureFeature}
-        onPress={onPasswordRecovery}
-        style={({ pressed }) => [styles.authRecoveryButton, pressed && styles.authStatusButtonPressed, (isBusy || isFutureFeature) && styles.authStatusButtonDisabled]}>
-        <Ionicons name="mail-outline" size={15} color="#0075DE" />
-        <Text style={styles.authRecoveryButtonText} numberOfLines={1}>
-          {authBusyAction === 'recovery' ? 'Đang gửi email' : 'Quên mật khẩu'}
-        </Text>
       </Pressable>
-      <Text style={styles.fieldHint}>
-        {isUnconfigured
-          ? 'Cloud chưa sẵn sàng trên bản cài đặt này; hồ sơ local vẫn dùng bình thường.'
-          : 'Phiên cloud không xóa hoặc ghi đè hồ sơ local hiện có.'}
-      </Text>
-    </View>
+    </Modal>
   );
 }
 
@@ -1874,8 +1912,24 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   heroActionRow: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
+  },
+  heroAuthButton: {
+    alignItems: 'center',
+    backgroundColor: '#5645D4',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  heroAuthButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
   primaryHeroAction: {
     alignItems: 'center',
@@ -2342,6 +2396,87 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 12,
     padding: 12,
+  },
+  authModalBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.62)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  authModalCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 12,
+    maxWidth: 440,
+    padding: 20,
+    width: '100%',
+  },
+  authModalHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  authModalHeaderCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  authModalTitle: {
+    color: '#0F172A',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  authModalSubtitle: {
+    color: '#64748B',
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  authModalClose: {
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  authModeTabs: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 4,
+    padding: 4,
+  },
+  authModeTab: {
+    alignItems: 'center',
+    borderRadius: 6,
+    flex: 1,
+    minHeight: 38,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  authModeTabActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  authModeTabText: {
+    color: '#64748B',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  authModeTabTextActive: {
+    color: '#5645D4',
+  },
+  authModalSubmit: {
+    alignItems: 'center',
+    backgroundColor: '#5645D4',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 7,
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   authPasswordInput: {
     marginTop: 8,
