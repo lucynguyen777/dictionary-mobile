@@ -117,11 +117,11 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Added `data/languageSourceCorpusSmoke.ts` and `tests/languageSourceCorpusSmoke.test.ts` so preview languages cannot be mislabeled as production parity.
 - [x] DONE [EASY]: Produced the next language-module decision: keep `es`, `ms`, and monolingual `fr` as preview; keep `fr->vi` as a production pair that still needs coverage/offline growth.
 
-**v1.3.7 - Supabase Auth And Cloud Sync Production Smoke** - BLOCKED BY SMOKE SETUP
+**v1.3.7 - Supabase Auth And Cloud Sync Production Smoke** - IN PROGRESS
 - Module Completion Plan: prove the implemented auth and manual beta sync paths are production-safe without deleting local data or enabling automatic background sync.
 - Acceptance criteria: Supabase redirect allow-list, sign-up/sign-in/recovery/callback, RLS probes, two-device manual sync, tombstone handling, signed-out preservation, and local-first guest behavior are verified and documented.
 - [~] IN PROGRESS [HARD]: Supabase project health and Expo public env configuration are verified locally and in Vercel Production/Development; redirect allow-list, callback, and Preview-branch smoke remain to be verified.
-- [!] BLOCKED [HARD]: Execute RLS own-row/cross-user probes for all MVP sync tables; disposable project/users are not available in this environment.
+- [x] DONE [HARD]: Added/applied authenticated table grants and passed live own-row/cross-user RLS probes: own insert/select works, cross-user read/update/delete returns zero rows, and anonymous access is blocked.
 - [!] BLOCKED [HARD]: Run two-device manual beta sync smoke for profile, folders, saved words, flashcards, reader docs/settings, and tombstones; two signed-in sessions/devices are not available in this environment.
 - [x] DONE [MEDIUM]: Verified available local guard coverage remains in place through fake-client auth/sync tests and manual-harness skip behavior.
 - [x] DONE [MEDIUM]: Added `docs/supabase-auth-sync-production-smoke-status.md` with the missing setup, user steps, and no-secret handling rules.
@@ -818,11 +818,11 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Added guard tests to keep preview candidates out of production parity after smoke.
 - [x] DONE [EASY]: Updated release/docs/context metadata to v1.3.6 and prepared verification/security checks.
 
-**Module: v1.3.7 Supabase Auth And Cloud Sync Production Smoke** - BLOCKED BY SMOKE SETUP
+**Module: v1.3.7 Supabase Auth And Cloud Sync Production Smoke** - IN PROGRESS
 - Module Completion Plan: run the production Supabase auth/sync smoke only after a real disposable Supabase environment and two signed-in sessions exist.
 - Acceptance criteria: redirect allow-list, auth callbacks, RLS probes, two-device manual sync, tombstone handling, signed-out preservation, and no-local-data-delete behavior pass with no committed secrets.
 - [x] DONE [HARD]: Re-verified the existing Supabase connection: project health responds successfully, ignored local Expo env is configured, Vercel Production/Development env is configured, and focused auth/sync guard tests pass.
-- [!] BLOCKED [HARD]: Disposable Supabase project/users for RLS probes are not available in this environment.
+- [x] DONE [HARD]: Applied migration `007_authenticated_table_grants.sql` and passed live cross-user RLS probes with two disposable users.
 - [!] BLOCKED [HARD]: Two-device/two-session manual sync smoke cannot run from the current single local session.
 - [x] DONE [MEDIUM]: Added `docs/supabase-auth-sync-production-smoke-status.md` with exact user setup steps and no-secret rules.
 - [x] DONE [MEDIUM]: Ran available local auth/sync guard tests; live production smoke remains blocked rather than marked complete.

@@ -63,3 +63,4 @@ dom_*.txt
 trace.zip
 screenshot-*.png
 .vercel
+supabase/.temp/
