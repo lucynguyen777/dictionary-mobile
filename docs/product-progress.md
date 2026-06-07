@@ -167,14 +167,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Next Work Module
 
-**Module: Live Attributed Etymology And Conjugation Rows** - DONE
-- Module Completion Plan: promote the first online Wiktionary-derived etymology and conjugation/form rows only when each row carries visible source attribution, while preserving local-preview and missing-source fallbacks.
-- Acceptance criteria: live rows take precedence over local preview rows, source URL/license attribution is visible, missing live fields do not create fake data, bilingual restrictions remain intact, and focused/full verification passes.
-- [x] DONE [MEDIUM]: Extended live dictionary result contracts with attributed etymology and form rows.
-- [x] DONE [MEDIUM]: Parsed WiktAPI/Wiktextract-style etymology and forms without depending on one response spelling.
-- [x] DONE [MEDIUM]: Wired live attributed rows into Word etymology/conjugation tabs before local preview fallbacks.
-- [x] DONE [MEDIUM]: Added tests for live rows, missing fields, attribution, and no-mock behavior.
-- [x] DONE [EASY]: Ran verification/security checks and prepared commit/push/deploy.
+**Module: Language Parity And Offline Packs - French Measured Promotion Gate** - DONE
+- Module Completion Plan: enforce one-language-at-a-time promotion from measured corpus evidence, select French monolingual as the sole active candidate, and keep it preview-only until source, corpus, parity, and offline-pack gates all pass.
+- Acceptance criteria: the promotion gate has explicit thresholds; only one active candidate is allowed; French current evidence evaluates to measured preview rather than production; no French pack is published prematurely; docs/tests and full verification pass.
+- [x] DONE [MEDIUM]: Audited source/corpus and offline-pack readiness, then selected French monolingual as the first measured promotion candidate.
+- [x] DONE [MEDIUM]: Added explicit corpus, attribution, morphology, examples, related-word, UI, and offline-pack promotion thresholds.
+- [x] DONE [MEDIUM]: Added a one-active-candidate guard and frozen French measurement that remains blocked by missing corpus/source-date/offline evidence.
+- [x] DONE [MEDIUM]: Documented the measured French promotion path and kept public offline-pack registration unchanged.
+- [x] DONE [EASY]: Ran focused/full verification and security checks; the full suite's existing Reader PDF timeout passed immediately on focused rerun.
   - `bbba1b3` feat(lang): ship v1.3.6 source corpus smoke
   - `4b7f138` docs(progress): plan completion roadmap
   - `c0f9512` docs(progress): audit v1.3.4 feature completion
