@@ -44,9 +44,11 @@ function getCallbackCopy(authSession: AuthSessionSnapshot) {
       };
     case 'unauthenticated':
       return {
-        icon: 'person-circle-outline' as const,
-        title: 'Chưa có phiên cloud',
-        message: 'Hồ sơ local vẫn được giữ nguyên trên thiết bị này.',
+        icon: authSession.emailVerified ? 'checkmark-circle-outline' as const : 'person-circle-outline' as const,
+        title: authSession.emailVerified ? 'Email đã được xác minh' : 'Chưa có phiên cloud',
+        message: authSession.emailVerified
+          ? 'Nếu bạn mở email trên thiết bị khác, hãy đăng nhập để tạo phiên cloud trên thiết bị này.'
+          : 'Hồ sơ local vẫn được giữ nguyên trên thiết bị này.',
       };
     case 'loading':
       return {

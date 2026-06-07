@@ -61,6 +61,15 @@ export type AuthControllerClient = {
         message: string;
       } | null;
     }>;
+    verifyOtp?: (params: { token_hash: string; type: 'email' | 'recovery' | 'signup' }) => Promise<{
+      data: {
+        session: AuthSession | null;
+        user: AuthUser | null;
+      };
+      error: {
+        message: string;
+      } | null;
+    }>;
     onAuthStateChange?: (
       callback: (event: string, session: AuthSession | null) => void
     ) => {
@@ -103,6 +112,8 @@ export type AuthCallbackParams = {
   code?: string | string[];
   error?: string | string[];
   error_description?: string | string[];
+  token_hash?: string | string[];
+  type?: string | string[];
 };
 
 function getFirstParamValue(value: string | string[] | undefined) {
@@ -269,9 +280,26 @@ export async function completeAuthCallback(
   }
 
   const code = getFirstParamValue(params.code);
+  const tokenHash = getFirstParamValue(params.token_hash);
+  const callbackType = getFirstParamValue(params.type);
+
+  if (tokenHash && result.client.auth.verifyOtp) {
+    const type = callbackType === 'recovery' || callbackType === 'email' ? callbackType : 'signup';
+    const { data, error } = await result.client.auth.verifyOtp({ token_hash: tokenHash, type });
+    if (error) return mapAuthErrorToSnapshot(error.message, 'recovery');
+    if (data.session) return mapSupabaseSessionToAuthSnapshot(data.session, 'recovery');
+    return mapSupabaseUserToAuthSnapshot(data.user, 'recovery');
+  }
 
   if (!code) {
-    return mapAuthErrorToSnapshot('Missing auth callback code.', 'recovery');
+    return {
+      status: 'unauthenticated',
+      userId: null,
+      email: null,
+      emailVerified: true,
+      phone: null,
+      lastAuthEvent: 'recovery',
+    };
   }
 
   const { data, error } = await result.client.auth.exchangeCodeForSession(code);

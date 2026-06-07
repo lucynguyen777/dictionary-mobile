@@ -1352,6 +1352,9 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
     ? libraryState.savedWords.filter((word) => word.folderIds.includes(selectedFolder.id)).length
     : 0;
   const canExport = Boolean(selectedFolder && selectedFolderWordCount);
+  const canRunExportAction = activeActionId === 'google-sheets' && !googleSheetsConnected
+    ? true
+    : canExport;
 
   useEffect(() => {
     if (!selectedFolderId && exportFolders.length) {
@@ -1393,9 +1396,11 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
         await Linking.openURL(authorizationUrl);
         setStatusMessage('Đã mở Google để kết nối. Sau khi xác nhận, quay lại app để xuất bộ từ.');
       } catch (error) {
-        const message = error instanceof BackendProxyError
-          ? error.message
-          : 'Không thể bắt đầu kết nối Google Sheets.';
+        const message = error instanceof BackendProxyError && error.status === 401
+          ? 'Bạn cần đăng nhập tài khoản cloud trước khi kết nối Google Sheets. Mở tab Hồ sơ và đăng nhập, sau đó thử lại.'
+          : error instanceof BackendProxyError
+            ? error.message
+            : 'Không thể bắt đầu kết nối Google Sheets.';
         setStatusMessage(message);
         Alert.alert('Chưa thể kết nối Google Sheets', message);
       } finally {
@@ -1529,11 +1534,11 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
 
       <TouchableOpacity
         activeOpacity={0.85}
-        disabled={isRunningExport || !canExport}
+        disabled={isRunningExport || !canRunExportAction}
         onPress={handleRunExport}
         style={[
           styles.exportButton,
-          (isRunningExport || !canExport) && styles.exportButtonDisabled,
+          (isRunningExport || !canRunExportAction) && styles.exportButtonDisabled,
         ]}>
         <Ionicons name={activeActionId === 'google-sheets' ? 'logo-google' : 'download-outline'} size={18} color="#FFFFFF" />
         <Text style={styles.exportButtonText}>

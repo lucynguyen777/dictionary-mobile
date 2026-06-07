@@ -297,7 +297,7 @@ describe('authController', () => {
     expect(calls).toEqual([]);
   });
 
-  it('requires a callback code before exchanging a session', async () => {
+  it('treats a cross-device confirmation without a PKCE code as verified but signed out', async () => {
     const { completeAuthCallback } = await import('../data/authController');
 
     await expect(
@@ -324,10 +324,41 @@ describe('authController', () => {
         })
       )
     ).resolves.toMatchObject({
-      status: 'error',
-      errorMessage: 'Missing auth callback code.',
+      status: 'unauthenticated',
+      emailVerified: true,
       lastAuthEvent: 'recovery',
     });
+  });
+
+  it('verifies a token-hash email callback when Supabase provides one', async () => {
+    const { completeAuthCallback } = await import('../data/authController');
+    const calls: unknown[] = [];
+
+    await expect(
+      completeAuthCallback(
+        { token_hash: 'token-hash', type: 'signup' },
+        () => ({
+          status: 'configured',
+          config: { status: 'configured', url: 'https://project.supabase.co', publishableKey: 'publishable-key' },
+          storageKind: 'secure-store-native',
+          client: {
+            auth: {
+              getSession: async () => ({ data: { session: null }, error: null }),
+              signOut: async () => ({ error: null }),
+              signInWithPassword: async () => ({ data: { session: null, user: null }, error: null }),
+              signUp: async () => ({ data: { session: null, user: null }, error: null }),
+              resetPasswordForEmail: async () => ({ data: null, error: null }),
+              exchangeCodeForSession: async () => ({ data: { session: null }, error: null }),
+              verifyOtp: async (params) => {
+                calls.push(params);
+                return { data: { session: null, user: makeUser() }, error: null };
+              },
+            },
+          },
+        })
+      )
+    ).resolves.toMatchObject({ emailVerified: true, status: 'unauthenticated' });
+    expect(calls).toEqual([{ token_hash: 'token-hash', type: 'signup' }]);
   });
 
   it('exchanges callback code for a Supabase session', async () => {
