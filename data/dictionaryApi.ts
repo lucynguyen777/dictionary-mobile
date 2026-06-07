@@ -27,6 +27,24 @@ export type ApiMeaningResult = {
   audio: string;
   definitions: ApiDefinition[];
   source: string;
+  etymology?: ApiAttributedEtymology;
+  forms?: ApiAttributedForm[];
+};
+
+export type ApiAttributedEtymology = {
+  attribution: string;
+  license: string;
+  sourceName: string;
+  sourceUrl: string;
+  text: string;
+};
+
+export type ApiAttributedForm = {
+  attribution: string;
+  features: string[];
+  form: string;
+  sourceName: string;
+  sourceUrl: string;
 };
 
 export type ApiRelatedWords = {
@@ -147,6 +165,9 @@ type WiktApiEntry = {
   synonyms?: WiktApiLinkage[];
   antonyms?: WiktApiLinkage[];
   derived?: WiktApiLinkage[];
+  etymology_text?: string;
+  etymology_texts?: string[];
+  forms?: Array<{ form?: string; tags?: string[]; raw_tags?: string[] }>;
 };
 
 type WiktApiWordResponse = {
@@ -449,12 +470,45 @@ export async function fetchWiktApiMonolingualMeaning(word: string, languageCode:
   const sounds = entries.flatMap((entry) => entry.sounds ?? []);
   const preferredSound = sounds.find((sound) => sound.ipa || sound.mp3_url || sound.audio || sound.ogg_url);
 
+  const sourceRows = extractWiktApiAttributedRows(result, normalizedWord, languageCode);
+
   return {
     word: result.word ?? entries[0]?.word ?? normalizedWord,
     ipa: preferredSound?.ipa ?? '',
     audio: normalizeAudioUrl(preferredSound?.mp3_url ?? preferredSound?.audio ?? preferredSound?.ogg_url ?? ''),
     definitions,
     source: 'wiktapi.dev',
+    ...sourceRows,
+  };
+}
+
+export function extractWiktApiAttributedRows(result: WiktApiWordResponse, word: string, languageCode: string) {
+  const sourceName = `${languageCode} Wiktionary via wiktapi.dev`;
+  const sourceUrl = `https://${languageCode}.wiktionary.org/wiki/${encodeURIComponent(word)}`;
+  const attribution = `Source: ${sourceName} (CC-BY-SA-4.0/GFDL)`;
+  const etymologyText = result.entries
+    ?.flatMap((entry) => [entry.etymology_text, ...(entry.etymology_texts ?? [])])
+    .find((text) => text?.trim());
+  const forms = result.entries?.flatMap((entry) => entry.forms ?? [])
+    .filter((row) => row.form?.trim())
+    .slice(0, 24)
+    .map((row) => ({
+      attribution,
+      features: [...(row.tags ?? []), ...(row.raw_tags ?? [])],
+      form: row.form!.trim(),
+      sourceName,
+      sourceUrl,
+    }));
+
+  return {
+    etymology: etymologyText ? {
+      attribution,
+      license: 'CC-BY-SA-4.0/GFDL',
+      sourceName,
+      sourceUrl,
+      text: etymologyText.trim(),
+    } satisfies ApiAttributedEtymology : undefined,
+    forms,
   };
 }
 

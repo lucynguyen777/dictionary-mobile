@@ -1012,6 +1012,10 @@ function getEtymologyForEntry(
   sourceLanguageLabel: string,
   targetLanguageLabel: string
 ): string {
+  if (!isBilingualLookup && apiMeaning?.etymology) {
+    return `${apiMeaning.etymology.text}\n\n${apiMeaning.etymology.attribution}`;
+  }
+
   return formatEtymologyWithAttribution(
     resolveEtymologyDisplay({
       localEtymology: localEntry?.etymology,
@@ -1022,6 +1026,13 @@ function getEtymologyForEntry(
       sourceName: getEtymologySourceName(apiMeaning, sourceLanguageLabel),
     })
   );
+}
+
+function getLiveConjugationRows(apiMeaning: ApiMeaningResult | null) {
+  return apiMeaning?.forms?.map((row) => ({
+    tense: row.features.length ? row.features.join(' · ') : 'Form',
+    form: `${row.form}\n${row.attribution}`,
+  })) ?? [];
 }
 
 function mergeLookupEntry(
@@ -1121,7 +1132,7 @@ function mergeLookupEntry(
       antonyms: [],
       collocations: [],
       idioms: [],
-      conjugation: [],
+      conjugation: getLiveConjugationRows(apiMeaning),
       etymology: getEtymologyForEntry(
         undefined,
         apiMeaning,
@@ -1144,6 +1155,17 @@ function mergeLookupEntry(
     vietnamese: fallbackEntry.vietnamese,
     shortDefinition: apiDefinitions?.[0]?.meaning ?? fallbackEntry.shortDefinition,
     definitions: fallbackEntry.definitions,
+    conjugation: getLiveConjugationRows(apiMeaning).length
+      ? getLiveConjugationRows(apiMeaning)
+      : fallbackEntry.conjugation,
+    etymology: getEtymologyForEntry(
+      localEntry,
+      apiMeaning,
+      canUseSourceDictionaryApi,
+      false,
+      sourceLanguageLabel,
+      targetLanguageLabel
+    ),
   };
 }
 

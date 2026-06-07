@@ -164,6 +164,17 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 ## Current Baseline
 - Latest completed commits:
   - `45bd963` fix(reader): wire Chandra scanned PDF requests
+
+## Next Work Module
+
+**Module: Live Attributed Etymology And Conjugation Rows** - DONE
+- Module Completion Plan: promote the first online Wiktionary-derived etymology and conjugation/form rows only when each row carries visible source attribution, while preserving local-preview and missing-source fallbacks.
+- Acceptance criteria: live rows take precedence over local preview rows, source URL/license attribution is visible, missing live fields do not create fake data, bilingual restrictions remain intact, and focused/full verification passes.
+- [x] DONE [MEDIUM]: Extended live dictionary result contracts with attributed etymology and form rows.
+- [x] DONE [MEDIUM]: Parsed WiktAPI/Wiktextract-style etymology and forms without depending on one response spelling.
+- [x] DONE [MEDIUM]: Wired live attributed rows into Word etymology/conjugation tabs before local preview fallbacks.
+- [x] DONE [MEDIUM]: Added tests for live rows, missing fields, attribution, and no-mock behavior.
+- [x] DONE [EASY]: Ran verification/security checks and prepared commit/push/deploy.
   - `bbba1b3` feat(lang): ship v1.3.6 source corpus smoke
   - `4b7f138` docs(progress): plan completion roadmap
   - `c0f9512` docs(progress): audit v1.3.4 feature completion
