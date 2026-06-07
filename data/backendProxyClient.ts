@@ -56,6 +56,12 @@ export interface QuotaState {
   aiChat: { used: number; limit: number } | null;
 }
 
+export interface GoogleSheetsStatus {
+  configured: boolean;
+  connected: boolean;
+  persistenceConfigured: boolean;
+}
+
 // --- URL resolution ---
 
 function getBackendBaseUrl(): string {
@@ -156,4 +162,19 @@ export async function aiChat(req: AiChatRequest): Promise<AiChatResponse> {
 
 export async function getQuota(): Promise<QuotaState> {
   return proxyFetch<QuotaState>('/proxy/quota');
+}
+
+export async function connectGoogleSheets(): Promise<{ authorizationUrl: string }> {
+  return proxyFetch<{ authorizationUrl: string }>('/proxy/google-sheets/connect?returnTo=/advanced');
+}
+
+export async function getGoogleSheetsStatus(): Promise<GoogleSheetsStatus> {
+  return proxyFetch<GoogleSheetsStatus>('/proxy/google-sheets/status');
+}
+
+export async function exportFolderToGoogleSheets(rows: string[][]) {
+  return proxyFetch<{ spreadsheetUrl: string }>('/proxy/google-sheets/export-folder', {
+    body: JSON.stringify({ rows }),
+    method: 'POST',
+  });
 }

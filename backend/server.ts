@@ -8,6 +8,12 @@ import {
   type BackendProxyEnv,
 } from './proxyConfig';
 import { QuotaTracker } from './quotaTracker';
+import {
+  createGoogleConsentUrl,
+  readGoogleSheetsConfig,
+  validateGoogleSheetRows,
+  verifyGoogleOAuthState,
+} from './googleSheetsOAuth';
 
 const DEFAULT_PORT = 3001;
 
@@ -26,6 +32,7 @@ export function createServer(deps: ServerDependencies) {
 
   // Read config once
   let config: BackendProxyConfig = readBackendProxyConfig(deps.env);
+  const googleSheetsConfig = readGoogleSheetsConfig(deps.env);
 
   // Build quota tracker only when configured
   const quotaTracker =
@@ -36,6 +43,29 @@ export function createServer(deps: ServerDependencies) {
   // --- Middleware ---
 
   // Auth middleware: verify Supabase JWT from Authorization header
+  app.get('/proxy/google-sheets/callback', async (req: Request, res: Response) => {
+    if (googleSheetsConfig.status === 'unconfigured') {
+      res.status(503).json({ error: { code: 'google_oauth_unconfigured', missingKeys: googleSheetsConfig.missingKeys } });
+      return;
+    }
+    try {
+      const state = verifyGoogleOAuthState(String(req.query.state ?? ''), googleSheetsConfig.stateSecret);
+      if (!req.query.code) {
+        res.status(400).json({ error: { code: 'google_oauth_code_missing' } });
+        return;
+      }
+      res.status(501).json({
+        error: {
+          code: 'google_token_storage_unconfigured',
+          message: 'OAuth state is valid, but secure refresh-token persistence must be configured before exchange.',
+        },
+        returnTo: state.returnTo,
+      });
+    } catch (error) {
+      res.status(400).json({ error: { code: error instanceof Error ? error.message : 'oauth_state_invalid' } });
+    }
+  });
+
   app.use('/proxy', async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -56,7 +86,7 @@ export function createServer(deps: ServerDependencies) {
   });
 
   // Config guard middleware: reject if backend providers are unconfigured
-  app.use('/proxy', (_req: Request, res: Response, next: NextFunction) => {
+  app.use(['/proxy/translate', '/proxy/ai', '/proxy/quota'], (_req: Request, res: Response, next: NextFunction) => {
     if (config.status === 'unconfigured') {
       res.status(503).json(getProviderUnconfiguredResponse(config));
       return;
@@ -65,6 +95,42 @@ export function createServer(deps: ServerDependencies) {
   });
 
   // --- Routes ---
+
+  app.get('/proxy/google-sheets/connect', (req: Request, res: Response) => {
+    if (googleSheetsConfig.status === 'unconfigured') {
+      res.status(503).json({ error: { code: 'google_oauth_unconfigured', missingKeys: googleSheetsConfig.missingKeys } });
+      return;
+    }
+    const userId = (req as Request & { userId: string }).userId;
+    res.json({
+      authorizationUrl: createGoogleConsentUrl(googleSheetsConfig, userId, {
+        nonce: globalThis.crypto.randomUUID(),
+        returnTo: typeof req.query.returnTo === 'string' ? req.query.returnTo : undefined,
+      }),
+    });
+  });
+
+  app.get('/proxy/google-sheets/status', (_req: Request, res: Response) => {
+    res.json({
+      configured: googleSheetsConfig.status === 'configured',
+      connected: false,
+      persistenceConfigured: false,
+    });
+  });
+
+  app.post('/proxy/google-sheets/export-folder', (req: Request, res: Response) => {
+    try {
+      validateGoogleSheetRows(req.body?.rows);
+      res.status(409).json({
+        error: {
+          code: 'google_connection_required',
+          message: 'Connect Google Sheets before exporting.',
+        },
+      });
+    } catch (error) {
+      res.status(400).json({ error: { code: error instanceof Error ? error.message : 'google_export_rows_invalid' } });
+    }
+  });
 
   // Health check (no auth required)
   app.get('/health', (_req: Request, res: Response) => {

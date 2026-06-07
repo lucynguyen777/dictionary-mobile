@@ -3,7 +3,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
 import { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import Screen from '@/components/app/Screen';
@@ -26,7 +26,7 @@ import {
   saveLibraryState,
 } from '@/data/libraryStore';
 
-import { BackendProxyError, aiChat, translateText } from '@/data/backendProxyClient';
+import { BackendProxyError, aiChat, connectGoogleSheets, translateText } from '@/data/backendProxyClient';
 import {
   extractReaderDocument,
   getReaderImportFormat,
@@ -1327,9 +1327,9 @@ const exportActions: {
   {
     id: 'google-sheets',
     title: 'Google Sheets',
-    description: 'Cần OAuth và Google API trước khi xuất trực tiếp.',
-    icon: 'cloud-offline-outline',
-    status: 'Cập nhật trong phiên bản sau',
+    description: 'Kết nối Google để chuẩn bị xuất trực tiếp.',
+    icon: 'logo-google',
+    status: 'Beta - cần kết nối',
   },
 ];
 
@@ -1349,7 +1349,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
   const selectedFolderWordCount = selectedFolder
     ? libraryState.savedWords.filter((word) => word.folderIds.includes(selectedFolder.id)).length
     : 0;
-  const canExport = Boolean(selectedFolder && selectedFolderWordCount && activeActionId !== 'google-sheets');
+  const canExport = Boolean(selectedFolder && selectedFolderWordCount);
 
   useEffect(() => {
     if (!selectedFolderId && exportFolders.length) {
@@ -1375,14 +1375,20 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
 
   const handleRunExport = async () => {
     if (activeActionId === 'google-sheets') {
-      const message = 'Cập nhật trong phiên bản sau: Google Sheets cần OAuth và Google API flow.';
-      setStatusMessage(message);
-      addHistoryItem({
-        action: activeActionId,
-        folderName: selectedFolder?.name ?? 'Chưa chọn bộ từ',
-        message,
-        status: 'blocked',
-      });
+      try {
+        setIsRunningExport(true);
+        const { authorizationUrl } = await connectGoogleSheets();
+        await Linking.openURL(authorizationUrl);
+        setStatusMessage('Đã mở Google để kết nối. Sau khi xác nhận, quay lại app để xuất bộ từ.');
+      } catch (error) {
+        const message = error instanceof BackendProxyError
+          ? error.message
+          : 'Không thể bắt đầu kết nối Google Sheets.';
+        setStatusMessage(message);
+        Alert.alert('Chưa thể kết nối Google Sheets', message);
+      } finally {
+        setIsRunningExport(false);
+      }
       return;
     }
 
@@ -1442,8 +1448,8 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
       </View>
 
       <View style={styles.blockedNotice}>
-        <Ionicons name="lock-closed-outline" size={16} color="#B45309" />
-        <Text style={styles.blockedNoticeText}>Google Sheets: Cập nhật trong phiên bản sau. Bản deploy hiện tại hỗ trợ CSV, Excel và Anki text.</Text>
+        <Ionicons name="shield-checkmark-outline" size={16} color="#B45309" />
+        <Text style={styles.blockedNoticeText}>Google Sheets đang ở beta. OAuth chạy qua backend; app không lưu Google token trên thiết bị.</Text>
       </View>
 
       <Text style={styles.toolSectionLabel}>Bộ từ cần xuất</Text>
@@ -1480,7 +1486,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
       <View style={styles.exportActionGrid}>
         {exportActions.map((action) => {
           const isSelected = activeActionId === action.id;
-          const isBlocked = action.id === 'google-sheets';
+          const isBlocked = false;
 
           return (
             <TouchableOpacity
@@ -1511,15 +1517,15 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
 
       <TouchableOpacity
         activeOpacity={0.85}
-        disabled={isRunningExport || (!canExport && activeActionId !== 'google-sheets')}
+        disabled={isRunningExport || !canExport}
         onPress={handleRunExport}
         style={[
           styles.exportButton,
-          (isRunningExport || (!canExport && activeActionId !== 'google-sheets')) && styles.exportButtonDisabled,
+          (isRunningExport || !canExport) && styles.exportButtonDisabled,
         ]}>
-        <Ionicons name={activeActionId === 'google-sheets' ? 'lock-closed-outline' : 'download-outline'} size={18} color="#FFFFFF" />
+        <Ionicons name={activeActionId === 'google-sheets' ? 'logo-google' : 'download-outline'} size={18} color="#FFFFFF" />
         <Text style={styles.exportButtonText}>
-          {isRunningExport ? 'Đang xuất...' : activeActionId === 'google-sheets' ? 'Cập nhật sau' : 'Xuất file'}
+          {isRunningExport ? 'Đang xử lý...' : activeActionId === 'google-sheets' ? 'Kết nối Google' : 'Xuất file'}
         </Text>
       </TouchableOpacity>
 

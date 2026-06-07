@@ -135,11 +135,11 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Preserved Reader OCR text import compatibility so highlight, lookup, save word, note, and flashcard flows continue through normal Reader text.
 - [x] DONE [EASY]: Added `docs/chandra-production-wiring.md` with deployment/privacy limits and manual smoke steps.
 
-**v1.3.9 - Provider Feature Gates** - BLOCKED BY PROVIDER SETUP
+**v1.3.9 - Provider Feature Gates** - IN PROGRESS
 - Module Completion Plan: finish the first production gates for provider-backed features without exposing broken CTAs or leaking secrets.
 - Acceptance criteria: DeepL/OpenAI proxy smoke, quota/privacy copy, Google Sheets OAuth implementation plan or code slice, feedback backend plan/code slice, account deletion backend plan, and Azure pronunciation MVP contract are all classified accurately as production-ready or staged.
 - [!] BLOCKED [HARD]: Run authenticated DeepL/OpenAI quota, privacy, and failure-state smoke; provider and Supabase auth env are missing in this environment.
-- [!] BLOCKED [HARD]: Build or stage Google Sheets OAuth backend routes, encrypted token storage, row mapping tests, and fake Google client tests; Google OAuth app/client setup is not available.
+- [~] IN PROGRESS [HARD]: Google OAuth web client and Vercel Production/Preview client env are configured; implement backend OAuth routes, encrypted token storage, row mapping tests, and fake Google client tests. Production persistence remains gated by `SUPABASE_SERVICE_ROLE_KEY` and `USER_PROVIDER_SECRET_ENCRYPTION_KEY`.
 - [!] BLOCKED [HARD]: Build or stage Supabase feedback submission with RLS, Resend notification, retention, and spam controls; Supabase/Resend setup is not available.
 - [!] BLOCKED [HARD]: Define account deletion backend execution/recovery contract and no-local-data-loss tests; admin backend route and Supabase smoke setup are not available.
 - [x] DONE [MEDIUM]: Added `docs/provider-feature-gates-status.md` with provider setup gaps, no-secret rules, and next smoke requirements; Azure pronunciation remains staged behind provider setup.
@@ -836,11 +836,11 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Documented Chandra production wiring and smoke checklist in `docs/chandra-production-wiring.md`.
 - [x] DONE [EASY]: Updated release/docs/context metadata to v1.3.8 and prepared verification/security checks.
 
-**Module: v1.3.9 Provider Feature Gates** - BLOCKED
+**Module: v1.3.9 Provider Feature Gates** - IN PROGRESS
 - Module Completion Plan: execute provider-gate smoke only after real provider credentials, OAuth/backend setup, Supabase auth, RLS, quota, privacy, and fake-provider tests exist.
 - Acceptance criteria: DeepL/OpenAI, Google Sheets, feedback, account deletion backend, and Azure pronunciation are either production-smoked or accurately kept staged/blocked with setup instructions.
 - [!] BLOCKED [HARD]: DeepL/OpenAI live smoke cannot run because `DEEPL_API_BASE_URL`, `DEEPL_API_KEY`, `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL`, and Supabase auth env are missing.
-- [!] BLOCKED [HARD]: Google Sheets export cannot proceed because Google OAuth app/client setup and backend token storage are not implemented/configured.
+- [~] IN PROGRESS [HARD]: Google Sheets OAuth web client and Vercel client env are configured; backend OAuth/export implementation is active, while secure refresh-token persistence still requires `SUPABASE_SERVICE_ROLE_KEY` and `USER_PROVIDER_SECRET_ENCRYPTION_KEY`.
 - [!] BLOCKED [HARD]: Feedback/account deletion backend cannot proceed because Supabase/Resend/admin backend setup is not available.
 - [!] BLOCKED [HARD]: Azure pronunciation scoring cannot proceed because Azure Speech credentials and backend audio upload/privacy/quota contract are not configured.
 - [x] DONE [MEDIUM]: Added `docs/provider-feature-gates-status.md` with exact setup steps and no-secret rules.

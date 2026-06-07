@@ -174,6 +174,16 @@ Every table must enable RLS and scope rows with `auth.uid() = user_id` when expo
 
 ## Implementation Gate
 
+Current implementation status:
+
+- Google OAuth web client exists and `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` are configured in Vercel Production and Preview.
+- Backend consent URL generation, signed/expiring state validation, authenticated connect/status/export route boundaries, bounded row validation, app beta entry point, and fake-contract tests are implemented.
+- Production token exchange/export remains intentionally gated until Vercel also has:
+  - `GOOGLE_OAUTH_STATE_SECRET`: high-entropy server-only state-signing secret;
+  - `SUPABASE_SERVICE_ROLE_KEY`: server-only access for callback token persistence;
+  - `USER_PROVIDER_SECRET_ENCRYPTION_KEY`: base64url-encoded 32-byte AES key for refresh-token encryption.
+- Never expose these three values through `EXPO_PUBLIC_*`, app logs, screenshots, GitHub, or chat.
+
 Google Sheets export code can start when the next module agrees to:
 
 - implement backend OAuth routes and callback state validation;

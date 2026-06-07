@@ -79,7 +79,7 @@ describe('product progress dashboard', () => {
     }
     expect(progress).toContain('v1.3.7 - Supabase Auth And Cloud Sync Production Smoke** - IN PROGRESS');
     expect(progress).toContain('docs/supabase-auth-sync-production-smoke-status.md');
-    expect(progress).toContain('v1.3.9 - Provider Feature Gates** - BLOCKED BY PROVIDER SETUP');
+    expect(progress).toContain('v1.3.9 - Provider Feature Gates** - IN PROGRESS');
     expect(progress).toContain('docs/provider-feature-gates-status.md');
     expect(progress).toContain('v1.3.10 - Offline Pack Expansion** - BLOCKED BY SOURCE/PACK CANDIDATE');
     expect(progress).toContain('docs/offline-pack-expansion-status.md');
