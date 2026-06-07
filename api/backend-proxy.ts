@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { createClient } from '@supabase/supabase-js';
 
 import { createServer } from '../backend/server';
+import { createGoogleSheetsStore } from '../backend/googleSheetsStore';
 
 type BackendProxyRequest = IncomingMessage & {
   query?: Record<string, string | string[] | undefined>;
@@ -30,8 +31,16 @@ export function createBackendProxyHandler({
   env = process.env,
   verifyAuth = verifySupabaseJwt,
 }: BackendProxyHandlerOptions = {}) {
+  const supabaseUrl = env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const googleSheetsStore = supabaseUrl && serviceRoleKey
+    ? createGoogleSheetsStore(createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    }), env)
+    : undefined;
   const { app } = createServer({
     env,
+    googleSheetsStore,
     verifyAuth,
   });
 

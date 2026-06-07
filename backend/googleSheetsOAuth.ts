@@ -28,7 +28,7 @@ export function readGoogleSheetsConfig(env: GoogleSheetsEnv): GoogleSheetsConfig
   const keys = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_OAUTH_STATE_SECRET'] as const;
   const missingKeys = keys.filter((key) => !env[key]?.trim());
   const redirectUri = env.GOOGLE_OAUTH_REDIRECT_URI?.trim()
-    || 'https://dictionaire-mobile.vercel.app/backend-proxy/proxy/google-sheets/callback';
+    || 'https://dictionaire-mobile.vercel.app/backend-proxy/oauth/google/callback';
 
   if (missingKeys.length) return { missingKeys, status: 'unconfigured' };
 
@@ -88,6 +88,67 @@ export function validateGoogleSheetRows(rows: unknown) {
     if (!Array.isArray(row) || row.length !== 7) throw new Error('google_export_rows_invalid');
     return row.map((cell) => String(cell ?? '').slice(0, 10_000));
   });
+}
+
+export async function exchangeGoogleAuthorizationCode(
+  config: Extract<GoogleSheetsConfig, { status: 'configured' }>,
+  code: string
+) {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    body: new URLSearchParams({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      code,
+      grant_type: 'authorization_code',
+      redirect_uri: config.redirectUri,
+    }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    method: 'POST',
+  });
+  if (!response.ok) throw new Error('google_oauth_exchange_failed');
+  return response.json() as Promise<{ access_token: string; expires_in: number; refresh_token?: string; scope?: string }>;
+}
+
+export async function refreshGoogleAccessToken(
+  config: Extract<GoogleSheetsConfig, { status: 'configured' }>,
+  refreshToken: string
+) {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    body: new URLSearchParams({
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    method: 'POST',
+  });
+  if (!response.ok) throw new Error('google_oauth_refresh_failed');
+  return response.json() as Promise<{ access_token: string; expires_in: number }>;
+}
+
+export async function createGoogleSpreadsheet(accessToken: string, title: string, rows: string[][]) {
+  const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+    body: JSON.stringify({ properties: { title: sanitizeSpreadsheetTitle(title) } }),
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    method: 'POST',
+  });
+  if (!createResponse.ok) throw new Error('google_sheet_create_failed');
+  const created = await createResponse.json() as { spreadsheetId: string; spreadsheetUrl: string };
+  const writeResponse = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(created.spreadsheetId)}/values/A1?valueInputOption=RAW`,
+    {
+      body: JSON.stringify({ majorDimension: 'ROWS', values: rows }),
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      method: 'PUT',
+    }
+  );
+  if (!writeResponse.ok) throw new Error('google_sheet_write_failed');
+  return created;
+}
+
+function sanitizeSpreadsheetTitle(value: string) {
+  return value.trim().slice(0, 100) || `Dictionary Mobile - ${new Date().toISOString().slice(0, 10)}`;
 }
 
 function signOAuthState(state: OAuthState, secret: string) {

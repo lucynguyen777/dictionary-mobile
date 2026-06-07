@@ -10,7 +10,7 @@ import {
 const config = {
   clientId: 'client-id',
   clientSecret: 'client-secret',
-  redirectUri: 'https://example.com/backend-proxy/proxy/google-sheets/callback',
+  redirectUri: 'https://example.com/backend-proxy/oauth/google/callback',
   stateSecret: 'state-secret-with-enough-entropy',
   status: 'configured' as const,
 };

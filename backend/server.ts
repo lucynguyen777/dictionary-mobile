@@ -10,16 +10,21 @@ import {
 import { QuotaTracker } from './quotaTracker';
 import {
   createGoogleConsentUrl,
+  createGoogleSpreadsheet,
+  exchangeGoogleAuthorizationCode,
+  refreshGoogleAccessToken,
   readGoogleSheetsConfig,
   validateGoogleSheetRows,
   verifyGoogleOAuthState,
 } from './googleSheetsOAuth';
+import type { GoogleSheetsStore } from './googleSheetsStore';
 
 const DEFAULT_PORT = 3001;
 
 export type ServerDependencies = {
   env: BackendProxyEnv;
   port?: number;
+  googleSheetsStore?: GoogleSheetsStore;
   verifyAuth: (token: string) => Promise<{ userId: string } | null>;
 };
 
@@ -43,7 +48,7 @@ export function createServer(deps: ServerDependencies) {
   // --- Middleware ---
 
   // Auth middleware: verify Supabase JWT from Authorization header
-  app.get('/proxy/google-sheets/callback', async (req: Request, res: Response) => {
+  app.get('/oauth/google/callback', async (req: Request, res: Response) => {
     if (googleSheetsConfig.status === 'unconfigured') {
       res.status(503).json({ error: { code: 'google_oauth_unconfigured', missingKeys: googleSheetsConfig.missingKeys } });
       return;
@@ -54,13 +59,11 @@ export function createServer(deps: ServerDependencies) {
         res.status(400).json({ error: { code: 'google_oauth_code_missing' } });
         return;
       }
-      res.status(501).json({
-        error: {
-          code: 'google_token_storage_unconfigured',
-          message: 'OAuth state is valid, but secure refresh-token persistence must be configured before exchange.',
-        },
-        returnTo: state.returnTo,
-      });
+      if (!deps.googleSheetsStore?.configured) throw new Error('google_token_storage_unconfigured');
+      const tokens = await exchangeGoogleAuthorizationCode(googleSheetsConfig, String(req.query.code));
+      if (!tokens.refresh_token) throw new Error('google_refresh_token_missing');
+      await deps.googleSheetsStore.saveRefreshToken(state.userId, tokens.refresh_token);
+      res.redirect(302, `${state.returnTo}?googleSheets=connected`);
     } catch (error) {
       res.status(400).json({ error: { code: error instanceof Error ? error.message : 'oauth_state_invalid' } });
     }
@@ -110,26 +113,42 @@ export function createServer(deps: ServerDependencies) {
     });
   });
 
-  app.get('/proxy/google-sheets/status', (_req: Request, res: Response) => {
+  app.get('/proxy/google-sheets/status', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    const connected = deps.googleSheetsStore?.configured
+      ? Boolean(await deps.googleSheetsStore.loadRefreshToken(userId))
+      : false;
     res.json({
       configured: googleSheetsConfig.status === 'configured',
-      connected: false,
-      persistenceConfigured: false,
+      connected,
+      persistenceConfigured: Boolean(deps.googleSheetsStore?.configured),
     });
   });
 
-  app.post('/proxy/google-sheets/export-folder', (req: Request, res: Response) => {
+  app.post('/proxy/google-sheets/export-folder', async (req: Request, res: Response) => {
     try {
-      validateGoogleSheetRows(req.body?.rows);
-      res.status(409).json({
-        error: {
-          code: 'google_connection_required',
-          message: 'Connect Google Sheets before exporting.',
-        },
-      });
+      if (googleSheetsConfig.status === 'unconfigured' || !deps.googleSheetsStore?.configured) {
+        throw new Error('google_token_storage_unconfigured');
+      }
+      const userId = (req as Request & { userId: string }).userId;
+      const rows = validateGoogleSheetRows(req.body?.rows);
+      const refreshToken = await deps.googleSheetsStore.loadRefreshToken(userId);
+      if (!refreshToken) {
+        res.status(409).json({ error: { code: 'google_connection_required', message: 'Connect Google Sheets before exporting.' } });
+        return;
+      }
+      const token = await refreshGoogleAccessToken(googleSheetsConfig, refreshToken);
+      const sheet = await createGoogleSpreadsheet(token.access_token, String(req.body?.title ?? ''), rows);
+      res.json({ spreadsheetUrl: sheet.spreadsheetUrl });
     } catch (error) {
-      res.status(400).json({ error: { code: error instanceof Error ? error.message : 'google_export_rows_invalid' } });
+      res.status(400).json({ error: { code: error instanceof Error ? error.message : 'google_export_failed' } });
     }
+  });
+
+  app.post('/proxy/google-sheets/revoke', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    await deps.googleSheetsStore?.revoke(userId);
+    res.json({ connected: false });
   });
 
   // Health check (no auth required)

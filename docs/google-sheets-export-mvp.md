@@ -183,6 +183,7 @@ Current implementation status:
   - `SUPABASE_SERVICE_ROLE_KEY`: server-only access for callback token persistence;
   - `USER_PROVIDER_SECRET_ENCRYPTION_KEY`: base64url-encoded 32-byte AES key for refresh-token encryption.
 - Never expose these three values through `EXPO_PUBLIC_*`, app logs, screenshots, GitHub, or chat.
+- Google OAuth authorized redirect URI: `https://dictionaire-mobile.vercel.app/backend-proxy/oauth/google/callback`.
 
 Google Sheets export code can start when the next module agrees to:
 

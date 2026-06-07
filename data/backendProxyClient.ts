@@ -178,3 +178,7 @@ export async function exportFolderToGoogleSheets(rows: string[][]) {
     method: 'POST',
   });
 }
+
+export async function revokeGoogleSheets() {
+  return proxyFetch<{ connected: false }>('/proxy/google-sheets/revoke', { method: 'POST' });
+}

@@ -1150,6 +1150,12 @@ function buildFolderExportRows(folder: Folder, words: SavedWord[]) {
   ];
 }
 
+export function getFolderExportRows(state: LibraryState, folderId: string) {
+  const folder = state.folders.find((item) => item.id === folderId);
+  if (!folder) return [];
+  return buildFolderExportRows(folder, state.savedWords.filter((word) => word.folderIds.includes(folderId)));
+}
+
 function escapeCsvCell(value: string) {
   const escapedValue = value.replace(/"/g, '""');
 

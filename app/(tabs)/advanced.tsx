@@ -21,12 +21,13 @@ import {
   exportFolderToExcel,
   getDefaultLibraryState,
   getFavoriteFolderId,
+  getFolderExportRows,
   loadLibraryState,
   reviewFlashcard,
   saveLibraryState,
 } from '@/data/libraryStore';
 
-import { BackendProxyError, aiChat, connectGoogleSheets, translateText } from '@/data/backendProxyClient';
+import { BackendProxyError, aiChat, connectGoogleSheets, exportFolderToGoogleSheets, getGoogleSheetsStatus, translateText } from '@/data/backendProxyClient';
 import {
   extractReaderDocument,
   getReaderImportFormat,
@@ -1340,6 +1341,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
   const [isRunningExport, setIsRunningExport] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Chọn bộ từ và định dạng để xuất file local.');
   const [history, setHistory] = useState<ExportHistoryItem[]>([]);
+  const [googleSheetsConnected, setGoogleSheetsConnected] = useState(false);
 
   const exportFolders = useMemo(
     () => libraryState.folders.filter((folder) => folder.id !== getFavoriteFolderId()),
@@ -1362,6 +1364,10 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
     }
   }, [exportFolders, selectedFolderId]);
 
+  useEffect(() => {
+    getGoogleSheetsStatus().then((status) => setGoogleSheetsConnected(status.connected)).catch(() => undefined);
+  }, []);
+
   const addHistoryItem = (item: Omit<ExportHistoryItem, 'id' | 'createdAt'>) => {
     setHistory((current) => [
       {
@@ -1377,6 +1383,12 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
     if (activeActionId === 'google-sheets') {
       try {
         setIsRunningExport(true);
+        if (googleSheetsConnected && selectedFolder) {
+          const result = await exportFolderToGoogleSheets(getFolderExportRows(libraryState, selectedFolder.id));
+          setStatusMessage('Đã xuất bộ từ sang Google Sheets.');
+          await Linking.openURL(result.spreadsheetUrl);
+          return;
+        }
         const { authorizationUrl } = await connectGoogleSheets();
         await Linking.openURL(authorizationUrl);
         setStatusMessage('Đã mở Google để kết nối. Sau khi xác nhận, quay lại app để xuất bộ từ.');
@@ -1525,7 +1537,7 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
         ]}>
         <Ionicons name={activeActionId === 'google-sheets' ? 'logo-google' : 'download-outline'} size={18} color="#FFFFFF" />
         <Text style={styles.exportButtonText}>
-          {isRunningExport ? 'Đang xử lý...' : activeActionId === 'google-sheets' ? 'Kết nối Google' : 'Xuất file'}
+          {isRunningExport ? 'Đang xử lý...' : activeActionId === 'google-sheets' ? (googleSheetsConnected ? 'Xuất sang Google Sheets' : 'Kết nối Google') : 'Xuất file'}
         </Text>
       </TouchableOpacity>
 
