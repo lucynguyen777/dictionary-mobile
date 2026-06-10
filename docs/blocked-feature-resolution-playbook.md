@@ -165,13 +165,13 @@ Current evidence:
 
 - MLKit and speech-recognition packages are installed.
 - OCR provider registry and fallback contracts exist.
-- `expo-dev-client` is not installed.
+- `expo-dev-client` and native recognition config plugins are installed/configured; physical-device smoke is still required.
 - Chandra service exists but is not deployed/configured.
 
 ### Options
 
 1. **Recommended: Expo development build for MLKit/STT; host Chandra separately**
-   - Codex work: install/configure `expo-dev-client`, native plugins, build profiles, and engine wiring.
+   - Codex work: install/configure `expo-dev-client`, native plugins, build profiles, and engine wiring. Repository setup is complete; see `docs/native-recognition-development-build.md`.
    - User setup: run/install development builds on iOS/Android and provide a Chandra-capable host/GPU environment.
 2. **Chandra scanned-PDF only; keep camera OCR/STT staged**
    - Codex work: deploy/wire Chandra endpoint and smoke Reader scanned PDFs.

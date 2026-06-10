@@ -167,14 +167,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Next Work Module
 
-**Module: Language Parity And Offline Packs - French Measured Promotion Gate** - DONE
-- Module Completion Plan: enforce one-language-at-a-time promotion from measured corpus evidence, select French monolingual as the sole active candidate, and keep it preview-only until source, corpus, parity, and offline-pack gates all pass.
-- Acceptance criteria: the promotion gate has explicit thresholds; only one active candidate is allowed; French current evidence evaluates to measured preview rather than production; no French pack is published prematurely; docs/tests and full verification pass.
-- [x] DONE [MEDIUM]: Audited source/corpus and offline-pack readiness, then selected French monolingual as the first measured promotion candidate.
-- [x] DONE [MEDIUM]: Added explicit corpus, attribution, morphology, examples, related-word, UI, and offline-pack promotion thresholds.
-- [x] DONE [MEDIUM]: Added a one-active-candidate guard and frozen French measurement that remains blocked by missing corpus/source-date/offline evidence.
-- [x] DONE [MEDIUM]: Documented the measured French promotion path and kept public offline-pack registration unchanged.
-- [x] DONE [EASY]: Ran focused/full verification and security checks; the full suite's existing Reader PDF timeout passed immediately on focused rerun.
+**Module: Expo Development Build For MLKit/STT And Separate Chandra Hosting** - DONE
+- Module Completion Plan: prepare an Expo SDK 54 development build for native MLKit camera OCR and OS/native STT while keeping scanned-PDF Chandra OCR as a separately hosted Docker service.
+- Acceptance criteria: SDK-compatible dev-client dependency, native permission plugins, physical-device/simulator build profiles, explicit separate-Chandra hosting/security guidance, config guard tests, and repository verification pass; physical-device and hosted-service smoke remain accurately external.
+- [x] DONE [HARD]: Installed the Expo SDK 54-compatible `expo-dev-client` dependency without upgrading the Expo SDK.
+- [x] DONE [HARD]: Configured camera and speech-recognition plugins with purpose-specific permissions requested only when those features are invoked.
+- [x] DONE [MEDIUM]: Added physical-device and iOS-simulator development build profiles plus dev-client scripts.
+- [x] DONE [MEDIUM]: Documented separate Chandra Docker hosting, endpoint/security boundaries, device smoke, and user-owned setup.
+- [x] DONE [EASY]: Passed Expo config resolution, `expo-doctor` 18/18, static checks, full 400-test suite, and security review while keeping physical-device and hosted-Chandra smoke external.
   - `bbba1b3` feat(lang): ship v1.3.6 source corpus smoke
   - `4b7f138` docs(progress): plan completion roadmap
   - `c0f9512` docs(progress): audit v1.3.4 feature completion

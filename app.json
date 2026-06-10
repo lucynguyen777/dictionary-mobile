@@ -44,7 +44,25 @@
       "expo-audio",
       "expo-sqlite",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      "expo-dev-client",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Cho phép Dictionaire dùng camera khi bạn chọn tra cứu văn bản từ hình ảnh."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Cho phép Dictionaire dùng micro khi bạn chọn tra cứu bằng giọng nói.",
+          "speechRecognitionPermission": "Cho phép Dictionaire nhận dạng giọng nói khi bạn sử dụng tra cứu bằng giọng nói.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
