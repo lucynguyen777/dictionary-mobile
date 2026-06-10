@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { createClient } from '@supabase/supabase-js';
 
 import { createServer } from '../backend/server';
+import { createSupabaseFeedbackStore, type FeedbackStore } from '../backend/feedback';
 import { createGoogleSheetsStore } from '../backend/googleSheetsStore';
 
 type BackendProxyRequest = IncomingMessage & {
@@ -11,6 +12,7 @@ type BackendProxyRequest = IncomingMessage & {
 
 type BackendProxyHandlerOptions = {
   env?: Record<string, string | undefined>;
+  feedbackStore?: FeedbackStore;
   verifyAuth?: (token: string) => Promise<{ userId: string } | null>;
 };
 
@@ -29,17 +31,25 @@ export function resolveBackendProxyRequestUrl(req: BackendProxyRequest) {
 
 export function createBackendProxyHandler({
   env = process.env,
+  feedbackStore: injectedFeedbackStore,
   verifyAuth = verifySupabaseJwt,
 }: BackendProxyHandlerOptions = {}) {
   const supabaseUrl = env.EXPO_PUBLIC_SUPABASE_URL?.trim();
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  const googleSheetsStore = supabaseUrl && serviceRoleKey
-    ? createGoogleSheetsStore(createClient(supabaseUrl, serviceRoleKey, {
+  const serviceClient = supabaseUrl && serviceRoleKey
+    ? createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
-    }), env)
+    })
     : undefined;
+  const googleSheetsStore = serviceClient
+    ? createGoogleSheetsStore(serviceClient, env)
+    : undefined;
+  const feedbackStore = injectedFeedbackStore ?? (serviceClient
+    ? createSupabaseFeedbackStore(serviceClient)
+    : undefined);
   const { app } = createServer({
     env,
+    feedbackStore,
     googleSheetsStore,
     verifyAuth,
   });

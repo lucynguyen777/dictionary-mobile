@@ -11,7 +11,7 @@ This playbook audits unfinished features against the current codebase and separa
 | Supabase Auth + Cloud Sync | Implemented/manual beta | Redirect allow-list, applied migrations/RLS probes, two-session smoke | Finish production smoke first |
 | DeepL + OpenAI | Backend routes and tests exist | Provider keys/models and authenticated quota/privacy smoke | Configure server-only Vercel env, then smoke |
 | Google Sheets | Decision/route contract only | Google OAuth app, backend routes, encrypted refresh-token storage | Implement backend-mediated OAuth after user creates OAuth client |
-| Feedback + Account Deletion | Accepted/staged | Feedback schema/Resend setup and privileged deletion backend | Implement feedback first; deletion second |
+| Feedback + Account Deletion | Feedback table-only backend implemented; notification/deletion staged | Apply feedback migration, Resend setup, and privileged deletion backend | Apply/smoke feedback first; deletion second |
 | Native OCR/STT + Chandra | Providers/contracts exist | Dev-client build and deployed Chandra service | Dev-client spike plus separately hosted Chandra service |
 | Pronunciation Assessment | Recording exists; Azure accepted | Azure resource, backend audio route, privacy/quota/retention | Build fake-provider route first, then Azure smoke |
 | Languages + Offline Packs | Architecture/preview adapters exist | Corpus/source/license/attribution and pack candidate | Expand one measured language corpus before packaging |
@@ -132,6 +132,12 @@ Official guidance:
 - https://developers.google.com/sheets/api/guides/values
 
 ## 4. Feedback Submission And Account Deletion
+
+Current repository evidence:
+
+- `supabase/migrations/008_feedback_table.sql` defines authenticated user-owned feedback with RLS and bounded fields.
+- `/proxy/feedback` validates authenticated submissions, limits each user to five submissions per rolling day, and supports dependency-injected Supabase storage.
+- Resend notification and privileged account deletion remain separate external-setup modules.
 
 ### Options
 

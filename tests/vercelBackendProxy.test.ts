@@ -6,6 +6,7 @@ import {
   createBackendProxyHandler,
   resolveBackendProxyRequestUrl,
 } from '../api/backend-proxy';
+import type { FeedbackStore } from '../backend/feedback';
 
 const configuredEnv = {
   DEEPL_API_BASE_URL: 'https://api-free.deepl.com',
@@ -73,12 +74,30 @@ describe('Vercel backend proxy function', () => {
     expect(body.translation.daily).toBe(0);
     expect(body.aiChat.daily).toBe(0);
   });
+
+  it('serves authenticated feedback through the rewritten route', async () => {
+    const feedbackStore: FeedbackStore = {
+      configured: true,
+      countRecent: async () => 0,
+      submit: async () => ({ id: 'feedback-id' }),
+    };
+    const baseUrl = await startProxyServer({ feedbackStore });
+    const response = await fetch(`${baseUrl}/api/backend-proxy?path=proxy/feedback`, {
+      body: JSON.stringify({ category: 'bug', message: 'This feedback message is long enough.' }),
+      headers: { Authorization: 'Bearer valid-token', 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({ id: 'feedback-id', status: 'received' });
+  });
 });
 
-async function startProxyServer(options: { env?: Record<string, string> } = {}) {
+async function startProxyServer(options: { env?: Record<string, string>; feedbackStore?: FeedbackStore } = {}) {
   const http = await import('http');
   const handler = createBackendProxyHandler({
     env: options.env ?? configuredEnv,
+    feedbackStore: options.feedbackStore,
     verifyAuth: async (token) => (token === 'valid-token' ? { userId: 'test-user-id' } : null),
   });
 

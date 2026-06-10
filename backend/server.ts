@@ -18,6 +18,7 @@ import {
   verifyGoogleOAuthState,
 } from './googleSheetsOAuth';
 import type { GoogleSheetsStore } from './googleSheetsStore';
+import { submitFeedback, type FeedbackStore } from './feedback';
 
 const DEFAULT_PORT = 3001;
 
@@ -25,6 +26,7 @@ export type ServerDependencies = {
   env: BackendProxyEnv;
   port?: number;
   googleSheetsStore?: GoogleSheetsStore;
+  feedbackStore?: FeedbackStore;
   verifyAuth: (token: string) => Promise<{ userId: string } | null>;
 };
 
@@ -149,6 +151,22 @@ export function createServer(deps: ServerDependencies) {
     const userId = (req as Request & { userId: string }).userId;
     await deps.googleSheetsStore?.revoke(userId);
     res.json({ connected: false });
+  });
+
+  app.post('/proxy/feedback', async (req: Request, res: Response) => {
+    try {
+      const userId = (req as Request & { userId: string }).userId;
+      const result = await submitFeedback(deps.feedbackStore, userId, req.body);
+      res.status(201).json({ id: result.id, status: 'received' });
+    } catch (error) {
+      const code = error instanceof Error ? error.message : 'feedback_submit_failed';
+      const status = code === 'feedback_rate_limited'
+        ? 429
+        : code === 'feedback_storage_unconfigured'
+          ? 503
+          : 400;
+      res.status(status).json({ error: { code } });
+    }
   });
 
   // Health check (no auth required)

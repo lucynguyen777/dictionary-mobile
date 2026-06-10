@@ -167,14 +167,14 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ## Next Work Module
 
-**Module: Expo Development Build For MLKit/STT And Separate Chandra Hosting** - DONE
-- Module Completion Plan: prepare an Expo SDK 54 development build for native MLKit camera OCR and OS/native STT while keeping scanned-PDF Chandra OCR as a separately hosted Docker service.
-- Acceptance criteria: SDK-compatible dev-client dependency, native permission plugins, physical-device/simulator build profiles, explicit separate-Chandra hosting/security guidance, config guard tests, and repository verification pass; physical-device and hosted-service smoke remain accurately external.
-- [x] DONE [HARD]: Installed the Expo SDK 54-compatible `expo-dev-client` dependency without upgrading the Expo SDK.
-- [x] DONE [HARD]: Configured camera and speech-recognition plugins with purpose-specific permissions requested only when those features are invoked.
-- [x] DONE [MEDIUM]: Added physical-device and iOS-simulator development build profiles plus dev-client scripts.
-- [x] DONE [MEDIUM]: Documented separate Chandra Docker hosting, endpoint/security boundaries, device smoke, and user-owned setup.
-- [x] DONE [EASY]: Passed Expo config resolution, `expo-doctor` 18/18, static checks, full 400-test suite, and security review while keeping physical-device and hosted-Chandra smoke external.
+**Module: Feedback Table-Only Backend MVP** - DONE
+- Module Completion Plan: complete the feedback backend foundation without requiring Resend by adding authenticated storage, RLS, bounded validation, abuse controls, and tested proxy routing; keep notification and account deletion as separate staged work.
+- Acceptance criteria: feedback table has RLS/own-row policies and no anon grant; route requires valid auth; message/context sizes and categories are bounded; rolling daily submission limit exists; storage can be injected/tested; Resend is not falsely marked configured.
+- [x] DONE [HARD]: Added `008_feedback_table.sql` with authenticated ownership, RLS policies, bounded fields, status metadata, and indexes.
+- [x] DONE [HARD]: Added feedback validation, Supabase store boundary, and rolling per-user submission limit.
+- [x] DONE [MEDIUM]: Added authenticated `/proxy/feedback` route with explicit unconfigured, invalid, rate-limited, and received states.
+- [x] DONE [MEDIUM]: Added migration/store/route tests without requiring live Supabase or Resend.
+- [x] DONE [EASY]: Passed static checks, Expo Doctor 18/18, full 407-test suite, RLS/secret/input-limit security audit, and prepared commit/push/deploy; live migration apply and Resend notification remain external.
   - `bbba1b3` feat(lang): ship v1.3.6 source corpus smoke
   - `4b7f138` docs(progress): plan completion roadmap
   - `c0f9512` docs(progress): audit v1.3.4 feature completion
@@ -507,7 +507,7 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 - [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
-- [ ] TODO [HARD]: Feedback submission is accepted/staged as Supabase `feedback` table plus Resend backend email notification; needs support inbox/domain setup, RLS, retention, spam controls, and fake email-client tests.
+- [~] IN PROGRESS [HARD]: Feedback table-only backend is implemented with authenticated RLS, validation, and rolling submission limits; production submission UI/migration smoke and optional Resend notification still need setup.
 - [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [x] DONE [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
 - [x] DONE [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
