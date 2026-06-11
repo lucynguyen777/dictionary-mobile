@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Malay Corpus Measurement And Candidate Pack** - DONE WITH MEASURED BLOCKERS
+- Module Completion Plan: apply the measured promotion pipeline to Malay with explicit reduplication, safe affix, `meN-`, and `peN-` coverage; keep Malay preview unless every gate passes.
+- Acceptance criteria: exactly 100 balanced probes exist; live API and revisioned Kaikki candidate measurements are frozen; a 5,000-entry candidate pack is built only under ignored `tmp/`; complex morphology gaps remain explicit.
+- [x] DONE [MEDIUM]: Audited current Malay WiktAPI adapter, baseline morphology, and revisioned Kaikki source availability.
+- [x] DONE [MEDIUM]: Added a balanced Malay 100-probe sample including 20 inflected/allomorph cases.
+- [x] DONE [HARD]: Ran and froze live source plus candidate-pack coverage measurements.
+- [x] DONE [HARD]: Built/evaluated the ignored 5,000-entry candidate pack, recorded representative/morphology blockers, and added conservative common-root restoration for `meN-`/`peN-` allomorphs with focused tests.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the measured Malay module for commit/push without deploy.
+
 **Module: French Corpus And Offline Pack Candidate** - DONE WITH MEASURED BLOCKERS
 - Module Completion Plan: select a revisioned French corpus candidate, prove bounded extraction and pack generation, and keep French preview unless representative/offline runtime gates pass.
 - Acceptance criteria: source URL/license/revision are recorded; at least 5,000 attributed candidate entries package successfully; candidate remains uncommitted; representative coverage and remaining blockers are documented honestly.

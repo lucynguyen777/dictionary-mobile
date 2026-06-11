@@ -339,6 +339,42 @@ function getMalayMorphologyCandidates(input: string): MorphologyCandidate[] {
     candidates.push(createCandidate(word.slice(2, -2), 'apitan ke-...-an'));
   }
 
+  // Conservative meN-/peN- allomorph restoration. Keep both stripped and
+  // restored-initial candidates where the surface form is ambiguous.
+  if (word.startsWith('meng') && word.length > 6) {
+    const stem = word.slice(4);
+    candidates.push(createCandidate(stem, 'awalan meng-'));
+    if (/^[aeiou]/.test(stem)) candidates.push(createCandidate(`k${stem}`, 'awalan meng- (pulihkan k)'));
+  }
+  if (word.startsWith('meny') && word.length > 6) {
+    candidates.push(createCandidate(`s${word.slice(4)}`, 'awalan meny- (pulihkan s)'));
+  }
+  if (word.startsWith('men') && word.length > 5) {
+    const stem = word.slice(3);
+    candidates.push(createCandidate(stem, 'awalan men-'));
+    if (/^[aeiou]/.test(stem)) candidates.push(createCandidate(`t${stem}`, 'awalan men- (pulihkan t)'));
+  }
+  if (word.startsWith('mem') && word.length > 5) {
+    const stem = word.slice(3);
+    candidates.push(createCandidate(stem, 'awalan mem-'));
+    if (/^[aeiou]/.test(stem)) candidates.push(createCandidate(`p${stem}`, 'awalan mem- (pulihkan p)'));
+  }
+  if (word.startsWith('peng') && word.length > 6) {
+    const stem = word.slice(4);
+    candidates.push(createCandidate(stem, 'awalan peng-'));
+    if (/^[aeiou]/.test(stem)) candidates.push(createCandidate(`k${stem}`, 'awalan peng- (pulihkan k)'));
+  }
+  if (word.startsWith('pen') && word.length > 5) {
+    const stem = word.slice(3);
+    candidates.push(createCandidate(stem, 'awalan pen-'));
+    if (/^[aeiou]/.test(stem)) candidates.push(createCandidate(`t${stem}`, 'awalan pen- (pulihkan t)'));
+  }
+  if (word.startsWith('pem') && word.length > 5) {
+    const stem = word.slice(3);
+    candidates.push(createCandidate(stem, 'awalan pem-'));
+    if (/^[aeiou]/.test(stem)) candidates.push(createCandidate(`p${stem}`, 'awalan pem- (pulihkan p)'));
+  }
+
   return uniqueCandidates(candidates, word).slice(0, 5);
 }
 

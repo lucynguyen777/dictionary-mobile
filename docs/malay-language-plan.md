@@ -45,7 +45,7 @@ Malay morphology relies heavily on affixation and reduplication. The baseline ha
 2. ✅ Register `ms` adapter in `data/adapterRegistry.ts` using WiktAPI.
 3. ✅ Wire Malay into `dictionaryApi.ts` dispatch functions.
 4. ✅ Add basic Malay morphology candidates to `data/morphology.ts` (reduplication, simple prefixes/suffixes).
-5. 🔲 Future: integrate a full Malay stemmer (like Malaya) for *meN-* / *peN-* prefixes.
+5. ✅ Add conservative *meN-* / *peN-* allomorph restoration for common roots; keep a full linguistic stemmer and broader corpus validation as future production work.
 6. 🔲 Future: bilingual MS→EN or MS→VI.
 
 ## Tests
