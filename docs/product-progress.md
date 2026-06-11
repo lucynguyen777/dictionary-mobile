@@ -155,17 +155,26 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
 
 ### Prioritized Module Queue After v1.3.6
 
-1. **Supabase Auth And Cloud Sync Production Smoke**: Supabase is connected/configured; blocked until redirect allow-list, disposable project/users, RLS probes, and two-device smoke setup are verified.
-2. **Provider Feature Gates**: blocked until provider env/OAuth/backend setup exists; see `docs/provider-feature-gates-status.md`.
-3. **Language Corpus Expansion Follow-up**: after source smoke, expand Spanish, Malay, French, and `fr->vi` only with measured corpus size, attribution, related words, examples, offline packaging, and UI smoke.
-4. **Offline Pack Expansion Retry**: add hosted packs/corpus packaging for production-ready languages only after Language Corpus Expansion produces an approved source/dump candidate with source date, checksum, license, attribution, and offline lookup smoke.
-5. **OCR Backend/Native Smoke Follow-up**: deploy a real Chandra endpoint, run scanned-PDF smoke, and separately validate MLKit camera OCR in a dev-client.
+1. **Language Plan Truth Reconciliation**: keep all language-plan status blocks synchronized with the generated coverage inventory and do not leave implemented previews described as unavailable.
+2. **French 100-Headword Corpus Measurement**: measure the sole active promotion candidate before attempting any new offline pack.
+3. **French Corpus And Offline Pack Candidate**: require an approved attributed corpus with at least 5,000 entries before packaging or promotion.
+4. **Malay Then Spanish Promotion**: repeat the same measured gate one language at a time after French passes or is explicitly rejected.
+5. **Remaining Language Batches**: prioritize high-usage scripts and keep source-gated languages blocked until license/source evidence exists.
 
 ## Current Baseline
 - Latest completed commits:
   - `45bd963` fix(reader): wire Chandra scanned PDF requests
 
 ## Next Work Module
+
+**Module: Language Completion Roadmap - Truth And French Measurement** - DONE
+- Module Completion Plan: reconcile stale language-plan truth, establish a reusable measured-corpus report, and complete the bounded French 100-headword measurement without falsely promoting French or packaging an unapproved corpus.
+- Acceptance criteria: stale plan files identify implemented preview status; inventory/plan guard tests pass; French has exactly 100 representative probes with source date/license and measured coverage; French remains preview while any shared promotion gate fails.
+- [x] DONE [MEDIUM]: Reconciled stale Swahili, Malayalam, Amharic, Somali, Russian, and Mandarin plan status against current adapters/tests.
+- [x] DONE [MEDIUM]: Added reusable corpus measurement types/tooling and a balanced French 100-headword list.
+- [x] DONE [MEDIUM]: Ran and froze the bounded French source measurement report with exact/examples/related/morphology/missing metrics.
+- [x] DONE [MEDIUM]: Added plan/inventory consistency and measurement/promotion guard tests.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the completed module for commit/push without deploy.
 
 **Module: Feedback Table-Only Backend MVP** - DONE
 - Module Completion Plan: complete the feedback backend foundation without requiring Resend by adding authenticated storage, RLS, bounded validation, abuse controls, and tested proxy routing; keep notification and account deletion as separate staged work.

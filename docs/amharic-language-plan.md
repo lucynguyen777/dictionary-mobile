@@ -1,5 +1,11 @@
 # Amharic Monolingual Baseline Plan
 
+## Current Implementation Status
+- **State**: Implemented monolingual preview.
+- **Evidence**: Amharic metadata, adapter routing, local attributed fixtures, Ge'ez-aware normalization/morphology fallbacks, and focused lookup tests are present.
+- **Production gap**: The local corpus is too small for production parity and no approved packaged corpus has passed promotion gates.
+- **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
+
 ## Language Metadata
 - **Code**: `am`
 - **Display name**: Amharic (አማርኛ)

@@ -1,5 +1,11 @@
 # Somali Monolingual Baseline Plan
 
+## Current Implementation Status
+- **State**: Implemented monolingual preview.
+- **Evidence**: Somali metadata, adapter routing, local attributed fixtures, definite-article/plural morphology fallbacks, and focused lookup tests are present.
+- **Production gap**: The fixture corpus and morphology sample are not broad enough for production parity.
+- **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
+
 ## Language Metadata
 - **Code**: `so`
 - **Display name**: Af-Soomaali (Somali)

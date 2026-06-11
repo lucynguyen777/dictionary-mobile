@@ -1,5 +1,11 @@
 # Russian Monolingual Baseline Plan
 
+## Current Implementation Status
+- **State**: Implemented monolingual preview.
+- **Evidence**: Russian metadata, Cyrillic normalization, adapter routing, local attributed fixtures, case/aspect morphology fallbacks, and focused lookup tests are present.
+- **Production gap**: A measured Russian corpus, richer paradigms, and an approved offline-pack path are still missing.
+- **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
+
 ## Language Metadata
 - **Code**: `ru`
 - **Display name**: Russian (Русский)

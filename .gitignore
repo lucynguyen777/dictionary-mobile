@@ -51,6 +51,7 @@ app-example
 data/wiktionary-cache/
 data/wiktionary-bulk-runs/
 tmp/offline-packs/
+tmp/language-measurements/
 
 # temporary app-testing screenshots and browser artifacts
 tmp/app-testing/

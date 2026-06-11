@@ -19,13 +19,13 @@ French remains **measured preview** until all gates pass:
 | Offline import/delete/lookup smoke | Pass |
 | Word/Reader/Library UI smoke | Pass |
 
-Current frozen evidence covers three passing common-word probes and live attribution behavior, but does not meet corpus-size, examples, relations, morphology, or offline-pack gates. Do not promote French or publish a French pack yet.
+Current frozen evidence covers the bounded 100-headword report in `docs/french-100-headword-measurement.md`. It passes the representative-sample, inflected-probe, and example gates, but fails exact lookup, related words, attributed corpus size, source revision date, and offline-pack gates. Do not promote French or publish a French pack yet.
 
-The executable gate lives in `data/languagePromotionGate.ts`. It records French as the only active candidate and deliberately fails promotion while the source date, measured corpus, and offline pack smoke are missing.
+The executable gate lives in `data/languagePromotionGate.ts`. It records French as the only active candidate and deliberately fails promotion while the upstream source revision date, full corpus, related words, exact coverage, and offline pack smoke are missing.
 
 ## Execution Order
 
-1. Measure a 100-headword French sample from an approved French Wiktionary/Wiktextract source.
+1. Select an approved French Wiktionary/Wiktextract corpus with at least 5,000 attributed entries and a recorded revision date.
 2. Build a generated candidate pack under `tmp/offline-packs/`.
 3. Verify source date, license, attribution, checksums, exact/morphology/missing lookup, examples, and relations.
 4. Run native import/delete/lookup plus Word/Reader/Library UI smoke.
@@ -37,16 +37,16 @@ After French passes or is explicitly rejected, repeat the same gate for Malay, t
 
 | Measurement | Current | Required | Result |
 | --- | ---: | ---: | --- |
-| Representative headwords | 3 | 100 | Blocked |
-| Attributed entries | 3 | 5,000 | Blocked |
-| Exact lookup | 100% | 95% | Pass for bounded sample only |
-| Morphology | 0% measured | 85% | Blocked |
-| Examples | 0% measured | 40% | Blocked |
+| Representative headwords | 100 | 100 | Pass |
+| Attributed entries | 92 measured; no 5,000-entry corpus | 5,000 | Blocked |
+| Exact lookup | 92% | 95% | Blocked |
+| Morphology | 85% source coverage | 85% | Pass for bounded sample |
+| Examples | 100% of resolved entries | 40% | Pass for bounded sample |
 | Related words | 0% measured | 30% | Blocked |
 | Source license | Recorded | Recorded | Pass |
-| Source date | Not recorded | Recorded | Blocked |
+| Source date | Measurement date recorded; upstream revision date missing | Recorded | Blocked |
 | Offline pack entries | 0 | 5,000 | Blocked |
 | Offline pack smoke | Not run | Pass | Blocked |
 | UI smoke | Pass | Pass | Pass |
 
-The next implementation module must first produce a reproducible 100-headword report and record the exact source/dump date. A candidate pack must stay under `tmp/offline-packs/` until every promotion gate passes.
+The next implementation module must select a reproducible 5,000-entry corpus candidate and record its exact source/dump revision date. A candidate pack must stay under `tmp/offline-packs/` until every promotion gate passes.

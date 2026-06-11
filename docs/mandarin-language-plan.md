@@ -1,5 +1,11 @@
 # Mandarin Monolingual Baseline Plan
 
+## Current Implementation Status
+- **State**: Implemented monolingual preview.
+- **Evidence**: Mandarin metadata, adapter routing, local attributed fixtures, simplified/traditional variant fallbacks, Reader segmentation support, and focused lookup tests are present.
+- **Production gap**: The fixture corpus is too small and has no measured production/offline-pack evidence.
+- **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
+
 ## Language Metadata
 - **Code**: `zh`
 - **Display name**: Chinese (中文 / 汉语)

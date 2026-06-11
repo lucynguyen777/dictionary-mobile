@@ -32,16 +32,16 @@ export const LANGUAGE_PROMOTION_THRESHOLDS = {
 } as const;
 
 export const frenchPromotionMeasurement: LanguagePromotionMeasurement = {
-  attributedEntries: 3,
-  exampleCoveragePercent: 0,
-  exactLookupPassPercent: 100,
+  attributedEntries: 92,
+  exampleCoveragePercent: 100,
+  exactLookupPassPercent: 92,
   languageCode: 'fr',
   missingResultPass: true,
-  morphologyPassPercent: 0,
+  morphologyPassPercent: 85,
   offlinePackEntryCount: 0,
   offlinePackSmokePassed: false,
   relatedWordsCoveragePercent: 0,
-  representativeHeadwords: 3,
+  representativeHeadwords: 100,
   uiSmokePassed: true,
 };
 

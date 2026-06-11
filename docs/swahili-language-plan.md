@@ -1,5 +1,11 @@
 # Swahili Monolingual Baseline Plan
 
+## Current Implementation Status
+- **State**: Implemented monolingual preview.
+- **Evidence**: `sw` metadata, adapter routing, local attributed fixtures, noun-class/verb-prefix morphology fallbacks, and focused lookup tests are present.
+- **Production gap**: The fixture corpus is intentionally tiny. Swahili remains preview until a measured, approved monolingual corpus and offline-pack path pass the shared promotion gate.
+- **Historical note**: The blocker and implementation plan below record the original pre-implementation investigation; they no longer describe current runtime availability.
+
 ## Language
 - Code: `sw`
 - Display name: Kiswahili

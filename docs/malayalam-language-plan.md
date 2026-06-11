@@ -1,5 +1,11 @@
 # Malayalam Monolingual Baseline Plan
 
+## Current Implementation Status
+- **State**: Implemented monolingual preview.
+- **Evidence**: Malayalam metadata, Reader script support, adapter routing, local attributed fixtures, suffix morphology fallbacks, and focused lookup tests are present.
+- **Production gap**: Coverage is fixture-sized and has no measured corpus/offline-pack promotion evidence.
+- **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
+
 ## Language Metadata
 - **Code**: `ml`
 - **Display name**: മലയാളം (Malayalam)
