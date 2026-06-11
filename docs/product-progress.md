@@ -93,6 +93,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 - Source-gated/unavailable: Cantonese, Uyghur, VI to FR, Basque, Ainu, Quechua, Nahuatl, and Guarani remain blocked until source/license gates pass.
 - Anh-Viet parity criteria: enough headword coverage, morphology, examples, related words, attribution, import/offline packaging path, UI smoke, and tests. Machine translation must not be used as dictionary data.
 - Inventory baseline: `docs/language-coverage-inventory.md` records the v1.3.3 per-language table generated from `data/languageCoverageInventory.ts`.
+- Production roadmap: `docs/language-production-readiness-roadmap.md` defines the detailed per-language plan, shared build batches, easy-to-hard order, and one-language-at-a-time promotion rule.
 
 ### Language Parity Completion Plan
 
@@ -104,7 +105,7 @@ Goal: raise preview languages toward the Anh-Viet production standard without pr
 4. **Parity Adapter Module**: expand adapters beyond tiny fixtures with production lookup behavior: exact lookup, morphology, examples, related words, pronunciation/romanization where available, and missing-result behavior.
 5. **Parity QA Module**: add language-specific fixture tests, UI smoke tests for Word/Reader/Library flows, offline pack smoke where available, and dashboard status updates before moving any language from preview to production parity.
 
-Recommended execution order: Spanish/French/English-family Latin-script expansion first, then already implemented high-usage scripts (Arabic/Hebrew, Japanese/Korean/Mandarin, Hindi), then remaining preview families, then source-gated languages only after the matching source gate passes.
+Recommended execution order: French, Malay, Spanish; Latin fixture previews; agglutinative Latin previews; Russian/Kazakh/Hindi; Arabic/Hebrew; Mandarin/Japanese/Korean; complex-script previews; then source-gated targets only after the matching source gate passes.
 
 ### Versioned Completion Roadmap
 
@@ -166,6 +167,15 @@ Recommended execution order: Spanish/French/English-family Latin-script expansio
   - `45bd963` fix(reader): wire Chandra scanned PDF requests
 
 ## Next Work Module
+
+**Module: Language Production Readiness Planning And Batch Design** - DONE
+- Module Completion Plan: create a decision-complete production plan for every registered language, supported bilingual pair, and future source gate; group reusable work without promoting multiple languages together.
+- Acceptance criteria: every target has a source plan, language-specific work, difficulty/order, and production gate; shared batches are explicit; source-gated work remains blocked; roadmap coverage tests pass.
+- [x] DONE [MEDIUM]: Audited all registered languages, existing plan files, family/script similarities, morphology support, and source gates.
+- [x] DONE [HARD]: Defined shared production batches from easy to hard while preserving one-language-at-a-time promotion.
+- [x] DONE [HARD]: Added detailed per-language and bilingual/source-gate production plans in `docs/language-production-readiness-roadmap.md`.
+- [x] DONE [MEDIUM]: Added structured roadmap data and guard tests covering every registered language, bilingual pair, and future source gate exactly once.
+- [x] DONE [EASY]: Ran verification/security audit and prepared the planning module for commit/push without deploy.
 
 **Module: Language Completion Roadmap - Truth And French Measurement** - DONE
 - Module Completion Plan: reconcile stale language-plan truth, establish a reusable measured-corpus report, and complete the bounded French 100-headword measurement without falsely promoting French or packaging an unapproved corpus.
