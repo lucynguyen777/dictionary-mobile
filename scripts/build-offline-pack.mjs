@@ -43,6 +43,7 @@ const manifest = {
   schemaVersion: 1,
   sourceName: args.source,
   sourceUrl: args.sourceUrl ?? '',
+  sourceRevision: args.sourceRevision ?? '',
 };
 
 writeFileSync(join(args.out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
@@ -116,9 +117,10 @@ function normalizeExamples(rawEntry) {
 }
 
 function normalizeRelations(rawEntry) {
+  const senses = Array.isArray(rawEntry.senses) ? rawEntry.senses : [];
   return {
-    antonyms: normalizeLinkage(rawEntry.antonyms),
-    synonyms: normalizeLinkage(rawEntry.synonyms),
+    antonyms: normalizeLinkage([...(rawEntry.antonyms ?? []), ...senses.flatMap((sense) => sense.antonyms ?? [])]),
+    synonyms: normalizeLinkage([...(rawEntry.synonyms ?? []), ...senses.flatMap((sense) => sense.synonyms ?? [])]),
   };
 }
 

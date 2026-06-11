@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: French Corpus And Offline Pack Candidate** - DONE WITH MEASURED BLOCKERS
+- Module Completion Plan: select a revisioned French corpus candidate, prove bounded extraction and pack generation, and keep French preview unless representative/offline runtime gates pass.
+- Acceptance criteria: source URL/license/revision are recorded; at least 5,000 attributed candidate entries package successfully; candidate remains uncommitted; representative coverage and remaining blockers are documented honestly.
+- [x] DONE [HARD]: Selected Kaikki French-Wiktionary JSONL with CC BY-SA/GFDL metadata and source revision `2026-06-07`.
+- [x] DONE [HARD]: Added bounded streaming extraction and built an ignored 5,000-entry candidate pack with revision metadata.
+- [x] DONE [MEDIUM]: Extended pack relation normalization to include sense-level synonyms/antonyms.
+- [x] DONE [MEDIUM]: Measured the first-5,000-row candidate against the 100-headword sample; only 39/100 were present, so the candidate is not representative and must not ship.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the measured candidate module for commit/push without deploy.
+
 **Module: Language Production Readiness Planning And Batch Design** - DONE
 - Module Completion Plan: create a decision-complete production plan for every registered language, supported bilingual pair, and future source gate; group reusable work without promoting multiple languages together.
 - Acceptance criteria: every target has a source plan, language-specific work, difficulty/order, and production gate; shared batches are explicit; source-gated work remains blocked; roadmap coverage tests pass.

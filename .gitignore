@@ -52,6 +52,7 @@ data/wiktionary-cache/
 data/wiktionary-bulk-runs/
 tmp/offline-packs/
 tmp/language-measurements/
+tmp/language-candidates/
 
 # temporary app-testing screenshots and browser artifacts
 tmp/app-testing/

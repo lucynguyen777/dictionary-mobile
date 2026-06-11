@@ -15,8 +15,8 @@ describe('one-language promotion gate', () => {
 
     expect(candidate?.languageCode).toBe('fr');
     expect(result.state).toBe('measured-preview');
-    expect(result.blockers).toContain('source-date');
-    expect(result.blockers).toContain('attributed-corpus-size');
+    expect(result.blockers).not.toContain('source-date');
+    expect(result.blockers).not.toContain('attributed-corpus-size');
     expect(result.blockers).toContain('offline-pack-smoke');
   });
 

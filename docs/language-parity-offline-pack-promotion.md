@@ -19,7 +19,7 @@ French remains **measured preview** until all gates pass:
 | Offline import/delete/lookup smoke | Pass |
 | Word/Reader/Library UI smoke | Pass |
 
-Current frozen evidence covers the bounded 100-headword report in `docs/french-100-headword-measurement.md`. It passes the representative-sample, inflected-probe, and example gates, but fails exact lookup, related words, attributed corpus size, source revision date, and offline-pack gates. Do not promote French or publish a French pack yet.
+Current frozen evidence covers the bounded 100-headword report and a reproducible 5,000-entry Kaikki candidate in `docs/french-100-headword-measurement.md`. Source revision, attributed corpus size, and candidate pack size now pass, but exact lookup, related words, representative candidate coverage, and offline runtime smoke still fail. Do not promote French or publish a French pack yet.
 
 The executable gate lives in `data/languagePromotionGate.ts`. It records French as the only active candidate and deliberately fails promotion while the upstream source revision date, full corpus, related words, exact coverage, and offline pack smoke are missing.
 
@@ -38,14 +38,14 @@ After French passes or is explicitly rejected, repeat the same gate for Malay, t
 | Measurement | Current | Required | Result |
 | --- | ---: | ---: | --- |
 | Representative headwords | 100 | 100 | Pass |
-| Attributed entries | 92 measured; no 5,000-entry corpus | 5,000 | Blocked |
+| Attributed entries | 5,000-entry Kaikki candidate | 5,000 | Pass |
 | Exact lookup | 92% | 95% | Blocked |
 | Morphology | 85% source coverage | 85% | Pass for bounded sample |
 | Examples | 100% of resolved entries | 40% | Pass for bounded sample |
 | Related words | 0% measured | 30% | Blocked |
 | Source license | Recorded | Recorded | Pass |
-| Source date | Measurement date recorded; upstream revision date missing | Recorded | Blocked |
-| Offline pack entries | 0 | 5,000 | Blocked |
+| Source date | Kaikki source revision `2026-06-07` | Recorded | Pass |
+| Offline pack entries | 5,000 candidate entries | 5,000 | Pass |
 | Offline pack smoke | Not run | Pass | Blocked |
 | UI smoke | Pass | Pass | Pass |
 
