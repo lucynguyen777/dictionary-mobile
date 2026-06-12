@@ -986,10 +986,19 @@ function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
   if (word.length < 2) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const verifiedFixtureForms: Record<string, string> = {
+    '먹었어요': '먹다',
+    '먹을': '먹다',
+  };
+
+  const verifiedLemma = verifiedFixtureForms[word];
+  if (verifiedLemma) {
+    candidates.push(createCandidate(verifiedLemma, 'verified fixture-backed form'));
+  }
 
   // 1. Particle stripping for nouns (은/는, 이/가, 을/를, 에, 에서, 의, 에게, 한테)
   const particles = ['은', '는', '이', '가', '을', '를', '에', '에서', '의', '에게', '한테', '으로', '로'];

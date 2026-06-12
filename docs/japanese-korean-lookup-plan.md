@@ -8,6 +8,7 @@ Plan Japanese and Korean monolingual lookup tracks before adding adapters. This 
 - Japanese and Korean metadata, monolingual preview adapters, local attributed fixtures, morphology fallbacks, and focused tests are now implemented.
 - Both remain preview-only because production corpus coverage, parser measurement, segmentation UI smoke, and offline packaging have not passed.
 - Current Japanese promotion evidence and remaining boundaries are recorded in `docs/japanese-production-source-audit.md`.
+- Current Korean promotion evidence and remaining boundaries are recorded in `docs/korean-production-source-audit.md`.
 
 ## Current Metadata
 Source: `data/languages.ts`
@@ -79,6 +80,7 @@ Candidate sources:
 - WiktAPI if the target endpoint returns usable Korean entries from a suitable Wiktionary edition.
 - Korean Wiktionary edition extracts for monolingual Korean definitions, if extraction quality is acceptable.
 - UniMorph or Korean-specific morphology datasets only for inflection/paradigm support, not definitions.
+- NIKL data remains a separate candidate whose API/license/redistribution terms must be validated before integration.
 
 Do not use machine translation or bilingual dictionary output to fake Korean monolingual definitions.
 

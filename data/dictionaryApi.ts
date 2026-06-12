@@ -1296,13 +1296,21 @@ export async function fetchKoreanMeaning(word: string): Promise<ApiMeaningResult
 
 export async function fetchKoreanRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('ko', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('ko', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  for (const lookupWord of lookupCandidates) {
+    const localEntry = findLocalDictionaryEntry('ko', lookupWord);
+    if (localEntry) {
+      return {
+        synonyms: localEntry.synonyms || [],
+        antonyms: localEntry.antonyms || [],
+      };
+    }
   }
+
   return { synonyms: [], antonyms: [] };
 }
 

@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Korean Native Source And Contracted-Form Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate Korean-edition Wiktextract as the native-definition source path and close narrow verified contracted-form/related-word gaps without broad conjugation or pronunciation guessing.
+- Acceptance criteria: Korean source/pronunciation boundaries and NIKL terms gate are recorded; exact lookup stays first; verified contracted forms, particles, and inflected relations resolve; production promotion waits for measured segmentation/corpus/offline gates.
+- [x] DONE [HARD]: Audited current Korean adapter, source smoke, kowiktionary pronunciation evidence, morphology, and production blockers.
+- [x] DONE [MEDIUM]: Added NFC-safe bounded fixture forms and morphology-aware related-word lookup while preserving exact lookup.
+- [x] DONE [MEDIUM]: Documented Korean production extraction/pronunciation boundaries and reconciled shared source-smoke next steps.
+- [x] DONE [MEDIUM]: Added focused source/contracted-form readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit, then prepared the Korean source/contracted-form readiness module for commit/push without deploy.
+
 **Module: Japanese Native Source And Ichidan Lookup Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: reconcile stale Japanese pre-adapter docs with current preview code and close narrow verified ichidan/related-word gaps without broad conjugation or pitch-accent guessing.
 - Acceptance criteria: Japanese-edition Wiktextract/form-of requirements are recorded; English-definition data remains helper-only; exact lookup stays first; verified ichidan forms and inflected relations resolve; production promotion waits for measured tokenizer/readings/offline gates.

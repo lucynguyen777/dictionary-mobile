@@ -43,10 +43,10 @@ Endpoint/data smoke on May 18, 2026.
 - Japanese and Korean now have bounded monolingual preview adapters; neither has production corpus parity.
 
 ## Next Safe Work
-1. Keep Japanese/Korean adapter implementation blocked until source licensing/attribution policy is accepted for Wiktionary-derived data.
-2. If accepted, create curated fixtures for `猫`, `たべる`, `사랑`, and `먹다` without committing full dumps.
-3. Confirm source attribution UI/data fields before adapter code.
-4. Only then add one adapter slice at a time.
+1. Build bounded Japanese/Korean-edition Wiktextract importers without committing full dumps.
+2. Measure balanced target-language headword sets, parser accuracy, forms/readings, and missing rows.
+3. Confirm source attribution UI/data fields before offline packaging.
+4. Run segmentation and inflected lookup UI smoke before production promotion.
 
 ## Sources Checked
 - WiktAPI overview: https://wiktapi.dev/
