@@ -1033,10 +1033,17 @@ function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getSwahiliMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim().toLowerCase();
+  const word = normalizeMorphologyInput(input);
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
+
+  if (word.startsWith('ku') && word.length > 4) {
+    const infinitiveStem = word.slice(2);
+    if (infinitiveStem.endsWith('a')) {
+      candidates.push(createCandidate(infinitiveStem, 'infinitive prefix stripped (ku-)'));
+    }
+  }
 
   // 1. Noun Class Plural-to-Singular fallbacks:
   // - Class 2 to 1 (wa- -> m-)
@@ -1067,6 +1074,7 @@ function getSwahiliMorphologyCandidates(input: string): MorphologyCandidate[] {
   // Tense markers: -na- (present), -li- (past), -ta- (future), -me- (perfect)
   const tenses = ['na', 'li', 'ta', 'me'];
   const subjects = ['ni', 'u', 'a', 'tu', 'm', 'wa'];
+  const objectPrefixes = ['ni', 'ku', 'm', 'tu', 'wa', 'ki', 'vi'];
 
   for (const sub of subjects) {
     for (const tense of tenses) {
@@ -1076,10 +1084,11 @@ function getSwahiliMorphologyCandidates(input: string): MorphologyCandidate[] {
         if (remaining.endsWith('a')) {
           candidates.push(createCandidate(remaining, 'verb root'));
         }
-        if (remaining.startsWith('ku') && remaining.length > 4) {
-          const rootWord = remaining.slice(2);
+        for (const objectPrefix of objectPrefixes) {
+          if (!remaining.startsWith(objectPrefix) || remaining.length <= objectPrefix.length + 2) continue;
+          const rootWord = remaining.slice(objectPrefix.length);
           if (rootWord.endsWith('a')) {
-            candidates.push(createCandidate(rootWord, 'verb root (with object pronoun stripped)'));
+            candidates.push(createCandidate(rootWord, `verb root (object prefix ${objectPrefix}- stripped)`));
           }
         }
       }

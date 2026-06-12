@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Swahili Native Source And Verb Prefix Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate native Swahili Wiktionary as the production extraction candidate and improve conservative fixture-backed verb-prefix lookup while preserving preview status.
+- Acceptance criteria: native Swahili-definition source viability is recorded; English-definition Kaikki stays ineligible; infinitive and common object-prefix forms around verified fixtures resolve through the existing adapter; production promotion waits for measurement/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-Wiktionary-derived Kaikki Swahili, and native `sw.wiktionary.org` source viability.
+- [x] DONE [MEDIUM]: Added conservative infinitive and object-prefix handling around the verified `penda` fixture path.
+- [x] DONE [MEDIUM]: Reconciled stale Swahili plan/source truth and documented the native extraction/measurement decision.
+- [x] DONE [MEDIUM]: Added focused source/morphology readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Swahili source/verb-prefix readiness module for commit/push without deploy.
+
 **Module: Tagalog Native Source And Orthography Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate the native Tagalog Wiktionary extraction path and improve conservative fixture-backed orthography lookup without treating English-definition helper data as production corpus.
 - Acceptance criteria: native Tagalog-definition source viability is recorded; Kaikki English glosses stay ineligible; accent-insensitive lookup preserves displayed headwords; verified Baybayin fixture lookup works; production status remains preview until measurement/pack gates pass.

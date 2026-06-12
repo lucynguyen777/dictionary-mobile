@@ -4,6 +4,7 @@
 - **State**: Implemented monolingual preview.
 - **Evidence**: `sw` metadata, adapter routing, local attributed fixtures, noun-class/verb-prefix morphology fallbacks, and focused lookup tests are present.
 - **Production gap**: The fixture corpus is intentionally tiny. Swahili remains preview until a measured, approved monolingual corpus and offline-pack path pass the shared promotion gate.
+- **Production source audit**: `docs/swahili-production-source-audit.md` accepts native `sw.wiktionary.org` as the extraction/measurement candidate and rejects English-definition Kaikki data.
 - **Historical note**: The blocker and implementation plan below record the original pre-implementation investigation; they no longer describe current runtime availability.
 
 ## Language
@@ -47,12 +48,12 @@ Swahili is heavily agglutinative and relies on a robust noun class system rather
 ### The Monolingual Blocker
 - Testing `https://api.wiktapi.dev/v1/sw/word/mtu` returns a **404 error**, indicating that the `sw` edition of Wiktionary is not supported or extracted by WiktAPI.
 - While the `en` edition of WiktAPI contains Swahili words (`lang_code: sw`), it provides **English definitions**. Using this would create a bilingual (SW→EN) dictionary.
-- The project rules strictly mandate a **monolingual-first** build (`SW→SW`). Since no reliable, structured monolingual API is available, the implementation is blocked.
+- Native `sw.wiktionary.org` provides Kiswahili definitions and is now the accepted extraction/measurement candidate. Production promotion remains gated by parser, coverage, attribution, and offline-pack verification.
 
 ## Implementation Plan
-1. ✅ Add `sw` language metadata to `data/languages.ts` but mark it as `dictionaryStatus: 'unavailable'` so the UI shows "Coming soon" (Sắp hỗ trợ).
-2. 🔲 Blocked: Do not register a Swahili adapter until a monolingual source is found or the monolingual-first rule is amended.
-3. 🔲 Blocked: Morphology generator is postponed until a source can validate the roots.
+1. ✅ Swahili metadata, adapter, tiny local fixtures, noun-class mappings, and bounded verb-prefix morphology are implemented at preview level.
+2. 🔲 Build and measure a bounded native `sw.wiktionary.org` extraction path.
+3. 🔲 Build an attributed offline candidate and run UI/offline promotion smoke.
 
 ## First Safe Task
-Add the language metadata config as "unavailable" and document the source blocker.
+Build the bounded native Swahili Wiktionary extractor and balanced 100-headword measurement.
