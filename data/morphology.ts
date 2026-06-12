@@ -220,6 +220,30 @@ function getSpanishMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const irregularBaseForms: Record<string, string[]> = {
+    digo: ['decir'],
+    dice: ['decir'],
+    fueron: ['ir', 'ser'],
+    fui: ['ir', 'ser'],
+    fue: ['ir', 'ser'],
+    hago: ['hacer'],
+    hace: ['hacer'],
+    puedo: ['poder'],
+    puede: ['poder'],
+    quiero: ['querer'],
+    quiere: ['querer'],
+    sé: ['saber'],
+    sabe: ['saber'],
+    tengo: ['tener'],
+    tiene: ['tener'],
+    vengo: ['venir'],
+    viene: ['venir'],
+    voy: ['ir'],
+    va: ['ir'],
+  };
+  for (const base of irregularBaseForms[word] ?? []) {
+    candidates.push(createCandidate(base, 'verbo irregular'));
+  }
 
   // Plural → singular: -ces → -z (e.g. lápices → lápiz, voces → voz)
   if (word.endsWith('ces') && word.length > 4) {

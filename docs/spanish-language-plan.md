@@ -54,8 +54,8 @@ Monolingual Spanish dictionary lookup (ES→ES) using the Spanish Wiktionary via
 4. ✅ Add basic Spanish morphology candidates to `data/morphology.ts`.
 5. ✅ Make WiktAPI gender labels language-aware (Spanish: masculino/femenino).
 6. 🔲 Future: add bilingual ES→VI or ES→EN when a trustworthy lexical source is selected.
-7. 🔲 Future: irregular verb morphology table for common Spanish verbs.
-8. 🔲 Future: accent-insensitive search fallback.
+7. ✅ Add a bounded irregular verb morphology table for common Spanish forms.
+8. 🔲 Future: add only evidence-backed accent fallback; do not globally strip accents because forms such as `si/sí` and `el/él` differ in meaning.
 
 ## Tests
 - Existing `adapterRegistry.test.ts` and `dictionaryApi.test.ts` pass (9/9).

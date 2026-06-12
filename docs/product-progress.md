@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Spanish Corpus Measurement And Candidate Pack** - DONE WITH MEASURED BLOCKERS
+- Module Completion Plan: apply the measured promotion pipeline to Spanish with accent, adjective agreement, regular conjugation, and irregular verb coverage; keep Spanish preview unless every gate passes.
+- Acceptance criteria: exactly 100 balanced probes exist; live API and revisioned Kaikki measurements are frozen; a 5,000-entry candidate pack stays ignored; accent handling remains meaning-safe.
+- [x] DONE [MEDIUM]: Audited current Spanish WiktAPI adapter, baseline morphology, and revisioned Kaikki source availability.
+- [x] DONE [MEDIUM]: Added a balanced Spanish 100-probe sample including 20 inflected/irregular cases.
+- [x] DONE [MEDIUM]: Added bounded common irregular-verb morphology without unsafe global accent stripping.
+- [x] DONE [HARD]: Ran/froze live and 5,000-entry candidate-pack measurements; recorded exact, related-word, representative-coverage, and offline-smoke blockers.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the measured Spanish module for commit/push without deploy.
+
 **Module: Malay Corpus Measurement And Candidate Pack** - DONE WITH MEASURED BLOCKERS
 - Module Completion Plan: apply the measured promotion pipeline to Malay with explicit reduplication, safe affix, `meN-`, and `peN-` coverage; keep Malay preview unless every gate passes.
 - Acceptance criteria: exactly 100 balanced probes exist; live API and revisioned Kaikki candidate measurements are frozen; a 5,000-entry candidate pack is built only under ignored `tmp/`; complex morphology gaps remain explicit.
