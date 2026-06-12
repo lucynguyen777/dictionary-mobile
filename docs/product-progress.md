@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Hebrew Native Source And Niqqud Lookup Readiness** - DONE WITH CORPUS-SIZE GATE
+- Module Completion Plan: measure native Hebrew Wiktionary viability honestly and add conservative pointed/unpointed fixture lookup without broad shoresh/binyan guessing.
+- Acceptance criteria: native Hebrew-definition source scale/parser risk are recorded; English-definition data remains helper-only; exact pointed lookup stays first; verified pointed/prefixed/plural forms and relations resolve; production promotion waits for coverage/RTL/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-definition Hebrew support data, native `he.wiktionary.org`, and corpus/parser constraints.
+- [x] DONE [MEDIUM]: Added conservative Hebrew niqqud-insensitive fallback and morphology-aware related-word lookup.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated shared RTL plan truth.
+- [x] DONE [MEDIUM]: Added focused source/niqqud lookup readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit, then prepared the Hebrew source/niqqud readiness module for commit/push without deploy.
+
 **Module: Arabic Native Source And Vocalized Lookup Readiness** - DONE WITH CORPUS-SIZE GATE
 - Module Completion Plan: measure native Arabic Wiktionary viability honestly and add conservative vocalized/unvocalized fixture lookup without broad root-pattern guessing.
 - Acceptance criteria: native Arabic-definition source scale/parser risk are recorded; English-definition data remains helper-only; exact vocalized lookup stays first; verified vocalized/prefixed/broken-plural forms and relations resolve; production promotion waits for coverage/RTL/offline gates.

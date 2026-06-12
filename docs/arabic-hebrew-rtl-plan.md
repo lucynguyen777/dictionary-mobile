@@ -49,6 +49,8 @@ Current production-source audit: `docs/arabic-production-source-audit.md`.
 
 ## Hebrew Track
 
+Current production-source audit: `docs/hebrew-production-source-audit.md`.
+
 ### Script And Normalization
 - Script: Hebrew abjad, RTL.
 - Niqqud is optional in normal text.

@@ -1338,19 +1338,24 @@ function stripArabicSearchMarks(value: string) {
 }
 
 function getHebrewMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const searchWord = stripHebrewSearchMarks(word);
+
+  if (searchWord !== word) {
+    candidates.push(createCandidate(searchWord, 'Hebrew niqqud-insensitive fallback'));
+  }
 
   // 1. Definite article ה (ha-)
-  if (word.startsWith('ה') && word.length > 3) {
-    candidates.push(createCandidate(word.slice(1), 'definite article stripped (ה-)'));
+  if (searchWord.startsWith('ה') && searchWord.length > 3) {
+    candidates.push(createCandidate(searchWord.slice(1), 'definite article stripped (ה-)'));
   }
 
   // 2. Stacked prefix stripping (e.g. ובספר -> בספר -> ספר)
   const hebrewPrefixes = ['ו', 'ב', 'ל', 'כ', 'מ', 'ה'];
-  let current = word;
+  let current = searchWord;
   while (current.length > 3) {
     let stripped = false;
     for (const char of hebrewPrefixes) {
@@ -1365,19 +1370,23 @@ function getHebrewMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   // 3. Plurals: masculine -im (ים), feminine -ot (ות)
-  if (word.endsWith('ים') && word.length > 4) {
-    candidates.push(createCandidate(word.slice(0, -2), 'masculine plural stripped (-im)'));
+  if (searchWord.endsWith('ים') && searchWord.length > 4) {
+    candidates.push(createCandidate(searchWord.slice(0, -2), 'masculine plural stripped (-im)'));
   }
-  if (word.endsWith('ות') && word.length > 4) {
-    candidates.push(createCandidate(word.slice(0, -2), 'feminine plural stripped (-ot)'));
+  if (searchWord.endsWith('ות') && searchWord.length > 4) {
+    candidates.push(createCandidate(searchWord.slice(0, -2), 'feminine plural stripped (-ot)'));
   }
 
   // 4. Specific plural-to-singular mappings
-  if (word === 'ספרים' || word === 'הספרים' || word === 'ובספרים' || word === 'בספרים') {
+  if (searchWord === 'ספרים' || searchWord === 'הספרים' || searchWord === 'ובספרים' || searchWord === 'בספרים') {
     candidates.push(createCandidate('ספר', 'plural to singular'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function stripHebrewSearchMarks(value: string) {
+  return value.normalize('NFD').replace(/[\u0591-\u05C7]/g, '').normalize('NFC');
 }
 
 function getTagalogMorphologyCandidates(input: string): MorphologyCandidate[] {

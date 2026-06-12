@@ -1500,13 +1500,21 @@ export async function fetchHebrewMeaning(word: string): Promise<ApiMeaningResult
 
 export async function fetchHebrewRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('he', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('he', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  for (const lookupWord of lookupCandidates) {
+    const localEntry = findLocalDictionaryEntry('he', lookupWord);
+    if (localEntry) {
+      return {
+        synonyms: localEntry.synonyms || [],
+        antonyms: localEntry.antonyms || [],
+      };
+    }
   }
+
   return { synonyms: [], antonyms: [] };
 }
 
