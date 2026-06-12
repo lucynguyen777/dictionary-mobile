@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Yoruba Source Audit And Tone Normalization Readiness** - DONE WITH SOURCE BLOCKER
+- Module Completion Plan: verify the current Yoruba production-source blocker and complete conservative tone-mark normalization while preserving lexical underdots.
+- Acceptance criteria: hosted/native/Kaikki source status is recorded accurately; English-definition data stays ineligible; acute, grave, and macron tone variants resolve to existing fixtures; underdots remain preserved; Yoruba stays preview/source-blocked.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-Wiktionary-derived Kaikki Yoruba, and native `yo.wiktionary.org` availability.
+- [x] DONE [MEDIUM]: Extended Yoruba tone normalization to dictionary macrons while preserving `ẹ`, `ọ`, and `ṣ`.
+- [x] DONE [MEDIUM]: Documented the source blocker and updated Yoruba plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/tone-normalization readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Yoruba source/tone-normalization readiness module for commit/push without deploy.
+
 **Module: Swahili Native Source And Verb Prefix Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate native Swahili Wiktionary as the production extraction candidate and improve conservative fixture-backed verb-prefix lookup while preserving preview status.
 - Acceptance criteria: native Swahili-definition source viability is recorded; English-definition Kaikki stays ineligible; infinitive and common object-prefix forms around verified fixtures resolve through the existing adapter; production promotion waits for measurement/offline gates.

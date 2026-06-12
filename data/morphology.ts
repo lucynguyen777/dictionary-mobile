@@ -1705,7 +1705,7 @@ function getYorubaMorphologyCandidates(input: string): MorphologyCandidate[] {
   const word = input.trim();
 
   // Strip tone marks to get base letters
-  const base = word.normalize('NFD').replace(/[\u0300\u0301]/g, '').normalize('NFC').toLowerCase();
+  const base = word.normalize('NFD').replace(/[\u0300\u0301\u0304]/g, '').normalize('NFC').toLowerCase();
 
   if (base !== word.toLowerCase()) {
     candidates.push({

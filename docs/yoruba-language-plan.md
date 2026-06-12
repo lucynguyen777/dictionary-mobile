@@ -11,10 +11,11 @@
 Plan a monolingual Yoruba dictionary lookup (YO→YO), focusing on tone mark normalization, diacritic-safe search, and local fixtures.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `yo` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'yo'`; `data/adapterRegistry.ts` dispatches to `fetchYorubaMeaning` and `fetchYorubaRelatedWords`.
-- Fixture/runtime path: local Yoruba fixtures, tone-insensitive lookup, nominal-prefix fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
-- Remaining gate: broader Yoruba production/bulk coverage still needs a stable approved source and attribution packaging.
+- Fixture/runtime path: local Yoruba fixtures, acute/grave/macron tone-insensitive lookup, underdot preservation, nominal-prefix fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Production source audit: `docs/yoruba-production-source-audit.md` records that native Yoruba Wiktionary currently has no usable article corpus and rejects English-definition Kaikki data.
+- Remaining gate: broader Yoruba production/bulk coverage still needs a stable approved Yoruba-definition source and attribution packaging.
 
 ## Diacritics & Tone-Insensitive Search
 - **Yoruba Diacritics**:
@@ -26,10 +27,10 @@ Plan a monolingual Yoruba dictionary lookup (YO→YO), focusing on tone mark nor
   - Tone-insensitive normalization function:
     ```typescript
     export function normalizeYorubaWord(value: string) {
-      // Normalize to NFD, strip combining acute (U+0301) and grave (U+0300) accents, then normalize back to NFC
+      // Normalize to NFD, strip combining acute, grave, and macron tone marks, then normalize back to NFC
       return value
         .normalize('NFD')
-        .replace(/[\u0300\u0301]/g, '')
+        .replace(/[\u0300\u0301\u0304]/g, '')
         .normalize('NFC')
         .toLowerCase()
         .trim();
@@ -63,3 +64,5 @@ Plan a monolingual Yoruba dictionary lookup (YO→YO), focusing on tone mark nor
    - Register the Yoruba adapter in `data/adapterRegistry.ts` and dispatch to `fetchYorubaMeaning` / `fetchYorubaRelatedWords` in `data/dictionaryApi.ts`.
 4. **Unit Tests**:
    - Write tests under `tests/dictionaryApi.test.ts` to cover exact lookups, tone-insensitive lookups, and synonym/antonym fetching.
+5. **Production readiness follow-up**:
+   - Keep production promotion source-blocked until an approved Yoruba-definition corpus passes measurement and offline-pack gates.

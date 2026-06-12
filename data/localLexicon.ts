@@ -2936,7 +2936,7 @@ export function normalizeHindiWord(value: string) {
 export function normalizeYorubaWord(value: string) {
   return value
     .normalize('NFD')
-    .replace(/[\u0300\u0301]/g, '')
+    .replace(/[\u0300\u0301\u0304]/g, '')
     .normalize('NFC')
     .toLocaleLowerCase()
     .trim();
