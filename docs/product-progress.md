@@ -168,29 +168,38 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Hawaiian Production Source Audit And Corpus Language Guard** - DONE WITH SOURCE BLOCKER
+- Module Completion Plan: validate Hawaiian production-source eligibility before creating a 100-headword promotion sample or offline pack, and prevent non-monolingual gloss corpora from entering any monolingual promotion path.
+- Acceptance criteria: Hawaiian source candidates are classified by definition language/license/revision; English-gloss data is rejected for Hawaiian monolingual production; extraction tooling requires explicit definition language; prior API-preview candidate truth is corrected.
+- [x] DONE [HARD]: Audited Kaikki Hawaiian, hosted WiktAPI, Kaikki raw-edition availability, and existing Wehewehe/Ulukau source gate.
+- [x] DONE [HARD]: Confirmed Kaikki Hawaiian has 4,085 usable headword rows but English definitions, so it cannot be a Hawaiian monolingual production corpus.
+- [x] DONE [HARD]: Added an explicit definition-language guard to corpus candidate extraction and tests preventing accidental non-monolingual packaging; corrected French/Malay/Spanish candidate truth.
+- [x] DONE [MEDIUM]: Kept existing ʻokina/kahakō fixture behavior and documented the exact Hawaiian source unblock requirements.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Hawaiian source-audit/definition-language guard module for commit/push without deploy.
+
 **Module: Spanish Corpus Measurement And Candidate Pack** - DONE WITH MEASURED BLOCKERS
 - Module Completion Plan: apply the measured promotion pipeline to Spanish with accent, adjective agreement, regular conjugation, and irregular verb coverage; keep Spanish preview unless every gate passes.
-- Acceptance criteria: exactly 100 balanced probes exist; live API and revisioned Kaikki measurements are frozen; a 5,000-entry candidate pack stays ignored; accent handling remains meaning-safe.
+- Acceptance criteria: exactly 100 balanced probes exist; live API and revisioned Kaikki packaging measurements are frozen; English-definition candidate data stays ineligible/ignored; accent handling remains meaning-safe.
 - [x] DONE [MEDIUM]: Audited current Spanish WiktAPI adapter, baseline morphology, and revisioned Kaikki source availability.
 - [x] DONE [MEDIUM]: Added a balanced Spanish 100-probe sample including 20 inflected/irregular cases.
 - [x] DONE [MEDIUM]: Added bounded common irregular-verb morphology without unsafe global accent stripping.
-- [x] DONE [HARD]: Ran/froze live and 5,000-entry candidate-pack measurements; recorded exact, related-word, representative-coverage, and offline-smoke blockers.
+- [x] DONE [HARD]: Ran/froze live and 5,000-entry packaging-candidate measurements; recorded exact, related-word, definition-language, representative-coverage, and offline-smoke blockers.
 - [x] DONE [EASY]: Ran verification/security/license audit and prepared the measured Spanish module for commit/push without deploy.
 
 **Module: Malay Corpus Measurement And Candidate Pack** - DONE WITH MEASURED BLOCKERS
 - Module Completion Plan: apply the measured promotion pipeline to Malay with explicit reduplication, safe affix, `meN-`, and `peN-` coverage; keep Malay preview unless every gate passes.
-- Acceptance criteria: exactly 100 balanced probes exist; live API and revisioned Kaikki candidate measurements are frozen; a 5,000-entry candidate pack is built only under ignored `tmp/`; complex morphology gaps remain explicit.
+- Acceptance criteria: exactly 100 balanced probes exist; live API and revisioned Kaikki packaging measurements are frozen; English-definition candidate data stays ineligible/ignored; complex morphology gaps remain explicit.
 - [x] DONE [MEDIUM]: Audited current Malay WiktAPI adapter, baseline morphology, and revisioned Kaikki source availability.
 - [x] DONE [MEDIUM]: Added a balanced Malay 100-probe sample including 20 inflected/allomorph cases.
 - [x] DONE [HARD]: Ran and froze live source plus candidate-pack coverage measurements.
-- [x] DONE [HARD]: Built/evaluated the ignored 5,000-entry candidate pack, recorded representative/morphology blockers, and added conservative common-root restoration for `meN-`/`peN-` allomorphs with focused tests.
+- [x] DONE [HARD]: Built/evaluated the ignored 5,000-entry packaging candidate, rejected it for English definitions, recorded representative/morphology blockers, and added conservative common-root restoration for `meN-`/`peN-` allomorphs with focused tests.
 - [x] DONE [EASY]: Ran verification/security/license audit and prepared the measured Malay module for commit/push without deploy.
 
 **Module: French Corpus And Offline Pack Candidate** - DONE WITH MEASURED BLOCKERS
 - Module Completion Plan: select a revisioned French corpus candidate, prove bounded extraction and pack generation, and keep French preview unless representative/offline runtime gates pass.
-- Acceptance criteria: source URL/license/revision are recorded; at least 5,000 attributed candidate entries package successfully; candidate remains uncommitted; representative coverage and remaining blockers are documented honestly.
-- [x] DONE [HARD]: Selected Kaikki French-Wiktionary JSONL with CC BY-SA/GFDL metadata and source revision `2026-06-07`.
-- [x] DONE [HARD]: Added bounded streaming extraction and built an ignored 5,000-entry candidate pack with revision metadata.
+- Acceptance criteria: source URL/license/revision/definition language are recorded; packaging mechanics are proven; English-definition candidate remains ineligible/uncommitted; representative coverage and remaining blockers are documented honestly.
+- [x] DONE [HARD]: Audited Kaikki French headword JSONL with CC BY-SA/GFDL metadata and source revision `2026-06-07`; later rejected it for English definitions.
+- [x] DONE [HARD]: Added bounded streaming extraction and proved ignored 5,000-entry packaging mechanics before adding the definition-language rejection guard.
 - [x] DONE [MEDIUM]: Extended pack relation normalization to include sense-level synonyms/antonyms.
 - [x] DONE [MEDIUM]: Measured the first-5,000-row candidate against the 100-headword sample; only 39/100 were present, so the candidate is not representative and must not ship.
 - [x] DONE [EASY]: Ran verification/security/license audit and prepared the measured candidate module for commit/push without deploy.

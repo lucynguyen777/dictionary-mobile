@@ -32,7 +32,7 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
   { batch: 1, code: 'ms', difficulty: 'easy', sourcePlan: 'Malay Wiktionary/Wiktextract corpus.', specialWork: 'Validate meN-/peN- allomorphs, reduplication, and affixed forms.', state: 'preview-promotion' },
   { batch: 1, code: 'es', difficulty: 'easy', sourcePlan: 'Spanish Wiktionary/Wiktextract corpus.', specialWork: 'Accent handling, adjective forms, and irregular verbs.', state: 'preview-promotion' },
 
-  { batch: 2, code: 'haw', difficulty: 'medium', sourcePlan: 'Approved Hawaiian Wiktionary-derived corpus.', specialWork: 'Preserve okina variants and kahako-aware lookup.', state: 'preview-promotion' },
+  { batch: 2, code: 'haw', difficulty: 'medium', sourcePlan: 'Obtain an approved Hawaiian-definition source; English-Wiktionary-derived Kaikki headword data is ineligible.', specialWork: 'Preserve okina variants and kahako-aware lookup after the definition-language source gate passes.', state: 'preview-promotion' },
   { batch: 2, code: 'so', difficulty: 'medium', sourcePlan: 'Approved Somali Wiktionary-derived corpus.', specialWork: 'Definite-article variants, plurals, and vowel/consonant length.', state: 'preview-promotion' },
   { batch: 2, code: 'jv', difficulty: 'medium', sourcePlan: 'Approved Javanese Wiktionary-derived corpus.', specialWork: 'Register labels, Latin/Javanese-script policy, and affix fallbacks.', state: 'preview-promotion' },
   { batch: 2, code: 'tl', difficulty: 'medium', sourcePlan: 'Approved Tagalog Wiktionary-derived corpus.', specialWork: 'Focus/voice affixes, infixation, and reduplication.', state: 'preview-promotion' },

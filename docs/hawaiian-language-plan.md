@@ -15,6 +15,7 @@ Plan a monolingual Hawaiian dictionary lookup (HAW->HAW), focusing on ʻokina/ka
 - Implemented in code: `haw` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'haw'`; `data/adapterRegistry.ts` dispatches to `fetchHawaiianMeaning` and `fetchHawaiianRelatedWords`.
 - Fixture/runtime path: local Hawaiian fixtures, ʻokina normalization, kahakō-insensitive fixture-backed fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
 - Remaining gate: broader Hawaiian production/bulk coverage, Wehewehe Wikiwiki / Ulukau use, and offline bundles still need accepted source/license terms.
+- Production source audit: `docs/hawaiian-production-source-audit.md` rejects the current Kaikki English-gloss dataset for monolingual production and keeps promotion source-blocked.
 
 ## Orthography & Normalization
 - Hawaiian uses a small Latin alphabet plus two essential modern orthographic marks:

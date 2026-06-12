@@ -32,13 +32,13 @@ export const LANGUAGE_PROMOTION_THRESHOLDS = {
 } as const;
 
 export const frenchPromotionMeasurement: LanguagePromotionMeasurement = {
-  attributedEntries: 5_000,
+  attributedEntries: 92,
   exampleCoveragePercent: 100,
   exactLookupPassPercent: 92,
   languageCode: 'fr',
   missingResultPass: true,
   morphologyPassPercent: 85,
-  offlinePackEntryCount: 5_000,
+  offlinePackEntryCount: 0,
   offlinePackSmokePassed: false,
   relatedWordsCoveragePercent: 0,
   representativeHeadwords: 100,
@@ -51,7 +51,7 @@ export const languagePromotionCandidates: LanguagePromotionCandidate[] = [
     label: 'French monolingual',
     languageCode: 'fr',
     measurement: frenchPromotionMeasurement,
-    sourceDateRecorded: true,
+    sourceDateRecorded: false,
     sourceLicenseRecorded: true,
   },
 ];

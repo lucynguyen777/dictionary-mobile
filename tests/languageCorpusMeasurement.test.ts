@@ -33,7 +33,7 @@ describe('language corpus measurement', () => {
     expect(probes).toHaveLength(100);
     expect(probes.filter((line) => line.endsWith('|inflected'))).toHaveLength(20);
     expect(frenchPromotionMeasurement).toMatchObject({
-      attributedEntries: 5_000,
+      attributedEntries: 92,
       exactLookupPassPercent: 92,
       morphologyPassPercent: 85,
       relatedWordsCoveragePercent: 0,
@@ -41,7 +41,7 @@ describe('language corpus measurement', () => {
     });
     expect(result.state).toBe('measured-preview');
     expect(result.blockers).toEqual(expect.arrayContaining([
-      'exact-lookup', 'related-words', 'offline-pack-smoke',
+      'attributed-corpus-size', 'exact-lookup', 'related-words', 'offline-pack-size', 'offline-pack-smoke',
     ]));
   });
 });

@@ -10,6 +10,13 @@ const limit = Number(args.limit ?? 5_000);
 const output = args.output ?? `tmp/language-candidates/${languageCode}-kaikki-${limit}.jsonl`;
 const metadataOutput = args.metadata ?? `${output}.metadata.json`;
 const sourceUrl = args.sourceUrl ?? 'https://kaikki.org/dictionary/French/kaikki.org-dictionary-French.jsonl';
+const definitionLanguageCode = args.definitionLang;
+if (!definitionLanguageCode) {
+  throw new Error('Missing --definition-lang. Corpus candidates must declare the language used by their definitions.');
+}
+if (definitionLanguageCode !== languageCode && args.allowBilingual !== 'true') {
+  throw new Error(`Rejected non-monolingual candidate: target=${languageCode}, definitions=${definitionLanguageCode}.`);
+}
 const response = await fetch(sourceUrl, { headers: { 'User-Agent': 'dictionary-mobile-corpus-candidate/1.0 (+https://github.com/lucynguyen777/dictionary-mobile)' } });
 if (!response.ok || !response.body) throw new Error(`Candidate source failed: ${response.status} ${response.statusText}`);
 
@@ -37,6 +44,7 @@ await new Promise((resolve, reject) => {
 
 const metadata = {
   acceptedEntries: accepted,
+  definitionLanguageCode,
   extractedAt: new Date().toISOString(),
   license: 'CC-BY-SA-4.0/GFDL',
   requestedLimit: limit,

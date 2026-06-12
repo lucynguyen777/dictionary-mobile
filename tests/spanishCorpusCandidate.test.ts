@@ -23,6 +23,7 @@ describe('Spanish corpus promotion candidate', () => {
 
     expect(report).toContain('Live WiktAPI resolved 84/100 probes');
     expect(report).toContain('contained only 38/100 representative probes');
+    expect(report).toContain('English definitions');
     expect(report).toContain('Spanish remains preview');
   });
 });

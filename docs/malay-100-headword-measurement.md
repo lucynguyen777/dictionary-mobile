@@ -8,14 +8,14 @@ Malay remains **monolingual preview** until the live measurement and a revisione
 
 ## Frozen Results
 
-Measured on **2026-06-11**. The live WiktAPI sample resolved 77/100 probes, 40% of inflected probes, 29% examples among resolved entries, and 0% related words. A revisioned Kaikki candidate (`2026-06-07`) produced a 5,000-entry candidate pack; that candidate contained 62/100 representative probes, with examples on 27 probes and relations on 31 probes.
+Measured on **2026-06-11**. The live WiktAPI sample resolved 77/100 probes, 40% of inflected probes, 29% examples among resolved entries, and 0% related words. A revisioned Kaikki packaging candidate (`2026-06-07`) contained 62/100 representative probes, but it is English-Wiktionary-derived with English definitions and is therefore ineligible for Malay monolingual production.
 
-Malay remains preview because exact/source coverage, live examples, live related words, and complex morphology are below production thresholds. Conservative `meN-`/`peN-` restoration is now implemented for common roots, but broader corpus-backed validation is still required.
+Malay remains preview because exact/source coverage, live examples, live related words, complex morphology, and an eligible Malay-definition corpus are below production thresholds. Conservative `meN-`/`peN-` restoration is now implemented for common roots, but broader corpus-backed validation is still required.
 
 ## Commands
 
 ```bash
 node scripts/measure-language-corpus.mjs --lang ms --input data/headword-lists/malay-promotion-100.txt
-node scripts/extract-kaikki-candidate.mjs --lang ms --limit 5000 --source-url https://kaikki.org/dictionary/Malay/kaikki.org-dictionary-Malay.jsonl
-node scripts/build-offline-pack.mjs --input tmp/language-candidates/ms-kaikki-5000.jsonl --lang ms --source kaikki-mswiktionary --source-url https://kaikki.org/dictionary/Malay/ --source-revision 2026-06-07 --out tmp/offline-packs/ms-kaikki-candidate
+node scripts/extract-kaikki-candidate.mjs --lang ms --definition-lang en --limit 5000 --source-url https://kaikki.org/dictionary/Malay/kaikki.org-dictionary-Malay.jsonl
+# Rejected by the monolingual definition-language guard.
 ```

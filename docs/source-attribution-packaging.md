@@ -16,6 +16,7 @@ Each committed dictionary fixture entry must preserve:
 5. Attribution label shown to users.
 6. Change note when definitions are paraphrased, trimmed, normalized, or locally translated.
 7. Whether the entry is a tiny educational/test fixture or production pack data.
+8. Definition language/edition. A headword-language extraction with definitions in another language is bilingual/helper data, not a monolingual production corpus.
 
 ## Runtime Attribution Requirements
 - Profile or Settings must expose a Credits/Acknowledgements surface before any bulk/offline pack ships.
@@ -35,6 +36,7 @@ Each committed dictionary fixture entry must preserve:
 3. Offline pack manifest carries source license, dump date, checksum, and attribution copy.
 4. ShareAlike packs are stored/downloaded as separate open data artifacts.
 5. Any API requiring keys avoids committing secrets and documents request limits/privacy implications.
+6. Candidate extraction declares the definition language and rejects mismatched monolingual targets before pack generation.
 
 ## Sources Checked
 - Dictionary source licensing decision: `.docs/decisions/dictionary-source-licensing.md`
