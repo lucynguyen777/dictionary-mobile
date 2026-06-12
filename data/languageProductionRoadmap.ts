@@ -48,7 +48,7 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
   { batch: 3, code: 'uz', difficulty: 'hard', sourcePlan: 'Extract and measure native definitions from uz.wiktionary.org; Izoh.uz remains gated by terms and English-definition Kaikki remains helper-only.', specialWork: 'Apostrophe variants, Latin/Cyrillic inflected fallback, suffix chains, and NFC/locale-safe lookup.', state: 'preview-promotion' },
 
   { batch: 4, code: 'ru', difficulty: 'hard', sourcePlan: 'Russian Wiktionary/Wiktextract corpus.', specialWork: 'Stress marks, cases, aspect, and conjugation coverage.', state: 'preview-promotion' },
-  { batch: 4, code: 'kk', difficulty: 'hard', sourcePlan: 'Kazakh Wiktionary-derived corpus.', specialWork: 'Cyrillic/Latin policy, seven cases, and vowel harmony.', state: 'preview-promotion' },
+  { batch: 4, code: 'kk', difficulty: 'hard', sourcePlan: 'Measure native definitions from kk.wiktionary.org while documenting its current corpus-size constraint; English-definition Kaikki remains helper-only and other portals remain terms-gated.', specialWork: 'Cyrillic/Latin policy, seven cases, vowel harmony, negative verbs, and adjective comparison.', state: 'preview-promotion' },
   { batch: 4, code: 'hi', difficulty: 'hard', sourcePlan: 'Hindi Wiktionary-derived corpus.', specialWork: 'Devanagari normalization, oblique/plural forms, and postpositions.', state: 'preview-promotion' },
 
   { batch: 5, code: 'ar', difficulty: 'hard', sourcePlan: 'Arabic Wiktionary/Wiktextract corpus.', specialWork: 'RTL smoke, diacritics, clitics, and root-pattern limitations.', state: 'preview-promotion' },

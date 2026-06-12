@@ -15,10 +15,11 @@
 This plan is now unblocked for a small source-backed baseline. `docs/kazakh-source-smoke.md` accepted Kazakh Wiktionary (`kk.wiktionary.org`) via the MediaWiki API for curated fixtures and adapter parsing under CC BY-SA 4.0 attribution rules. Kaikki `kkwiktionary` raw-dump ingestion remains blocked because the raw path currently returns 404.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `kk` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'kk'`; `data/adapterRegistry.ts` dispatches to `fetchKazakhMeaning` and `fetchKazakhRelatedWords`.
 - Fixture/runtime path: curated Kazakh Wiktionary fixtures, Cyrillic-preserving normalization, noun/adjective/verb morphology fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/languageNormalization.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
-- Remaining gate: bulk Kaikki raw-dump ingestion, Sozdik.kz, official/state dictionaries, and offline Kazakh bundle packaging remain blocked pending source/license approval.
+- Production source audit: `docs/kazakh-production-source-audit.md` accepts native `kk.wiktionary.org` for bounded extraction/measurement while recording its current corpus-size and placeholder constraints.
+- Remaining gate: representative coverage measurement, bulk source approval, and offline Kazakh bundle packaging remain blocked.
 
 ## Comparison With Turkish / Uzbek Baseline
 - Turkish gives the app a Turkic/agglutinative baseline. Kazakh belongs to the **Kipchak branch** (not Oghuz like Turkish), so vowel harmony patterns and suffix shapes differ significantly.
@@ -134,7 +135,7 @@ Status: first small baseline is implemented. Bulk Kaikki raw-dump ingestion rema
 - Latin↔Cyrillic transliteration fallback requires a verified mapping table before production use.
 
 ## First Safe Task
-Done. The tiny Kazakh monolingual baseline adapter now uses curated Kazakh Wiktionary fixtures and MediaWiki-compatible attribution metadata.
+Build a bounded native Kazakh Wiktionary extractor and measure representative coverage/placeholder rates before deciding whether the native corpus can support an offline pack or production promotion.
 
 ## Sources To Check
 - Kazakh Wiktionary: https://kk.wiktionary.org/

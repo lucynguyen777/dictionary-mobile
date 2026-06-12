@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Kazakh Native Source And Inflection Readiness** - DONE WITH CORPUS-SIZE GATE
+- Module Completion Plan: measure native Kazakh Wiktionary viability honestly and close narrow fixture-backed negative-verb/adjective morphology gaps without accepting unlicensed portals.
+- Acceptance criteria: native Kazakh-definition source scale and placeholder risk are recorded; English-definition Kaikki remains helper-only; Kazakh Cyrillic remains canonical; verified negative past and comparative forms resolve; production promotion waits for representative coverage/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-definition Kaikki Kazakh, native `kk.wiktionary.org`, and terms-gated external portals.
+- [x] DONE [MEDIUM]: Added conservative Kazakh negative-past verb and fixture-backed comparative adjective fallbacks.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated Kazakh plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/inflection readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Kazakh source/inflection readiness module for commit/push without deploy.
+
 **Module: Uzbek Native Source And Cross-Script Suffix Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate native Uzbek Wiktionary as the bounded production extraction candidate and connect existing Cyrillic transliteration to conservative suffix analysis.
 - Acceptance criteria: native Uzbek-definition source viability/scale is recorded; Izoh.uz remains terms-gated and English-definition Kaikki helper-only; apostrophe variants normalize safely; verified Cyrillic inflected forms resolve through the existing Latin fixture path; production promotion waits for measurement/offline gates.

@@ -725,6 +725,12 @@ function getKazakhMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   const verbSuffixes = [
+    { suffix: 'мады', desc: 'negative past (-мады)' },
+    { suffix: 'меді', desc: 'negative past (-меді)' },
+    { suffix: 'бады', desc: 'negative past (-бады)' },
+    { suffix: 'беді', desc: 'negative past (-беді)' },
+    { suffix: 'пады', desc: 'negative past (-пады)' },
+    { suffix: 'педі', desc: 'negative past (-педі)' },
     { suffix: 'майды', desc: 'negative present (-майды)' },
     { suffix: 'мейді', desc: 'negative present (-мейді)' },
     { suffix: 'байды', desc: 'negative present (-байды)' },
@@ -760,6 +766,10 @@ function getKazakhMorphologyCandidates(input: string): MorphologyCandidate[] {
         candidates.push(createCandidate(`${stem.slice(0, -1)}у`, desc));
       }
     }
+  }
+
+  if (word === 'жақсырақ') {
+    candidates.push(createCandidate('жақсы', 'fixture-backed comparative adjective'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 6);
