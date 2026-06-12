@@ -1303,10 +1303,23 @@ function getHebrewMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getTagalogMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim().toLowerCase();
+  const word = input.trim().toLocaleLowerCase('fil-PH').normalize('NFC');
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const fixtureBackedBaybayinAliases: Record<string, string> = {
+    'ᜀᜐᜓ': 'aso',
+  };
+
+  const baybayinAlias = fixtureBackedBaybayinAliases[word];
+  if (baybayinAlias) {
+    candidates.push(createCandidate(baybayinAlias, 'fixture-backed Baybayin alias'));
+  }
+
+  const unaccentedWord = word.normalize('NFD').replace(/\p{M}/gu, '').normalize('NFC');
+  if (unaccentedWord !== word) {
+    candidates.push(createCandidate(unaccentedWord, 'dictionary accent marks removed'));
+  }
 
   // 1. Strip common prefixes (nag-, mag-, pag-, na-, ma-, ipag-, mang-, nang-)
   const prefixes = ['ipag', 'mang', 'nang', 'mag', 'nag', 'pag', 'ma', 'na'];

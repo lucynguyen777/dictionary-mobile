@@ -11,11 +11,12 @@
 Track the implemented monolingual Tagalog dictionary baseline (TL->TL) and the remaining production source gates.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `tl` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'tl'`; `data/adapterRegistry.ts` dispatches to `fetchTagalogMeaning` and `fetchTagalogRelatedWords`.
-- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `tlwiktionary`-attributed Tagalog fixture set; `data/morphology.ts` includes prefix, infix, suffix, and reduplication fallback candidates used by `data/dictionaryApi.ts`.
+- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `tlwiktionary`-attributed Tagalog fixture set; `data/morphology.ts` includes prefix, infix, suffix, reduplication, accent-insensitive, and fixture-backed Baybayin fallback candidates used by `data/dictionaryApi.ts`.
 - Test coverage: `tests/dictionaryApi.test.ts` covers exact lookup, `magbasa/nagbabasa -> basa`, `kumain/kumakain -> kain`, `basahin -> basa`, and related words.
-- Remaining gate: production-scale Tagalog coverage still needs an approved Tagalog-definition source or bulk fixture policy; the old "implementation blocked" note no longer applies to the tiny local baseline.
+- Production source audit: `docs/tagalog-production-source-audit.md` accepts native `tl.wiktionary.org` as the extraction/measurement candidate and rejects English-definition Kaikki data for monolingual packaging.
+- Remaining gate: production-scale Tagalog coverage still needs a native-source extractor, balanced measurement, attributed corpus/offline pack, and UI smoke.
 
 ## Script And Normalization
 - Uses the Latin alphabet, consisting of 28 letters (including `ñ` and the digraph `ng`).
@@ -47,8 +48,8 @@ Tagalog has an extremely complex, affix-heavy, and agglutinative morphological s
 Status: first small baseline is implemented; production/bulk source expansion remains gated.
 
 1. Metadata, adapter dispatch, tiny fixtures, and local morphology fallback: DONE.
-2. Keep hosted/API expansion blocked until a reliable Tagalog monolingual endpoint or approved local bundle is confirmed.
+2. Build and measure a bounded native `tl.wiktionary.org` extraction path before production expansion.
 3. Extend the lemmatizer only with fixture-backed prefix, infix, suffix, and reduplication patterns.
 
 ## First Safe Task
-Next safe task: source/status follow-up for a larger Tagalog-definition source or a documented bulk fixture policy. Adapter expansion should stay source-gated until then.
+Next safe task: build the bounded native Tagalog Wiktionary extractor and balanced 100-headword measurement. Adapter expansion should stay source-gated until then.

@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Tagalog Native Source And Orthography Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate the native Tagalog Wiktionary extraction path and improve conservative fixture-backed orthography lookup without treating English-definition helper data as production corpus.
+- Acceptance criteria: native Tagalog-definition source viability is recorded; Kaikki English glosses stay ineligible; accent-insensitive lookup preserves displayed headwords; verified Baybayin fixture lookup works; production status remains preview until measurement/pack gates pass.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-Wiktionary-derived Kaikki Tagalog, and native `tl.wiktionary.org` source viability.
+- [x] DONE [MEDIUM]: Added conservative accent-insensitive and fixture-backed Baybayin lookup candidates.
+- [x] DONE [MEDIUM]: Documented the native-source extraction/measurement decision and updated Tagalog plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/orthography readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Tagalog source/orthography readiness module for commit/push without deploy.
+
 **Module: Javanese Native Source And Script Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate Javanese-native definition source eligibility, reject English-definition helper data, and improve fixture-backed Aksara Jawa lookup without prematurely promoting the language.
 - Acceptance criteria: native Javanese Wiktionary status and extraction blocker are recorded; English-definition Kaikki data stays ineligible; current Latin fixtures can be reached from verified Aksara Jawa forms; tests and roadmap truth stay aligned.
