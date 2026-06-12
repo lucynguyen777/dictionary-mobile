@@ -520,7 +520,7 @@ function getFinnishMorphologyCandidates(input: string): MorphologyCandidate[] {
 
 function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
   // Suffix strip proper noun apostrophes first
-  let word = input.trim();
+  let word = input.trim().normalize('NFC');
   if (word.includes("'")) {
     const base = word.split("'")[0];
     return [createCandidate(base, 'özel isim kökü')];
@@ -542,18 +542,26 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
 
   // Locative / Inessive: -de, -da, -te, -ta
   if ((word.endsWith('de') || word.endsWith('da')) && word.length >= 4) {
-    candidates.push(createCandidate(word.slice(0, -2), 'bulunma (-de/-da)'));
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(stem, 'bulunma (-de/-da)'));
+    addTurkishPluralStemCandidate(candidates, stem, 'bulunma after plural');
   }
   if ((word.endsWith('te') || word.endsWith('ta')) && word.length >= 4) {
-    candidates.push(createCandidate(word.slice(0, -2), 'bulunma (-te/-ta)'));
+    const stem = word.slice(0, -2);
+    candidates.push(createCandidate(stem, 'bulunma (-te/-ta)'));
+    addTurkishPluralStemCandidate(candidates, stem, 'bulunma after plural');
   }
 
   // Ablative: -den, -dan, -ten, -tan
   if ((word.endsWith('den') || word.endsWith('dan')) && word.length >= 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'ayrılma (-den/-dan)'));
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(stem, 'ayrılma (-den/-dan)'));
+    addTurkishPluralStemCandidate(candidates, stem, 'ayrılma after plural');
   }
   if ((word.endsWith('ten') || word.endsWith('tan')) && word.length >= 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'ayrılma (-ten/-tan)'));
+    const stem = word.slice(0, -3);
+    candidates.push(createCandidate(stem, 'ayrılma (-ten/-tan)'));
+    addTurkishPluralStemCandidate(candidates, stem, 'ayrılma after plural');
   }
 
   // Genitive: -in, -ın, -ün, -un, -nin, -nın, -nün, -nun
@@ -620,6 +628,16 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function addTurkishPluralStemCandidate(
+  candidates: MorphologyCandidate[],
+  stem: string,
+  description: string,
+) {
+  if ((stem.endsWith('ler') || stem.endsWith('lar')) && stem.length >= 5) {
+    candidates.push(createCandidate(stem.slice(0, -3), description));
+  }
 }
 
 function getKazakhMorphologyCandidates(input: string): MorphologyCandidate[] {

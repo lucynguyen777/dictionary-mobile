@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Turkish Native Source And Suffix-Chain Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate Turkish-edition native definitions as the production extraction candidate and harden conservative dotted/dotless-I suffix-chain behavior.
+- Acceptance criteria: native Turkish-definition source viability/scale is recorded; English-definition data remains helper-only; composed/decomposed Turkish characters normalize safely; verified plural-plus-case forms resolve without ASCII folding; production promotion waits for measurement/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-definition data, Turkish-edition Wiktextract/native `tr.wiktionary.org`, and morphology-helper paths.
+- [x] DONE [MEDIUM]: Added Turkish NFC-safe lookup input and conservative fixture-backed plural-plus-case behavior.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated Turkish plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/suffix-chain readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Turkish source/suffix-chain readiness module for commit/push without deploy.
+
 **Module: Hungarian Native Source And Case-Chain Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate native Hungarian Wiktionary as the production extraction candidate and harden conservative fixture-backed case-chain behavior.
 - Acceptance criteria: native Hungarian-definition source viability/scale is recorded; English-definition Kaikki remains helper-only; composed/decomposed long vowels normalize safely; verified plural-plus-case and instrumental forms resolve without ASCII folding; production promotion waits for measurement/offline gates.

@@ -1024,7 +1024,7 @@ export async function fetchHindiRelatedWords(word: string): Promise<ApiRelatedWo
 }
 
 export async function fetchTurkishMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr');
+  const normalizedWord = word.trim().normalize('NFC').replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr-TR');
   const lookupCandidates = uniqueWords([
     normalizedWord,
     ...getMorphologyCandidates('tr', normalizedWord).map((candidate) => candidate.word),
@@ -1063,7 +1063,7 @@ export async function fetchTurkishMeaning(word: string): Promise<ApiMeaningResul
 }
 
 export async function fetchTurkishRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr');
+  const normalizedWord = word.trim().normalize('NFC').replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr-TR');
   const localEntry = findLocalDictionaryEntry('tr', normalizedWord);
   if (localEntry) {
     return {

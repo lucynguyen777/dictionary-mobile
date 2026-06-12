@@ -9,7 +9,13 @@
 - Baseline target: `tr -> tr` monolingual lookup before any bilingual Turkish pair.
 
 ## Scope
-This is a planning and gate document only. Do not add Turkish metadata or adapter code until source smoke, fixture policy, and attribution requirements are clear.
+This document tracks the implemented Turkish local-fixture preview and its remaining production promotion gates.
+
+## Current Code Audit
+- Status refreshed: June 12, 2026.
+- Implemented in code: `tr` metadata, adapter routing, local `trwiktionary`-attributed fixtures, dotted/dotless-I normalization, case/plural morphology fallbacks, and focused lookup tests.
+- Production source audit: `docs/turkish-production-source-audit.md` accepts Turkish-edition Wiktextract or native `tr.wiktionary.org` as the measured extraction path while keeping English-definition data helper-only.
+- Remaining gate: production promotion needs a bounded extractor, balanced measurement, attributed corpus/offline pack, and UI smoke.
 
 ## Script And Normalization
 - Turkish uses a Latin alphabet with dotted/dotless I contrast: `i`, `I`, `İ`, `ı`.
@@ -42,7 +48,7 @@ This is a planning and gate document only. Do not add Turkish metadata or adapte
 - Offline/bundled Turkish data remains blocked until `.docs/decisions/offline-dictionary-bundle.md` and `.docs/decisions/dictionary-source-licensing.md` are accepted.
 
 ## Implementation Plan
-1. Add `tr` to language metadata only after source smoke passes.
+1. Turkish metadata, adapter dispatch, tiny fixtures, and local morphology fallback: DONE.
 2. Smoke source records for at least:
    - noun: `ev`
    - verb: `yemek`
@@ -59,12 +65,12 @@ This is a planning and gate document only. Do not add Turkish metadata or adapte
 - Casing/normalization tests for dotted and dotless I.
 
 ## Blocked Decisions
-- Production adapter blocked until source smoke confirms Turkish monolingual definitions.
+- Production-scale promotion remains blocked until the native-definition corpus is measured and packaged.
 - Committed fixtures or bundled data blocked until licensing/attribution policy is accepted.
 - Offline Turkish bundle blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Source smoke is documented in `docs/turkish-source-smoke.md`, and casing normalization has a focused utility/test. The next safe task is licensing/attribution approval for tiny fixtures before adapter code.
+Build a bounded Turkish-edition Wiktextract or native Wiktionary extractor, then run the balanced 100-headword measurement across casing, suffix chains, vowel harmony, consonant gradation, and verbs.
 
 ## Sources Checked
 - Kaikki Turkish Wiktionary raw data: https://kaikki.org/trwiktionary/rawdata.html
