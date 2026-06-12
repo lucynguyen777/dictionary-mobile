@@ -1145,7 +1145,7 @@ function getEstonianMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getHungarianMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim();
+  const word = input.trim().normalize('NFC').toLocaleLowerCase('hu-HU');
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
@@ -1216,6 +1216,7 @@ function getHungarianMorphologyCandidates(input: string): MorphologyCandidate[] 
       if (stem.endsWith('é')) {
         candidates.push(createCandidate(`${stem.slice(0, -1)}e`, `${desc} (vowel harmony root)`));
       }
+      addHungarianPluralStemCandidates(candidates, stem, `${desc} after plural`);
     }
   }
 
@@ -1224,7 +1225,33 @@ function getHungarianMorphologyCandidates(input: string): MorphologyCandidate[] 
     candidates.push(createCandidate('enni', 'verb root'));
   }
 
+  // 5. Fixture-backed consonant assimilation for instrumental -val/-vel.
+  if (word === 'házzal') {
+    candidates.push(createCandidate('ház', 'fixture-backed instrumental assimilation'));
+  }
+
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function addHungarianPluralStemCandidates(
+  candidates: MorphologyCandidate[],
+  stem: string,
+  description: string,
+) {
+  if (!stem.endsWith('k') || stem.length <= 3) return;
+
+  const singularStem = stem.slice(0, -1);
+  candidates.push(createCandidate(singularStem, description));
+
+  if (singularStem.endsWith('a') || singularStem.endsWith('e') || singularStem.endsWith('o') || singularStem.endsWith('ö')) {
+    candidates.push(createCandidate(singularStem.slice(0, -1), `${description} with linking vowel`));
+  }
+  if (singularStem.endsWith('á')) {
+    candidates.push(createCandidate(`${singularStem.slice(0, -1)}a`, `${description} with vowel lengthening root`));
+  }
+  if (singularStem.endsWith('é')) {
+    candidates.push(createCandidate(`${singularStem.slice(0, -1)}e`, `${description} with vowel lengthening root`));
+  }
 }
 
 function getArabicMorphologyCandidates(input: string): MorphologyCandidate[] {

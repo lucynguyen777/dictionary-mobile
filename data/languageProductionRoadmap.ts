@@ -43,7 +43,7 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
 
   { batch: 3, code: 'fi', difficulty: 'hard', sourcePlan: 'Extract and measure native definitions from fi.wiktionary.org; English-Wiktionary-derived Kaikki data remains helper-only.', specialWork: 'Case-rich morphology, consonant gradation, vowel harmony, and NFC/locale-safe lookup.', state: 'preview-promotion' },
   { batch: 3, code: 'et', difficulty: 'hard', sourcePlan: 'Extract and measure native definitions from et.wiktionary.org or separately configure the CC BY 4.0 Ekilex/Sõnaveeb API path; English-Wiktionary-derived Kaikki data remains helper-only.', specialWork: 'Case-rich morphology, NFC/locale-safe lookup, and diacritic preservation.', state: 'preview-promotion' },
-  { batch: 3, code: 'hu', difficulty: 'hard', sourcePlan: 'Hungarian Wiktionary/approved open corpus.', specialWork: 'Case chains, vowel harmony, and length-sensitive lookup.', state: 'preview-promotion' },
+  { batch: 3, code: 'hu', difficulty: 'hard', sourcePlan: 'Extract and measure native definitions from hu.wiktionary.org; English-Wiktionary-derived Kaikki data remains helper-only.', specialWork: 'Case chains, vowel harmony, vowel length, and NFC/locale-safe lookup.', state: 'preview-promotion' },
   { batch: 3, code: 'tr', difficulty: 'hard', sourcePlan: 'Turkish Wiktionary/approved open corpus.', specialWork: 'Dotted/dotless I, suffix chains, and vowel harmony.', state: 'preview-promotion' },
   { batch: 3, code: 'uz', difficulty: 'hard', sourcePlan: 'Uzbek Wiktionary-derived corpus.', specialWork: 'Apostrophe variants, Latin/Cyrillic fallback, and suffix chains.', state: 'preview-promotion' },
 

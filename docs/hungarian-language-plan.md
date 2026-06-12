@@ -12,11 +12,12 @@
 This document now tracks the implemented Hungarian baseline and the remaining production source gates. Hungarian metadata and a small local fixture adapter are implemented; broader production/bulk source expansion remains gated.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `hu` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'hu'`; `data/adapterRegistry.ts` dispatches to `fetchHungarianMeaning` and `fetchHungarianRelatedWords`.
-- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `huwiktionary`-attributed Hungarian fixture set; `data/morphology.ts` includes plural, case, vowel-harmony, and verb fallback candidates used by `data/dictionaryApi.ts`.
+- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `huwiktionary`-attributed Hungarian fixture set; `data/morphology.ts` includes NFC/locale-safe plural, case-chain, vowel-harmony, and verb fallback candidates used by `data/dictionaryApi.ts`.
 - Test coverage: `tests/dictionaryApi.test.ts` covers exact lookup, plural fallback, case fallback, `erdőben -> erdő`, `eszem/eszik -> enni`, and related words.
-- Remaining gate: Estonian is still the next Uralic blocker; Hungarian only needs future production/bulk source approval and offline bundle packaging before expansion beyond curated fixtures.
+- Production source audit: `docs/hungarian-production-source-audit.md` accepts native `hu.wiktionary.org` as a strong extraction/measurement candidate while keeping English-definition Kaikki data helper-only.
+- Remaining gate: production promotion needs a native extractor, balanced measurement, attributed corpus/offline pack, and UI smoke.
 
 ## Script And Normalization
 - Hungarian uses the Latin alphabet with 9 additional letters containing diacritics: `á`, `é`, `í`, `ó`, `ö`, `ő`, `ú`, `ü`, `ű`.
@@ -85,7 +86,7 @@ Status: first small baseline is implemented; production/bulk source expansion re
 - Offline Hungarian bundle is blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Next safe task: decide whether a Hungarian monolingual definition source can be licensed for production/bulk fixtures. Code expansion should stay source-gated until then.
+Build a bounded native Hungarian Wiktionary extractor, then run the balanced 100-headword measurement across case chains, vowel harmony, vowel length, and source-provided forms.
 
 ## Sources Checked
 - WiktAPI overview: https://wiktapi.dev/
