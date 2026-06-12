@@ -1501,12 +1501,24 @@ function getJavaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (word.length < 2) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const fixtureBackedJavaneseScriptAliases: Record<string, string> = {
+    'ꦮꦕ': 'waca',
+    'ꦩꦕ': 'waca',
+    'ꦠꦸꦭꦶꦱ꧀': 'tulis',
+    'ꦠꦸꦏꦸ': 'tuku',
+    'ꦠꦸꦩ꧀ꦧꦱ꧀': 'tumbas',
+  };
 
   const addCandidate = (w: string, desc: string) => {
     if (w.length >= 2 && w !== word) {
       candidates.push(createCandidate(w, desc));
     }
   };
+
+  const scriptAlias = fixtureBackedJavaneseScriptAliases[word];
+  if (scriptAlias) {
+    addCandidate(scriptAlias, 'fixture-backed Aksara Jawa alias');
+  }
 
   const suffixList = ['ake', 'i'];
   let stem = word;

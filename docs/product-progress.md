@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Javanese Native Source And Script Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate Javanese-native definition source eligibility, reject English-definition helper data, and improve fixture-backed Aksara Jawa lookup without prematurely promoting the language.
+- Acceptance criteria: native Javanese Wiktionary status and extraction blocker are recorded; English-definition Kaikki data stays ineligible; current Latin fixtures can be reached from verified Aksara Jawa forms; tests and roadmap truth stay aligned.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-Wiktionary-derived Kaikki Javanese, and native `jv.wiktionary.org` source viability.
+- [x] DONE [MEDIUM]: Added conservative fixture-backed Aksara Jawa aliases for current local entries.
+- [x] DONE [MEDIUM]: Documented the native-source extraction/measurement decision and updated Javanese plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/script readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Javanese source/script readiness module for commit/push without deploy.
+
 **Module: Somali Source Audit And Morphology Readiness** - DONE WITH SOURCE BLOCKER
 - Module Completion Plan: validate Somali production-source eligibility and complete conservative fixture-backed morphology gaps without packaging English-definition data.
 - Acceptance criteria: WiktAPI/Kaikki definition-language status is recorded; English-gloss data is rejected; extended article/demonstrative and irregular plural fallbacks are tested; Somali remains preview until a Somali-definition source passes.

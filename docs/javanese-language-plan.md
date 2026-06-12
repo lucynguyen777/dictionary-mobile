@@ -11,10 +11,11 @@
 Plan a monolingual Javanese dictionary lookup (JV→JV) and morphology baseline, focusing on register mapping (Ngoko vs. Krama), prefix/suffix agglutinative morphology, and local mockups.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `jv` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'jv'`; `data/adapterRegistry.ts` dispatches to `fetchJavaneseMeaning` and `fetchJavaneseRelatedWords`.
-- Fixture/runtime path: local Javanese fixtures, Ngoko/Krama related-word behavior, active/passive morphology fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
-- Remaining gate: broader Javanese production/bulk coverage still needs a stable approved source and attribution packaging.
+- Fixture/runtime path: local Javanese fixtures, fixture-backed Aksara Jawa aliases, Ngoko/Krama related-word behavior, active/passive morphology fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Production source audit: `docs/javanese-production-source-audit.md` accepts native `jv.wiktionary.org` as the extraction/measurement candidate and rejects English-definition Kaikki data for monolingual packaging.
+- Remaining gate: production promotion still needs a Javanese Wiktionary template extractor, balanced measurement, attributed corpus/offline pack, and UI smoke.
 
 ## Orthography & Registers
 - **Latin Script Priority**: Modern online Javanese communications and dictionaries predominantly use the Latin alphabet. Standard space-based tokenization in the Reader works perfectly.
@@ -71,3 +72,5 @@ Javanese is highly agglutinative and features complex prefixation, suffixation, 
    - Register the Javanese adapter in `data/adapterRegistry.ts` and dispatch to `fetchJavaneseMeaning` / `fetchJavaneseRelatedWords`.
 5. **Unit Tests**:
    - Write tests under `tests/dictionaryApi.test.ts` to cover exact lookups, active nasalization, passive voice, and suffix stripping.
+6. **Production readiness follow-up**:
+   - Build and measure the native Javanese Wiktionary extraction path before expanding fixtures or promoting the language.
