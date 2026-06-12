@@ -12,15 +12,16 @@
 This document tracks the implemented tiny curated Estonian baseline. The app now supports `et -> et` monolingual lookup from local `etwiktionary`-attributed fixtures, while production-scale Sõnaveeb/Ekilex and offline-pack expansion remain gated.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Current code status: `et` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'`, `adapterKey: 'et'`, Uralic family metadata, Latin script, and LTR writing direction.
 - Adapter/API status: `data/adapterRegistry.ts` dispatches `et` through `fetchEstonianMeaning` and `fetchEstonianRelatedWords`; `data/dictionaryApi.ts` enables Estonian monolingual lookup and related-word routing.
 - Fixture status: `data/localLexicon.ts` includes a tiny curated Estonian fixture set for `maja`, `jää`, `öö`, and `sööma`, with local educational definitions and `etwiktionary` attribution notes.
-- Normalization/morphology status: `data/languageNormalization.ts` uses the Estonian locale; `data/morphology.ts` has conservative fixture-backed case and verb-form fallbacks.
+- Normalization/morphology status: `data/languageNormalization.ts` and morphology input use NFC plus the Estonian locale; `data/morphology.ts` has conservative fixture-backed case and verb-form fallbacks.
 - Test status: `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, and `tests/languageNormalization.test.ts` cover Estonian lookup, fallback, diacritic preservation, related words, and adapter registration.
 - Family context: Finnish, Hungarian, and Estonian are now implemented tiny Uralic baselines.
 - Source gate: DONE for tiny curated fixtures via Estonian Wiktionary MediaWiki pages under CC BY-SA 4.0; see `docs/estonian-source-smoke.md`.
-- Remaining gate: Sõnaveeb/Ekilex production API use needs API key handling and endpoint parser work before runtime integration.
+- Production source audit: `docs/estonian-production-source-audit.md` accepts native `et.wiktionary.org` as a strong extraction/measurement candidate while retaining Ekilex/Sõnaveeb as an optional official-source path.
+- Remaining gate: production promotion needs a selected extractor, balanced measurement, attributed corpus/offline pack, and UI smoke.
 
 ## Script And Normalization
 - Estonian uses the Latin alphabet with native letters `ä`, `ö`, `ü`, and `õ`.
@@ -93,4 +94,4 @@ Status: the tiny `etwiktionary` fixture baseline is implemented.
 - Offline Estonian bundle is blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-The tiny `etwiktionary` fixture baseline is complete. The next safe Estonian follow-up is production expansion through Sõnaveeb/Ekilex API key handling and parser work, or offline-pack attribution packaging in a later module.
+Build a bounded native Estonian Wiktionary extractor or explicitly select and configure the Ekilex/Sõnaveeb API path, then run the balanced 100-headword measurement.

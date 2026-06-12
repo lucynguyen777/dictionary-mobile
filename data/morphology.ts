@@ -1099,7 +1099,7 @@ function getSwahiliMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getEstonianMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = normalizeMorphologyInput(input);
+  const word = input.trim().normalize('NFC').toLocaleLowerCase('et-EE');
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
@@ -1119,7 +1119,7 @@ function getEstonianMorphologyCandidates(input: string): MorphologyCandidate[] {
   ];
 
   for (const { suffix, desc } of caseSuffixes) {
-    if (word.endsWith(suffix) && word.length > suffix.length + 2) {
+    if (word.endsWith(suffix) && word.length >= suffix.length + 2) {
       candidates.push(createCandidate(word.slice(0, -suffix.length), desc));
     }
   }

@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Estonian Native Source And Case Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate native Estonian Wiktionary as the production extraction candidate and harden conservative case lookup for diacritic-heavy fixtures.
+- Acceptance criteria: native Estonian-definition source viability/scale is recorded; English-definition Kaikki remains helper-only; composed/decomposed `ä/ö/ü/õ` forms normalize safely; verified generic cases resolve without ASCII folding; production promotion waits for measurement/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-Wiktionary-derived Kaikki Estonian, native `et.wiktionary.org`, and optional Ekilex/Sõnaveeb path.
+- [x] DONE [MEDIUM]: Added Estonian NFC/locale-safe morphology input and verified conservative case suffixes on diacritic-heavy fixtures.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated Estonian plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/case readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Estonian source/case readiness module for commit/push without deploy.
+
 **Module: Finnish Native Source And Case Gradation Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate native Finnish Wiktionary as the production extraction candidate and complete conservative fixture-backed case-gradation behavior.
 - Acceptance criteria: native Finnish-definition source viability is recorded; English-definition Kaikki remains helper-only; decomposed/composed diacritics normalize safely; verified `käsi` case stems resolve across local cases; production promotion waits for measurement/offline gates.
