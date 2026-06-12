@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Hindi Native Source And Verb-Paradigm Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate native Hindi Wiktionary as the production extraction candidate and close narrow fixture-backed Hindi verb paradigm gaps without adding broad transliteration/stemming.
+- Acceptance criteria: native Hindi-definition source viability/scale is recorded; English-definition data remains helper-only; Devanagari/postposition behavior remains intact; verified future/polite `करना` forms resolve; production promotion waits for measurement/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-definition support data, native `hi.wiktionary.org`, and transliteration boundaries.
+- [x] DONE [MEDIUM]: Added conservative fixture-backed Hindi future/polite verb forms while preserving existing noun/postposition behavior.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated Hindi plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/verb-paradigm readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Hindi source/verb-paradigm readiness module for commit/push without deploy.
+
 **Module: Russian Native Source And Inflected Relations Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate native Russian Wiktionary as the production extraction candidate and align stress/case morphology with related-word lookup.
 - Acceptance criteria: native Russian-definition source viability/scale is recorded; English-definition data remains helper-only; stress-marked uppercase/inflected forms normalize safely; related words resolve from verified inflected forms; production promotion waits for measurement/offline gates.

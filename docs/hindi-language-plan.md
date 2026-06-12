@@ -12,14 +12,15 @@
 This document tracks the implemented tiny curated Hindi baseline. The app now supports `hi -> hi` monolingual lookup from local `hiwiktionary`-attributed fixtures, while production-scale Hindi sources, transliteration search, and offline-pack expansion remain later gates.
 
 ## Current Code Audit
-- Status refreshed: May 25, 2026.
+- Status refreshed: June 12, 2026.
 - Current code status: `hi` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'`, `adapterKey: 'hi'`, Indo-European family metadata, Devanagari script, and LTR writing direction.
 - Adapter/API status: `data/adapterRegistry.ts` dispatches `hi` through `fetchHindiMeaning` and `fetchHindiRelatedWords`; `data/dictionaryApi.ts` enables Hindi monolingual lookup and related-word routing.
 - Fixture status: `data/localLexicon.ts` includes a tiny curated Hindi fixture set for `घर`, `किताब`, `करना`, and `हिंदी`, with paraphrased local educational definitions and `hiwiktionary` attribution notes.
 - Normalization/morphology status: `data/languageNormalization.ts` uses the Hindi locale; `data/localLexicon.ts` normalizes NFC, chandrabindu/anusvara display variants, and the narrow `हिन्दी`/`हिंदी` spelling variant; `data/morphology.ts` has conservative noun/postposition and fixture-backed verb fallbacks.
 - Test status: `tests/dictionaryApi.test.ts`, `tests/adapterRegistry.test.ts`, and `tests/languageNormalization.test.ts` cover Hindi lookup, fallback, Devanagari-only baseline behavior, related words, adapter registration, and normalization.
 - Source gate: DONE for tiny curated fixtures via Hindi Wiktionary MediaWiki pages under CC BY-SA 4.0.
-- Remaining gates: production-size Hindi lookup, Latin transliteration search, IPA/audio expansion, and offline packs need a separate source and attribution module.
+- Production source audit: `docs/hindi-production-source-audit.md` accepts native `hi.wiktionary.org` as a bounded extraction/measurement candidate while keeping Latin transliteration and English-definition data outside canonical production lookup.
+- Remaining gates: representative corpus measurement, Latin transliteration policy, IPA/audio expansion, and offline packs need separate modules.
 
 ## Script And Normalization
 - Hindi uses Devanagari and has no upper/lower case distinction in the native script.
@@ -68,4 +69,4 @@ Status: the tiny `hiwiktionary` fixture baseline is implemented.
 - Offline Hindi bundles remain blocked by the offline dictionary pack attribution and production-source path.
 
 ## First Safe Follow-Up
-The tiny `hiwiktionary` fixture baseline is complete. The next safe Hindi follow-up is either a transliteration-search module with explicit romanization rules, or a production-source/API-key module after source licensing review.
+Build a bounded native Hindi Wiktionary extractor and run the balanced 100-headword Devanagari/morphology measurement before considering transliteration search or production promotion.

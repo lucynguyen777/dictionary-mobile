@@ -49,7 +49,7 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
 
   { batch: 4, code: 'ru', difficulty: 'hard', sourcePlan: 'Extract and measure native definitions from ru.wiktionary.org or Russian-edition Wiktextract; English-definition data remains helper-only.', specialWork: 'Stress marks, cases, aspect, conjugation, and inflected related-word lookup.', state: 'preview-promotion' },
   { batch: 4, code: 'kk', difficulty: 'hard', sourcePlan: 'Measure native definitions from kk.wiktionary.org while documenting its current corpus-size constraint; English-definition Kaikki remains helper-only and other portals remain terms-gated.', specialWork: 'Cyrillic/Latin policy, seven cases, vowel harmony, negative verbs, and adjective comparison.', state: 'preview-promotion' },
-  { batch: 4, code: 'hi', difficulty: 'hard', sourcePlan: 'Hindi Wiktionary-derived corpus.', specialWork: 'Devanagari normalization, oblique/plural forms, and postpositions.', state: 'preview-promotion' },
+  { batch: 4, code: 'hi', difficulty: 'hard', sourcePlan: 'Extract and measure native definitions from hi.wiktionary.org; English-definition support data remains helper-only.', specialWork: 'Devanagari normalization, oblique/plural forms, postpositions, and source-backed verb paradigms.', state: 'preview-promotion' },
 
   { batch: 5, code: 'ar', difficulty: 'hard', sourcePlan: 'Arabic Wiktionary/Wiktextract corpus.', specialWork: 'RTL smoke, diacritics, clitics, and root-pattern limitations.', state: 'preview-promotion' },
   { batch: 5, code: 'he', difficulty: 'hard', sourcePlan: 'Hebrew Wiktionary/Wiktextract corpus.', specialWork: 'RTL smoke, niqqud normalization, clitics, and root-pattern limitations.', state: 'preview-promotion' },

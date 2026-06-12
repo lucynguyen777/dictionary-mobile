@@ -2056,6 +2056,14 @@ function getHindiMorphologyCandidates(input: string): MorphologyCandidate[] {
     की: 'करना',
     करो: 'करना',
     करें: 'करना',
+    करूंगा: 'करना',
+    करूँगी: 'करना',
+    करेगा: 'करना',
+    करेगी: 'करना',
+    करेंगे: 'करना',
+    करोगे: 'करना',
+    करिए: 'करना',
+    कीजिए: 'करना',
   };
 
   const irregularBase = irregularVerbForms[word];
