@@ -1285,19 +1285,24 @@ function addHungarianPluralStemCandidates(
 }
 
 function getArabicMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const searchWord = stripArabicSearchMarks(word);
+
+  if (searchWord !== word) {
+    candidates.push(createCandidate(searchWord, 'Arabic diacritic-insensitive fallback'));
+  }
 
   // 1. Definite article ال (al-)
-  if (word.startsWith('ال') && word.length > 3) {
-    candidates.push(createCandidate(word.slice(2), 'definite article stripped (ال-)'));
+  if (searchWord.startsWith('ال') && searchWord.length > 3) {
+    candidates.push(createCandidate(searchWord.slice(2), 'definite article stripped (ال-)'));
   }
 
   // 2. Stacked prefix stripping (e.g. وبالكتاب -> بالكتاب -> الكتاب -> كتاب)
   const prefixChars = ['و', 'ف', 'ب', 'ل', 'ك', 'س'];
-  let current = word;
+  let current = searchWord;
   while (current.length > 3) {
     let stripped = false;
     if (current.startsWith('ال') && current.length > 3) {
@@ -1318,11 +1323,18 @@ function getArabicMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   // 3. Specific plural-to-singular mappings
-  if (word === 'كتب' || word === 'الكتب' || word === 'والكتب' || word === 'بالكتب') {
+  if (searchWord === 'كتب' || searchWord === 'الكتب' || searchWord === 'والكتب' || searchWord === 'بالكتب') {
     candidates.push(createCandidate('كتاب', 'broken plural to singular'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+function stripArabicSearchMarks(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0610-\u061A\u0640\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+    .normalize('NFC');
 }
 
 function getHebrewMorphologyCandidates(input: string): MorphologyCandidate[] {

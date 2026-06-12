@@ -1,16 +1,13 @@
 # Arabic And Hebrew RTL Baseline Plan
 
 ## Scope
-Plan Arabic and Hebrew monolingual lookup tracks before adding adapters or language metadata. This is a source, RTL UI/search, morphology, and fixture-gate document only.
-
-Do not add `ar` or `he` adapters until a true monolingual source, RTL UI behavior, and licensing/attribution path are accepted.
+Track the implemented Arabic and Hebrew RTL fixture previews and their remaining production source, morphology, UI-smoke, and offline-pack gates.
 
 ## Current Metadata
 Source: `data/languages.ts`
 
-- Arabic is not registered.
-- Hebrew is not registered.
-- Current registered languages are all `writingDirection: 'ltr'`, so RTL display must be verified before exposing Arabic or Hebrew as app languages.
+- Arabic and Hebrew are registered with `writingDirection: 'rtl'`, monolingual preview adapters, and tiny local fixtures.
+- RTL support is wired across lookup, library, and Reader, but production corpus UI smoke remains required before promotion.
 
 ## Shared RTL Requirements
 - Store canonical headwords in native script and NFC normalization.
@@ -20,6 +17,8 @@ Source: `data/languages.ts`
 - Do not strip diacritics for canonical lookup. Diacritic-insensitive fallback can be a later search feature after exact matching.
 
 ## Arabic Track
+
+Current production-source audit: `docs/arabic-production-source-audit.md`.
 
 ### Script And Normalization
 - Script: Arabic abjad, RTL.
@@ -107,7 +106,7 @@ Before adding `ar` or `he` adapter code:
 - Offline Arabic/Hebrew bundles are blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Add RTL UI smoke coverage with static local sample strings before source adapter work. This can verify layout direction, mixed-script rendering, and Reader token behavior without committing dictionary data.
+Build bounded native Arabic/Hebrew extraction measurements, then run RTL UI smoke with representative corpus entries before any production promotion.
 
 ## Sources Checked
 - WiktAPI overview: https://wiktapi.dev/

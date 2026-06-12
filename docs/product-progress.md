@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Arabic Native Source And Vocalized Lookup Readiness** - DONE WITH CORPUS-SIZE GATE
+- Module Completion Plan: measure native Arabic Wiktionary viability honestly and add conservative vocalized/unvocalized fixture lookup without broad root-pattern guessing.
+- Acceptance criteria: native Arabic-definition source scale/parser risk are recorded; English-definition data remains helper-only; exact vocalized lookup stays first; verified vocalized/prefixed/broken-plural forms and relations resolve; production promotion waits for coverage/RTL/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-definition Arabic support data, native `ar.wiktionary.org`, and corpus/parser constraints.
+- [x] DONE [MEDIUM]: Added conservative Arabic diacritic-insensitive fallback and morphology-aware related-word lookup.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and reconciled stale RTL plan truth.
+- [x] DONE [MEDIUM]: Added focused source/vocalized lookup readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Arabic source/vocalized readiness module for commit/push without deploy.
+
 **Module: Hindi Native Source And Verb-Paradigm Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate native Hindi Wiktionary as the production extraction candidate and close narrow fixture-backed Hindi verb paradigm gaps without adding broad transliteration/stemming.
 - Acceptance criteria: native Hindi-definition source viability/scale is recorded; English-definition data remains helper-only; Devanagari/postposition behavior remains intact; verified future/polite `करना` forms resolve; production promotion waits for measurement/offline gates.
