@@ -2919,8 +2919,8 @@ export function normalizeUzbekWord(value: string) {
   return value
     .trim()
     .normalize('NFC')
-    .toLocaleLowerCase()
-    .replace(/['‘’´`ʻ]/g, 'ʻ');
+    .toLocaleLowerCase('uz-UZ')
+    .replace(/['‘’´`ʻʼꞌ]/g, 'ʻ');
 }
 
 export function normalizeHindiWord(value: string) {

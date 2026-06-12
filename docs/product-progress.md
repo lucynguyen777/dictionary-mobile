@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Uzbek Native Source And Cross-Script Suffix Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate native Uzbek Wiktionary as the bounded production extraction candidate and connect existing Cyrillic transliteration to conservative suffix analysis.
+- Acceptance criteria: native Uzbek-definition source viability/scale is recorded; Izoh.uz remains terms-gated and English-definition Kaikki helper-only; apostrophe variants normalize safely; verified Cyrillic inflected forms resolve through the existing Latin fixture path; production promotion waits for measurement/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-definition Kaikki Uzbek, native `uz.wiktionary.org`, and the Izoh.uz terms gate.
+- [x] DONE [MEDIUM]: Connected Cyrillic transliteration to existing Uzbek suffix analysis and extended safe apostrophe normalization.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated Uzbek plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/cross-script suffix readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Uzbek source/cross-script readiness module for commit/push without deploy.
+
 **Module: Turkish Native Source And Suffix-Chain Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate Turkish-edition native definitions as the production extraction candidate and harden conservative dotted/dotless-I suffix-chain behavior.
 - Acceptance criteria: native Turkish-definition source viability/scale is recorded; English-definition data remains helper-only; composed/decomposed Turkish characters normalize safely; verified plural-plus-case forms resolve without ASCII folding; production promotion waits for measurement/offline gates.

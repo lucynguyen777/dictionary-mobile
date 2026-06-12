@@ -12,13 +12,14 @@
 Tiny curated Uzbek monolingual baseline is **DONE** (implemented May 22, 2026). This document now serves as the reference plan for the first Uzbek source gate and the path to a larger production-scale integration (Izoh.uz, offline packs, bilingual lookup).
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implementation status: **DONE** — `uz` is registered in `data/languages.ts` (turkic family, LTR, monolingual-only), `data/languageNormalization.ts` (`uz-UZ` locale), `data/adapterRegistry.ts`, and `data/dictionaryApi.ts` dispatch (`fetchUzbekMeaning` / `fetchUzbekRelatedWords`).
 - Fixtures: `uzbekDictionaryEntries` live in `data/localLexicon.ts` for `uy`, `kitob`, `qilmoq`, and `oʻzbek` with CC BY-SA 4.0 attribution from Uzbek Wiktionary.
-- Normalization: `normalizeUzbekWord` handles all apostrophe variants; `transliterateUzbekCyrillicToLatin` enables Cyrillic-input fallback lookup.
-- Morphology: `getUzbekMorphologyCandidates` strips noun case/plural and verb conjugation suffixes to `-moq` base form.
+- Normalization: `normalizeUzbekWord` handles common apostrophe variants; `transliterateUzbekCyrillicToLatin` enables Cyrillic-input fallback lookup.
+- Morphology: `getUzbekMorphologyCandidates` connects Cyrillic transliteration to noun case/plural and verb conjugation suffix analysis before resolving `-moq` base forms.
 - Tests: 7 tests in `tests/dictionaryApi.test.ts`; adapter registry assertion in `tests/adapterRegistry.test.ts`; all 214 tests pass.
-- Remaining gate: Izoh.uz production use still needs API/license terms before runtime integration. Bilingual lookup and offline/bulk Uzbek packs remain blocked.
+- Production source audit: `docs/uzbek-production-source-audit.md` accepts native `uz.wiktionary.org` as a bounded extraction/measurement candidate while keeping Izoh.uz terms-gated and English-definition Kaikki helper-only.
+- Remaining gate: production promotion needs representative native extraction/measurement, attributed corpus/offline pack, and UI smoke.
 
 ## Comparison With Turkish Baseline
 - Turkish already gives the app a Turkic/agglutinative baseline, but Uzbek cannot simply reuse Turkish casing or vowel-harmony assumptions.
@@ -107,7 +108,7 @@ Status: tiny `uzwiktionary` fixture baseline is **DONE** (May 22, 2026). Remaini
 - Offline Uzbek bundle is blocked until source and ShareAlike/attribution handling are approved.
 
 ## First Safe Task
-Implement a tiny `uzwiktionary` fixture baseline, then defer Izoh.uz/API production integration until terms and key/access handling are documented.
+Build a bounded native Uzbek Wiktionary extractor and run the balanced 100-headword Latin/Cyrillic measurement; keep Izoh.uz deferred until terms and key/access handling are documented.
 
 ## Sources Checked
 - Izoh.uz: https://izoh.uz/

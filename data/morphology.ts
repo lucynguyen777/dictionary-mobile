@@ -808,15 +808,17 @@ function transliterateUzbekCyrillicToLatin(value: string): string {
 
 function getUzbekMorphologyCandidates(input: string): MorphologyCandidate[] {
   // Normalize apostrophes first
-  const word = input.trim().toLocaleLowerCase().replace(/['‘’´`ʻ]/g, 'ʻ').normalize('NFC');
+  const word = input.trim().normalize('NFC').toLocaleLowerCase('uz-UZ').replace(/['‘’´`ʻʼꞌ]/g, 'ʻ');
   if (word.length < 2) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  let analysisWord = word;
 
   // Transliterate if Cyrillic
   if (/[\u0400-\u04FF]/.test(word)) {
     const latinTransliterated = transliterateUzbekCyrillicToLatin(word);
     candidates.push(createCandidate(latinTransliterated, 'Cyrillic-to-Latin transliteration'));
+    analysisWord = latinTransliterated;
   }
 
   // Uzbek noun suffixes
@@ -837,8 +839,8 @@ function getUzbekMorphologyCandidates(input: string): MorphologyCandidate[] {
   ];
 
   for (const { suffix, desc } of nounSuffixes) {
-    if (word.endsWith(suffix) && word.length > suffix.length + 1) {
-      const stem = word.slice(0, -suffix.length);
+    if (analysisWord.endsWith(suffix) && analysisWord.length > suffix.length + 1) {
+      const stem = analysisWord.slice(0, -suffix.length);
       candidates.push(createCandidate(stem, desc));
       if (suffix !== 'lar' && stem.endsWith('lar') && stem.length > 4) {
         candidates.push(createCandidate(stem.slice(0, -3), `${desc} + plural stripped`));
@@ -873,23 +875,23 @@ function getUzbekMorphologyCandidates(input: string): MorphologyCandidate[] {
   ];
 
   for (const { suffix, desc } of verbSuffixes) {
-    if (word.endsWith(suffix) && word.length > suffix.length + 1) {
-      const stem = word.slice(0, -suffix.length);
+    if (analysisWord.endsWith(suffix) && analysisWord.length > suffix.length + 1) {
+      const stem = analysisWord.slice(0, -suffix.length);
       candidates.push(createCandidate(`${stem}moq`, `base form from ${desc}`));
     }
   }
 
   // Local fallback manual fixtures for exact coverage matches
-  if (['uyda', 'uydan', 'uyga', 'uyni', 'uylar', 'uyning'].includes(word)) {
+  if (['uyda', 'uydan', 'uyga', 'uyni', 'uylar', 'uyning'].includes(analysisWord)) {
     candidates.push(createCandidate('uy', 'fixture-backed noun form'));
   }
-  if (['kitoblar', 'kitobda', 'kitobga', 'kitobdan', 'kitobni', 'kitobning'].includes(word)) {
+  if (['kitoblar', 'kitobda', 'kitobga', 'kitobdan', 'kitobni', 'kitobning'].includes(analysisWord)) {
     candidates.push(createCandidate('kitob', 'fixture-backed noun form'));
   }
-  if (['qildim', 'qildi', 'qilib', 'qilish', 'qilmoqchi'].includes(word)) {
+  if (['qildim', 'qildi', 'qilib', 'qilish', 'qilmoqchi'].includes(analysisWord)) {
     candidates.push(createCandidate('qilmoq', 'fixture-backed verb form'));
   }
-  if (['oʻzbeklar', 'oʻzbekcha', 'oʻzbekning', 'oʻzbekda', 'oʻzbekistonda', 'oʻzbekiston'].includes(word)) {
+  if (['oʻzbeklar', 'oʻzbekcha', 'oʻzbekning', 'oʻzbekda', 'oʻzbekistonda', 'oʻzbekiston'].includes(analysisWord)) {
     candidates.push(createCandidate('oʻzbek', 'fixture-backed form'));
   }
 
