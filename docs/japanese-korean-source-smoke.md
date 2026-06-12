@@ -1,7 +1,7 @@
 # Japanese And Korean Source Smoke Test
 
 ## Status
-A monolingual source candidate path is now identified for both languages through Kaikki/Wiktextract raw dumps from the Japanese and Korean Wiktionary editions. Do not add Japanese or Korean adapters until a small fixture smoke confirms common headwords, schema fields, license/attribution handling, and parser behavior.
+A monolingual source candidate path is identified for both languages through Kaikki/Wiktextract raw dumps from the Japanese and Korean Wiktionary editions. Small attributed fixtures and preview adapters now exist; production promotion still requires measured corpus/parser, segmentation, and offline-pack evidence.
 
 ## Smoke Tests
 Run on May 17, 2026.
@@ -40,7 +40,7 @@ Endpoint/data smoke on May 18, 2026.
 - Kaikki also exposes raw Wiktextract output for the Japanese Wiktionary and Korean Wiktionary editions. Those are the first acceptable source candidates for JA->JA and KO->KO because their gloss metadata is in the target language edition.
 - Streaming smoke confirmed one Japanese headword (`猫`) and one Korean headword (`사랑`) with target-language gloss fields. Hosted WiktAPI search can find those headwords, but direct word endpoints still return 404, so the adapter path should prefer raw-dump ingestion or a self-hosted/indexed WiktAPI import until direct lookup is proven stable.
 - Verb smoke confirmed Japanese has useful lemma/form-of and conjugation-form fields, while Korean has useful pronunciation/romanization metadata but still needs a morphology strategy for inflected lookup.
-- Japanese and Korean remain `coming-soon` metadata only.
+- Japanese and Korean now have bounded monolingual preview adapters; neither has production corpus parity.
 
 ## Next Safe Work
 1. Keep Japanese/Korean adapter implementation blocked until source licensing/attribution policy is accepted for Wiktionary-derived data.

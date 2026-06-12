@@ -3,13 +3,19 @@
 ## Scope
 Plan Japanese and Korean monolingual lookup tracks before adding adapters. This is a source, segmentation, and UI/storage plan only; no production lookup code should be added until source and parser smoke tests pass.
 
+## Current Implementation Status
+
+- Japanese and Korean metadata, monolingual preview adapters, local attributed fixtures, morphology fallbacks, and focused tests are now implemented.
+- Both remain preview-only because production corpus coverage, parser measurement, segmentation UI smoke, and offline packaging have not passed.
+- Current Japanese promotion evidence and remaining boundaries are recorded in `docs/japanese-production-source-audit.md`.
+
 ## Current Metadata
 Source: `data/languages.ts`
 
-- `ja`: 日本語, Japonic, kanji-kana, LTR, adapter key `ja`, `dictionaryStatus: 'coming-soon'`.
-- `ko`: 한국어, Koreanic, Hangul, LTR, adapter key `ko`, `dictionaryStatus: 'coming-soon'`.
+- `ja`: 日本語, Japonic, kanji-kana, LTR, adapter key `ja`, monolingual preview.
+- `ko`: 한국어, Koreanic, Hangul, LTR, adapter key `ko`, monolingual preview.
 
-Both languages are already visible as future options but must stay coming-soon until a monolingual source and segmentation strategy are verified.
+Both languages are usable as bounded previews but must not be promoted until a measured monolingual corpus and segmentation strategy are verified.
 
 ## Japanese Track
 
@@ -87,16 +93,15 @@ Before adding `ja` or `ko` adapter code:
 
 Current smoke evidence is tracked in `docs/japanese-korean-source-smoke.md`. WiktAPI returned 404 for tested Japanese/Korean common words, and Kaikki's indexed Japanese/Korean pages are based on English Wiktionary extraction. The newly identified `jawiktionary` and `kowiktionary` raw dumps are valid monolingual source candidates, but no adapter is unblocked until tiny fixture smoke proves the needed app fields.
 
-## First Safe Implementation Slice
-After source smoke tests pass for one language:
-- add only that language's metadata/adapter dispatch;
-- keep dictionary status monolingual only;
+## First Safe Production-Promotion Slice
+After source/corpus measurement passes for one language:
+- ingest only verified target-language rows with source attribution;
 - keep bilingual pairs unsupported;
-- add source attribution and tests;
-- add segmentation helper only if a lookup or Reader flow actually needs it.
+- preserve source-provided lemma/form-of/readings instead of broad local guesses;
+- add segmentation UI smoke before offline packaging or production promotion.
 
 ## Blocked Items
-- Production Japanese/Korean monolingual lookup remains blocked until source smoke tests pass.
+- Production Japanese/Korean monolingual promotion remains blocked until measured corpus/parser and segmentation smoke tests pass.
 - Production Japanese/Korean bilingual lookup remains blocked until trustworthy lexical bilingual sources are selected.
 - Full Japanese pitch accent and Korean pronunciation rule support remain blocked until source-backed data is selected.
 - Offline Japanese/Korean bundles remain blocked by `.docs/decisions/offline-dictionary-bundle.md`.

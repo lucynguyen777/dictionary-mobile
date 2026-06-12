@@ -909,10 +909,23 @@ function getUzbekMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
   if (word.length < 2) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const verifiedIchidanForms: Record<string, string> = {
+    '食べました': '食べる',
+    '食べません': '食べる',
+    '食べれば': '食べる',
+    'たべました': 'たべる',
+    'たべません': 'たべる',
+    'たべれば': 'たべる',
+  };
+
+  const verifiedLemma = verifiedIchidanForms[word];
+  if (verifiedLemma) {
+    candidates.push(createCandidate(verifiedLemma, 'verified 一段動詞 form'));
+  }
 
   // Group 2 (Ichidan) verb inflections (e.g. 食べた, 食べない, 食べます, 食べて)
   // These end in -た, -ない, -ます, -て, -る

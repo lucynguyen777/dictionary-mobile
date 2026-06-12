@@ -168,7 +168,16 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
-**Module: Mandarin Native Source And Script-Variant Readiness** - IN PROGRESS
+**Module: Japanese Native Source And Ichidan Lookup Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: reconcile stale Japanese pre-adapter docs with current preview code and close narrow verified ichidan/related-word gaps without broad conjugation or pitch-accent guessing.
+- Acceptance criteria: Japanese-edition Wiktextract/form-of requirements are recorded; English-definition data remains helper-only; exact lookup stays first; verified ichidan forms and inflected relations resolve; production promotion waits for measured tokenizer/readings/offline gates.
+- [x] DONE [HARD]: Audited current Japanese adapter, source smoke, jawiktionary form-of evidence, morphology, and stale plan status.
+- [x] DONE [MEDIUM]: Added bounded verified ichidan forms and morphology-aware related-word lookup while preserving exact lookup.
+- [x] DONE [MEDIUM]: Documented Japanese production extraction boundaries and reconciled stale Japanese/Korean plan/source-smoke truth.
+- [x] DONE [MEDIUM]: Added focused source/inflection readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit, then prepared the Japanese source/inflection readiness module for commit/push without deploy.
+
+**Module: Mandarin Native Source And Script-Variant Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate Chinese Wiktionary as the native-definition extraction candidate and make bounded simplified/traditional fallback directional so mixed-script inputs do not normalize into another mixed form.
 - Acceptance criteria: Chinese-section filtering/parser risk is recorded; English-definition data remains helper-only; exact lookup stays first; bounded mixed-script and traditional related-word fallbacks work; production promotion waits for measured segmentation/readings/offline gates.
 - [x] DONE [HARD]: Audited hosted WiktAPI, native `zh.wiktionary.org`, multilingual page/parser constraints, and production extraction boundaries.
