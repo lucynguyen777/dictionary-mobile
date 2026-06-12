@@ -1571,26 +1571,30 @@ function getRussianMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getMandarinMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
   if (word.length < 1) return [];
 
   const candidates: MorphologyCandidate[] = [];
 
-  // Try traditional/simplified variant lookup character-by-character
-  const zhVariantMap: Record<string, string> = {
-    '書': '书', '书': '書',
-    '貓': '猫', '猫': '貓',
-    '讀': '读', '读': '讀',
+  // Keep the local mapping deliberately bounded until a revisioned corpus
+  // supplies a complete, attributable simplified/traditional mapping.
+  const traditionalToSimplified: Record<string, string> = {
+    '書': '书',
+    '貓': '猫',
+    '讀': '读',
   };
+  const simplifiedToTraditional = Object.fromEntries(
+    Object.entries(traditionalToSimplified).map(([traditional, simplified]) => [simplified, traditional]),
+  );
 
-  let alternativeWord = '';
-  for (let i = 0; i < word.length; i++) {
-    const char = word[i];
-    alternativeWord += zhVariantMap[char] || char;
+  const simplifiedWord = Array.from(word, (char) => traditionalToSimplified[char] || char).join('');
+  const traditionalWord = Array.from(word, (char) => simplifiedToTraditional[char] || char).join('');
+
+  if (simplifiedWord !== word) {
+    candidates.push(createCandidate(simplifiedWord, 'simplified-script variant'));
   }
-
-  if (alternativeWord !== word) {
-    candidates.push(createCandidate(alternativeWord, 'variant (simplified/traditional)'));
+  if (traditionalWord !== word) {
+    candidates.push(createCandidate(traditionalWord, 'traditional-script variant'));
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);

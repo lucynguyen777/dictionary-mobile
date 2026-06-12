@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Mandarin Native Source And Script-Variant Readiness** - IN PROGRESS
+- Module Completion Plan: validate Chinese Wiktionary as the native-definition extraction candidate and make bounded simplified/traditional fallback directional so mixed-script inputs do not normalize into another mixed form.
+- Acceptance criteria: Chinese-section filtering/parser risk is recorded; English-definition data remains helper-only; exact lookup stays first; bounded mixed-script and traditional related-word fallbacks work; production promotion waits for measured segmentation/readings/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, native `zh.wiktionary.org`, multilingual page/parser constraints, and production extraction boundaries.
+- [x] DONE [MEDIUM]: Replaced toggle-style fixture variant mapping with directional simplified/traditional candidates and added morphology-aware related-word lookup.
+- [x] DONE [MEDIUM]: Documented native extraction/measurement requirements and reconciled Mandarin plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/script-variant readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit, then prepared the Mandarin source/script readiness module for commit/push without deploy.
+
 **Module: Hebrew Native Source And Niqqud Lookup Readiness** - DONE WITH CORPUS-SIZE GATE
 - Module Completion Plan: measure native Hebrew Wiktionary viability honestly and add conservative pointed/unpointed fixture lookup without broad shoresh/binyan guessing.
 - Acceptance criteria: native Hebrew-definition source scale/parser risk are recorded; English-definition data remains helper-only; exact pointed lookup stays first; verified pointed/prefixed/plural forms and relations resolve; production promotion waits for coverage/RTL/offline gates.

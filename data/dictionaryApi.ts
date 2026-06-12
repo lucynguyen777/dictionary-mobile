@@ -1721,13 +1721,21 @@ export async function fetchMandarinMeaning(word: string): Promise<ApiMeaningResu
 
 export async function fetchMandarinRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('zh', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('zh', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  for (const lookupWord of lookupCandidates) {
+    const localEntry = findLocalDictionaryEntry('zh', lookupWord);
+    if (localEntry) {
+      return {
+        synonyms: localEntry.synonyms || [],
+        antonyms: localEntry.antonyms || [],
+      };
+    }
   }
+
   return { synonyms: [], antonyms: [] };
 }
 

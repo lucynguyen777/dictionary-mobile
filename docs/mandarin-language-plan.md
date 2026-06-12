@@ -4,6 +4,7 @@
 - **State**: Implemented monolingual preview.
 - **Evidence**: Mandarin metadata, adapter routing, local attributed fixtures, simplified/traditional variant fallbacks, Reader segmentation support, and focused lookup tests are present.
 - **Production gap**: The fixture corpus is too small and has no measured production/offline-pack evidence.
+- **Current production-source audit**: `docs/mandarin-production-source-audit.md` records Chinese Wiktionary as a viable large native-definition source whose multilingual pages still require Chinese-section filtering and parser measurement.
 - **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
 
 ## Language Metadata
@@ -37,10 +38,12 @@ Mandarin is an isolating (analytic) language with no inflectional morphology (no
 
 ## Data Source Candidates & Status
 1. **Chinese Wiktionary (`zhwiktionary`)**:
-   - High-quality, comprehensive CC BY-SA definitions.
+   - Large CC BY-SA/GFDL source with Chinese definitions, pronunciation, examples, relations, and script variants where available.
+   - Pages are multilingual, so production extraction must retain only verified Chinese-language sections and preserve page/revision attribution.
    - Hosted WiktAPI query `https://api.wiktapi.dev/v1/zh/word/书` is unavailable (not supported in the main hosted edition list).
 2. **Offline Community Dumps & Fixtures**:
-   - Local mock entries will be created using open-licensed (CC BY-SA) definitions from English/Chinese Wiktionary dumps.
+   - Local bounded fixtures use open-licensed Wiktionary-derived data for adapter tests; they are not production corpus evidence.
+   - English-definition data may help with forms/readings, but it cannot stand in for Chinese monolingual definitions.
    - Core test cases will cover basic nouns (`书`/`書` - book, `猫`/`貓` - cat) and verbs (`读`/`讀` - to read).
 
 ## Implementation Plan
