@@ -11,9 +11,10 @@
 Plan a monolingual Igbo dictionary lookup (IG->IG), focusing on tone-safe search, underdot-preserving normalization, vowel harmony implications, and source gates before any bilingual expansion.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `ig` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'ig'`; `data/adapterRegistry.ts` dispatches to `fetchIgboMeaning` and `fetchIgboRelatedWords`.
-- Fixture/runtime path: local Igbo fixtures, tone-insensitive underdot-preserving lookup, conservative prefix fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Fixture/runtime path: local Igbo fixtures, locale-aware tone-insensitive and Ọnwụ-preserving lookup, conservative prefix fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Production source audit: `docs/igbo-production-source-audit.md` records hosted/Kaikki unavailability, the small native Wiktionary corpus, and the Nkọwa okwu terms gate.
 - Remaining gate: broader Igbo production/bulk coverage, Nkọwa okwu / Igbo API integration, and audio/example expansion still need accepted API/license/product terms.
 
 ## Orthography & Normalization
@@ -75,6 +76,8 @@ Igbo belongs in the same broad Niger-Congo roadmap group as Yoruba and Zulu, but
    - Register an `ig` adapter in `data/adapterRegistry.ts` and dispatch `fetchIgboMeaning` / `fetchIgboRelatedWords` from `data/dictionaryApi.ts`.
 5. **Unit Tests**:
    - Cover exact lookup, tone-insensitive lookup, underdot preservation, missing-source behavior, and related-word lookup under `tests/dictionaryApi.test.ts`.
+6. **Production readiness follow-up**:
+   - Keep promotion source-blocked until an approved measured Igbo-definition corpus and attributed offline candidate pass.
 
 ## Test Plan
 - `npm test -- --run tests/dictionaryApi.test.ts tests/adapterRegistry.test.ts tests/languageNormalization.test.ts`

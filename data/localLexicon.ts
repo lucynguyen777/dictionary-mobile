@@ -2947,7 +2947,7 @@ export function normalizeIgboWord(value: string) {
     .normalize('NFD')
     .replace(/[\u0300\u0301\u0304]/g, '')
     .normalize('NFC')
-    .toLocaleLowerCase()
+    .toLocaleLowerCase('ig-NG')
     .trim();
 }
 

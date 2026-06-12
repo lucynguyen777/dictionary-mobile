@@ -1790,7 +1790,7 @@ function getIgboMorphologyCandidates(input: string): MorphologyCandidate[] {
     .normalize('NFD')
     .replace(/[\u0300\u0301\u0304]/g, '')
     .normalize('NFC')
-    .toLocaleLowerCase();
+    .toLocaleLowerCase('ig-NG');
 
   if (toneStripped !== word.toLocaleLowerCase()) {
     candidates.push({

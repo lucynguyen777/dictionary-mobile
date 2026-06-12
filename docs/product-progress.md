@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Igbo Source Audit And Orthography Readiness** - DONE WITH SOURCE BLOCKER
+- Module Completion Plan: verify Igbo source/corpus blockers and harden tone-insensitive lookup while preserving Ọnwụ orthography.
+- Acceptance criteria: hosted/native/Kaikki source status is recorded; tone marks normalize across canonical Unicode forms; `ị`, `ọ`, `ụ`, and `ṅ` remain lexical; Igbo remains preview/source-blocked until an approved measured corpus exists.
+- [x] DONE [HARD]: Audited hosted WiktAPI, Kaikki Igbo availability, native `ig.wiktionary.org` size, and current source candidates.
+- [x] DONE [MEDIUM]: Hardened Igbo locale-aware tone normalization and canonical Unicode regression coverage.
+- [x] DONE [MEDIUM]: Documented the source blocker and updated Igbo plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/orthography readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Igbo source/orthography readiness module for commit/push without deploy.
+
 **Module: Yoruba Source Audit And Tone Normalization Readiness** - DONE WITH SOURCE BLOCKER
 - Module Completion Plan: verify the current Yoruba production-source blocker and complete conservative tone-mark normalization while preserving lexical underdots.
 - Acceptance criteria: hosted/native/Kaikki source status is recorded accurately; English-definition data stays ineligible; acute, grave, and macron tone variants resolve to existing fixtures; underdots remain preserved; Yoruba stays preview/source-blocked.
