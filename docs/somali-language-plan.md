@@ -4,6 +4,7 @@
 - **State**: Implemented monolingual preview.
 - **Evidence**: Somali metadata, adapter routing, local attributed fixtures, definite-article/plural morphology fallbacks, and focused lookup tests are present.
 - **Production gap**: The fixture corpus and morphology sample are not broad enough for production parity.
+- **Production source audit**: `docs/somali-production-source-audit.md` rejects the current English-definition Kaikki data and records the Somali-definition source blocker.
 - **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
 
 ## Language Metadata
@@ -61,3 +62,5 @@ Somali has complex suffix-based morphology:
    - Register the Somali adapter in `data/adapterRegistry.ts` and dispatch to `fetchSomaliMeaning` / `fetchSomaliRelatedWords`.
 5. **Unit Tests**:
    - Write tests under `tests/dictionaryApi.test.ts` to cover exact lookups, definite article stripping, and plural form fallbacks.
+6. **Production readiness follow-up**:
+   - Extended article/demonstrative and fixture-backed irregular plural fallbacks are implemented; promotion remains blocked by the missing Somali-definition corpus.

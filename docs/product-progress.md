@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Somali Source Audit And Morphology Readiness** - DONE WITH SOURCE BLOCKER
+- Module Completion Plan: validate Somali production-source eligibility and complete conservative fixture-backed morphology gaps without packaging English-definition data.
+- Acceptance criteria: WiktAPI/Kaikki definition-language status is recorded; English-gloss data is rejected; extended article/demonstrative and irregular plural fallbacks are tested; Somali remains preview until a Somali-definition source passes.
+- [x] DONE [HARD]: Audited hosted WiktAPI, Kaikki Somali, source revision, and definition-language eligibility.
+- [x] DONE [HARD]: Rejected English-definition Kaikki data for Somali monolingual production and documented source unblock requirements.
+- [x] DONE [MEDIUM]: Added conservative handling for `buuggaas`, `buuggii`, `bisaddii`, `buugaag`, and existing `guryo` behavior.
+- [x] DONE [MEDIUM]: Updated Somali plan/roadmap truth and added focused readiness tests.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Somali source-audit/morphology module for commit/push without deploy.
+
 **Module: Hawaiian Production Source Audit And Corpus Language Guard** - DONE WITH SOURCE BLOCKER
 - Module Completion Plan: validate Hawaiian production-source eligibility before creating a 100-headword promotion sample or offline pack, and prevent non-monolingual gloss corpora from entering any monolingual promotion path.
 - Acceptance criteria: Hawaiian source candidates are classified by definition language/license/revision; English-gloss data is rejected for Hawaiian monolingual production; extraction tooling requires explicit definition language; prior API-preview candidate truth is corrected.

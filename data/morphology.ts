@@ -1560,12 +1560,33 @@ function getSomaliMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (word.length < 2) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const fixtureBackedIrregularPlurals: Record<string, string> = {
+    buugaag: 'buug',
+    guryo: 'guri',
+  };
 
   const addCandidate = (w: string, desc: string) => {
     if (w.length >= 2 && w !== word) {
       candidates.push(createCandidate(w, desc));
     }
   };
+
+  const irregularPlural = fixtureBackedIrregularPlurals[word];
+  if (irregularPlural) {
+    addCandidate(irregularPlural, 'fixture-backed irregular plural');
+  }
+
+  const extendedArticleSuffixes = ['gaas', 'giis', 'geed', 'ga', 'gii', 'dii'];
+  for (const suff of extendedArticleSuffixes) {
+    if (word.endsWith(suff) && word.length > suff.length + 2) {
+      const nextStem = word.slice(0, -suff.length);
+      addCandidate(nextStem, `extended article suffix -${suff} stripped`);
+      if (nextStem.length > 2 && nextStem.at(-1) === nextStem.at(-2)) {
+        addCandidate(nextStem.slice(0, -1), `extended article suffix -${suff} stripped and letter dedoubled`);
+      }
+      break;
+    }
+  }
 
   const longSuffixes = ['kaas', 'taas', 'kiis', 'tiis', 'keed', 'teed', 'kiina', 'tiina'];
   let stem = word;
