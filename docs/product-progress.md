@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Russian Native Source And Inflected Relations Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate native Russian Wiktionary as the production extraction candidate and align stress/case morphology with related-word lookup.
+- Acceptance criteria: native Russian-definition source viability/scale is recorded; English-definition data remains helper-only; stress-marked uppercase/inflected forms normalize safely; related words resolve from verified inflected forms; production promotion waits for measurement/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-definition support data, native `ru.wiktionary.org`, and Russian-edition extraction options.
+- [x] DONE [MEDIUM]: Added NFD stress removal/NFC normalization and morphology-aware Russian related-word lookup.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated Russian plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/inflected-relations readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Russian source/relations readiness module for commit/push without deploy.
+
 **Module: Kazakh Native Source And Inflection Readiness** - DONE WITH CORPUS-SIZE GATE
 - Module Completion Plan: measure native Kazakh Wiktionary viability honestly and close narrow fixture-backed negative-verb/adjective morphology gaps without accepting unlicensed portals.
 - Acceptance criteria: native Kazakh-definition source scale and placeholder risk are recorded; English-definition Kaikki remains helper-only; Kazakh Cyrillic remains canonical; verified negative past and comparative forms resolve; production promotion waits for representative coverage/offline gates.

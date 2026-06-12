@@ -1498,7 +1498,7 @@ function getAmharicMorphologyCandidates(input: string): MorphologyCandidate[] {
 
 function getRussianMorphologyCandidates(input: string): MorphologyCandidate[] {
   // Strip stress marks (U+0301 combining acute accent)
-  const word = input.trim().toLowerCase().replace(/\u0301/g, '');
+  const word = input.trim().normalize('NFD').replace(/\u0301/g, '').normalize('NFC').toLocaleLowerCase('ru-RU');
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];

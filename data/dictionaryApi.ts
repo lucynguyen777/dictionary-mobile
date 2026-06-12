@@ -1606,7 +1606,7 @@ export async function fetchAmharicRelatedWords(word: string): Promise<ApiRelated
 
 export async function fetchRussianMeaning(word: string): Promise<ApiMeaningResult> {
   // Strip stress marks (U+0301 combining acute accent)
-  const normalizedWord = word.trim().normalize('NFC').replace(/\u0301/g, '');
+  const normalizedWord = word.trim().normalize('NFD').replace(/\u0301/g, '').normalize('NFC').toLocaleLowerCase('ru-RU');
   const lookupCandidates = uniqueWords([
     normalizedWord,
     ...getMorphologyCandidates('ru', normalizedWord).map((candidate) => candidate.word),
@@ -1645,14 +1645,22 @@ export async function fetchRussianMeaning(word: string): Promise<ApiMeaningResul
 }
 
 export async function fetchRussianRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC').replace(/\u0301/g, '');
-  const localEntry = findLocalDictionaryEntry('ru', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
+  const normalizedWord = word.trim().normalize('NFD').replace(/\u0301/g, '').normalize('NFC').toLocaleLowerCase('ru-RU');
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('ru', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  for (const lookupWord of lookupCandidates) {
+    const localEntry = findLocalDictionaryEntry('ru', lookupWord);
+    if (localEntry) {
+      return {
+        synonyms: localEntry.synonyms || [],
+        antonyms: localEntry.antonyms || [],
+      };
+    }
   }
+
   return { synonyms: [], antonyms: [] };
 }
 

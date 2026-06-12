@@ -3,6 +3,8 @@
 ## Current Implementation Status
 - **State**: Implemented monolingual preview.
 - **Evidence**: Russian metadata, Cyrillic normalization, adapter routing, local attributed fixtures, case/aspect morphology fallbacks, and focused lookup tests are present.
+- **Status refreshed**: June 12, 2026.
+- **Production source audit**: `docs/russian-production-source-audit.md` accepts native `ru.wiktionary.org` or Russian-edition Wiktextract as a strong extraction/measurement candidate.
 - **Production gap**: A measured Russian corpus, richer paradigms, and an approved offline-pack path are still missing.
 - **Historical note**: The implementation plan below is retained as design history; its tasks are complete at preview-baseline level.
 
@@ -63,3 +65,6 @@ Russian is a highly inflected fusional Slavic language:
    - Hook up `fetchRussianMeaning` and `fetchRussianRelatedWords` in `data/dictionaryApi.ts` and register in `data/adapterRegistry.ts`.
 5. **Unit Tests**:
    - Write unit tests under `tests/dictionaryApi.test.ts` to cover exact, declension-stripped, and verb-conjugation-stripped lookups.
+
+## Next Safe Task
+Build a bounded native Russian Wiktionary/Wiktextract extractor and run the balanced 100-headword measurement across stress, case, aspect, conjugation, and related-word coverage.
