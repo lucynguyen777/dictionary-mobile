@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Zulu Source Audit And Orthography Readiness** - DONE WITH CORPUS BLOCKER
+- Module Completion Plan: verify Zulu corpus/source readiness and harden dictionary-tone lookup without broadening unverified noun-class or verb rules.
+- Acceptance criteria: hosted/native/Kaikki source status is recorded; English-definition data stays ineligible; acute/grave/macron forms resolve to current fixtures; noun-class and locative regressions remain green; Zulu stays preview until corpus/offline gates pass.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-Wiktionary-derived Kaikki Zulu, native `zu.wiktionary.org` size, and sampled definition completeness.
+- [x] DONE [MEDIUM]: Added conservative dictionary-tone-insensitive lookup while preserving Zulu orthography.
+- [x] DONE [MEDIUM]: Documented the measured source blocker and updated Zulu plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/orthography readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Zulu source/orthography readiness module for commit/push without deploy.
+
 **Module: Igbo Source Audit And Orthography Readiness** - DONE WITH SOURCE BLOCKER
 - Module Completion Plan: verify Igbo source/corpus blockers and harden tone-insensitive lookup while preserving Ọnwụ orthography.
 - Acceptance criteria: hosted/native/Kaikki source status is recorded; tone marks normalize across canonical Unicode forms; `ị`, `ọ`, `ụ`, and `ṅ` remain lexical; Igbo remains preview/source-blocked until an approved measured corpus exists.

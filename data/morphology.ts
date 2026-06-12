@@ -1733,7 +1733,7 @@ function getYorubaMorphologyCandidates(input: string): MorphologyCandidate[] {
 
 function getZuluMorphologyCandidates(input: string): MorphologyCandidate[] {
   const candidates: MorphologyCandidate[] = [];
-  const word = normalizeMorphologyInput(input);
+  const word = normalizeMorphologyInput(input).normalize('NFC');
   if (word.length < 4) return [];
 
   const addCandidate = (candidate: string, reason: string) => {
@@ -1743,6 +1743,15 @@ function getZuluMorphologyCandidates(input: string): MorphologyCandidate[] {
       reason,
     });
   };
+
+  const toneStripped = word
+    .normalize('NFD')
+    .replace(/[\u0300\u0301\u0304]/g, '')
+    .normalize('NFC');
+  if (toneStripped !== word) {
+    addCandidate(toneStripped, 'dictionary tone marks removed');
+  }
+  const morphologyWord = toneStripped;
 
   const prefixPairs: [string, string][] = [
     ['aba', 'umu'],
@@ -1762,19 +1771,19 @@ function getZuluMorphologyCandidates(input: string): MorphologyCandidate[] {
   ];
 
   for (const [pluralPrefix, singularPrefix] of prefixPairs) {
-    if (word.startsWith(pluralPrefix) && word.length > pluralPrefix.length + 1) {
-      addCandidate(`${singularPrefix}${word.slice(pluralPrefix.length)}`, `noun class ${pluralPrefix}- -> ${singularPrefix}-`);
+    if (morphologyWord.startsWith(pluralPrefix) && morphologyWord.length > pluralPrefix.length + 1) {
+      addCandidate(`${singularPrefix}${morphologyWord.slice(pluralPrefix.length)}`, `noun class ${pluralPrefix}- -> ${singularPrefix}-`);
     }
   }
 
-  if (word.startsWith('e') && word.endsWith('ini') && word.length > 6) {
-    const locativeStem = word.slice(1, -3);
+  if (morphologyWord.startsWith('e') && morphologyWord.endsWith('ini') && morphologyWord.length > 6) {
+    const locativeStem = morphologyWord.slice(1, -3);
     addCandidate(locativeStem, 'locative e-...-ini stripped');
     addCandidate(`i${locativeStem}`, 'locative e-...-ini restored with i- augment');
   }
 
-  if (word.startsWith('e') && word.endsWith('wini') && word.length > 7) {
-    const locativeStem = word.slice(1, -4);
+  if (morphologyWord.startsWith('e') && morphologyWord.endsWith('wini') && morphologyWord.length > 7) {
+    const locativeStem = morphologyWord.slice(1, -4);
     addCandidate(`i${locativeStem}`, 'locative e-...-wini restored with i- augment');
     addCandidate(`i${locativeStem}u`, 'locative e-...-wini restored with final -u');
   }

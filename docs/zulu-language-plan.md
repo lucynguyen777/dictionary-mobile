@@ -11,10 +11,11 @@
 Plan a monolingual Zulu dictionary lookup (ZU->ZU), focusing on noun class prefixes, agglutinative morphology, and local fixture gates before any bilingual expansion.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `zu` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'zu'`; `data/adapterRegistry.ts` dispatches to `fetchZuluMeaning` and `fetchZuluRelatedWords`.
-- Fixture/runtime path: local Zulu fixtures, noun-class prefix fallback, locative fallback, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
-- Remaining gate: broader Zulu production/bulk coverage still needs a stable approved source and attribution packaging.
+- Fixture/runtime path: local Zulu fixtures, noun-class prefix fallback, locative fallback, dictionary-tone-insensitive lookup, and related-word lookup are wired through `data/localLexicon.ts`, `data/morphology.ts`, and `data/dictionaryApi.ts`.
+- Production source audit: `docs/zulu-production-source-audit.md` records hosted API failure, English-definition Kaikki ineligibility, and the undersized/incomplete native Zulu Wiktionary corpus.
+- Remaining gate: broader Zulu production/bulk coverage still needs a stable approved measured source and attribution packaging.
 
 ## Orthography & Normalization
 - Zulu uses a Roman-based orthography with standard word spacing, so the existing Reader tokenization path can start with the Latin-script flow.
@@ -59,6 +60,8 @@ Zulu is a Bantu language with noun class agreement and heavy prefixation. The ba
    - Register a `zu` adapter in `data/adapterRegistry.ts` and dispatch `fetchZuluMeaning` / `fetchZuluRelatedWords` from `data/dictionaryApi.ts`.
 5. **Unit Tests**:
    - Cover exact noun lookup, plural-to-singular class prefix fallback, optional locative fallback, and related-word lookup under `tests/dictionaryApi.test.ts`.
+6. **Production readiness follow-up**:
+   - Keep promotion corpus-blocked until an approved measured Zulu-definition corpus and attributed offline candidate pass.
 
 ## Research Sources
 - Wiktionary Appendix: Zulu nouns, for noun class and prefix overview.
