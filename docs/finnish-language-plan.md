@@ -12,11 +12,12 @@
 This document now tracks the implemented Finnish baseline and the remaining production source gates. Finnish metadata and a small local fixture adapter are implemented; broader production/bulk source expansion remains gated.
 
 ## Current Code Audit
-- Status refreshed: May 22, 2026.
+- Status refreshed: June 12, 2026.
 - Implemented in code: `fi` is registered in `data/languages.ts` with `dictionaryStatus: 'monolingual'` and `adapterKey: 'fi'`; `data/adapterRegistry.ts` dispatches to `fetchFinnishMeaning` and `fetchFinnishRelatedWords`.
-- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `fiwiktionary`-attributed Finnish fixture set; `data/morphology.ts` includes case/gradation and verb-form fallback candidates used by `data/dictionaryApi.ts`.
+- Fixture/runtime path: `data/localLexicon.ts` contains a tiny `fiwiktionary`-attributed Finnish fixture set; `data/morphology.ts` includes NFC/locale-aware case/gradation and verb-form fallback candidates used by `data/dictionaryApi.ts`.
 - Test coverage: `tests/dictionaryApi.test.ts` covers exact lookup, `talossa -> talo`, `syön -> syödä`, `kädessä -> käsi`, `yötä -> yö`, and related words.
-- Remaining gate: Estonian is still the next Uralic blocker; Finnish only needs future production/bulk source approval and offline bundle packaging before expansion beyond curated fixtures.
+- Production source audit: `docs/finnish-production-source-audit.md` accepts native `fi.wiktionary.org` as the extraction/measurement candidate and rejects English-definition Kaikki data for monolingual definitions.
+- Remaining gate: Finnish production promotion needs a native-source extractor, balanced measurement, attributed corpus/offline pack, and UI smoke.
 
 ## Script And Normalization
 - Finnish uses the Latin alphabet with native letters `ä` and `ö`; `å` appears mostly in Swedish-origin names and loan contexts.
@@ -48,10 +49,12 @@ This document now tracks the implemented Finnish baseline and the remaining prod
 3. Hosted WiktAPI English edition with `lang=fi`
    - `talo` returns detailed Finnish forms and English glosses from the English edition.
    - Useful as a morphology/form smoke path, not a `fi -> fi` baseline.
-4. Suomi Sanakirja API
+4. Native Finnish Wiktionary MediaWiki API
+   - Strong production extraction/measurement candidate with Finnish definitions, examples, pronunciation, and inflection templates.
+5. Suomi Sanakirja API
    - Candidate for Finnish definitions, synonyms, antonyms, examples, and related lexical fields.
    - Public page documents only the open word-of-the-day endpoint and says API-key access is required for broader dictionary integration, so production use needs terms/API approval.
-5. UniMorph Finnish
+6. UniMorph Finnish
    - Candidate for morphology/form support only.
    - Not a definition source.
 
@@ -86,7 +89,7 @@ Status: first small baseline is implemented; production/bulk source expansion re
 - Offline Finnish bundle is blocked by `.docs/decisions/offline-dictionary-bundle.md`.
 
 ## First Safe Task
-Next safe task: decide whether Suomi Sanakirja API terms or another Finnish-definition source can be used for production/bulk fixtures. Code expansion should stay source-gated until then.
+Next safe task: build the bounded native Finnish Wiktionary extractor and balanced 100-headword measurement.
 
 ## Sources Checked
 - WiktAPI overview: https://wiktapi.dev/

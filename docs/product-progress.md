@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Finnish Native Source And Case Gradation Readiness** - DONE WITH EXTRACTION GATE
+- Module Completion Plan: validate native Finnish Wiktionary as the production extraction candidate and complete conservative fixture-backed case-gradation behavior.
+- Acceptance criteria: native Finnish-definition source viability is recorded; English-definition Kaikki remains helper-only; decomposed/composed diacritics normalize safely; verified `käsi` case stems resolve across local cases; production promotion waits for measurement/offline gates.
+- [x] DONE [HARD]: Audited hosted WiktAPI, English-Wiktionary-derived Kaikki Finnish, and native `fi.wiktionary.org` source viability/scale.
+- [x] DONE [MEDIUM]: Added Finnish NFC/locale normalization and fixture-backed `käde- -> käsi` restoration across verified local cases.
+- [x] DONE [MEDIUM]: Documented the native extraction/measurement decision and updated Finnish plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/case-gradation readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit and prepared the Finnish source/case-gradation readiness module for commit/push without deploy.
+
 **Module: Zulu Source Audit And Orthography Readiness** - DONE WITH CORPUS BLOCKER
 - Module Completion Plan: verify Zulu corpus/source readiness and harden dictionary-tone lookup without broadening unverified noun-class or verb rules.
 - Acceptance criteria: hosted/native/Kaikki source status is recorded; English-definition data stays ineligible; acute/grave/macron forms resolve to current fixtures; noun-class and locative regressions remain green; Zulu stays preview until corpus/offline gates pass.

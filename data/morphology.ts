@@ -403,33 +403,33 @@ function getMalayMorphologyCandidates(input: string): MorphologyCandidate[] {
 }
 
 function getFinnishMorphologyCandidates(input: string): MorphologyCandidate[] {
-  const word = normalizeMorphologyInput(input);
+  const word = input.trim().normalize('NFC').toLocaleLowerCase('fi-FI');
   if (word.length < 3) return [];
 
   const candidates: MorphologyCandidate[] = [];
+  const addCaseStem = (stem: string, reason: string) => {
+    candidates.push(createCandidate(stem, reason));
+    if (stem.endsWith('de')) {
+      candidates.push(createCandidate(`${stem.slice(0, -2)}si`, `${reason} (gradation)`));
+    }
+  };
 
   // Inessive (-ssa/-ssä)
   if (word.endsWith('ssa') && word.length > 5) {
     const stem = word.slice(0, -3);
-    candidates.push(createCandidate(stem, 'inessiivi (in)'));
-    if (stem.endsWith('de')) {
-      candidates.push(createCandidate(`${stem.slice(0, -2)}si`, 'inessiivi (gradation)'));
-    }
+    addCaseStem(stem, 'inessiivi (in)');
   }
   if (word.endsWith('ssä') && word.length > 5) {
     const stem = word.slice(0, -3);
-    candidates.push(createCandidate(stem, 'inessiivi (in)'));
-    if (stem.endsWith('de')) {
-      candidates.push(createCandidate(`${stem.slice(0, -2)}si`, 'inessiivi (gradation)'));
-    }
+    addCaseStem(stem, 'inessiivi (in)');
   }
 
   // Elative (-sta/-stä)
   if (word.endsWith('sta') && word.length > 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'elatiivi (out of)'));
+    addCaseStem(word.slice(0, -3), 'elatiivi (out of)');
   }
   if (word.endsWith('stä') && word.length > 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'elatiivi (out of)'));
+    addCaseStem(word.slice(0, -3), 'elatiivi (out of)');
   }
 
   // Illative (-oon)
@@ -439,23 +439,23 @@ function getFinnishMorphologyCandidates(input: string): MorphologyCandidate[] {
 
   // Adessive (-lla/-llä)
   if (word.endsWith('lla') && word.length > 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'adessiivi (on/at)'));
+    addCaseStem(word.slice(0, -3), 'adessiivi (on/at)');
   }
   if (word.endsWith('llä') && word.length > 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'adessiivi (on/at)'));
+    addCaseStem(word.slice(0, -3), 'adessiivi (on/at)');
   }
 
   // Ablative (-lta/-ltä)
   if (word.endsWith('lta') && word.length > 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'ablatiivi (from)'));
+    addCaseStem(word.slice(0, -3), 'ablatiivi (from)');
   }
   if (word.endsWith('ltä') && word.length > 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'ablatiivi (from)'));
+    addCaseStem(word.slice(0, -3), 'ablatiivi (from)');
   }
 
   // Allative (-lle)
   if (word.endsWith('lle') && word.length > 5) {
-    candidates.push(createCandidate(word.slice(0, -3), 'allatiivi (to)'));
+    addCaseStem(word.slice(0, -3), 'allatiivi (to)');
   }
 
   // Genitive (-n) / 1st Person Verb (-n)
