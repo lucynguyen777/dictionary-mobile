@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Telugu Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
+- Module Completion Plan: validate Telugu Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix/oblique fallback for related words without broad sandhi guessing.
+- Acceptance criteria: Telugu-section filtering risk is recorded; exact lookup stays first; NFC-safe inflected relations resolve for verified fixtures; production promotion waits for measured corpus/suffix/tokenization/offline gates.
+- [x] DONE [HARD]: Audited current Telugu adapter, native-edition source risk, morphology, and stale plan status.
+- [x] DONE [MEDIUM]: Made Telugu morphology input NFC-safe and added morphology-aware related-word lookup.
+- [x] DONE [MEDIUM]: Documented Telugu extraction/measurement boundaries and reconciled Telugu plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/inflected-relations readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit, then prepared the Telugu source/relations readiness module for commit/push without deploy.
+
 **Module: Tamil Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
 - Module Completion Plan: validate Tamil Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix fallback for related words without broad sandhi guessing.
 - Acceptance criteria: Tamil-section filtering risk is recorded; exact lookup stays first; NFC-safe inflected relations resolve for verified fixtures; production promotion waits for measured corpus/sandhi/tokenization/offline gates.

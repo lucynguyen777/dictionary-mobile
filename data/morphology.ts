@@ -2243,7 +2243,7 @@ function getMalayalamMorphologyCandidates(input: string): MorphologyCandidate[] 
 
 function getTeluguMorphologyCandidates(input: string): MorphologyCandidate[] {
   const candidates: MorphologyCandidate[] = [];
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
 
   // 1. Oblique / plural sandhi replacements
   const obliqueSuffixes = [

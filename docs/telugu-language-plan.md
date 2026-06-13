@@ -1,5 +1,12 @@
 # Telugu Monolingual Baseline Plan
 
+## Current Implementation Status
+
+- **State**: Implemented monolingual preview.
+- **Evidence**: Telugu metadata, adapter routing, local fixtures, Reader script support, suffix/irregular-oblique fallbacks, and focused lookup tests are present.
+- **Production gap**: Corpus coverage, Telugu-section parser precision, suffix-chain evidence, and offline packaging are not measured.
+- **Current production-source audit**: `docs/telugu-production-source-audit.md`.
+
 ## Language Metadata
 - **Code**: `te`
 - **Display name**: తెలుగు (Telugu)
@@ -34,7 +41,8 @@ Plan a monolingual Telugu dictionary lookup (TE→TE), focusing on script-specif
 ## Data Source Candidates & Status
 - **Telugu Wiktionary (`tewiktionary`)**:
   - Live query `https://api.wiktapi.dev/v1/te/word/...` can be queried or gated.
-  - Local educational fallback lexicon is required.
+  - Telugu Wiktionary edition pages can describe Telugu and other languages; production extraction must select verified Telugu-language sections rather than treating edition page count as Telugu lemma coverage.
+  - Hosted access and parser quality must be measured before production promotion; local fixtures remain preview smoke data only.
 - **Local Fixtures (`data/localLexicon.ts`)**:
   Add common target entries:
   - `పుస్తకము` (book)
