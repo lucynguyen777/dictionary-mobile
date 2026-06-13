@@ -2031,7 +2031,7 @@ function getTamilMorphologyCandidates(input: string): MorphologyCandidate[] {
 
 function getKannadaMorphologyCandidates(input: string): MorphologyCandidate[] {
   const candidates: MorphologyCandidate[] = [];
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
 
   // 1. Plural marker: -ಗಳು (-gaḷu) -> base form
   // e.g. ಪುಸ್ತಕಗಳು -> ಪುಸ್ತಕ

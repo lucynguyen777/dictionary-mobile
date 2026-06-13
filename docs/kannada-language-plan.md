@@ -1,5 +1,12 @@
 # Kannada Monolingual Baseline Plan
 
+## Current Implementation Status
+
+- **State**: Implemented monolingual preview.
+- **Evidence**: Kannada metadata, adapter routing, local fixtures, Reader script support, suffix fallbacks, and lookup tests are present.
+- **Production gap**: Corpus coverage, Kannada-section parser precision, glide/sandhi evidence, and offline packaging are not measured.
+- **Current production-source audit**: `docs/kannada-production-source-audit.md`.
+
 ## Language Metadata
 - **Code**: `kn`
 - **Display name**: ಕನ್ನಡ (Kannada)
@@ -40,7 +47,8 @@ Plan a monolingual Kannada dictionary lookup (KN→KN), focusing on script-speci
 ## Data Source Candidates & Status
 - **Kannada Wiktionary (`knwiktionary`)**:
   - Live query `https://api.wiktapi.dev/v1/kn/word/...` can be queried or gated.
-  - Local educational fallback lexicon is required.
+  - Kannada Wiktionary edition pages can describe Kannada and other languages; production extraction must select verified Kannada-language sections rather than treating edition page count as Kannada lemma coverage.
+  - Hosted access and parser quality must be measured before production promotion; local fixtures remain preview smoke data only.
 - **Local Fixtures (`data/localLexicon.ts`)**:
   Add common target entries:
   - `ಪುಸ್ತಕ` (book)
