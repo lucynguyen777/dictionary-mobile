@@ -1972,7 +1972,7 @@ function getHawaiianMorphologyCandidates(input: string): MorphologyCandidate[] {
 
 function getTamilMorphologyCandidates(input: string): MorphologyCandidate[] {
   const candidates: MorphologyCandidate[] = [];
-  const word = input.trim();
+  const word = input.trim().normalize('NFC');
 
   // 1. Oblique / plural suffixes for nouns ending in -ம்
   const obliqueSuffixes = [

@@ -168,6 +168,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
+**Module: Tamil Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
+- Module Completion Plan: validate Tamil Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix fallback for related words without broad sandhi guessing.
+- Acceptance criteria: Tamil-section filtering risk is recorded; exact lookup stays first; NFC-safe inflected relations resolve for verified fixtures; production promotion waits for measured corpus/sandhi/tokenization/offline gates.
+- [x] DONE [HARD]: Audited current Tamil adapter, native-edition source scale, mixed-language parser risk, morphology, and stale plan status.
+- [x] DONE [MEDIUM]: Made Tamil morphology input NFC-safe and added morphology-aware related-word lookup.
+- [x] DONE [MEDIUM]: Documented Tamil extraction/measurement boundaries and reconciled Tamil plan/roadmap truth.
+- [x] DONE [MEDIUM]: Added focused source/inflected-relations readiness tests without changing production status.
+- [x] DONE [EASY]: Ran verification/security/license audit, then prepared the Tamil source/relations readiness module for commit/push without deploy.
+
 **Module: Korean Native Source And Contracted-Form Readiness** - DONE WITH EXTRACTION GATE
 - Module Completion Plan: validate Korean-edition Wiktextract as the native-definition source path and close narrow verified contracted-form/related-word gaps without broad conjugation or pronunciation guessing.
 - Acceptance criteria: Korean source/pronunciation boundaries and NIKL terms gate are recorded; exact lookup stays first; verified contracted forms, particles, and inflected relations resolve; production promotion waits for measured segmentation/corpus/offline gates.

@@ -2204,13 +2204,21 @@ export async function fetchTamilMeaning(word: string): Promise<ApiMeaningResult>
 
 export async function fetchTamilRelatedWords(word: string): Promise<ApiRelatedWords> {
   const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('ta', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
+  const lookupCandidates = uniqueWords([
+    normalizedWord,
+    ...getMorphologyCandidates('ta', normalizedWord).map((candidate) => candidate.word),
+  ]);
+
+  for (const lookupWord of lookupCandidates) {
+    const localEntry = findLocalDictionaryEntry('ta', lookupWord);
+    if (localEntry) {
+      return {
+        synonyms: localEntry.synonyms || [],
+        antonyms: localEntry.antonyms || [],
+      };
+    }
   }
+
   return { synonyms: [], antonyms: [] };
 }
 

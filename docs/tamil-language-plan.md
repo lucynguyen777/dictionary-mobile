@@ -1,5 +1,12 @@
 # Tamil Monolingual Baseline Plan
 
+## Current Implementation Status
+
+- **State**: Implemented monolingual preview.
+- **Evidence**: Tamil metadata, adapter routing, local fixtures, Reader script support, suffix fallbacks, and focused lookup tests are present.
+- **Production gap**: Corpus coverage, Tamil-section parser precision, sandhi evidence, and offline packaging are not measured.
+- **Current production-source audit**: `docs/tamil-production-source-audit.md`.
+
 ## Language Metadata
 - **Code**: `ta`
 - **Display name**: தமிழ் (Tamil)
@@ -35,7 +42,8 @@ Plan a monolingual Tamil dictionary lookup (TA→TA), focusing on script-specifi
 ## Data Source Candidates & Status
 - **Tamil Wiktionary (`tawiktionary`)**:
   - Live query `https://api.wiktapi.dev/v1/ta/word/...` can be tested or gated.
-  - Since WiktAPI has variable availability for non-major languages, a robust local educational fallback lexicon is required.
+  - Tamil Wiktionary edition pages can describe Tamil and other languages; production extraction must select verified Tamil-language sections rather than treating edition page count as Tamil lemma coverage.
+  - Since hosted access and parser quality vary, a measured Tamil-edition dump/import path is required before production promotion.
 - **Local Fixtures (`data/localLexicon.ts`)**:
   Add common target entries:
   - `புத்தகம்` (book)
