@@ -273,3 +273,27 @@ export async function submitFeedback(input: { category: FeedbackCategory; contex
     method: 'POST',
   });
 }
+
+// --- Specialized translation API ---
+
+export interface SpecializedTranslateRequest {
+  domainId: 'general' | 'medical' | 'legal' | 'tech' | 'academic';
+  glossary: { sourceTerm: string; targetTerm: string }[];
+  sourceLang: string;
+  sourceText: string;
+  targetLang: string;
+}
+
+export interface SpecializedTranslateResponse {
+  appliedTerms: { sourceTerm: string; targetTerm: string }[];
+  characterCount: number;
+  provider: 'openai';
+  translatedText: string;
+}
+
+export async function translateSpecialized(req: SpecializedTranslateRequest): Promise<SpecializedTranslateResponse> {
+  return proxyFetch<SpecializedTranslateResponse>('/proxy/translate/specialized', {
+    body: JSON.stringify(req),
+    method: 'POST',
+  });
+}

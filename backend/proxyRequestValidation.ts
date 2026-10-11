@@ -82,6 +82,26 @@ export type ValidatedGlossaryRequest = {
   targetLang: string;
 };
 
+export const SPECIALIZED_TRANSLATION_DOMAINS = ['general', 'medical', 'legal', 'tech', 'academic'] as const;
+export type SpecializedTranslationDomain = (typeof SPECIALIZED_TRANSLATION_DOMAINS)[number];
+
+export type SpecializedTranslateRequest = {
+  domainId?: unknown;
+  glossary?: unknown;
+  sourceLang?: unknown;
+  sourceText?: unknown;
+  targetLang?: unknown;
+};
+
+export type ValidatedSpecializedTranslateRequest = {
+  characterCount: number;
+  domainId: SpecializedTranslationDomain;
+  glossary: ValidatedGlossaryEntry[];
+  sourceLang: string;
+  sourceText: string;
+  targetLang: string;
+};
+
 export type AiChatMessageRequest = {
   content?: unknown;
   role?: unknown;
@@ -174,6 +194,52 @@ export function validateTranslateTextRequest(
     },
     ok: true,
   };
+}
+
+// Glossary terms travel with each request (the glossary lives on the device); the server only
+// uses the terms that occur in the source text and builds the prompt itself.
+export function validateSpecializedTranslateRequest(
+  request: SpecializedTranslateRequest,
+  limits: Pick<BackendProxyLimits, 'maxGlossaryEntries' | 'maxTextInputChars'>
+): ProxyValidationResult<ValidatedSpecializedTranslateRequest> {
+  const sourceText = readTrimmedString(request.sourceText);
+  const sourceLang = normalizeLanguageCode(request.sourceLang);
+  const targetLang = normalizeLanguageCode(request.targetLang);
+  const glossary = request.glossary === undefined ? [] : request.glossary;
+
+  if (!sourceText) {
+    return invalid('text_too_large', 'sourceText', 'Source text is required.', 400);
+  }
+  const characterCount = countCodePoints(sourceText);
+  if (characterCount > limits.maxTextInputChars) {
+    return invalid('text_too_large', 'sourceText', 'Source text exceeds the configured size limit.', 413);
+  }
+  if (!sourceLang || !targetLang || sourceLang === targetLang || !/^[A-Z]{2,3}(-[A-Z]{2,4})?$/.test(sourceLang) || !/^[A-Z]{2,3}(-[A-Z]{2,4})?$/.test(targetLang)) {
+    return invalid('unsupported_language_pair', 'targetLang', 'Source and target languages must be explicit and different.');
+  }
+  if (!Array.isArray(glossary) || glossary.length > limits.maxGlossaryEntries) {
+    return invalid('glossary_entry_invalid', 'glossary', 'Glossary must stay within the configured limit.');
+  }
+
+  const seenSourceTerms = new Set<string>();
+  const entries: ValidatedGlossaryEntry[] = [];
+  for (let index = 0; index < glossary.length; index += 1) {
+    const entry = (glossary[index] ?? {}) as GlossaryEntryRequest;
+    const sourceTerm = sanitizeGlossaryTerm(entry.sourceTerm);
+    const targetTerm = sanitizeGlossaryTerm(entry.targetTerm);
+    if (!sourceTerm || !targetTerm) {
+      return invalid('glossary_entry_invalid', `glossary.${index}`, 'Glossary entries require source and target terms.');
+    }
+    const sourceKey = sourceTerm.toLocaleLowerCase();
+    if (seenSourceTerms.has(sourceKey)) {
+      return invalid('glossary_entry_duplicate', `glossary.${index}.sourceTerm`, 'Glossary source terms must be unique.');
+    }
+    seenSourceTerms.add(sourceKey);
+    entries.push({ sourceTerm, targetTerm });
+  }
+
+  const domainId = SPECIALIZED_TRANSLATION_DOMAINS.find((domain) => domain === request.domainId) ?? 'general';
+  return { data: { characterCount, domainId, glossary: entries, sourceLang, sourceText, targetLang }, ok: true };
 }
 
 export function validateGlossaryRequest(

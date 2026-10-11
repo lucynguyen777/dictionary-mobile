@@ -246,6 +246,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [!] BLOCKED [MEDIUM]: Apply migration 011 with 009/010 (owner decision D2).
 - [x] DONE [MEDIUM]: Chandra OCR hardening (plan 0.5): Supabase user-token auth (fails closed), removed server-side `filePath`, size check before base64 decode, per-user daily cap, CORS allow-list, generic CLI errors, non-root container; the app sends the session token over HTTPS only and explains 401/429. pytest suite runs in CI. Calls stay direct (not via `/backend-proxy`) because Vercel caps request bodies near 4.5MB. Hosting still waits on Phase 5.5.
 - [x] DONE [HARD]: Dictionary adapter registry (plan 6.1, first step): the 28 bundled local packs are one declarative table in `data/localPackDictionarySources.ts` (normalizer, script guard, morphology for related words, attribution) served by one lookup; `dictionaryApi.ts` shrank from 2,392 to ~870 lines and `adapterRegistry.ts` from 410 to ~170, with `if` chains replaced by registry dispatch. Old and new outputs were compared for every pack entry plus case/whitespace/inflection variants before the old code was removed. `canUseMonolingualDictionaryApi` (Word screen's async-lookup gate) is unchanged on purpose.
+- [x] DONE [HARD]: Specialized translation MVP (plan 4.5): per-domain glossary kept on the device (`data/specializedGlossaryStore.ts`), parsed and matched with word boundaries (`data/glossaryMatching.ts`, shared with the server); `/proxy/translate/specialized` validates input, charges the translation quota, sends only the glossary terms that occur as JSON data in a server-built prompt, and hides provider errors. The Training panel is enabled (EN↔VI, 5 domains, detected terms, AI-translation notice). Tests: `tests/glossaryMatching.test.ts`, `tests/specializedGlossaryStore.test.ts`, `tests/backendServer.test.ts`, `e2e/specialized-translation.spec.js`. Remaining: CSV/TSV/DOCX/PDF glossary import, account sync for glossaries/datasets (tables in migration 002), up-to-3 context agents, production smoke with OpenAI.
 - [!] BLOCKED [MEDIUM]: Privacy Policy, Terms, help-center content and Resend feedback notification wait on owner decision D5.
 - [!] BLOCKED [HARD]: Account deletion waits on owner decision D3.
 
@@ -1025,7 +1026,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ### AI
 - [~] IN PROGRESS [HARD]: Text AI Tutor streams replies (SSE through the backend proxy, stop button, daily quota display) when Supabase auth and OpenAI env vars are configured; durable quota is implemented (migration 011 pending D2); production provider smoke and realtime voice feedback remain.
-- [ ] TODO [HARD]: Specialized document translation with imported glossary is accepted/staged after DeepL/OpenAI proxy boundaries, dataset persistence, parser validation, no-key-leak tests, and max-3-agent enforcement.
+- [~] IN PROGRESS [HARD]: Specialized translation with a device glossary works through `/proxy/translate/specialized` (v1.7.0); file import of glossaries, cloud persistence of datasets, and max-3 context agents remain.
 
 ## Completed Work Modules
 

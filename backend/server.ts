@@ -21,7 +21,10 @@ import {
   verifyGoogleOAuthState,
 } from './googleSheetsOAuth';
 import type { GoogleSheetsStore } from './googleSheetsStore';
+import { selectAppliedGlossaryTerms } from '../data/glossaryMatching';
 import { readSseStream } from '../data/sseParser';
+import { validateSpecializedTranslateRequest } from './proxyRequestValidation';
+import { buildSpecializedTranslationMessages } from './specializedTranslation';
 import { submitFeedback, type FeedbackStore } from './feedback';
 
 const DEFAULT_PORT = 3001;
@@ -301,6 +304,47 @@ export function createServer(deps: ServerDependencies) {
     }
   });
 
+  // POST /proxy/translate/specialized - domain translation that follows the user's glossary (OpenAI)
+  app.post('/proxy/translate/specialized', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    if (config.status !== 'configured') {
+      res.status(503).json(getProviderUnconfiguredResponse(config));
+      return;
+    }
+
+    const validation = validateSpecializedTranslateRequest(req.body ?? {}, config.limits);
+    if (validation.ok === false) {
+      res.status(validation.status).json({ error: validation.error });
+      return;
+    }
+
+    if (quotaTracker) {
+      const quotaCheck = await checkQuotaOrFailClosed(quotaTracker, userId, 'translation', validation.data.characterCount);
+      if (quotaCheck.ok === false) {
+        res.status(quotaCheck.status).json({ error: quotaCheck.error });
+        return;
+      }
+    }
+
+    const appliedTerms = selectAppliedGlossaryTerms(validation.data.sourceText, validation.data.glossary);
+    try {
+      const completion = await callOpenAIMessages(
+        config.openaiApiKey,
+        config.openaiTextModel,
+        buildSpecializedTranslationMessages({ ...validation.data, appliedTerms })
+      );
+      if (!completion.content.trim()) throw new Error('openai_empty_translation');
+      res.json({
+        appliedTerms,
+        characterCount: validation.data.characterCount,
+        provider: 'openai',
+        translatedText: completion.content.trim(),
+      });
+    } catch {
+      res.status(502).json({ error: { code: 'provider_error', message: 'Translation provider is unavailable. Try again later.' } });
+    }
+  });
+
   // GET /proxy/quota - current user quota state
   app.get('/proxy/quota', async (req: Request, res: Response) => {
     const userId = (req as Request & { userId: string }).userId;
@@ -443,10 +487,17 @@ async function callOpenAIChat(
   }
 ) {
   const systemMessage = buildAiSystemMessage(params.goal, params.learningLanguage, params.nativeLanguage);
+  return callOpenAIMessages(
+    apiKey,
+    model,
+    systemMessage ? [{ content: systemMessage, role: 'system' }, ...params.messages] : params.messages
+  );
+}
 
+async function callOpenAIMessages(apiKey: string, model: string, messages: Array<{ content: string; role: string }>) {
   const body: Record<string, unknown> = {
     model,
-    messages: systemMessage ? [{ content: systemMessage, role: 'system' }, ...params.messages] : params.messages,
+    messages,
     stream: false,
   };
 

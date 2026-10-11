@@ -39,9 +39,7 @@ export const learningTools: {
     description: 'Dịch đoạn văn theo thuật ngữ cá nhân và ngữ cảnh học thuật.',
     icon: 'language-outline',
     accent: '#EAF8F0',
-    status: 'Cập nhật trong phiên bản sau',
-    future: true,
-    futureReason: 'Cần backend DeepL/OpenAI và lưu glossary theo tài khoản.',
+    status: 'Cần đăng nhập cloud',
   },
   {
     id: 'import',
@@ -131,7 +129,7 @@ export function LearningToolPanel({ tool }: { tool: (typeof learningTools)[numbe
 
 function getToolRoadmapText(toolId: LearningToolId) {
   if (toolId === 'specialized-translation') {
-    return 'Thiết kế UI nhập chuyên ngành/chủ đề, vùng paste/import văn bản, glossary user và kết quả dịch theo thuật ngữ. Translation production cần backend/API riêng.';
+    return 'Glossary lưu trên thiết bị theo chuyên ngành và được áp dụng khi dịch qua máy chủ AI. Bước tiếp theo: import glossary từ CSV/TSV và đồng bộ glossary theo tài khoản.';
   }
   if (toolId === 'import') {
     return 'Polish flow import dataset: preview, mapping cột/hàng, chọn folder đích, validate trùng/trống và tạo flashcard từ dataset.';
