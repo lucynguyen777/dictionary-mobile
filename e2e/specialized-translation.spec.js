@@ -60,3 +60,22 @@ test('Specialized translation explains a missing sign-in', async ({ page }) => {
 
   await expect(page.getByText('Đăng nhập cloud để dùng dịch chuyên ngành.')).toBeVisible();
 });
+
+test('Specialized translation imports a two-column CSV glossary', async ({ page }) => {
+  await page.goto('/advanced');
+  await page.getByText('Dịch chuyên ngành', { exact: true }).first().click();
+  await page.getByText('Pháp lý', { exact: true }).click();
+  await page.getByLabel('Glossary').fill('tort → sai phạm dân sự');
+
+  const fileChooserPromise = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Nhập CSV/TSV (2 cột)' }).click();
+  const fileChooser = await fileChooserPromise;
+  await fileChooser.setFiles({
+    buffer: Buffer.from('term,translation\nplaintiff,nguyên đơn\n"tort","trùng"\ndefendant,bị đơn\n', 'utf8'),
+    mimeType: 'text/csv',
+    name: 'legal.csv',
+  });
+
+  await expect(page.getByLabel('Glossary')).toHaveValue('tort → sai phạm dân sự\nplaintiff → nguyên đơn\ndefendant → bị đơn');
+  await expect(page.getByText('Glossary Pháp lý (3 thuật ngữ)', { exact: false })).toBeVisible();
+});

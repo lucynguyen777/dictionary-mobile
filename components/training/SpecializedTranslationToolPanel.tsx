@@ -1,10 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { FilterChip } from '@/components/training/shared';
 import { styles } from '@/components/training/styles';
 import { translateSpecialized, type SpecializedTranslateRequest, type SpecializedTranslateResponse } from '@/data/backendProxyClient';
+import { glossaryLinesFromDelimitedText, mergeGlossaryText } from '@/data/glossaryImport';
 import { findGlossaryMatches, parseGlossaryText } from '@/data/glossaryMatching';
 import { loadSpecializedGlossaries, saveSpecializedGlossary, type SpecializedGlossaries } from '@/data/specializedGlossaryStore';
 import { useToken } from '@/hooks/use-token';
@@ -77,6 +80,31 @@ export function SpecializedTranslationToolPanel() {
     }, 400);
   };
 
+  const handleImportGlossary = async () => {
+    try {
+      const picked = await DocumentPicker.getDocumentAsync({
+        copyToCacheDirectory: true,
+        multiple: false,
+        type: ['text/csv', 'text/tab-separated-values', 'text/plain', 'application/vnd.ms-excel'],
+      });
+      if (picked.canceled || !picked.assets?.length) return;
+      const asset = picked.assets[0];
+      const fileText = await (asset.file ?? new File(asset.uri)).text();
+      const { lines, skippedRows } = glossaryLinesFromDelimitedText(fileText);
+      const merged = mergeGlossaryText(glossaryText, lines);
+      handleGlossaryChange(merged.text);
+      const domainLabel = translationDomains.find((domain) => domain.id === domainId)?.label ?? '';
+      Alert.alert(
+        'Đã nhập glossary',
+        `Thêm ${merged.addedCount} thuật ngữ vào glossary ${domainLabel}.`
+          + (lines.length > merged.addedCount ? ` ${lines.length - merged.addedCount} thuật ngữ đã có được giữ nguyên.` : '')
+          + (skippedRows ? ` Bỏ qua ${skippedRows} dòng thiếu cột.` : '')
+      );
+    } catch {
+      Alert.alert('Không thể nhập glossary', 'Chọn file CSV hoặc TSV có 2 cột: thuật ngữ, bản dịch.');
+    }
+  };
+
   const resetResult = () => {
     setResult(null);
     setTranslationError('');
@@ -137,6 +165,14 @@ export function SpecializedTranslationToolPanel() {
       <Text style={styles.toolSectionLabel}>
         Glossary {translationDomains.find((domain) => domain.id === domainId)?.label} ({terms.length} thuật ngữ)
       </Text>
+      <TouchableOpacity
+        accessibilityRole="button"
+        activeOpacity={0.85}
+        onPress={handleImportGlossary}
+        style={[localStyles.importButton, { borderColor: colors.accentPrimary }]}>
+        <Ionicons name="document-attach-outline" size={16} color={colors.accentPrimary} />
+        <Text style={[localStyles.importButtonText, { color: colors.accentPrimary }]}>Nhập CSV/TSV (2 cột)</Text>
+      </TouchableOpacity>
       <TextInput
         accessibilityLabel="Glossary"
         autoCapitalize="none"
@@ -222,3 +258,21 @@ export function SpecializedTranslationToolPanel() {
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  importButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 8,
+    minHeight: 40,
+    paddingHorizontal: 12,
+  },
+  importButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+});
