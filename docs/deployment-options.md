@@ -89,6 +89,7 @@ Notes:
 
 - Local-first flows work without production secrets.
 - Supabase/Auth requires `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Vercel.
+- Native builds call the backend proxy at `EXPO_PUBLIC_BACKEND_PROXY_URL` (set to the production Vercel origin in the `preview` and `production` EAS profiles). Web always uses the same origin. Without it, native DeepL/AI Tutor/Google Sheets requests fail fast with `backend_proxy_unconfigured`. For a local dev client, set it to your proxy (e.g. `http://10.0.2.2:3001` on the Android emulator).
 - Backend proxy requires `DEEPL_API_BASE_URL`, `DEEPL_API_KEY`, `OPENAI_API_KEY`, and `OPENAI_TEXT_MODEL` in Vercel. Optional proxy limit env vars can tune quota.
 - Add `https://dictionaire-mobile.vercel.app/auth/callback` and the native `dictionairemobile://auth/callback` URL to the Supabase redirect allow-list before production auth smoke.
 - Keep blocked OCR/STT/OAuth/speech/source-gated copy visible and disabled.

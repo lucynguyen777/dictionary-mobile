@@ -7,7 +7,7 @@ import {
   mapSupabaseUserToAuthSnapshot,
   type AuthSessionSnapshot,
 } from './authSession';
-import { createSupabaseAuthClient, type SupabaseAuthClientResult } from './supabaseAuthClient';
+import { getSharedSupabaseAuthClient, type SupabaseAuthClientResult } from './supabaseAuthClient';
 
 export type AuthControllerClient = {
   auth: {
@@ -153,7 +153,7 @@ export function mapUnconfiguredAuthSnapshot(missingKeys: string[]): AuthSessionS
 }
 
 export async function loadCurrentAuthSession(
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): Promise<AuthSessionSnapshot> {
   const result = createClient();
 
@@ -171,7 +171,7 @@ export async function loadCurrentAuthSession(
 }
 
 export async function signOutAuthSession(
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): Promise<AuthSessionSnapshot> {
   const result = createClient();
 
@@ -190,7 +190,7 @@ export async function signOutAuthSession(
 
 export async function signInAuthSession(
   credentials: AuthCredentials,
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): Promise<AuthSessionSnapshot> {
   const result = createClient();
 
@@ -209,7 +209,7 @@ export async function signInAuthSession(
 
 export async function signUpAuthSession(
   credentials: AuthCredentials,
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): Promise<AuthSessionSnapshot> {
   const result = createClient();
 
@@ -237,7 +237,7 @@ export async function signUpAuthSession(
 
 export async function sendPasswordRecoveryEmail(
   email: string,
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): Promise<AuthSessionSnapshot> {
   const result = createClient();
 
@@ -265,7 +265,7 @@ export async function sendPasswordRecoveryEmail(
 
 export async function completeAuthCallback(
   params: AuthCallbackParams,
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): Promise<AuthSessionSnapshot> {
   const result = createClient();
 
@@ -313,7 +313,7 @@ export async function completeAuthCallback(
 
 export function subscribeToAuthSessionChanges(
   onChange: (snapshot: AuthSessionSnapshot) => void,
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): () => void {
   const result = createClient();
 
@@ -335,7 +335,7 @@ export function subscribeToAuthSessionChanges(
 
 export function syncAuthAutoRefreshForAppState(
   appState: string,
-  createClient: CreateAuthControllerClient = createSupabaseAuthClient
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
 ): AuthSessionSnapshot | null {
   const result = createClient();
 

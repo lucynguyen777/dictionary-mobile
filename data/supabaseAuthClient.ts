@@ -67,3 +67,10 @@ export function createSupabaseAuthClient<TClient = SupabaseClient>({
   };
 }
 
+let sharedClientResult: SupabaseAuthClientResult | null = null;
+
+// One client per app process: separate GoTrue instances race on token refresh and session storage.
+export function getSharedSupabaseAuthClient(): SupabaseAuthClientResult {
+  sharedClientResult ??= createSupabaseAuthClient();
+  return sharedClientResult;
+}

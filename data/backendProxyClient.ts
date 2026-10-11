@@ -1,22 +1,18 @@
 /**
- * Backend Proxy Client — Typed fetch wrapper for the local backend proxy.
+ * Backend Proxy Client — typed fetch wrapper for the Vercel `/backend-proxy` function.
  *
- * All calls go through the Expo dev server proxy (`/backend-proxy/...`) which
- * the backend Express server handles via the `app.use('/backend-proxy', proxyRouter)`
- * convention created in DevClientPlugin.
- *
- * In production (standalone builds) the native module resolves the backend URL
- * from config; on web the explicit port is used.
+ * Web builds call the proxy on the same origin. Native builds have no origin, so they need
+ * `EXPO_PUBLIC_BACKEND_PROXY_URL` (for example `https://dictionaire-mobile.vercel.app`).
  */
 
 import { Platform } from 'react-native';
-import { createSupabaseAuthClient } from './supabaseAuthClient';
+import { getSharedSupabaseAuthClient } from './supabaseAuthClient';
 
 export type AiChatGoal = 'conversation' | 'correction' | 'explanation' | 'roleplay';
 
 export interface AiChatMessage {
   content: string;
-  role: 'assistant' | 'system' | 'user';
+  role: 'assistant' | 'user';
 }
 
 export interface AiChatRequest {
@@ -64,16 +60,18 @@ export interface GoogleSheetsStatus {
 
 // --- URL resolution ---
 
-function getBackendBaseUrl(): string {
-  if (Platform.OS === 'web') {
-    // On web the proxy is served from the same host:port as the Expo dev server
-    return '';
-  }
-  // Native builds: the DevClientPlugin proxies /backend-proxy to the Express server
-  return '';
+export const BACKEND_PROXY_URL_ENV = 'EXPO_PUBLIC_BACKEND_PROXY_URL';
+
+// Returns the origin to prefix `/backend-proxy` with: '' for same-origin web, or null when native has none.
+export function resolveBackendProxyBaseUrl(platform: string, configuredUrl: string | undefined): string | null {
+  if (platform === 'web') return '';
+  const url = configuredUrl?.trim().replace(/\/+$/, '');
+  if (!url) return null;
+  return /^https:\/\//.test(url) || /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?$/.test(url) ? url : null;
 }
 
-const BASE = getBackendBaseUrl();
+// Expo inlines EXPO_PUBLIC_* only for direct property access, so read it literally.
+const BASE = resolveBackendProxyBaseUrl(Platform.OS, process.env.EXPO_PUBLIC_BACKEND_PROXY_URL);
 const PROXY_PREFIX = '/backend-proxy';
 
 // --- Helpers ---
@@ -82,23 +80,29 @@ async function proxyFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  if (BASE === null) {
+    throw new BackendProxyError(
+      503,
+      'Máy chủ dịch và AI chưa được cấu hình cho ứng dụng này.',
+      'backend_proxy_unconfigured',
+    );
+  }
   const url = `${BASE}${PROXY_PREFIX}${path}`;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
 
-  // Extract session token from Supabase client
   try {
-    const authResult = createSupabaseAuthClient();
+    const authResult = getSharedSupabaseAuthClient();
     if (authResult.status === 'configured') {
       const { data } = await authResult.client.auth.getSession();
       if (data.session?.access_token) {
         headers['Authorization'] = `Bearer ${data.session.access_token}`;
       }
     }
-  } catch (err) {
-    // Fail silently, middleware will reject if route requires auth
+  } catch {
+    // Signed-out requests still go out; the proxy answers 401 for routes that need a session.
   }
 
   const res = await fetch(url, {
