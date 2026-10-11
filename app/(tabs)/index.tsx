@@ -60,7 +60,11 @@ export default function HomeScreen() {
 
   // Both refresh on focus (todayKey and reloaded stores), so they roll over after midnight.
   const wordOfDay = useMemo(() => getWordOfDay(todayKey), [todayKey]);
-  const studyStats = useMemo(() => getStudyStats(libraryState, activityState), [activityState, libraryState]);
+  // Seeing Home means the app is open today; include it so the streak doesn't race recordAppOpen in _layout.
+  const studyStats = useMemo(
+    () => getStudyStats(libraryState, { activeDays: [...activityState.activeDays, todayKey] }),
+    [activityState, libraryState, todayKey]
+  );
   const reviewPlan = [
     { label: 'Từ cần ôn', value: studyStats.dueToday, icon: 'time-outline' as const },
     { label: 'Đã nhớ', value: studyStats.mastered, icon: 'checkmark-done-outline' as const },
