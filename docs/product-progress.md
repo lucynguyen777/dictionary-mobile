@@ -174,7 +174,14 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Current Baseline
 - 2026-10 audit and completion plan: `docs/completion-plan.md`.
-- Latest completed commits:
+- Latest completed commits (v1.6.0 on `claude/v1.6.0-design-system`):
+  - `e589c8f` fix(a11y): make Reader progress and audio scrubbers adjustable
+  - `d253005` refactor(word): split TabPager into per-tab modules
+  - `41c3854` refactor(reader): split the Reader screen into components
+  - `8151e97` refactor(profile): split the 3,500-line Profile screen
+  - `7e9314b` refactor(library): move styles, folder editor and sorting out of the screen
+  - `feb2641` refactor(training): split the 2,900-line Training screen into components
+  - `9f0fe5e` perf(reader): render paragraphs as memoized nested text
   - `664b8c4` feat(sync): sync automatically for users who turned Cloud Sync on
   - `3860cdb` test(sync): prove two-device sync against Postgres with RLS
   - `23466ab` feat(sync): push full rows and apply pulled changes
@@ -215,13 +222,17 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [!] BLOCKED [HARD]: Account deletion waits on an owner decision (immediate vs recovery window, keep vs wipe local data); see "Pending owner decisions" in `docs/completion-plan.md`.
 - [!] BLOCKED [MEDIUM]: Apply migrations 009 and 010 to the Supabase project (paused) and run a real two-device smoke.
 
-**Module: v1.6.0 Design System And UI Quality** - TODO
+**Module: v1.6.0 Design System And UI Quality** - DONE (hex-to-token conversion of Library/Training/Profile stylesheets remains)
 - Module Completion Plan: plan Phase 3 in `docs/completion-plan.md`.
-- [ ] TODO [EASY]: Remove create-expo-app template leftovers.
-- [ ] TODO [MEDIUM]: Theme `folder/[id].tsx` and `auth/callback.tsx`; fix the pre-existing failing `e2e/profile-offline-pack.spec.js`.
-- [ ] TODO [MEDIUM]: Shared `LanguageSelect` (Home must block unavailable languages) and `FutureFeatureNotice`.
-- [ ] TODO [MEDIUM]: Loading/error states for initial loads; `Screen` safe area via `react-native-safe-area-context`.
-- [ ] TODO [MEDIUM]: Accessibility labels/roles for icon buttons and tab bar.
+- [x] DONE [EASY]: Removed create-expo-app leftovers (explore tab, modal route, template components, legacy Colors, react logos, reset script).
+- [x] DONE [MEDIUM]: Themed `folder/[id].tsx` and `auth/callback.tsx` (new `textOnPastel` token); fixed the failing `e2e/profile-offline-pack.spec.js`.
+- [x] DONE [MEDIUM]: Shared `components/app/LanguageSelect` (Home now blocks unavailable languages) and `components/app/FutureFeature`.
+- [x] DONE [MEDIUM]: Loading/error handling for initial loads and saves on Word and folder detail; `Screen` uses safe-area-context edges (Android insets); responsive tab paging.
+- [x] DONE [MEDIUM]: Accessibility: labels/roles/state on icon buttons, tablist/tab roles, menu roles in language select, adjustable Reader sliders.
+- [x] DONE [HARD]: Reader renders memoized paragraphs of nested text (~5x faster document render); paragraphs and sentence-aligned TTS highlighting fixed; text helpers in `data/readerText.ts`.
+- [x] DONE [HARD]: Split giant screens: Training 2,869→542, Profile 3,472→~1,170, Library 2,344→~1,150, Reader ~1,980→~770, TabPager 1,394→~150 lines (`components/training|profile|library|reader|word/tabs`).
+- [x] DONE [MEDIUM]: E2E grew from 3 to 12 specs (Library folder flow, favorite→Library/Home, Reader long-document selection and slider, dark mode for every tab); vitest resolves `@/`.
+- [ ] TODO [MEDIUM]: Convert remaining hex literals in `components/library|training|profile/styles.ts` to theme tokens (dark mode already uses themed overlays; light/dark screenshots are acceptable).
 
 **Module: Kannada Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
 - Module Completion Plan: validate Kannada Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix fallback for related words without broad glide/sandhi guessing.
