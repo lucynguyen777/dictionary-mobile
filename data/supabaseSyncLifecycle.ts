@@ -1,6 +1,12 @@
 import { loadUserProfile } from './profileStore';
 import { loadCurrentAuthSession } from './authController';
+import { getSharedSupabaseAuthClient, type SupabaseAuthClientResult } from './supabaseAuthClient';
 import { runSupabaseCloudSyncOnce } from './supabaseSyncRunner';
+import type { SupabaseSyncRuntimeClient } from './supabaseSyncRuntimeAdapter';
+
+// The shared app client satisfies the narrow runtime surface the sync adapter uses.
+const createSharedRuntimeClient = () =>
+  getSharedSupabaseAuthClient() as unknown as SupabaseAuthClientResult<SupabaseSyncRuntimeClient>;
 
 export type SyncState = 'syncing' | 'synced' | 'error' | 'offline' | 'signed-out' | 'unconfigured' | 'idle';
 export type SyncStateListener = (state: SyncState) => void;
@@ -45,7 +51,7 @@ export async function triggerManualSync() {
     }
 
     notifyListeners('syncing');
-    const result = await runSupabaseCloudSyncOnce();
+    const result = await runSupabaseCloudSyncOnce({ createClient: createSharedRuntimeClient });
     if (result.status === 'synced') {
       notifyListeners('synced');
     } else if (result.status === 'offline') {

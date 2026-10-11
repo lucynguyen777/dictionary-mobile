@@ -152,7 +152,7 @@ function createFakeClient(
       events.push(`pull:${domain}:${cursor?.lastPullCursor ?? 'none'}`);
       return {
         nextCursor: `next-pull-${domain}`,
-        rows: [{ id: `remote-${domain}`, table: String(domain), version: 2 }],
+        rows: [{ id: `remote-${domain}`, row: { id: `remote-${domain}` }, table: String(domain), version: 2 }],
       };
     }),
     pushLocalChanges: vi.fn(async (domain, rows) => {
@@ -169,7 +169,7 @@ function createFakeClient(
 
 function createFakeLocal(
   events: string[],
-  dirtyRows: Partial<Record<SupabaseSyncDomain, { id: string; table: string; localChangeAt: string }[]>> = {}
+  dirtyRows: Partial<Record<SupabaseSyncDomain, { id: string; table: string; localChangeAt: string; remoteRow?: Record<string, unknown> }[]>> = {}
 ): SupabaseSyncLocalPort {
   return {
     applyRemoteChanges: vi.fn(async (domain, rows) => {
@@ -177,7 +177,7 @@ function createFakeLocal(
     }),
     loadDirtyRows: vi.fn(async (domain) => {
       events.push(`dirty:${domain}`);
-      return dirtyRows[domain] ?? [];
+      return (dirtyRows[domain] ?? []).map((row) => ({ remoteRow: { id: row.id }, ...row }));
     }),
     loadDomainCursor: vi.fn(async (domain) => {
       events.push(`load-cursor:${domain}`);
@@ -187,8 +187,8 @@ function createFakeLocal(
         lastSuccessfulSyncAt: null,
       };
     }),
-    markPushedRows: vi.fn(async (domain, rowIds) => {
-      events.push(`mark:${domain}:${rowIds.join(',')}`);
+    markPushedRows: vi.fn(async (domain, rows) => {
+      events.push(`mark:${domain}:${rows.map((row) => row.id).join(',')}`);
     }),
     recordDomainCursor: vi.fn(async (domain, cursor) => {
       events.push(`cursor:${domain}:${cursor.lastPullCursor}:${cursor.lastPushCursor}`);

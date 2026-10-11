@@ -12,6 +12,10 @@ vi.mock('../data/authController', () => ({
   loadCurrentAuthSession,
 }));
 
+vi.mock('../data/supabaseAuthClient', () => ({
+  getSharedSupabaseAuthClient: vi.fn(() => ({ status: 'unconfigured' })),
+}));
+
 vi.mock('../data/supabaseSyncRunner', () => ({
   runSupabaseCloudSyncOnce,
 }));

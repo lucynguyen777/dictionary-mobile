@@ -108,6 +108,8 @@ export type RemoteFlashcardRow = {
   repetition: number;
   efactor: number;
   due_date: string;
+  final_status: string | null;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -278,7 +280,7 @@ export function mapSavedWordFolderToRemote(
     folder_id: row.folder_id,
     created_at: row.created_at,
     updated_at: row.created_at,
-    deleted_at: null,
+    deleted_at: row.deleted_at ?? null,
     version: 1,
   };
 }
@@ -288,6 +290,7 @@ export function mapSavedWordFolderFromRemote(row: RemoteSavedWordFolderRow): Sav
     word_id: row.word_id,
     folder_id: row.folder_id,
     created_at: row.created_at,
+    deleted_at: row.deleted_at,
   };
 }
 
@@ -300,7 +303,7 @@ export function mapSearchHistoryToRemote(row: SearchHistoryRow, { userId }: Supa
     looked_up_at: row.looked_up_at,
     created_at: row.looked_up_at,
     updated_at: row.looked_up_at,
-    deleted_at: null,
+    deleted_at: row.deleted_at ?? null,
     version: 1,
   };
 }
@@ -311,6 +314,7 @@ export function mapSearchHistoryFromRemote(row: RemoteSearchHistoryRow): SearchH
     word: row.word,
     normalized_word: row.normalized_word,
     looked_up_at: row.looked_up_at,
+    deleted_at: row.deleted_at,
   };
 }
 
@@ -327,6 +331,8 @@ export function mapFlashcardToRemote(row: FlashcardRow, { userId }: SupabaseSync
     repetition: row.repetition,
     efactor: row.efactor,
     due_date: row.due_date,
+    final_status: row.final_status ?? null,
+    completed_at: row.completed_at ?? null,
     created_at: row.created_at,
     updated_at: row.last_synced_at ?? row.created_at,
     deleted_at: row.deleted_at,
@@ -343,6 +349,8 @@ export function mapFlashcardFromRemote(row: RemoteFlashcardRow): FlashcardRow {
     back: row.back,
     created_at: row.created_at,
     review_state: row.review_state,
+    final_status: row.final_status,
+    completed_at: row.completed_at,
     interval: row.interval,
     repetition: row.repetition,
     efactor: row.efactor,

@@ -24,8 +24,10 @@ export type SupabaseSyncCursor = {
   lastSuccessfulSyncAt: string | null;
 };
 
+// A full server row as returned by Supabase (snake_case columns, including user_id and synced_at).
 export type SupabaseSyncRemoteChange = {
   id: string;
+  row: Record<string, unknown>;
   table: string;
   deletedAt?: string | null;
   version?: number;
@@ -33,7 +35,8 @@ export type SupabaseSyncRemoteChange = {
 
 export type SupabaseSyncDirtyRow = {
   id: string;
-  remoteRow?: Record<string, unknown>;
+  // Server-shaped row to upsert; user_id is filled in by the client adapter.
+  remoteRow: Record<string, unknown>;
   table: string;
   localChangeAt: string;
 };
@@ -51,10 +54,11 @@ export type SupabaseSyncClientPort = {
 };
 
 export type SupabaseSyncLocalPort = {
-  applyRemoteChanges: (domain: SupabaseSyncDomain, rows: SupabaseSyncRemoteChange[]) => Promise<void>;
+  applyRemoteChanges: (domain: SupabaseSyncDomain, rows: SupabaseSyncRemoteChange[], pulledAt: string) => Promise<void>;
   loadDirtyRows: (domain: SupabaseSyncDomain) => Promise<SupabaseSyncDirtyRow[]>;
   loadDomainCursor: (domain: SupabaseSyncDomain) => Promise<SupabaseSyncCursor | null>;
-  markPushedRows: (domain: SupabaseSyncDomain, rowIds: string[], pushedAt: string) => Promise<void>;
+  // Only rows unchanged since they were loaded become clean; edits made during the push stay dirty.
+  markPushedRows: (domain: SupabaseSyncDomain, rows: SupabaseSyncDirtyRow[], pushedAt: string) => Promise<void>;
   recordDomainCursor: (domain: SupabaseSyncDomain, cursor: SupabaseSyncCursor) => Promise<void>;
 };
 
@@ -131,7 +135,7 @@ export async function runSupabaseSyncOnce({
       const remote = await client.loadRemoteChanges(domain, cursor);
       pulledRows = remote.rows.length;
 
-      await local.applyRemoteChanges(domain, remote.rows);
+      await local.applyRemoteChanges(domain, remote.rows, syncedAt);
 
       const dirty = await local.loadDirtyRows(domain);
       dirtyRows = dirty.length;
@@ -142,7 +146,8 @@ export async function runSupabaseSyncOnce({
       pushedRows = pushed.pushedRowIds.length;
 
       if (pushed.pushedRowIds.length > 0) {
-        await local.markPushedRows(domain, pushed.pushedRowIds, syncedAt);
+        const pushedIds = new Set(pushed.pushedRowIds);
+        await local.markPushedRows(domain, dirty.filter((row) => pushedIds.has(row.id)), syncedAt);
       }
 
       await local.recordDomainCursor(domain, {

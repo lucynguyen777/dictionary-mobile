@@ -147,7 +147,7 @@ function wasPulledAfter(row: SqliteRow, loadedAt: string | null) {
   );
 }
 
-function hasSameContent(snapshotRow: SqliteRow, previous: SqliteRow) {
+export function hasSameContent(snapshotRow: SqliteRow, previous: SqliteRow) {
   return Object.keys(snapshotRow).every((column) => {
     if ((LOCAL_SYNC_COLUMNS as readonly string[]).includes(column)) return true;
     return normalizeValue(snapshotRow[column]) === normalizeValue(previous[column]);
