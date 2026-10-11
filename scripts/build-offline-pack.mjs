@@ -153,7 +153,11 @@ function normalizeEntry(rawEntry, langCode, sourceName, sourceUrl, updatedAt) {
     attribution: `Source: ${sourceName} (CC-BY-SA-4.0/GFDL)`,
     audio: normalizeAudio(rawEntry),
     definitions,
-    etymology: getString(rawEntry.etymology_text) || getString(rawEntry.etymology) || '',
+    // English-edition dumps use etymology_text; other editions (e.g. French) use an etymology_texts array.
+    etymology: getString(rawEntry.etymology_text)
+      || (Array.isArray(rawEntry.etymology_texts) ? rawEntry.etymology_texts.map(getString).filter(Boolean).join(' ') : '')
+      || getString(rawEntry.etymology)
+      || '',
     examples: normalizeExamples(rawEntry),
     id: `${langCode}:${normalizeLookupKey(word)}`,
     ipa: normalizeIpa(rawEntry),
@@ -187,9 +191,10 @@ function normalizeDefinitions(rawEntry) {
 function normalizeAudio(rawEntry) {
   const sounds = Array.isArray(rawEntry.sounds) ? rawEntry.sounds : [];
 
-  return sounds
-    .map((sound) => getString(sound.audio) || getString(sound.mp3_url) || getString(sound.ogg_url))
-    .filter(Boolean);
+  // Wiktextract's `audio` is a bare Commons file name; only the URLs are playable. MP3 first: iOS cannot play Ogg.
+  return unique(sounds
+    .map((sound) => [sound.mp3_url, sound.ogg_url, sound.audio].map(getString).find((value) => /^https:\/\//.test(value)) ?? '')
+    .filter(Boolean));
 }
 
 function normalizeExamples(rawEntry) {
@@ -223,9 +228,10 @@ function normalizeLinkage(items) {
 
 function normalizeIpa(rawEntry) {
   const sounds = Array.isArray(rawEntry.sounds) ? rawEntry.sounds : [];
-  const ipa = sounds.map((sound) => getString(sound.ipa)).find(Boolean);
+  const ipa = sounds.map((sound) => getString(sound.ipa)).find(Boolean) ?? '';
 
-  return ipa ?? '';
+  // French Wiktionary writes phonemic transcriptions as \a.kœj\; show them in the usual /a.kœj/ form.
+  return /^\\[^\\]+\\$/.test(ipa) ? `/${ipa.slice(1, -1)}/` : ipa;
 }
 
 function normalizeLookupKey(value) {

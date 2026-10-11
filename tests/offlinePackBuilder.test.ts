@@ -167,6 +167,25 @@ describe('build-offline-pack pipeline guarantees', () => {
     });
   });
 
+  it('stores playable audio URLs, preferring MP3, never bare file names', () => {
+    rmSync(dir, { force: true, recursive: true });
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(input, `${JSON.stringify({
+      lang_code: 'en',
+      senses: [{ glosses: ['A greeting.'] }],
+      sounds: [
+        { ipa: '\\a.lo\\' },
+        { audio: 'En-us-hello.ogg', mp3_url: 'https://upload.wikimedia.org/hello.mp3', ogg_url: 'https://upload.wikimedia.org/hello.ogg' },
+        { audio: 'LL-hello.wav' },
+        { audio: 'Other.ogg', ogg_url: 'https://upload.wikimedia.org/other.ogg' },
+      ],
+      word: 'hello',
+    })}\n`);
+    const [hello] = build(`${dir}/out-audio`).entries;
+    expect(hello.audio).toEqual(['https://upload.wikimedia.org/hello.mp3', 'https://upload.wikimedia.org/other.ogg']);
+    expect(hello.ipa).toBe('/a.lo/');
+  });
+
   it('honours an entry limit', () => {
     writeDump();
     expect(build(`${dir}/out-c`, ['--limit', '2']).entries.map((entry) => entry.word)).toEqual(['hammer', 'pain']);
