@@ -146,6 +146,21 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
 - Machine translation, English gloss lists, and generic wordlists are not enough for dictionary definitions.
 - First safe task: create one source gate at a time, starting with the language that has the clearest source/license path.
 
+## English-Wiktionary Snapshot For Remaining Source-Gated Languages (2026-10-11)
+
+Kaikki's English-edition sections (English definitions, so at most a helper or a X→EN pair) are all below the 5,000-entry corpus gate, so none can unblock its language on its own:
+
+| Language | Kaikki section | Lemmas | Lemma entries with examples | With synonyms |
+| --- | --- | ---: | ---: | ---: |
+| Uyghur (`ug`) | Uyghur | 3,738 | 6.0% | 5.7% |
+| Cantonese (`yue`) | Cantonese (most Cantonese readings sit under "Chinese") | 3,780 | 0% | 0% |
+| Classical Nahuatl (`nci`) | Classical Nahuatl | 2,653 | 54.5% | 20.6% |
+| Quechua (`qu`) | Quechua | 1,995 | 4.6% | 3.3% |
+| Ainu (`ain`) | Ainu | 1,932 | 10.4% | 9.9% |
+| Guarani (`gn`) | none published | — | — | — |
+
+The native editions are smaller still (qu.wiktionary has 362 articles). These languages stay on their accepted paths (Words.hk permission, curated `ug.wiktionary.org`, licensed lexicons); no open Wiktionary data passes today.
+
 ## Acceptance Gate
 
 A language or pair can move to `[ ] TODO` only when:
