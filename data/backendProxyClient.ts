@@ -9,8 +9,12 @@ import { Platform } from 'react-native';
 import { fetch as streamingFetch } from 'expo/fetch';
 
 import type { FeedbackCategory } from './feedback';
+import { fetchWithTimeout } from './http';
 import { readSseStream } from './sseParser';
 import { getSharedSupabaseAuthClient } from './supabaseAuthClient';
+
+// AI replies can take a while; anything longer than this is treated as a stalled request.
+const PROXY_FETCH_TIMEOUT_MS = 60_000;
 
 export type AiChatGoal = 'conversation' | 'correction' | 'explanation' | 'roleplay';
 
@@ -136,9 +140,10 @@ async function proxyFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const { headers, url } = await buildProxyRequest(path, options);
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     ...options,
     headers,
+    timeoutMs: PROXY_FETCH_TIMEOUT_MS,
   });
 
   if (!res.ok) throw await toBackendProxyError(res);

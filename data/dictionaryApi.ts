@@ -10,6 +10,10 @@ import {
   lookupLocalPackRelatedWords,
 } from './localPackDictionarySources';
 import { getMorphologyCandidates } from './morphology';
+import { fetchWithTimeout } from './http';
+
+// Dictionary lookups fail over to other sources, so a stalled API should give up quickly.
+const DICTIONARY_FETCH_TIMEOUT_MS = 10_000;
 
 export type ApiDefinition = {
   partOfSpeech: string;
@@ -254,7 +258,7 @@ export async function fetchEnglishMeaning(word: string): Promise<ApiMeaningResul
 }
 
 async function fetchEnglishMeaningCandidate(lookupWord: string, requestedWord: string): Promise<ApiMeaningResult> {
-  const response = await fetch(`${DICTIONARY_API_BASE}/${encodeURIComponent(lookupWord)}`);
+  const response = await fetchWithTimeout(`${DICTIONARY_API_BASE}/${encodeURIComponent(lookupWord)}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No dictionary entry found for "${requestedWord}".`);
@@ -321,7 +325,7 @@ export async function fetchBilingualMeaning(
     lang: sourceLang,
     def_lang: targetLang,
   });
-  const response = await fetch(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No bilingual dictionary entry found for "${normalizedWord}".`);
@@ -492,7 +496,7 @@ export async function fetchVietnameseSuggestions(query: string): Promise<string[
   if (!normalizedQuery) return [];
 
   const params = new URLSearchParams({ q: normalizedQuery });
-  const response = await fetch(`${MINH_QND_SUGGEST_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${MINH_QND_SUGGEST_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) return [];
 
@@ -512,7 +516,7 @@ async function fetchMinhQndLookup(
     lang: sourceLang,
     def_lang: targetLang,
   });
-  const response = await fetch(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No dictionary entry found for "${word}".`);
@@ -581,7 +585,7 @@ function mapMinhQndRelations(relations: MinhQndRelation[]): ApiRelatedWords {
 
 async function fetchWiktApiWord(word: string, languageCode: string): Promise<WiktApiWordResponse> {
   const params = new URLSearchParams({ lang: languageCode });
-  const response = await fetch(`${WIKTAPI_BASE}/${languageCode}/word/${encodeURIComponent(word)}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${WIKTAPI_BASE}/${languageCode}/word/${encodeURIComponent(word)}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No ${languageCode} Wiktionary entry found for "${word}".`);
@@ -804,7 +808,7 @@ async function fetchDatamuseRelation(word: string, relation: 'syn' | 'ant') {
     [`rel_${relation}`]: word,
     max: '24',
   });
-  const response = await fetch(`${DATAMUSE_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${DATAMUSE_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`Could not fetch ${relation} words for "${word}".`);

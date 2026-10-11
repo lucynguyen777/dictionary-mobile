@@ -22,6 +22,7 @@ import {
 } from './googleSheetsOAuth';
 import type { GoogleSheetsStore } from './googleSheetsStore';
 import { selectAppliedGlossaryTerms } from '../data/glossaryMatching';
+import { fetchWithTimeout } from '../data/http';
 import { readSseStream } from '../data/sseParser';
 import { validateSpecializedTranslateRequest } from './proxyRequestValidation';
 import { buildSpecializedTranslationMessages } from './specializedTranslation';
@@ -440,7 +441,8 @@ async function callDeepLTranslate(
   if (opts?.glossaryId) params.append('glossary_id', opts.glossaryId);
   if (opts?.formality) params.append('formality', opts.formality);
 
-  const response = await fetch(`${baseUrl}/v2/translate`, {
+  const response = await fetchWithTimeout(`${baseUrl}/v2/translate`, {
+    timeoutMs: 20_000,
     body: params,
     headers: {
       Authorization: `DeepL-Auth-Key ${apiKey}`,
@@ -502,7 +504,8 @@ async function callOpenAIMessages(apiKey: string, model: string, messages: Array
     stream: false,
   };
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    timeoutMs: 60_000,
     body: JSON.stringify(body),
     headers: {
       'Authorization': `Bearer ${apiKey}`,
