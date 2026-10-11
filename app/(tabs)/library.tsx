@@ -814,7 +814,7 @@ export default function LibraryScreen() {
               {addPanelMode === 'create' ? (
                 <>
                   <View style={styles.addSheetHeaderRow}>
-                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                    <TouchableOpacity accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
                       <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
                     </TouchableOpacity>
                     <Text style={[styles.addSheetTitle, themed.primaryText]}>Tạo bộ từ mới</Text>
@@ -859,7 +859,7 @@ export default function LibraryScreen() {
               {addPanelMode === 'import' ? (
                 <>
                   <View style={styles.addSheetHeaderRow}>
-                    <TouchableOpacity activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                    <TouchableOpacity accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
                       <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
                     </TouchableOpacity>
                     <Text style={[styles.addSheetTitle, themed.primaryText]}>Tải lên file</Text>
@@ -1166,6 +1166,8 @@ export default function LibraryScreen() {
         </View>
       ) : null}
       <TouchableOpacity
+        accessibilityLabel="Thêm bộ từ"
+        accessibilityRole="button"
         activeOpacity={0.86}
         onPress={handleOpenCreateFolder}
         style={[styles.floatingAddButton, { bottom: floatingButtonBottom, height: FAB_SIZE, width: FAB_SIZE }]}>
