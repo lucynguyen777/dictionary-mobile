@@ -206,6 +206,17 @@ describe('build-offline-pack pipeline guarantees', () => {
     expect(report.helperEnrichedEntries).toBe(1);
   });
 
+  it('skips inflected-form entries with --lemmas-only, even placed before other options', () => {
+    writeDump();
+    const formOf = { lang_code: 'en', pos: 'verb', senses: [{ form_of: [{ word: 'hammer' }], glosses: ['past tense of hammer'], tags: ['form-of'] }], word: 'hammered' };
+    writeFileSync(input, `${readFileSync(input, 'utf8')}${JSON.stringify(formOf)}\n`);
+    expect(build(`${dir}/out-d`).entries.map((entry) => entry.word)).toContain('hammered');
+
+    const lemmas = build(`${dir}/out-e`, ['--lemmas-only', '--limit', '10']);
+    expect(lemmas.entries.map((entry) => entry.word)).toEqual(['hammer', 'pain', 'set']);
+    expect(lemmas.report.formOfEntriesSkipped).toBe(1);
+  });
+
   it('honours an entry limit', () => {
     writeDump();
     expect(build(`${dir}/out-c`, ['--limit', '2']).entries.map((entry) => entry.word)).toEqual(['hammer', 'pain']);

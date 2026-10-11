@@ -43,3 +43,23 @@ describe('Russian adjective case forms', () => {
     expect(words('ru', form)).toContain(lemma);
   });
 });
+
+describe('Turkish verb forms', () => {
+  it.each([
+    ['gidiyor', 'gitmek'], ['seviyorum', 'sevmek'], ['yazıyor', 'yazmak'], ['istiyor', 'istemek'], ['anlıyorlar', 'anlamak'],
+    ['biliyorum', 'bilmek'], ['yaptım', 'yapmak'], ['anladım', 'anlamak'], ['gördük', 'görmek'], ['okuyorsun', 'okumak'],
+  ])('%s → %s', (form, lemma) => {
+    expect(words('tr', form)).toContain(lemma);
+  });
+
+  it('keeps noun readings', () => {
+    expect(words('tr', 'evler')).toContain('ev');
+    expect(words('tr', 'okulda')).toContain('okul');
+  });
+});
+
+describe('Spanish short irregular verbs', () => {
+  it.each([['va', 'ir'], ['es', 'ser'], ['he', 'haber'], ['hay', 'haber'], ['está', 'estar'], ['dijo', 'decir']])('%s → %s', (form, lemma) => {
+    expect(words('es', form)).toContain(lemma);
+  });
+});

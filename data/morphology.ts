@@ -217,33 +217,51 @@ function normalizeMorphologyInput(input: string) {
 
 function getSpanishMorphologyCandidates(input: string): MorphologyCandidate[] {
   const word = normalizeMorphologyInput(input);
-  if (word.length < 3) return [];
-
   const candidates: MorphologyCandidate[] = [];
   const irregularBaseForms: Record<string, string[]> = {
     digo: ['decir'],
     dice: ['decir'],
+    dijo: ['decir'],
+    es: ['ser'],
+    eres: ['ser'],
+    era: ['ser'],
+    estoy: ['estar'],
+    está: ['estar'],
+    están: ['estar'],
     fueron: ['ir', 'ser'],
     fui: ['ir', 'ser'],
     fue: ['ir', 'ser'],
+    ha: ['haber'],
+    han: ['haber'],
+    hay: ['haber'],
+    he: ['haber'],
     hago: ['hacer'],
     hace: ['hacer'],
+    hizo: ['hacer'],
     puedo: ['poder'],
     puede: ['poder'],
     quiero: ['querer'],
     quiere: ['querer'],
     sé: ['saber'],
     sabe: ['saber'],
+    somos: ['ser'],
+    son: ['ser'],
+    soy: ['ser'],
     tengo: ['tener'],
     tiene: ['tener'],
     vengo: ['venir'],
     viene: ['venir'],
     voy: ['ir'],
+    vas: ['ir'],
     va: ['ir'],
+    vamos: ['ir'],
+    van: ['ir'],
   };
+  // Checked before the length guard: the commonest irregular forms are very short (va, es, he).
   for (const base of irregularBaseForms[word] ?? []) {
     candidates.push(createCandidate(base, 'verbo irregular'));
   }
+  if (word.length < 3) return uniqueCandidates(candidates, word);
 
   // Plural → singular: -ces → -z (e.g. lápices → lápiz, voces → voz)
   if (word.endsWith('ces') && word.length > 4) {
@@ -532,6 +550,25 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
 
   const candidates: MorphologyCandidate[] = [];
 
+  // Present continuous: (stem)(-i/-ı/-ü/-u)yor + person (gidiyor, seviyorum, istiyoruz, anlıyorlar).
+  // A stem-final vowel is replaced by the buffer vowel (iste → istiyor), and d alternates with t
+  // (git → gidiyor). Unambiguous, so these candidates come first.
+  const continuous = word.match(/^(.+?)([iıüu])yor(?:um|sun|uz|sunuz|lar)?$/);
+  if (continuous && continuous[1].length >= 2) {
+    const [, base, buffer] = continuous;
+    addTurkishInfinitives(candidates, base, 'şimdiki zaman (-iyor)');
+    // The dropped vowel matches the buffer vowel's harmony: i/ü after e, ı/u after a.
+    addTurkishInfinitives(candidates, `${base}${buffer === 'i' || buffer === 'ü' ? 'e' : 'a'}`, 'şimdiki zaman (ünlü düşmesi)');
+    // Stems ending in a high vowel keep it (oku → okuyor).
+    addTurkishInfinitives(candidates, `${base}${buffer}`, 'şimdiki zaman (ünlü kök)');
+  }
+
+  // Past tense with a person ending: yaptım, anladım, gördük, geldin.
+  const pastPerson = word.match(/^(.+?)[dt][ıiuü](?:m|n|k|nız|niz|nuz|nüz|lar|ler)$/);
+  if (pastPerson && pastPerson[1].length >= 2) {
+    addTurkishInfinitives(candidates, pastPerson[1], 'geçmiş zaman (kişi eki)');
+  }
+
   // Agglutinative plural suffix: -ler, -lar
   if (word.endsWith('ler') && word.length >= 5) {
     candidates.push(createCandidate(word.slice(0, -3), 'çoğul (-ler)'));
@@ -628,6 +665,19 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+const TURKISH_FRONT_VOWELS = /[eiöü]/;
+const TURKISH_VOWELS = /[aeıioöuü]/g;
+
+// Dictionary form of a verb stem: -mek after a front vowel, -mak after a back vowel; a stem ending
+// in d may be a t-stem (gid- → gitmek).
+function addTurkishInfinitives(candidates: MorphologyCandidate[], stem: string, description: string) {
+  const vowels = stem.match(TURKISH_VOWELS);
+  if (!vowels) return;
+  const ending = TURKISH_FRONT_VOWELS.test(vowels[vowels.length - 1]) ? 'mek' : 'mak';
+  candidates.push(createCandidate(`${stem}${ending}`, description));
+  if (stem.endsWith('d')) candidates.push(createCandidate(`${stem.slice(0, -1)}t${ending}`, description));
 }
 
 function addTurkishPluralStemCandidate(

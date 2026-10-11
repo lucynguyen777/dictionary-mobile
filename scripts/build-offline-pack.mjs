@@ -14,6 +14,7 @@ if (!args.input || !args.lang || !args.source || !args.out) {
       + ' [--source-url <url>] [--source-revision <dump date or id>] [--generated-at <ISO time>] [--limit <entries>]'
       + ' [--public-base-url <url prefix where the pack is hosted>]'
       + ' [--helper-input <jsonl> --helper-source <name>]  (related words only, e.g. from another Wiktionary edition)'
+      + ' [--lemmas-only]  (skip inflected-form entries; the app resolves inflections with its morphology)'
   );
   process.exit(1);
 }
@@ -26,7 +27,12 @@ const MAX_EXAMPLES_PER_ENTRY = 8;
 const MAX_RELATIONS = 24;
 const MAX_TEXT_CHARS = 1_000;
 const entriesByKey = new Map();
-const stats = { mergedEntries: 0, otherLanguageSections: 0, scannedLines: 0, withoutDefinitions: 0 };
+const lemmasOnly = args.lemmasOnly === true;
+const stats = { formOfEntriesSkipped: 0, mergedEntries: 0, otherLanguageSections: 0, scannedLines: 0, withoutDefinitions: 0 };
+// As in scripts/measure-kaikki-dump.mjs, an entry is a lemma if any sense is not a form-of sense.
+// Entries without senses are left to the definitions check below.
+const isLemmaEntry = (entry) => !(entry.senses ?? []).length
+  || entry.senses.some((sense) => !sense.form_of && !(sense.tags ?? []).includes('form-of'));
 
 const reader = createInterface({
   crlfDelay: Infinity,
@@ -42,6 +48,10 @@ for await (const line of reader) {
   // Wiktextract dumps mix language sections; a French word on English Wiktionary must not enter an English pack.
   if (typeof rawEntry.lang_code === 'string' && rawEntry.lang_code !== args.lang) {
     stats.otherLanguageSections += 1;
+    continue;
+  }
+  if (lemmasOnly && !isLemmaEntry(rawEntry)) {
+    stats.formOfEntriesSkipped += 1;
     continue;
   }
   const normalizedEntry = normalizeEntry(rawEntry, args.lang, args.source, args.sourceUrl, generatedAt);
@@ -276,7 +286,13 @@ function parseArgs(rawArgs) {
     if (!arg.startsWith('--')) continue;
 
     const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-    parsed[key] = rawArgs[index + 1];
+    const value = rawArgs[index + 1];
+    // Flags without a value (e.g. --lemmas-only) do not consume the next option.
+    if (value === undefined || value.startsWith('--')) {
+      parsed[key] = true;
+      continue;
+    }
+    parsed[key] = value;
     index += 1;
   }
 
