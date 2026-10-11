@@ -2,7 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, GestureResponderEvent, Modal, NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, GestureResponderEvent, Modal, NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import Screen from '@/components/app/Screen';
 import { DictionaryEntry } from '@/data/dictionary';
 import { LibraryState, createFlashcardsFromWordIds, getDefaultLibraryState, getFavoriteFolderId, loadLibraryState, saveWordToFolder } from '@/data/libraryStore';
@@ -514,7 +515,7 @@ export default function ReaderScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
+          <Touchable
             accessibilityLabel="Quay lại"
             accessibilityRole="button"
             activeOpacity={0.82}
@@ -522,7 +523,7 @@ export default function ReaderScreen() {
             style={[styles.iconButton, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}
           >
             <Ionicons name="chevron-back" size={22} color={activeTheme.text} />
-          </TouchableOpacity>
+          </Touchable>
         </View>
 
         <Text style={[styles.kicker, { color: activeTheme.secondaryText }]}>Trình đọc Novel</Text>
@@ -535,7 +536,7 @@ export default function ReaderScreen() {
               const isSelected = document.id === readerState.selectedDocumentId;
 
               return (
-                <TouchableOpacity
+                <Touchable
                   key={document.id}
                   activeOpacity={0.82}
                   onPress={() => handleSelectDocument(document.id)}
@@ -551,7 +552,7 @@ export default function ReaderScreen() {
                   <Text style={[styles.documentFormatText, { color: activeTheme.secondaryText }, isSelected && styles.activeDocumentFormatText]}>
                     {(document.sourceFormat ?? 'txt').toUpperCase()}
                   </Text>
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
           </ScrollView>
@@ -645,9 +646,9 @@ export default function ReaderScreen() {
           </View>
           {showAudioProgress ? (
             <View style={[styles.audioProgressPanel, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
-              <TouchableOpacity accessibilityLabel="Câu trước" accessibilityRole="button" activeOpacity={0.82} onPress={handlePrevSentence} style={styles.audioSeekButton}>
+              <Touchable accessibilityLabel="Câu trước" accessibilityRole="button" activeOpacity={0.82} onPress={handlePrevSentence} style={styles.audioSeekButton}>
                 <Ionicons name="play-skip-back" size={18} color={activeTheme.accent} />
-              </TouchableOpacity>
+              </Touchable>
               <View
                 accessible
                 accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
@@ -672,12 +673,12 @@ export default function ReaderScreen() {
               <Text style={[styles.audioProgressText, { color: activeTheme.secondaryText }]}>
                 {sentences.length ? `${Math.min(sentences.length, (activeSentenceIndex ?? 0) + 1)}/${sentences.length}` : '0/0'}
               </Text>
-              <TouchableOpacity activeOpacity={0.82} onPress={handlePlayPause} style={styles.audioSeekButton}>
+              <Touchable activeOpacity={0.82} onPress={handlePlayPause} style={styles.audioSeekButton}>
                 <Ionicons name={isSpeaking ? 'pause' : 'play'} size={18} color={activeTheme.accent} />
-              </TouchableOpacity>
-              <TouchableOpacity accessibilityLabel="Câu sau" accessibilityRole="button" activeOpacity={0.82} onPress={handleNextSentence} style={styles.audioSeekButton}>
+              </Touchable>
+              <Touchable accessibilityLabel="Câu sau" accessibilityRole="button" activeOpacity={0.82} onPress={handleNextSentence} style={styles.audioSeekButton}>
                 <Ionicons name="play-skip-forward" size={18} color={activeTheme.accent} />
-              </TouchableOpacity>
+              </Touchable>
             </View>
           ) : null}
           <View style={styles.readerDockControls}>
@@ -696,15 +697,15 @@ export default function ReaderScreen() {
         visible={activeSheet !== null}
         onRequestClose={() => setActiveSheet(null)}>
         <View style={styles.sheetBackdrop}>
-          <TouchableOpacity activeOpacity={1} onPress={() => setActiveSheet(null)} style={styles.sheetBackdropTouch} />
+          <Touchable activeOpacity={1} onPress={() => setActiveSheet(null)} style={styles.sheetBackdropTouch} />
           <View style={[styles.readerSheet, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
             <View style={styles.sheetHeader}>
-              <TouchableOpacity
+              <Touchable
                 activeOpacity={0.82}
                 onPress={() => setActiveSheet(null)}
                 style={[styles.sheetCloseButton, { backgroundColor: activeTheme.bg }]}>
                 <Ionicons name="close" size={20} color={activeTheme.accent} />
-              </TouchableOpacity>
+              </Touchable>
               <Text style={[styles.sheetTitle, { color: activeTheme.text }]}>
                 {activeSheet === 'toc' ? 'Mục lục' : 'Thiết lập giao diện'}
               </Text>

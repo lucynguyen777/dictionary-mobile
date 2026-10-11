@@ -2,7 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { AudioPlayer } from 'expo-audio';
 import { createAudioPlayer } from 'expo-audio';
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import { DictionaryEntry } from '@/data/dictionary';
 import { Folder } from '@/data/libraryStore';
@@ -282,28 +283,28 @@ export default function WordHeader({
           {entry.word}
         </Text>
         <View style={styles.actions}>
-          <TouchableOpacity
+          <Touchable
             accessibilityLabel={isFavorite ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}
             accessibilityRole="button"
             accessibilityState={{ selected: isFavorite }}
             hitSlop={6}
             onPress={onToggleFavorite}>
             <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={30} color={colors.accentError} />
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Touchable>
+          <Touchable
             accessibilityLabel="Lưu vào bộ từ"
             accessibilityRole="button"
             accessibilityState={{ expanded: folderPickerOpen }}
             hitSlop={6}
             onPress={() => setFolderPickerOpen((value) => !value)}>
             <Ionicons name="add-circle-outline" size={30} color={colors.accentPrimary} />
-          </TouchableOpacity>
+          </Touchable>
         </View>
       </View>
 
       <View style={styles.ipaRow}>
         <Text style={styles.ipa}>{entry.ipa}</Text>
-        <TouchableOpacity
+        <Touchable
           accessibilityLabel="Nghe phát âm"
           accessibilityRole="button"
           accessibilityState={{ disabled: !entry.audio }}
@@ -311,7 +312,7 @@ export default function WordHeader({
           onPress={playAudio}
           style={[styles.audioButton, !entry.audio && styles.audioButtonDisabled]}>
           <Ionicons name="volume-medium-outline" size={18} color={entry.audio ? colors.accentPrimary : colors.textTertiary} />
-        </TouchableOpacity>
+        </Touchable>
         <Text style={styles.translation}>{entry.vietnamese}</Text>
       </View>
 
@@ -340,14 +341,14 @@ export default function WordHeader({
               value={folderQuery}
             />
             {folderQuery ? (
-              <TouchableOpacity
+              <Touchable
                 accessibilityLabel="Xóa tìm kiếm bộ từ"
                 accessibilityRole="button"
                 activeOpacity={0.75}
                 hitSlop={10}
                 onPress={() => setFolderQuery('')}>
                 <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
-              </TouchableOpacity>
+              </Touchable>
             ) : null}
           </View>
           <TextInput
@@ -368,7 +369,7 @@ export default function WordHeader({
                 const isSavedInFolder = savedFolderIds.includes(folder.id);
 
                 return (
-                  <TouchableOpacity
+                  <Touchable
                     key={folder.id}
                     activeOpacity={0.82}
                     style={styles.folderRow}
@@ -380,7 +381,7 @@ export default function WordHeader({
                       <Text style={styles.folderMeta}>{isSavedInFolder ? 'Đã có trong bộ từ này' : 'Bấm để lưu vào đây'}</Text>
                     </View>
                     <Ionicons name={isSavedInFolder ? 'checkmark-circle' : 'add-circle-outline'} size={23} color={colors.accentPrimary} />
-                  </TouchableOpacity>
+                  </Touchable>
                 );
               })}
             </ScrollView>

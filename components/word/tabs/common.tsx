@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import SkeletonBlock from '@/components/app/SkeletonBlock';
 import { useToken } from '@/hooks/use-token';
 
@@ -23,12 +24,12 @@ export function WordChip({
   const styles = useTabPagerStyles();
 
   return (
-    <TouchableOpacity
+    <Touchable
       activeOpacity={0.82}
       onPress={() => router.push({ pathname: '/word', params: { sourceLang, targetLang, word } })}
       style={variant === 'primary' ? styles.chipButton : styles.ghostChipButton}>
       <Text style={variant === 'primary' ? styles.chipText : styles.ghostChipText}>{word}</Text>
-    </TouchableOpacity>
+    </Touchable>
   );
 }
 

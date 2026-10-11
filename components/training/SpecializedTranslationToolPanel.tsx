@@ -2,7 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import { FilterChip } from '@/components/training/shared';
 import { styles } from '@/components/training/styles';
@@ -185,14 +186,14 @@ export function SpecializedTranslationToolPanel() {
       <Text style={styles.toolSectionLabel}>
         Glossary {translationDomains.find((domain) => domain.id === domainId)?.label} ({terms.length} thuật ngữ)
       </Text>
-      <TouchableOpacity
+      <Touchable
         accessibilityRole="button"
         activeOpacity={0.85}
         onPress={handleImportGlossary}
         style={[localStyles.importButton, { borderColor: colors.accentPrimary }]}>
         <Ionicons name="document-attach-outline" size={16} color={colors.accentPrimary} />
         <Text style={[localStyles.importButtonText, { color: colors.accentPrimary }]}>Nhập CSV/TSV (2 cột)</Text>
-      </TouchableOpacity>
+      </Touchable>
       <TextInput
         accessibilityLabel="Glossary"
         autoCapitalize="none"
@@ -244,7 +245,7 @@ export function SpecializedTranslationToolPanel() {
         </View>
       ) : null}
 
-      <TouchableOpacity
+      <Touchable
         accessibilityRole="button"
         accessibilityState={{ busy: isTranslating, disabled: !canTranslate }}
         activeOpacity={0.85}
@@ -253,7 +254,7 @@ export function SpecializedTranslationToolPanel() {
         style={[styles.generateButton, !canTranslate && styles.generateButtonDisabled]}>
         <Ionicons name="language-outline" size={18} color={colors.textOnAccent} />
         <Text style={styles.generateButtonText}>{isTranslating ? 'Đang dịch...' : 'Dịch theo glossary'}</Text>
-      </TouchableOpacity>
+      </Touchable>
 
       <View style={styles.translationOutputCard}>
         <Text style={styles.toolSectionLabel}>Kết quả dịch</Text>

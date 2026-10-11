@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { Ionicons } from '@expo/vector-icons';
 import { translateText, type TranslateTextResponse } from '@/data/backendProxyClient';
 import { languageOptions } from '@/data/languages';
@@ -55,7 +56,7 @@ export function TranslationPanel({
   return (
     <View style={[styles.container, { borderColor: colors.borderDefault }]}>
       {!result && !loading && !error && (
-        <TouchableOpacity
+        <Touchable
           style={[styles.translateButton, { backgroundColor: colors.accentPrimary, borderRadius: radius.md }]}
           onPress={handleTranslate}
         >
@@ -63,7 +64,7 @@ export function TranslationPanel({
           <Text style={[styles.buttonText, { color: colors.textInverse, ...typography.bodySmBold }]}>
             Dịch sang {getLanguageLabel(targetLang)}
           </Text>
-        </TouchableOpacity>
+        </Touchable>
       )}
 
       {loading && (
@@ -81,9 +82,9 @@ export function TranslationPanel({
           <Text style={[styles.errorText, { color: colors.accentError, ...typography.bodySm }]}>
             {error}
           </Text>
-          <TouchableOpacity onPress={handleTranslate} style={styles.retryButton}>
+          <Touchable onPress={handleTranslate} style={styles.retryButton}>
             <Text style={{ color: colors.accentPrimary, ...typography.bodySmBold }}>Thử lại</Text>
-          </TouchableOpacity>
+          </Touchable>
         </View>
       )}
 
@@ -93,9 +94,9 @@ export function TranslationPanel({
             <Text style={[styles.providerText, { color: colors.textTertiary, ...typography.captionSmall }]}>
               Dịch bởi DeepL • Nhận diện: {getLanguageLabel(result.detectedSourceLanguage)}
             </Text>
-            <TouchableOpacity onPress={() => setResult(null)} style={styles.closeButton}>
+            <Touchable onPress={() => setResult(null)} style={styles.closeButton}>
               <Ionicons name="close-outline" size={16} color={colors.textTertiary} />
-            </TouchableOpacity>
+            </Touchable>
           </View>
           <Text style={[styles.translatedText, { color: colors.textPrimary, ...typography.bodySm }]}>
             {result.translatedText}

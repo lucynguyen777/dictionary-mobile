@@ -7,10 +7,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import LanguageSelect, { getUnavailableLanguageMessage } from '@/components/app/LanguageSelect';
@@ -408,20 +408,20 @@ export default function WordScreen() {
               ]}
             />
             {query ? (
-              <TouchableOpacity
+              <Touchable
                 accessibilityLabel="Xóa nội dung tìm kiếm"
                 accessibilityRole="button"
                 hitSlop={10}
                 onPress={() => setQuery('')}>
                 <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
-              </TouchableOpacity>
+              </Touchable>
             ) : null}
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.78}
               onPress={() => setShowLanguageControls((value) => !value)}
               style={styles.languageToggle}>
               <Ionicons name="language-outline" size={18} color={colors.accentPrimary} />
-            </TouchableOpacity>
+            </Touchable>
           </View>
           {showLanguageControls ? (
             <Text style={styles.languageCaption}>
@@ -434,19 +434,19 @@ export default function WordScreen() {
               <Text style={styles.detectedLanguageText}>
                 Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
               </Text>
-              <TouchableOpacity
+              <Touchable
                 activeOpacity={0.75}
                 onPress={() => {
                   setDetectedLanguage(null);
                   router.setParams({ sourceLang: sourceLanguage.code, targetLang: targetLanguage.code });
                 }}>
                 <Text style={styles.detectedLanguageUndo}>Hoàn tác</Text>
-              </TouchableOpacity>
+              </Touchable>
             </View>
           ) : null}
           {showLanguageControls && NATIVE_RECOGNITION_ENABLED ? (
             <View style={styles.recognitionActionRow}>
-              <TouchableOpacity
+              <Touchable
                 accessibilityLabel="Tìm bằng giọng nói"
                 accessibilityRole="button"
                 activeOpacity={0.82}
@@ -454,8 +454,8 @@ export default function WordScreen() {
                 style={styles.recognitionActionButton}>
                 <Ionicons name="mic-outline" size={17} color={colors.accentPrimary} />
                 <Text style={styles.recognitionActionText}>Voice</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Touchable>
+              <Touchable
                 accessibilityLabel="Tra cứu qua ảnh (OCR)"
                 accessibilityRole="button"
                 activeOpacity={0.82}
@@ -463,26 +463,26 @@ export default function WordScreen() {
                 style={styles.recognitionActionButton}>
                 <Ionicons name="scan-outline" size={17} color={colors.accentPrimary} />
                 <Text style={styles.recognitionActionText}>OCR</Text>
-              </TouchableOpacity>
+              </Touchable>
             </View>
           ) : showLanguageControls ? (
             <View style={styles.recognitionActionRow}>
-              <TouchableOpacity
+              <Touchable
                 accessibilityLabel="Tìm bằng giọng nói: cập nhật trong phiên bản sau"
                 activeOpacity={0.82}
                 onPress={() => showFutureFeatureNotice('Voice Search cần dev-client/native STT và kiểm thử quyền microphone trước khi mở production.')}
                 style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
                 <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
                 <Text style={styles.recognitionActionText}>Voice</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Touchable>
+              <Touchable
                 accessibilityLabel="Tra cứu qua ảnh (OCR): cập nhật trong phiên bản sau"
                 activeOpacity={0.82}
                 onPress={() => showFutureFeatureNotice('OCR Camera Lookup cần dev-client/native OCR engine và dữ liệu kiểm thử ảnh trước khi mở production.')}
                 style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
                 <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
                 <Text style={styles.recognitionActionText}>OCR</Text>
-              </TouchableOpacity>
+              </Touchable>
             </View>
           ) : null}
           {showLanguageControls ? (
@@ -518,23 +518,23 @@ export default function WordScreen() {
               const isSelected = entry.word === selectedEntry.word;
 
               return (
-                <TouchableOpacity
+                <Touchable
                   key={entry.word}
                   activeOpacity={0.82}
                   onPress={() => selectWord(entry.word)}
                   style={[styles.resultChip, isSelected && styles.activeResultChip]}>
                   <Text style={[styles.resultWord, isSelected && styles.activeResultText]}>{entry.word}</Text>
                   <Text style={[styles.resultMeta, isSelected && styles.activeResultMeta]}>{entry.level} · {entry.topic}</Text>
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
             {shouldShowApiLookup ? (
-              <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
+              <Touchable activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
                 <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
                 <Text style={styles.apiLookupMeta}>
                   {isBilingualSourceBlocked ? 'Cập nhật sau' : `${sourceLanguage.label} dictionary`}
                 </Text>
-              </TouchableOpacity>
+              </Touchable>
             ) : null}
           </ScrollView>
         ) : null}
@@ -546,9 +546,9 @@ export default function WordScreen() {
             <Text style={styles.suggestionTitle}>Có phải ý bạn là:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionRow}>
               {allSpellingSuggestions.map((suggestion) => (
-                <TouchableOpacity key={suggestion} activeOpacity={0.82} onPress={() => selectWord(suggestion)} style={styles.suggestionChip}>
+                <Touchable key={suggestion} activeOpacity={0.82} onPress={() => selectWord(suggestion)} style={styles.suggestionChip}>
                   <Text style={styles.suggestionText}>{suggestion}</Text>
-                </TouchableOpacity>
+                </Touchable>
               ))}
             </ScrollView>
           </View>
@@ -558,14 +558,14 @@ export default function WordScreen() {
             <Text style={styles.morphologyTitle}>Dạng gốc có thể là:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionRow}>
               {morphologySuggestions.map((suggestion) => (
-                <TouchableOpacity
+                <Touchable
                   key={`${suggestion.word}-${suggestion.reason}`}
                   activeOpacity={0.82}
                   onPress={() => selectWord(suggestion.word)}
                   style={styles.morphologyChip}>
                   <Text style={styles.morphologyText}>{suggestion.label}</Text>
                   <Text style={styles.morphologyMeta}>{suggestion.reason}</Text>
-                </TouchableOpacity>
+                </Touchable>
               ))}
             </ScrollView>
           </View>
@@ -575,9 +575,9 @@ export default function WordScreen() {
             <Text style={styles.historyTitle}>Recent searches</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.historyRow}>
               {libraryState.searchHistory.map((item) => (
-                <TouchableOpacity key={`${item.word}-${item.lookedUpAt}`} activeOpacity={0.82} onPress={() => selectWord(item.word)} style={styles.historyChip}>
+                <Touchable key={`${item.word}-${item.lookedUpAt}`} activeOpacity={0.82} onPress={() => selectWord(item.word)} style={styles.historyChip}>
                   <Text style={styles.historyText}>{item.word}</Text>
-                </TouchableOpacity>
+                </Touchable>
               ))}
             </ScrollView>
           </View>

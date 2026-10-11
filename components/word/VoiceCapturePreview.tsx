@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, CameraView, type CameraType } from 'expo-camera';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import { useToken } from '@/hooks/use-token';
 
@@ -59,9 +60,9 @@ export default function VoiceCapturePreview({ visible, onClose, onCapture }: Voi
     return (
       <View style={[styles.centered, { backgroundColor: colors.canvasAlt }]}>
         <Text style={[styles.error, { color: colors.accentError }]}>Cần quyền truy cập camera để chụp ảnh.</Text>
-        <TouchableOpacity onPress={onClose} style={[styles.button, { backgroundColor: colors.accentPrimary, borderRadius: radius.sm }]}>
+        <Touchable onPress={onClose} style={[styles.button, { backgroundColor: colors.accentPrimary, borderRadius: radius.sm }]}>
           <Text style={styles.buttonText}>Đóng</Text>
-        </TouchableOpacity>
+        </Touchable>
       </View>
     );
   }
@@ -70,15 +71,15 @@ export default function VoiceCapturePreview({ visible, onClose, onCapture }: Voi
     <View style={styles.container}>
       <CameraView style={styles.camera} facing={type} ref={setCameraRef} />
       <View style={styles.controls}>
-        <TouchableOpacity onPress={onClose} style={[styles.controlButton, { backgroundColor: colors.accentSoft }]}>
+        <Touchable onPress={onClose} style={[styles.controlButton, { backgroundColor: colors.accentSoft }]}>
           <Ionicons name="close" size={28} color={colors.accentPrimary} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleCapture} style={[styles.controlButton, { backgroundColor: colors.accentPrimary }]}>
+        </Touchable>
+        <Touchable onPress={handleCapture} style={[styles.controlButton, { backgroundColor: colors.accentPrimary }]}>
           <Ionicons name="camera" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setType(type === 'back' ? 'front' : 'back')} style={[styles.controlButton, { backgroundColor: colors.accentNeo }]}>
+        </Touchable>
+        <Touchable onPress={() => setType(type === 'back' ? 'front' : 'back')} style={[styles.controlButton, { backgroundColor: colors.accentNeo }]}>
           <Ionicons name="camera-reverse" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
+        </Touchable>
       </View>
     </View>
   );

@@ -3,7 +3,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
@@ -475,13 +476,13 @@ export default function LibraryScreen() {
             const isActive = activeSegment === segment.key;
 
             return (
-              <TouchableOpacity
+              <Touchable
                 key={segment.key}
                 activeOpacity={0.82}
                 onPress={() => setActiveSegment(segment.key)}
                 style={isActive ? [styles.segmentActive, themed.activeChip] : styles.segmentItem}>
                 <Text style={isActive ? [styles.segmentActiveText, themed.activeChipText] : [styles.segmentText, themed.mutedText]}>{segment.label}</Text>
-              </TouchableOpacity>
+              </Touchable>
             );
           })}
         </View>
@@ -500,7 +501,7 @@ export default function LibraryScreen() {
         </View>
 
         <View style={styles.toolbar}>
-          <TouchableOpacity
+          <Touchable
             activeOpacity={0.82}
             onPress={() => {
               setActiveFolderMenuId('');
@@ -512,13 +513,13 @@ export default function LibraryScreen() {
               {getSortLabel(folderSort)}
             </Text>
             <Ionicons name="chevron-down" size={15} color={colors.textTertiary} />
-          </TouchableOpacity>
+          </Touchable>
           <View style={[styles.viewToggle, themed.card]}>
             {viewModeOptions.map((option) => {
               const isActive = folderViewMode === option.value;
 
               return (
-                <TouchableOpacity
+                <Touchable
                   key={option.value}
                   accessibilityLabel={`Đổi sang dạng ${option.label}`}
                   activeOpacity={0.78}
@@ -533,7 +534,7 @@ export default function LibraryScreen() {
                     size={18}
                     color={isActive ? colors.accentPrimary : colors.textTertiary}
                   />
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
           </View>
@@ -549,7 +550,7 @@ export default function LibraryScreen() {
               const isActive = folderSort === option.value;
 
               return (
-                <TouchableOpacity
+                <Touchable
                   key={option.value}
                   activeOpacity={0.82}
                   onPress={() => {
@@ -558,7 +559,7 @@ export default function LibraryScreen() {
                   }}
                   style={[styles.controlChip, themed.card, isActive && styles.controlChipActive, isActive && themed.activeChip]}>
                   <Text style={[styles.controlChipText, themed.mutedText, isActive && styles.controlChipTextActive, isActive && themed.activeChipText]}>{option.label}</Text>
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
           </ScrollView>
@@ -569,7 +570,7 @@ export default function LibraryScreen() {
             const isList = folderViewMode === 'list';
 
             return (
-            <TouchableOpacity
+            <Touchable
               key={folder.id}
               style={[
                 styles.folderCard,
@@ -611,7 +612,7 @@ export default function LibraryScreen() {
                       <Text numberOfLines={1} style={[styles.folderTagText, themed.mutedText]}>{folder.tags.join(', ')}</Text>
                     ) : null}
                   </View>
-                  <TouchableOpacity
+                  <Touchable
                     activeOpacity={0.78}
                     onPress={(event) => {
                       event.stopPropagation();
@@ -619,7 +620,7 @@ export default function LibraryScreen() {
                     }}
                     style={[styles.folderMenuButton, themed.secondaryButton]}>
                     <Ionicons name="ellipsis-vertical" size={18} color={colors.textSecondary} />
-                  </TouchableOpacity>
+                  </Touchable>
                 </View>
               </View>
               {activeFolderMenuId === folder.id ? (
@@ -628,7 +629,7 @@ export default function LibraryScreen() {
                   style={[styles.folderActionPanel, themed.mutedPanel]}
                   onStartShouldSetResponder={() => true}
                   showsVerticalScrollIndicator={false}>
-                  <TouchableOpacity
+                  <Touchable
                     activeOpacity={0.78}
                     onPress={() => handleToggleFavoriteFolder(folder)}
                     style={styles.folderActionRow}>
@@ -636,15 +637,15 @@ export default function LibraryScreen() {
                     <Text style={styles.folderActionText}>
                       {folder.isFavorite ? 'Gỡ khỏi bộ từ yêu thích' : 'Thêm bộ từ vào yêu thích'}
                     </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Touchable>
+                  <Touchable
                     activeOpacity={0.78}
                     onPress={() => handleDuplicateFolder(folder)}
                     style={styles.folderActionRow}>
                     <Ionicons name="copy-outline" size={17} color="#64748B" />
                     <Text style={styles.folderActionText}>Tạo bản sao</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Touchable>
+                  <Touchable
                     activeOpacity={0.78}
                     onPress={() => {
                       setActiveFolderMenuId('');
@@ -655,8 +656,8 @@ export default function LibraryScreen() {
                     style={styles.folderActionRow}>
                     <Ionicons name="color-palette-outline" size={17} color="#64748B" />
                     <Text style={styles.folderActionText}>Thay đổi màu sắc</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Touchable>
+                  <Touchable
                     activeOpacity={0.78}
                     onPress={() => {
                       setActiveFolderMenuId('');
@@ -667,7 +668,7 @@ export default function LibraryScreen() {
                     style={styles.folderActionRow}>
                     <Ionicons name="pencil-outline" size={17} color="#64748B" />
                     <Text style={styles.folderActionText}>Rename</Text>
-                  </TouchableOpacity>
+                  </Touchable>
                   <View style={styles.folderActionDivider} />
                   <Text style={styles.folderActionLabel}>Download</Text>
                   <View style={styles.downloadRow}>
@@ -676,7 +677,7 @@ export default function LibraryScreen() {
                       { label: 'XLS', format: 'excel' as const },
                       { label: 'Anki', format: 'anki' as const },
                     ].map((item) => (
-                      <TouchableOpacity
+                      <Touchable
                         key={item.format}
                         activeOpacity={0.78}
                         onPress={() => {
@@ -685,7 +686,7 @@ export default function LibraryScreen() {
                         }}
                         style={styles.downloadChip}>
                         <Text style={styles.downloadChipText}>{item.label}</Text>
-                      </TouchableOpacity>
+                      </Touchable>
                     ))}
                   </View>
                   <View style={styles.folderActionDivider} />
@@ -696,19 +697,19 @@ export default function LibraryScreen() {
                       { label: 'XLS', format: 'excel' as const },
                       { label: 'Anki', format: 'anki' as const },
                     ].map((item) => (
-                      <TouchableOpacity
+                      <Touchable
                         key={`share-${item.format}`}
                         activeOpacity={0.78}
                         onPress={() => handleShareFolder(folder.id, item.format)}
                         style={styles.shareChip}>
                         <Ionicons name="share-social-outline" size={13} color="#0F766E" />
                         <Text style={styles.shareChipText}>{item.label}</Text>
-                      </TouchableOpacity>
+                      </Touchable>
                     ))}
                   </View>
                 </ScrollView>
               ) : null}
-            </TouchableOpacity>
+            </Touchable>
             );
           })}
         </View>
@@ -717,7 +718,7 @@ export default function LibraryScreen() {
         <Text style={styles.sectionTitle}>Vừa lưu</Text>
         {recentWords.map((entry) => (
           <Link key={entry.id} href={{ pathname: '/word', params: { word: entry.word } }} asChild>
-            <TouchableOpacity activeOpacity={0.82} style={styles.savedWord}>
+            <Touchable activeOpacity={0.82} style={styles.savedWord}>
               <View style={styles.savedWordCopy}>
                 <Text style={[styles.savedWordTitle, /[\u0600-\u06FF\u0590-\u05FF]/.test(entry.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{entry.word}</Text>
                 <Text style={styles.savedWordMeta}>{entry.definition || 'Từ đã lưu'} · {entry.ipa || 'Đang chờ IPA'}</Text>
@@ -726,7 +727,7 @@ export default function LibraryScreen() {
               <View style={styles.savedTag}>
                 <Text style={styles.savedTagText}>{entry.folderIds.length} bộ</Text>
               </View>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         ))}
         {!recentWords.length ? (
@@ -739,7 +740,7 @@ export default function LibraryScreen() {
       </ScrollView>
       {createPanelOpen ? (
         <View style={styles.addSheetOverlay}>
-          <TouchableOpacity activeOpacity={1} onPress={closeAddPanel} style={styles.addSheetBackdrop} />
+          <Touchable activeOpacity={1} onPress={closeAddPanel} style={styles.addSheetBackdrop} />
           <View style={[styles.addSheet, themed.bottomSheet, { paddingBottom: 16 + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0) }]}>
             <ScrollView
               contentContainerStyle={styles.addSheetContent}
@@ -749,31 +750,31 @@ export default function LibraryScreen() {
               {addPanelMode === 'choice' ? (
                 <>
                   <Text style={[styles.addSheetTitle, themed.primaryText]}>Thêm vào Tủ từ</Text>
-                  <TouchableOpacity activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={[styles.addChoiceCard, themed.mutedPanel]}>
+                  <Touchable activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={[styles.addChoiceCard, themed.mutedPanel]}>
                     <Ionicons name="folder-outline" size={23} color={colors.accentPrimary} />
                     <View style={styles.addChoiceCopy}>
                       <Text style={[styles.addChoiceTitle, themed.primaryText]}>Tạo mới</Text>
                       <Text style={[styles.addChoiceText, themed.mutedText]}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
                     </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.84} onPress={handlePickCsv} style={[styles.addChoiceCard, themed.mutedPanel]}>
+                  </Touchable>
+                  <Touchable activeOpacity={0.84} onPress={handlePickCsv} style={[styles.addChoiceCard, themed.mutedPanel]}>
                     <Ionicons name="cloud-upload-outline" size={23} color={colors.accentPrimary} />
                     <View style={styles.addChoiceCopy}>
                       <Text style={[styles.addChoiceTitle, themed.primaryText]}>Tải lên file</Text>
                       <Text style={[styles.addChoiceText, themed.mutedText]}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
                     </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetClose, themed.secondaryButton]}>
+                  </Touchable>
+                  <Touchable activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetClose, themed.secondaryButton]}>
                     <Text style={[styles.addSheetCloseText, themed.mutedText]}>Đóng</Text>
-                  </TouchableOpacity>
+                  </Touchable>
                 </>
               ) : null}
               {addPanelMode === 'create' ? (
                 <>
                   <View style={styles.addSheetHeaderRow}>
-                    <TouchableOpacity accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                    <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
                       <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
-                    </TouchableOpacity>
+                    </Touchable>
                     <Text style={[styles.addSheetTitle, themed.primaryText]}>Tạo bộ từ mới</Text>
                   </View>
                   <View style={[styles.createInputBox, themed.input]}>
@@ -804,27 +805,27 @@ export default function LibraryScreen() {
                     />
                   ) : null}
                   <View style={styles.addSheetActions}>
-                    <TouchableOpacity activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetSecondary, themed.secondaryButton]}>
+                    <Touchable activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetSecondary, themed.secondaryButton]}>
                       <Text style={[styles.addSheetSecondaryText, themed.mutedText]}>Hủy</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.84} onPress={handleCreateFolder} style={[styles.addSheetPrimary, themed.primaryButton]}>
+                    </Touchable>
+                    <Touchable activeOpacity={0.84} onPress={handleCreateFolder} style={[styles.addSheetPrimary, themed.primaryButton]}>
                       <Text style={styles.addSheetPrimaryText}>Tạo bộ từ</Text>
-                    </TouchableOpacity>
+                    </Touchable>
                   </View>
                 </>
               ) : null}
               {addPanelMode === 'import' ? (
                 <>
                   <View style={styles.addSheetHeaderRow}>
-                    <TouchableOpacity accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                    <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
                       <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
-                    </TouchableOpacity>
+                    </Touchable>
                     <Text style={[styles.addSheetTitle, themed.primaryText]}>Tải lên file</Text>
                   </View>
-                  <TouchableOpacity activeOpacity={0.82} onPress={handlePickCsv} style={[styles.importPickButton, themed.tonalButton]}>
+                  <Touchable activeOpacity={0.82} onPress={handlePickCsv} style={[styles.importPickButton, themed.tonalButton]}>
                     <Ionicons name="cloud-upload-outline" size={18} color={colors.accentPrimary} />
                     <Text style={[styles.importPickText, themed.activeChipText]}>{importFileName ? 'Đổi file' : 'Chọn CSV/TSV'}</Text>
-                  </TouchableOpacity>
+                  </Touchable>
                   {importFileName ? (
                     <>
                       <Text style={[styles.importFileName, themed.mutedText]}>{importFileName} · {importRows.length} từ hợp lệ</Text>
@@ -845,7 +846,7 @@ export default function LibraryScreen() {
                             const isSelected = importOptions.orientation === option.value;
 
                             return (
-                              <TouchableOpacity
+                              <Touchable
                                 key={option.value}
                                 activeOpacity={0.82}
                                 onPress={() => {
@@ -865,11 +866,11 @@ export default function LibraryScreen() {
                                   </Text>
                                   <Text style={styles.importOptionText}>{option.description}</Text>
                                 </View>
-                              </TouchableOpacity>
+                              </Touchable>
                             );
                           })}
                         </View>
-                        <TouchableOpacity
+                        <Touchable
                           activeOpacity={0.82}
                           onPress={() => {
                             const nextOptions = { ...importOptions, hasHeader: !importOptions.hasHeader, fieldMapping: {} };
@@ -888,7 +889,7 @@ export default function LibraryScreen() {
                               Bật khi file có nhãn như word, definition, ipa, note, tags.
                             </Text>
                           </View>
-                        </TouchableOpacity>
+                        </Touchable>
                         {importHeaders.length ? (
                           <>
                             <Text style={styles.importConfigLabel}>Mapping trường</Text>
@@ -899,14 +900,14 @@ export default function LibraryScreen() {
                                 return (
                                   <View key={`${header}-${index}`} style={styles.mappingCard}>
                                     <Text style={styles.mappingHeader} numberOfLines={1}>{header || `Trường ${index + 1}`}</Text>
-                                    <TouchableOpacity
+                                    <Touchable
                                       activeOpacity={0.82}
                                       onPress={() => handleCycleImportFieldMapping(index)}
                                       style={[styles.mappingButton, mapped !== 'ignore' && styles.mappingButtonActive]}>
                                       <Text style={[styles.mappingButtonText, mapped !== 'ignore' && styles.mappingButtonTextActive]}>
                                         {mapped === 'ignore' ? 'Bỏ qua' : mapped}
                                       </Text>
-                                    </TouchableOpacity>
+                                    </Touchable>
                                   </View>
                                 );
                               })}
@@ -919,7 +920,7 @@ export default function LibraryScreen() {
                             const isSelected = importOptions.primaryField === option.value;
 
                             return (
-                              <TouchableOpacity
+                              <Touchable
                                 key={option.value}
                                 activeOpacity={0.82}
                                 onPress={() => updateImportOptions({ ...importOptions, primaryField: option.value })}
@@ -927,13 +928,13 @@ export default function LibraryScreen() {
                                 <Text style={[styles.importPrimaryText, isSelected && styles.activeImportPrimaryText]}>
                                   {option.label}
                                 </Text>
-                              </TouchableOpacity>
+                              </Touchable>
                             );
                           })}
                         </ScrollView>
                       </View>
                       <View style={styles.importModeRow}>
-                        <TouchableOpacity
+                        <Touchable
                           activeOpacity={0.82}
                           onPress={() => setImportTargetMode('new')}
                           style={[styles.importModeButton, importTargetMode === 'new' && styles.activeImportModeButton]}>
@@ -945,8 +946,8 @@ export default function LibraryScreen() {
                           <Text style={[styles.importModeText, importTargetMode === 'new' && styles.activeImportModeText]}>
                             Bộ từ mới
                           </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
+                        </Touchable>
+                        <Touchable
                           activeOpacity={0.82}
                           onPress={() => {
                             setImportTargetMode('existing');
@@ -961,7 +962,7 @@ export default function LibraryScreen() {
                           <Text style={[styles.importModeText, importTargetMode === 'existing' && styles.activeImportModeText]}>
                             Bộ từ có sẵn
                           </Text>
-                        </TouchableOpacity>
+                        </Touchable>
                       </View>
                       {importTargetMode === 'new' ? (
                         <View style={styles.createInputBox}>
@@ -981,7 +982,7 @@ export default function LibraryScreen() {
                             const isSelected = selectedImportFolderId === folder.id;
 
                             return (
-                              <TouchableOpacity
+                              <Touchable
                                 key={folder.id}
                                 activeOpacity={0.82}
                                 onPress={() => setSelectedImportFolderId(folder.id)}
@@ -991,12 +992,12 @@ export default function LibraryScreen() {
                                   style={[styles.importFolderChipText, isSelected && styles.activeImportFolderChipText]}>
                                   {folder.name}
                                 </Text>
-                              </TouchableOpacity>
+                              </Touchable>
                             );
                           })}
                         </ScrollView>
                       )}
-                      <TouchableOpacity
+                      <Touchable
                         activeOpacity={0.82}
                         onPress={() => setShouldCreateImportFlashcards((value) => !value)}
                         style={styles.importFlashcardToggle}>
@@ -1009,7 +1010,7 @@ export default function LibraryScreen() {
                           <Text style={styles.importFlashcardTitle}>Tạo flashcard sau import</Text>
                           <Text style={styles.importFlashcardText}>Tạo thẻ bilingual và từ-nghĩa cho các từ vừa nhập.</Text>
                         </View>
-                      </TouchableOpacity>
+                      </Touchable>
                       {importRows.slice(0, 3).map((row) => (
                         <View key={row.word} style={styles.importPreviewRow}>
                           <Text style={styles.importPreviewWord}>{row.word}</Text>
@@ -1019,9 +1020,9 @@ export default function LibraryScreen() {
                       {importErrors.slice(0, 4).map((error) => (
                         <Text key={error} style={styles.importError}>{error}</Text>
                       ))}
-                      <TouchableOpacity activeOpacity={0.82} onPress={handleImportCsv} style={styles.importSubmitButton}>
+                      <Touchable activeOpacity={0.82} onPress={handleImportCsv} style={styles.importSubmitButton}>
                         <Text style={styles.importSubmitText}>Import vào bộ từ</Text>
-                      </TouchableOpacity>
+                      </Touchable>
                     </>
                   ) : (
                     <Text style={styles.importHint}>
@@ -1036,12 +1037,12 @@ export default function LibraryScreen() {
       ) : null}
       {colorPickerFolderId ? (
         <View style={styles.colorPickerOverlay}>
-          <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => setColorPickerFolderId('')} />
+          <Touchable style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => setColorPickerFolderId('')} />
           <View style={styles.colorPickerSheet}>
             <Text style={styles.colorPickerTitle}>Chọn màu cho bộ từ</Text>
                   <View style={styles.colorSwatchRow}>
                     {folderColorOptions.map((c) => (
-                      <TouchableOpacity
+                      <Touchable
                         key={c}
                         activeOpacity={0.85}
                         onPress={() => setSelectedColorDraft(c)}
@@ -1061,10 +1062,10 @@ export default function LibraryScreen() {
                     style={styles.colorNoteInput}
                   />
                   <View style={styles.colorPickerActions}>
-                    <TouchableOpacity onPress={() => setColorPickerFolderId('')} style={styles.colorPickerCancel}>
+                    <Touchable onPress={() => setColorPickerFolderId('')} style={styles.colorPickerCancel}>
                       <Text style={styles.colorPickerCancelText}>Hủy</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
+                    </Touchable>
+                    <Touchable
                       activeOpacity={0.85}
                       onPress={() => {
                         const folderId = colorPickerFolderId;
@@ -1076,14 +1077,14 @@ export default function LibraryScreen() {
                       }}
                       style={styles.colorPickerSave}>
                       <Text style={styles.colorPickerSaveText}>Lưu</Text>
-                    </TouchableOpacity>
+                    </Touchable>
                   </View>
           </View>
         </View>
       ) : null}
       {renameFolderId ? (
         <View style={styles.colorPickerOverlay}>
-          <TouchableOpacity style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => { setRenameFolderId(''); setRenameDraft(''); setRenameError(''); }} />
+          <Touchable style={styles.colorPickerBackdrop} activeOpacity={1} onPress={() => { setRenameFolderId(''); setRenameDraft(''); setRenameError(''); }} />
           <View style={styles.colorPickerSheet}>
             <Text style={styles.colorPickerTitle}>Đổi tên bộ từ</Text>
             <TextInput
@@ -1095,10 +1096,10 @@ export default function LibraryScreen() {
             />
             {renameError ? <Text style={styles.renameError}>{renameError}</Text> : null}
             <View style={styles.colorPickerActions}>
-              <TouchableOpacity onPress={() => { setRenameFolderId(''); setRenameDraft(''); setRenameError(''); }} style={styles.colorPickerCancel}>
+              <Touchable onPress={() => { setRenameFolderId(''); setRenameDraft(''); setRenameError(''); }} style={styles.colorPickerCancel}>
                 <Text style={styles.colorPickerCancelText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Touchable>
+              <Touchable
                 activeOpacity={0.85}
                 onPress={() => {
                   const trimmed = renameDraft.trim();
@@ -1117,19 +1118,19 @@ export default function LibraryScreen() {
                 }}
                 style={styles.colorPickerSave}>
                 <Text style={styles.colorPickerSaveText}>Lưu</Text>
-              </TouchableOpacity>
+              </Touchable>
             </View>
           </View>
         </View>
       ) : null}
-      <TouchableOpacity
+      <Touchable
         accessibilityLabel="Thêm bộ từ"
         accessibilityRole="button"
         activeOpacity={0.86}
         onPress={handleOpenCreateFolder}
         style={[styles.floatingAddButton, { bottom: floatingButtonBottom, height: FAB_SIZE, width: FAB_SIZE }]}>
         <Ionicons name="add" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
+      </Touchable>
       </View>
     </Screen>
   );

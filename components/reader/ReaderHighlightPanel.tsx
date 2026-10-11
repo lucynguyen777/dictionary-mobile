@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { TranslationPanel } from '@/components/TranslationPanel';
 import { getDefinitionTranslationTarget, toDeepLSourceLanguage } from '@/data/translationTargets';
 import { getLanguageByCode, languageOptions, type LanguageCode } from '@/data/languages';
@@ -48,9 +49,9 @@ export function ReaderHighlightPanel({
           <Text style={[styles.readerActionKicker, { color: activeTheme.secondaryText }]}>Highlight</Text>
           <Text style={[styles.readerActionWord, { color: activeTheme.text }]}>{selectedHighlightText}</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.75} onPress={onClose} style={[styles.readerActionClose, { backgroundColor: activeTheme.bg }]}>
+        <Touchable activeOpacity={0.75} onPress={onClose} style={[styles.readerActionClose, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="close" size={18} color={activeTheme.secondaryText} />
-        </TouchableOpacity>
+        </Touchable>
       </View>
 
       <View style={styles.readerLanguageRow}>
@@ -98,18 +99,18 @@ export function ReaderHighlightPanel({
       />
       {readerSaveMessage ? <Text style={styles.readerSaveMessage}>{readerSaveMessage}</Text> : null}
       <View style={styles.readerActionButtons}>
-        <TouchableOpacity activeOpacity={0.82} onPress={onLookup} style={[styles.lookupActionButton, { backgroundColor: activeTheme.bg }]}>
+        <Touchable activeOpacity={0.82} onPress={onLookup} style={[styles.lookupActionButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="search" size={17} color={activeTheme.accent} />
           <Text style={[styles.lookupActionText, { color: activeTheme.accent }]}>Tra nghĩa</Text>
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.82} onPress={onSave} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
+        </Touchable>
+        <Touchable activeOpacity={0.82} onPress={onSave} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
           <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
           <Text style={styles.saveActionText}>Lưu</Text>
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.82} onPress={onCreateFlashcard} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
+        </Touchable>
+        <Touchable activeOpacity={0.82} onPress={onCreateFlashcard} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
           <Ionicons name="albums-outline" size={17} color="#FFFFFF" />
           <Text style={styles.saveActionText}>Tạo thẻ</Text>
-        </TouchableOpacity>
+        </Touchable>
       </View>
     </View>
   );
@@ -137,19 +138,19 @@ function ReaderInlineLanguageMenu({
   return (
     <View style={styles.readerInlineLanguageBox}>
       <Text style={[styles.readerInlineLanguageLabel, { color: activeTheme.secondaryText }]}>{label}</Text>
-      <TouchableOpacity
+      <Touchable
         activeOpacity={0.82}
         onPress={onPress}
         style={[styles.readerLanguageDropdownButton, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
         <Text style={[styles.readerLanguageDropdownText, { color: activeTheme.text }]}>{selectedLanguage.label}</Text>
         <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={15} color={activeTheme.secondaryText} />
-      </TouchableOpacity>
+      </Touchable>
       {active ? (
         <View style={[styles.readerLanguageDropdownMenu, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
           {languages.map((language) => {
             const isSelected = language.code === selectedLanguage.code;
             return (
-              <TouchableOpacity
+              <Touchable
                 activeOpacity={0.82}
                 key={`${label}-${language.code}`}
                 onPress={() => onSelect(language.code)}
@@ -158,7 +159,7 @@ function ReaderInlineLanguageMenu({
                   {language.label}
                 </Text>
                 {isSelected ? <Ionicons name="checkmark" size={14} color={activeTheme.accent} /> : null}
-              </TouchableOpacity>
+              </Touchable>
             );
           })}
         </View>

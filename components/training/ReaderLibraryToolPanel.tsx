@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { useToken } from '@/hooks/use-token';
 import { ReaderDocument, ReaderState } from '@/data/readerStore';
 
@@ -35,14 +36,14 @@ export function ReaderLibraryToolPanel({
         <View style={[styles.toolStatusPill, { backgroundColor: colors.accentSoft }]}>
           <Text style={[styles.toolStatusText, { color: colors.accentPrimary }]}>{documents.length} tài liệu</Text>
         </View>
-        <TouchableOpacity
+        <Touchable
           activeOpacity={0.85}
           disabled={isImporting}
           onPress={onImport}
           style={[styles.readerImportButton, { backgroundColor: colors.accentPrimary, ...shadows.glow }, isImporting && styles.exportButtonDisabled]}>
           <Ionicons name="document-text-outline" size={17} color="#FFFFFF" />
           <Text style={styles.openToolButtonText}>{isImporting ? 'Đang nhập...' : 'Nhập file'}</Text>
-        </TouchableOpacity>
+        </Touchable>
       </View>
 
       {documents.length ? (
@@ -82,7 +83,7 @@ function ReaderDocumentCard({
   const wordCount = getReaderDocumentWordCount(document.content);
 
   return (
-    <TouchableOpacity
+    <Touchable
       activeOpacity={0.84}
       onPress={onPress}
       style={[
@@ -103,7 +104,7 @@ function ReaderDocumentCard({
         <Text style={[styles.readerDocumentOpenText, { color: colors.accentPrimary }]}>Mở trình đọc</Text>
         <Ionicons name="arrow-forward" size={15} color={colors.accentPrimary} />
       </View>
-    </TouchableOpacity>
+    </Touchable>
   );
 }
 

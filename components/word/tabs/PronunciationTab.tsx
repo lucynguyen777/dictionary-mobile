@@ -2,7 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { RecordingPresets, createAudioPlayer, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
 import type { AudioPlayer } from 'expo-audio';
 import { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { DictionaryEntry } from '@/data/dictionary';
 
 import { EmptyState, PreviewNotice } from '@/components/word/tabs/common';
@@ -95,7 +96,7 @@ export function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
           <Text style={styles.recordingText}>{recordingStatus}</Text>
         </View>
         <View style={styles.recordingActions}>
-          <TouchableOpacity
+          <Touchable
             activeOpacity={0.82}
             onPress={isRecording ? handleStopRecording : handleStartRecording}
             style={[styles.recordingButton, isRecording && styles.stopRecordingButton]}>
@@ -103,8 +104,8 @@ export function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
             <Text style={[styles.recordingButtonText, isRecording && styles.stopRecordingButtonText]}>
               {isRecording ? 'Dừng' : 'Ghi âm'}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Touchable>
+          <Touchable
             activeOpacity={0.82}
             disabled={!recordedUri || isRecording}
             onPress={handlePlayRecording}
@@ -113,7 +114,7 @@ export function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
             <Text style={[styles.playRecordingText, (!recordedUri || isRecording) && styles.disabledRecordingText]}>
               Nghe lại
             </Text>
-          </TouchableOpacity>
+          </Touchable>
         </View>
       </View>
       <Text style={styles.sectionTitle}>Hướng dẫn IPA</Text>

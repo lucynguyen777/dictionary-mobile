@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, type Href } from 'expo-router';
 import { ComponentProps, useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { FlashcardType, LibraryState, getFavoriteFolderId } from '@/data/libraryStore';
 
 import { FilterChip, flashcardOptions } from '@/components/training/shared';
@@ -107,7 +108,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
           const isSelected = sourceId === source.id;
 
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={source.id}
               onPress={() => setSourceId(source.id)}
@@ -123,7 +124,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
               <Text style={[styles.importSourceTitle, isSelected && styles.importSourceTitleActive]}>{source.title}</Text>
               <Text style={styles.importSourceText}>{source.description}</Text>
               <Text style={styles.importSourceStatus}>{source.status}</Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
@@ -162,7 +163,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
 
       <Text style={styles.toolSectionLabel}>Bộ từ đích</Text>
       <View style={styles.importDestinationRow}>
-        <TouchableOpacity
+        <Touchable
           activeOpacity={0.82}
           onPress={() => setDestinationMode('new')}
           style={[styles.importDestinationButton, destinationMode === 'new' && styles.importDestinationButtonActive]}>
@@ -174,8 +175,8 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
           <Text style={[styles.importDestinationText, destinationMode === 'new' && styles.importDestinationTextActive]}>
             Bộ từ mới theo tên file
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Touchable>
+        <Touchable
           activeOpacity={0.82}
           onPress={() => {
             setDestinationMode('existing');
@@ -190,7 +191,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
           <Text style={[styles.importDestinationText, destinationMode === 'existing' && styles.importDestinationTextActive]}>
             Bộ từ có sẵn
           </Text>
-        </TouchableOpacity>
+        </Touchable>
       </View>
 
       {destinationMode === 'existing' ? (
@@ -224,7 +225,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
           const isSelected = flashcardChecks[option.type];
 
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={option.type}
               onPress={() => handleToggleFlashcardCheck(option.type)}
@@ -238,16 +239,16 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
                 <Text style={styles.importFlashcardPlanTitle}>{option.label}</Text>
                 <Text style={styles.importFlashcardPlanText}>{option.description}</Text>
               </View>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
 
       <Link href={libraryHref} asChild>
-        <TouchableOpacity activeOpacity={0.85} style={styles.generateButton}>
+        <Touchable activeOpacity={0.85} style={styles.generateButton}>
           <Ionicons name="open-outline" size={18} color="#FFFFFF" />
           <Text style={styles.generateButtonText}>Mở Library để import file</Text>
-        </TouchableOpacity>
+        </Touchable>
       </Link>
     </View>
   );

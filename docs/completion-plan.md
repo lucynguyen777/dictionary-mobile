@@ -208,7 +208,7 @@ Branches stack in order: `claude/v1.4.1-product-truth` → `claude/v1.5.0-cloud-
 | 0 Stability/security | 0.1, 0.2, 0.3, 0.4 durable quota (migration 011), 0.5 Chandra hardening, 0.6 | Migrations 009–011 not applied (D2) |
 | 1 Product truth | 1.1–1.6 | — |
 | 2 Cloud Sync | 2.0–2.5 (two-device test on Postgres + RLS) | 2.6 account deletion (D3); production smoke (D2) |
-| 3 Design system/UI | 3.1–3.4, 3.6–3.9 | Library/Training/Profile stylesheet palette → tokens (D7) |
+| 3 Design system/UI | 3.1–3.9 (3.5 shared Touchable primitive + lint guard) | Library/Training/Profile stylesheet palette → tokens (D7) |
 | 4 Providers | 4.1 AI streaming, 4.3 feedback form, 4.4 password change/reset, 4.5 specialized translation (glossary per domain, CSV/TSV import, account sync), Sheets export fake-API tests | 4.1/4.2 production smoke (keys); 4.3 legal/help + Resend (D5); 4.5 sentence datasets + context agents (D10); 4.6 Azure scoring (D6) |
 | 5 Native recognition | 5.2 camera OCR, 5.3 voice search and 5.4 native PDF (WebView pdf.js) integrated with fallbacks and tests, enabled in dev-client builds only | 5.1 device smoke (EAS account + devices) before enabling in production; 5.5 Chandra stack ready to deploy, host choice (D9) |
 | 6 Languages/offline | 6.1 declarative local-pack registry, 6.2 pack pipeline + import validation, 6.3 catalog tooling + app catalog loading, French/Spanish pack and web UI smoke | 6.3/6.5 need CDN hosting; 6.4 French and Spanish source gates pass, pack scope/host (D9); Malay needs D11; 6.6 other language source gates |

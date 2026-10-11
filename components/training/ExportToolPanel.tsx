@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { FolderExportFormat, LibraryState, exportFolderToAnkiTsv, exportFolderToCsv, exportFolderToExcel, getFavoriteFolderId, getFolderExportRows } from '@/data/libraryStore';
 import { BackendProxyError, completeGoogleSheetsConnection, connectGoogleSheets, exportFolderToGoogleSheets, getGoogleSheetsStatus } from '@/data/backendProxyClient';
 
@@ -265,9 +266,9 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
           <Text style={styles.toolStateTitle}>Chưa có bộ từ để xuất</Text>
           <Text style={styles.toolStateText}>Tạo folder và lưu vài từ trong Library trước khi xuất file.</Text>
           <Link href={libraryHref} asChild>
-            <TouchableOpacity activeOpacity={0.82} style={styles.toolRetryButton}>
+            <Touchable activeOpacity={0.82} style={styles.toolRetryButton}>
               <Text style={styles.toolRetryButtonText}>Mở Library</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         </View>
       )}
@@ -284,7 +285,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
           const isBlocked = false;
 
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={action.id}
               onPress={() => setActiveActionId(action.id)}
@@ -305,12 +306,12 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
               <Text style={[styles.importSourceTitle, isSelected && styles.importSourceTitleActive]}>{action.title}</Text>
               <Text style={styles.importSourceText}>{action.description}</Text>
               <Text style={[styles.importSourceStatus, isBlocked && styles.exportBlockedStatus]}>{action.status}</Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
 
-      <TouchableOpacity
+      <Touchable
         activeOpacity={0.85}
         disabled={isRunningExport || !canRunExportAction}
         onPress={handleRunExport}
@@ -322,7 +323,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
         <Text style={styles.exportButtonText}>
           {isRunningExport ? 'Đang xử lý...' : activeActionId === 'google-sheets' ? (googleSheetsConnected ? 'Xuất sang Google Sheets' : 'Kết nối Google') : 'Xuất file'}
         </Text>
-      </TouchableOpacity>
+      </Touchable>
 
       <View style={styles.exportStatusCard}>
         <Text style={styles.toolSectionLabel}>Trạng thái</Text>

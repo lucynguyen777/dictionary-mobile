@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Speech from 'expo-speech';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult } from '@/data/dictionaryApi';
 import { getLanguageByCode } from '@/data/languages';
@@ -139,12 +140,12 @@ export function MeaningTab({
                   {item.examples.map((example, i) => (
                     <View key={i} style={styles.exampleBlock}>
                       <View style={styles.exampleRow}>
-                        <TouchableOpacity
+                        <Touchable
                           activeOpacity={0.7}
                           onPress={() => speakExample(example.source)}
                           style={styles.exampleAudioButton}>
                           <Ionicons name="volume-medium-outline" size={16} color={colors.accentPrimary} />
-                        </TouchableOpacity>
+                        </Touchable>
                         <Text
                           style={[
                             styles.example,

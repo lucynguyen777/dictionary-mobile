@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ComponentProps } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { ReaderSettings, ReaderState } from '@/data/readerStore';
 import { readerBackgroundPresets, type ReaderBackgroundPresetId, type ReaderThemeMode } from '@/data/readerTheme';
 
@@ -48,19 +49,19 @@ export function ReaderSettingsSheet({
       <View style={styles.sheetRow}>
         <Text style={[styles.sheetRowText, { color: activeTheme.text }]}>Kích thước</Text>
         <View style={styles.stepper}>
-          <TouchableOpacity
+          <Touchable
             activeOpacity={0.82}
             onPress={() => handleUpdateSettings({ fontSize: Math.max(14, readerState.settings.fontSize - 1) })}
             style={[styles.stepButton, { backgroundColor: activeTheme.bg }]}>
             <Ionicons name="remove" size={17} color={activeTheme.accent} />
-          </TouchableOpacity>
+          </Touchable>
           <Text style={[styles.stepValue, { color: activeTheme.text }]}>{readerState.settings.fontSize}</Text>
-          <TouchableOpacity
+          <Touchable
             activeOpacity={0.82}
             onPress={() => handleUpdateSettings({ fontSize: Math.min(32, readerState.settings.fontSize + 1) })}
             style={[styles.stepButton, { backgroundColor: activeTheme.bg }]}>
             <Ionicons name="add" size={17} color={activeTheme.accent} />
-          </TouchableOpacity>
+          </Touchable>
         </View>
       </View>
 
@@ -69,7 +70,7 @@ export function ReaderSettingsSheet({
         {themeOptions.map((option) => {
           const isSelected = preferences.theme === option.value;
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={option.value}
               onPress={() => {
@@ -85,7 +86,7 @@ export function ReaderSettingsSheet({
               <Text style={[styles.optionText, { color: activeTheme.secondaryText }, isSelected && { color: activeTheme.accent }]}>
                 {option.label}
               </Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
@@ -95,7 +96,7 @@ export function ReaderSettingsSheet({
         {backgroundOptions.map((option) => {
           const isSelected = readerState.settings.backgroundPresetId === option.id;
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={option.id}
               onPress={() => handleSelectBackground(option.id)}
@@ -105,7 +106,7 @@ export function ReaderSettingsSheet({
                 isSelected && { borderColor: activeTheme.accent, borderWidth: 2 },
               ]}>
               <Text style={[styles.bgCircleText, { color: option.textColor }]}>{option.label}</Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
@@ -115,7 +116,7 @@ export function ReaderSettingsSheet({
         {fontOptions.map((option) => {
           const isSelected = readerState.settings.fontFamily === option.value;
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={option.value}
               onPress={() => handleUpdateSettings({ fontFamily: option.value })}
@@ -127,25 +128,25 @@ export function ReaderSettingsSheet({
               <Text style={[styles.optionText, { color: activeTheme.secondaryText }, isSelected && { color: activeTheme.accent }]}>
                 {option.label}
               </Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
 
       <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Thiết lập audio</Text>
       <View style={styles.ttsControlBar}>
-        <TouchableOpacity activeOpacity={0.8} onPress={handlePrevSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
+        <Touchable activeOpacity={0.8} onPress={handlePrevSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="play-skip-back" size={20} color={activeTheme.accent} />
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.8} onPress={handlePlayPause} style={[styles.ttsPlayButton, { backgroundColor: activeTheme.accent }]}>
+        </Touchable>
+        <Touchable activeOpacity={0.8} onPress={handlePlayPause} style={[styles.ttsPlayButton, { backgroundColor: activeTheme.accent }]}>
           <Ionicons name={isSpeaking ? 'pause' : 'play'} size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.8} onPress={handleStop} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
+        </Touchable>
+        <Touchable activeOpacity={0.8} onPress={handleStop} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="stop" size={20} color="#DC2626" />
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.8} onPress={handleNextSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
+        </Touchable>
+        <Touchable activeOpacity={0.8} onPress={handleNextSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="play-skip-forward" size={20} color={activeTheme.accent} />
-        </TouchableOpacity>
+        </Touchable>
       </View>
 
       <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Chọn giọng AI</Text>
@@ -153,7 +154,7 @@ export function ReaderSettingsSheet({
         {voiceProfiles.map((profile) => {
           const isSelected = preferences.ttsVoice === profile.value;
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={profile.value}
               onPress={() => updatePreferences({ ttsVoice: profile.value })}
@@ -164,7 +165,7 @@ export function ReaderSettingsSheet({
               ]}>
               <Text style={[styles.voiceCardLabel, { color: activeTheme.text }]}>{profile.label}</Text>
               <Text style={[styles.voiceCardDesc, { color: activeTheme.secondaryText }]}>{profile.desc}</Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
@@ -174,7 +175,7 @@ export function ReaderSettingsSheet({
         {speedOptions.map((speed) => {
           const isSelected = preferences.ttsSpeed === speed;
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={speed}
               onPress={() => updatePreferences({ ttsSpeed: speed })}
@@ -186,7 +187,7 @@ export function ReaderSettingsSheet({
               <Text style={[styles.speedButtonText, { color: activeTheme.text }, isSelected && { color: '#FFFFFF' }]}>
                 {speed}x
               </Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
@@ -216,7 +217,7 @@ export function ReaderTocSheet({
         {documents.map((document) => {
           const isSelected = document.id === selectedDocumentId;
           return (
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.82}
               key={document.id}
               onPress={() => handleSelectDocument(document.id)}
@@ -229,7 +230,7 @@ export function ReaderTocSheet({
                 {document.title}
               </Text>
               <Text style={[styles.tocRowMeta, { color: activeTheme.secondaryText }]}>{(document.sourceFormat ?? 'txt').toUpperCase()}</Text>
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </View>
@@ -237,7 +238,7 @@ export function ReaderTocSheet({
       <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Mục lục tài liệu</Text>
       {tocItems.length ? (
         tocItems.map((item) => (
-          <TouchableOpacity
+          <Touchable
             activeOpacity={0.82}
             key={item.id}
             onPress={() => handleJumpToProgress(item.pct)}
@@ -249,7 +250,7 @@ export function ReaderTocSheet({
               {item.label}
             </Text>
             <Text style={[styles.tocRowMeta, { color: activeTheme.secondaryText }]}>{Math.round(item.pct)}%</Text>
-          </TouchableOpacity>
+          </Touchable>
         ))
       ) : (
         <View style={[styles.tocEmptyState, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>

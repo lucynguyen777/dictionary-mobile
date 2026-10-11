@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ComponentProps } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { FutureFeatureBadge } from '@/components/app/FutureFeature';
 import { useToken } from '@/hooks/use-token';
 
@@ -77,7 +78,7 @@ export function ToolTab({
   const { colors, shadows } = useToken();
 
   return (
-    <TouchableOpacity
+    <Touchable
       activeOpacity={0.82}
       onPress={onPress}
       style={[
@@ -96,7 +97,7 @@ export function ToolTab({
         <Text style={[styles.toolTabDescription, { color: colors.textSecondary }]} numberOfLines={2}>{tool.description}</Text>
       </View>
       <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-    </TouchableOpacity>
+    </Touchable>
   );
 }
 

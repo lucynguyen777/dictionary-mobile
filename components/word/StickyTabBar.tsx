@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { LayoutChangeEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { LayoutChangeEvent, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import { useToken } from '@/hooks/use-token';
 
@@ -42,7 +43,7 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
           const isActive = index === activeIndex;
 
           return (
-            <TouchableOpacity
+            <Touchable
               key={tab}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
@@ -58,7 +59,7 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
                 {tab}
               </Text>
               <View style={[styles.indicator, isActive && { backgroundColor: colors.accentPrimary }]} />
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </ScrollView>

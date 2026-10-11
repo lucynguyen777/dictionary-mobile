@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { RefObject, useMemo, useRef, useState } from 'react';
-import { ScrollView, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { ScrollView, View, useWindowDimensions } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/data/dictionaryApi';
 import { useToken } from '@/hooks/use-token';
@@ -135,13 +136,13 @@ export default function TabPager({
         </View>
       ))}
     </ScrollView>
-    <TouchableOpacity
+    <Touchable
       accessibilityLabel="Lên đầu trang"
       activeOpacity={0.84}
       onPress={handleScrollActivePageToTop}
       style={styles.scrollTopButton}>
       <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
-    </TouchableOpacity>
+    </Touchable>
     </View>
     </TabPagerTokenContext.Provider>
   );

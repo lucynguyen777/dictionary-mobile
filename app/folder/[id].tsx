@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, Stack, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
@@ -135,31 +136,31 @@ export default function FolderDetailScreen() {
       <View style={styles.screenBody}>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity accessibilityLabel="Quay lại" accessibilityRole="button" onPress={() => router.back()} style={styles.iconButton}>
+          <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" onPress={() => router.back()} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Touchable>
+          <Touchable
             accessibilityLabel="Mở menu bộ từ"
             accessibilityRole="button"
             activeOpacity={0.82}
             onPress={() => setFolderMenuOpen((isOpen) => !isOpen)}
             style={styles.iconButton}>
             <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </Touchable>
         </View>
 
         {folderMenuOpen && folder ? (
           <View style={styles.folderMenuPanel}>
             <Text style={styles.folderMenuLabel}>Xuất bộ từ</Text>
             <View style={styles.exportGroup}>
-              <TouchableOpacity onPress={() => handleExport('csv')} style={styles.exportButton}>
+              <Touchable onPress={() => handleExport('csv')} style={styles.exportButton}>
                 <Ionicons name="download-outline" size={18} color={colors.accentPrimary} />
                 <Text style={styles.exportText}>CSV</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleExport('excel')} style={styles.exportButton}>
+              </Touchable>
+              <Touchable onPress={() => handleExport('excel')} style={styles.exportButton}>
                 <Ionicons name="grid-outline" size={18} color={colors.accentPrimary} />
                 <Text style={styles.exportText}>XLS</Text>
-              </TouchableOpacity>
+              </Touchable>
             </View>
             <View style={styles.manageHeader}>
               <Text style={styles.manageTitle}>Cài đặt bộ từ</Text>
@@ -173,15 +174,15 @@ export default function FolderDetailScreen() {
               style={styles.nameInput}
             />
             <View style={styles.manageActions}>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleRenameFolder} style={styles.saveButton}>
+              <Touchable activeOpacity={0.82} onPress={handleRenameFolder} style={styles.saveButton}>
                 <Ionicons name="checkmark-circle-outline" size={18} color={colors.accentPrimary} />
                 <Text style={styles.saveButtonText}>Đổi tên</Text>
-              </TouchableOpacity>
+              </Touchable>
               {!isFavoriteFolder ? (
-                <TouchableOpacity activeOpacity={0.82} onPress={handleDeleteFolder} style={styles.deleteButton}>
+                <Touchable activeOpacity={0.82} onPress={handleDeleteFolder} style={styles.deleteButton}>
                   <Ionicons name="trash-outline" size={18} color={colors.accentError} />
                   <Text style={styles.deleteButtonText}>Xóa</Text>
-                </TouchableOpacity>
+                </Touchable>
               ) : null}
             </View>
           </View>
@@ -230,13 +231,13 @@ export default function FolderDetailScreen() {
           </View>
         ) : null}
       </ScrollView>
-      <TouchableOpacity
+      <Touchable
         accessibilityLabel="Lên đầu trang"
         activeOpacity={0.84}
         onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
         style={styles.scrollTopButton}>
         <Ionicons name="arrow-up" size={20} color={colors.textOnAccent} />
-      </TouchableOpacity>
+      </Touchable>
       </View>
     </Screen>
   );
@@ -262,18 +263,18 @@ function FolderWordCard({
     <View style={styles.wordCard}>
       <View style={styles.wordTopRow}>
         <Link href={{ pathname: '/word', params: { word: word.word } }} asChild>
-          <TouchableOpacity activeOpacity={0.82} style={styles.wordLink}>
+          <Touchable activeOpacity={0.82} style={styles.wordLink}>
             <Text style={[styles.wordTitle, /[\u0600-\u06FF\u0590-\u05FF]/.test(word.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{word.word}</Text>
             <Text style={styles.wordMeta}>{word.ipa || 'Đang chờ IPA'}</Text>
-          </TouchableOpacity>
+          </Touchable>
         </Link>
-        <TouchableOpacity
+        <Touchable
           accessibilityLabel={`Gỡ ${word.word} khỏi bộ từ`}
           accessibilityRole="button"
           onPress={onRemove}
           style={styles.removeButton}>
           <Ionicons name="trash-outline" size={18} color={colors.accentError} />
-        </TouchableOpacity>
+        </Touchable>
       </View>
 
       <Text numberOfLines={3} style={styles.definition}>{word.definition || 'Đang chờ định nghĩa'}</Text>
@@ -286,13 +287,13 @@ function FolderWordCard({
         onChangeText={setNoteDraft}
         style={styles.noteInput}
       />
-      <TouchableOpacity
+      <Touchable
         activeOpacity={0.82}
         onPress={() => onSaveNote(word.id, noteDraft)}
         style={styles.noteButton}>
         <Ionicons name="checkmark-circle-outline" size={18} color={colors.accentPrimary} />
         <Text style={styles.noteButtonText}>Lưu ghi chú</Text>
-      </TouchableOpacity>
+      </Touchable>
     </View>
   );
 }

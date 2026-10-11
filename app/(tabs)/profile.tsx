@@ -2,7 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, AppState, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
 import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
@@ -655,7 +656,7 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.segmentedControl}>
             {wordChartRanges.map((range) => (
-              <TouchableOpacity
+              <Touchable
                 key={range.value}
                 activeOpacity={0.82}
                 onPress={() => setWordChartRange(range.value)}
@@ -663,7 +664,7 @@ export default function ProfileScreen() {
                 <Text style={[styles.segmentButtonText, wordChartRange === range.value && styles.segmentButtonTextActive]}>
                   {range.label}
                 </Text>
-              </TouchableOpacity>
+              </Touchable>
             ))}
           </View>
           <View style={styles.metricsHeaderBlock}>
@@ -842,7 +843,7 @@ export default function ProfileScreen() {
 
       {sidebarOpen ? (
         <View style={styles.sidebarOverlay}>
-          <TouchableOpacity
+          <Touchable
             accessibilityLabel="Đóng cài đặt"
             activeOpacity={1}
             onPress={() => setSidebarOpen(false)}
@@ -980,10 +981,10 @@ export default function ProfileScreen() {
                   />
                   <Text style={styles.fieldHint}>Hồ sơ local vẫn tách khỏi danh tính cloud. Đổi mật khẩu sẽ dùng email khôi phục khi đăng nhập khả dụng.</Text>
                 </View>
-                <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
+                <Touchable activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="save-outline" size={16} color="#0075DE" />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Lưu thay đổi</Text>
-                </TouchableOpacity>
+                </Touchable>
               </SidebarSection>
               ) : null}
 
@@ -1022,13 +1023,13 @@ export default function ProfileScreen() {
                       />
                     </View>
                     {profile.cloudSyncEnabled ? (
-                      <TouchableOpacity
+                      <Touchable
                         activeOpacity={0.82}
                         onPress={handleManualCloudSync}
                         style={styles.manualSyncButton}>
                         <Ionicons name="sync-outline" size={15} color="#0075DE" />
                         <Text style={styles.manualSyncButtonText} numberOfLines={1}>Đồng bộ ngay</Text>
-                      </TouchableOpacity>
+                      </Touchable>
                     ) : null}
                   </View>
                 )}
@@ -1068,14 +1069,14 @@ export default function ProfileScreen() {
                     />
                   </View>
                 </View>
-                <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
+                <Touchable activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="cloud-upload-outline" size={16} color="#0075DE" />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Xuất dữ liệu local</Text>
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
+                </Touchable>
+                <Touchable activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="trash-outline" size={16} color="#DC2626" />
                   <Text style={styles.clearDataText} numberOfLines={1}>Xóa tất cả dữ liệu local</Text>
-                </TouchableOpacity>
+                </Touchable>
                 <Text style={styles.sidebarGroupLabel}>Gói từ điển offline</Text>
                 <View style={styles.offlinePackSummaryRow}>
                   <DataStat label="Gói" value={offlinePackSummary.packCount} />
@@ -1106,7 +1107,7 @@ export default function ProfileScreen() {
                         <Text style={styles.offlinePackInstallText}>{progressLabel}</Text>
                         <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
                         <View style={styles.offlinePackActionRow}>
-                          <TouchableOpacity
+                          <Touchable
                             accessibilityLabel={`Tải ${language?.label ?? pack.languageCode} offline pack`}
                             accessibilityRole="button"
                             activeOpacity={0.82}
@@ -1117,9 +1118,9 @@ export default function ProfileScreen() {
                             <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
                               {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
                             </Text>
-                          </TouchableOpacity>
+                          </Touchable>
                           {hasInstallRecord ? (
-                            <TouchableOpacity
+                            <Touchable
                               accessibilityLabel={`Xóa ${language?.label ?? pack.languageCode} offline pack`}
                               accessibilityRole="button"
                               activeOpacity={0.82}
@@ -1130,7 +1131,7 @@ export default function ProfileScreen() {
                               <Text style={[styles.offlinePackDeleteText, isBusy && styles.offlinePackActionTextDisabled]}>
                                 Xóa
                               </Text>
-                            </TouchableOpacity>
+                            </Touchable>
                           ) : null}
                         </View>
                       </View>

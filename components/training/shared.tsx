@@ -1,4 +1,5 @@
-import { Text, TouchableOpacity } from 'react-native';
+import { Text } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { FlashcardReviewState, FlashcardType } from '@/data/libraryStore';
 
 import { styles } from '@/components/training/styles';
@@ -47,10 +48,10 @@ export function formatReviewState(state: FlashcardReviewState) {
 
 export function FilterChip({ label, isSelected, onPress }: { label: string; isSelected: boolean; onPress: () => void }) {
   return (
-    <TouchableOpacity activeOpacity={0.78} onPress={onPress} style={[styles.filterChip, isSelected && styles.filterChipActive]}>
+    <Touchable activeOpacity={0.78} onPress={onPress} style={[styles.filterChip, isSelected && styles.filterChipActive]}>
       <Text style={[styles.filterChipText, isSelected && styles.filterChipTextActive]} numberOfLines={1}>
         {label}
       </Text>
-    </TouchableOpacity>
+    </Touchable>
   );
 }

@@ -7,9 +7,9 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
@@ -209,7 +209,7 @@ export default function AiAssistantScreen() {
               </Text>
             )}
           </View>
-          <TouchableOpacity
+          <Touchable
             accessibilityLabel="Bắt đầu lại hội thoại"
             accessibilityRole="button"
             activeOpacity={0.7}
@@ -218,7 +218,7 @@ export default function AiAssistantScreen() {
             style={[styles.resetButton, { backgroundColor: colors.canvasAlt, borderRadius: radius.full }]}
           >
             <Ionicons name="refresh-outline" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
+          </Touchable>
         </View>
 
         {/* Goal Selector */}
@@ -231,7 +231,7 @@ export default function AiAssistantScreen() {
             {GOALS.map((goal) => {
               const isSelected = selectedGoal === goal.id;
               return (
-                <TouchableOpacity
+                <Touchable
                   key={goal.id}
                   activeOpacity={0.8}
                   onPress={() => handleGoalChange(goal.id)}
@@ -261,7 +261,7 @@ export default function AiAssistantScreen() {
                   >
                     {goal.label}
                   </Text>
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
           </ScrollView>
@@ -382,7 +382,7 @@ export default function AiAssistantScreen() {
             onChangeText={setInputText}
           />
           {loading ? (
-            <TouchableOpacity
+            <Touchable
               accessibilityLabel="Dừng trả lời"
               accessibilityRole="button"
               activeOpacity={0.8}
@@ -390,9 +390,9 @@ export default function AiAssistantScreen() {
               style={[styles.sendButton, { backgroundColor: colors.accentPrimary, borderRadius: radius.full }]}
             >
               <Ionicons name="stop" size={16} color={colors.textOnAccent} />
-            </TouchableOpacity>
+            </Touchable>
           ) : (
-            <TouchableOpacity
+            <Touchable
               accessibilityLabel="Gửi tin nhắn"
               accessibilityRole="button"
               accessibilityState={{ disabled: !inputText.trim() }}
@@ -412,7 +412,7 @@ export default function AiAssistantScreen() {
                 size={16}
                 color={inputText.trim() ? colors.textOnAccent : colors.disabledText}
               />
-            </TouchableOpacity>
+            </Touchable>
           )}
         </View>
       </KeyboardAvoidingView>

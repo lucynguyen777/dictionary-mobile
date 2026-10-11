@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import LanguageSelect, { getUnavailableLanguageMessage } from '@/components/app/LanguageSelect';
 import MotionPressable from '@/components/app/MotionPressable';
@@ -209,14 +210,14 @@ export default function HomeScreen() {
                 value={lookupQuery}
               />
               {lookupQuery ? (
-                <TouchableOpacity
+                <Touchable
                   accessibilityLabel="Xóa nội dung tìm kiếm"
                   accessibilityRole="button"
                   activeOpacity={0.75}
                   hitSlop={10}
                   onPress={() => setLookupQuery('')}>
                   <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
-                </TouchableOpacity>
+                </Touchable>
               ) : null}
             </View>
             <View style={styles.languageRow}>
@@ -244,14 +245,14 @@ export default function HomeScreen() {
                 <Text style={styles.detectedLanguageText}>
                   Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
                 </Text>
-                <TouchableOpacity
+                <Touchable
                   activeOpacity={0.75}
                   onPress={() => {
                     setDetectedLanguage(null);
                     setSourceLanguage(languageOptions[0]);
                   }}>
                   <Text style={styles.detectedLanguageUndo}>Hoàn tác</Text>
-                </TouchableOpacity>
+                </Touchable>
               </View>
             ) : null}
             <MotionPressable
@@ -277,14 +278,14 @@ export default function HomeScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Từ vựng hôm nay</Text>
           <Link href={{ pathname: '/word', params: { word: wordOfDay.word } }} asChild>
-            <TouchableOpacity>
+            <Touchable>
               <Text style={styles.sectionAction}>Tra cứu</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         </View>
 
         <Link href={{ pathname: '/word', params: { word: wordOfDay.word } }} asChild>
-          <TouchableOpacity activeOpacity={0.85} style={styles.wotdCard}>
+          <Touchable activeOpacity={0.85} style={styles.wotdCard}>
             <View style={styles.wotdTopRow}>
               <View style={styles.wotdBadge}>
                 <Ionicons name="star" size={12} color={colors.textOnAccent} />
@@ -304,21 +305,21 @@ export default function HomeScreen() {
                 <Text style={styles.wotdExampleText}>“{wordOfDay.definitions[0].examples[0].source}”</Text>
               </View>
             ) : null}
-          </TouchableOpacity>
+          </Touchable>
         </Link>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Lịch sử tra cứu</Text>
           <Link href="/word" asChild>
-            <TouchableOpacity>
+            <Touchable>
               <Text style={styles.sectionAction}>Tra cứu</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         </View>
 
         {recentSearches.map((item) => (
           <Link key={item.word} href={{ pathname: '/word', params: { word: item.word } }} asChild>
-            <TouchableOpacity activeOpacity={0.82} style={styles.wordCard}>
+            <Touchable activeOpacity={0.82} style={styles.wordCard}>
               <View style={styles.wordTop}>
                 <View style={{ flex: 1, marginRight: 12 }}>
                   <Text style={[styles.word, /[\u0600-\u06FF\u0590-\u05FF]/.test(item.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{item.word}</Text>
@@ -330,16 +331,16 @@ export default function HomeScreen() {
               </View>
               <Text style={styles.definition}>{item.definition}</Text>
               <Text style={styles.translation}>{formatLookedUpAt(item.lookedUpAt)}</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         ))}
         {!recentSearches.length ? (
           <Link href="/word" asChild>
-            <TouchableOpacity activeOpacity={0.82} style={styles.emptyHistoryCard}>
+            <Touchable activeOpacity={0.82} style={styles.emptyHistoryCard}>
               <Ionicons name="time-outline" size={24} color={colors.textTertiary} />
               <Text style={styles.emptyHistoryTitle}>Chưa có lịch sử tra cứu</Text>
               <Text style={styles.emptyHistoryText}>Tra một từ tiếng Anh để lịch sử xuất hiện ở đây.</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         ) : null}
       </ScrollView>

@@ -3,7 +3,8 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, AppState, Platform, StyleSheet, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import 'react-native-reanimated';
 
 import { recordAppOpen } from '@/data/activityStore';
@@ -145,14 +146,14 @@ function AppLockScreen({
             : 'Xác thực bằng sinh trắc học hoặc mã thiết bị để tiếp tục học.'}
         </Text>
         {isChecking ? <ActivityIndicator color={colors.accentPrimary} style={styles.lockSpinner} /> : null}
-        <TouchableOpacity
+        <Touchable
           activeOpacity={0.82}
           disabled={isChecking}
           onPress={isUnsupported ? onContinue : onRetry}
           style={[styles.lockButton, { backgroundColor: colors.accentPrimary }, isChecking && styles.lockButtonDisabled]}
         >
           <Text style={styles.lockButtonText}>{isUnsupported ? 'Tiếp tục' : 'Mở khóa'}</Text>
-        </TouchableOpacity>
+        </Touchable>
       </View>
     </View>
   );

@@ -232,6 +232,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [HARD]: Reader renders memoized paragraphs of nested text (~5x faster document render); paragraphs and sentence-aligned TTS highlighting fixed; text helpers in `data/readerText.ts`.
 - [x] DONE [HARD]: Split giant screens: Training 2,869→542, Profile 3,472→~1,170, Library 2,344→~1,150, Reader ~1,980→~770, TabPager 1,394→~150 lines (`components/training|profile|library|reader|word/tabs`).
 - [x] DONE [MEDIUM]: E2E grew from 3 to 12 specs (Library folder flow, favorite→Library/Home, Reader long-document selection and slider, dark mode for every tab); vitest resolves `@/`.
+- [x] DONE [MEDIUM]: Shared press primitive (plan 3.5): all ~380 `TouchableOpacity` uses in 28 screens/components now use `components/app/Touchable` (same layout, opacity feedback safe for reduced motion, button role whenever pressable); lint blocks new `TouchableOpacity`/`TouchableHighlight` imports. Verified by pixel-diffing all main screens in light/dark before and after (no visible change) plus the full E2E suite.
 - [!] BLOCKED [MEDIUM]: Convert remaining hex literals in `components/library|training|profile/styles.ts` to theme tokens; the swap visibly restyles three tabs, so it waits on owner decision D7 (dark mode already uses themed overlays).
 
 **Module: v1.7.0 Account Features** - IN PROGRESS

@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ComponentProps } from 'react';
-import { TouchableOpacity } from 'react-native';
+import Touchable from '@/components/app/Touchable';
+
 
 import { type ReaderThemeColors } from '@/components/reader/readerOptions';
 import { styles } from '@/components/reader/styles';
@@ -21,7 +22,7 @@ export function ReaderDockButton({
   theme: ReaderThemeColors;
 }) {
   return (
-    <TouchableOpacity
+    <Touchable
       accessibilityLabel={label}
       activeOpacity={0.82}
       onPress={onPress}
@@ -32,6 +33,6 @@ export function ReaderDockButton({
         isPrimary && styles.readerDockPrimaryButton,
       ]}>
       <Ionicons name={icon} size={isPrimary ? 23 : 21} color={isPrimary ? '#FFFFFF' : theme.accent} />
-    </TouchableOpacity>
+    </Touchable>
   );
 }
