@@ -40,3 +40,26 @@ test('Reader progress is an adjustable slider for assistive technology', async (
   await expect(slider).toHaveAttribute('aria-valuenow', '0');
   await expect(slider).toHaveAttribute('aria-valuetext', '0%');
 });
+
+test('Reader saves a highlighted phrase and makes a flashcard from it', async ({ page }) => {
+  await page.goto('/reader');
+  await page.getByText('lazy', { exact: true }).first().click();
+  await page.getByText('dog', { exact: true }).first().click();
+  await expect(page.getByText('lazy dog', { exact: true })).toBeVisible();
+
+  await page.getByText('Lưu', { exact: true }).click();
+  await expect(page.getByText('Đã lưu cụm từ "lazy dog".')).toBeVisible();
+  await page.getByText('Tạo thẻ', { exact: true }).click();
+  await expect(page.getByText('Đã tạo flashcard cho "lazy dog".')).toBeVisible();
+});
+
+test('Reader audio panel and page buttons respond', async ({ page }) => {
+  await page.goto('/reader');
+  const slider = page.getByRole('slider', { name: 'Tiến trình đọc' });
+  await page.getByRole('button', { name: 'Trang sau' }).click();
+  await expect.poll(async () => Number(await slider.getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+
+  await page.getByRole('button', { name: 'Audio' }).click();
+  await expect(page.getByRole('button', { name: 'Đọc to' })).toBeVisible();
+  await expect(page.getByRole('slider', { name: 'Vị trí đọc to' })).toHaveAttribute('aria-valuetext', /^Câu 1\/\d+$/);
+});

@@ -2,11 +2,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, GestureResponderEvent, Modal, NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, View } from 'react-native';
+import { Alert, Modal, ScrollView, Text, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import Screen from '@/components/app/Screen';
-import { DictionaryEntry } from '@/data/dictionary';
-import { LibraryState, createFlashcardsFromWordIds, getDefaultLibraryState, getFavoriteFolderId, loadLibraryState, saveWordToFolder } from '@/data/libraryStore';
+import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import { ReaderSettings, ReaderState, getDefaultReaderState, loadReaderState, selectReaderDocument, updateReaderSettings } from '@/data/readerStore';
 import { loadUserProfile } from '@/data/profileStore';
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
@@ -15,12 +14,16 @@ import { type LanguageCode } from '@/data/languages';
 import { buildTokenSentenceMap, groupReaderParagraphs, splitReaderSentences, tokenizeReaderText } from '@/data/readerText';
 import { getReaderBackgroundPreset, readerBackgroundPresets, type ReaderBackgroundPresetId } from '@/data/readerTheme';
 
-import { buildReaderTocItems, defaultPrefs, fontOptions, getReaderTextStyle, speedOptions, themeOptions, voiceProfiles, type ReaderPreferences, type ReaderSheet, type VoiceProfile } from '@/components/reader/readerOptions';
+import { buildReaderTocItems, defaultPrefs, fontOptions, getReaderTextStyle, speedOptions, themeOptions, voiceProfiles, type ReaderPreferences, type ReaderSheet } from '@/components/reader/readerOptions';
 import { ReaderParagraph } from '@/components/reader/ReaderParagraph';
 import { ReaderDockButton } from '@/components/reader/ReaderDockButton';
 import { ReaderHighlightPanel } from '@/components/reader/ReaderHighlightPanel';
 import { ReaderSettingsSheet, ReaderTocSheet } from '@/components/reader/ReaderSheets';
 import { styles } from '@/components/reader/styles';
+import { useReaderScroll } from '@/components/reader/useReaderScroll';
+import { saveReaderSelection } from '@/data/readerSave';
+import { useReaderSpeech } from '@/components/reader/useReaderSpeech';
+import { ReaderAudioPanel } from '@/components/reader/ReaderAudioPanel';
 
 const PREFS_STORAGE_KEY = 'dictionary-mobile.reader-prefs.v1';
 
@@ -39,19 +42,25 @@ export default function ReaderScreen() {
 
   // Scrubber Progress & Scroll state
   const scrollViewRef = useRef<ScrollView>(null);
-  const [contentHeight, setContentHeight] = useState(0);
-  const [scrollViewHeight, setScrollViewHeight] = useState(0);
-  const [scrollOffset, setScrollOffset] = useState(0);
-  const [scrubberWidth, setScrubberWidth] = useState(0);
-  const [audioScrubberWidth, setAudioScrubberWidth] = useState(0);
+  const {
+    contentHeight,
+    handleAutoScrollToggle,
+    handleNextPage,
+    handlePrevPage,
+    handleProgressChange,
+    handleScroll,
+    handleScrubberTouch,
+    isAutoScrolling,
+    progress,
+    setContentHeight,
+    setIsAutoScrolling,
+    setScrollViewHeight,
+    setScrubberWidth,
+  } = useReaderScroll(scrollViewRef, preferences.ttsSpeed);
 
   // TTS State
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
   const [activeSheet, setActiveSheet] = useState<ReaderSheet>(null);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [showAudioProgress, setShowAudioProgress] = useState(false);
-  const autoScrollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load preferences and state
   useFocusEffect(
@@ -111,35 +120,6 @@ export default function ReaderScreen() {
       Speech.stop();
     };
   }, []);
-
-  useEffect(() => {
-    if (!isAutoScrolling) {
-      if (autoScrollTimerRef.current) {
-        clearInterval(autoScrollTimerRef.current);
-        autoScrollTimerRef.current = null;
-      }
-      return;
-    }
-
-    autoScrollTimerRef.current = setInterval(() => {
-      if (!scrollViewRef.current || contentHeight <= scrollViewHeight) return;
-
-      setScrollOffset((currentOffset) => {
-        const maxOffset = Math.max(0, contentHeight - scrollViewHeight);
-        const nextOffset = Math.min(maxOffset, currentOffset + Math.max(2, preferences.ttsSpeed * 3));
-        scrollViewRef.current?.scrollTo({ y: nextOffset, animated: false });
-        if (nextOffset >= maxOffset) setIsAutoScrolling(false);
-        return nextOffset;
-      });
-    }, 80);
-
-    return () => {
-      if (autoScrollTimerRef.current) {
-        clearInterval(autoScrollTimerRef.current);
-        autoScrollTimerRef.current = null;
-      }
-    };
-  }, [contentHeight, isAutoScrolling, preferences.ttsSpeed, scrollViewHeight]);
 
   const selectedDocument = readerState.documents.find((document) => document.id === readerState.selectedDocumentId);
   const readerTokens = useMemo(() => tokenizeReaderText(selectedDocument?.content ?? ''), [selectedDocument?.content]);
@@ -245,9 +225,7 @@ export default function ReaderScreen() {
   };
 
   const handleSelectDocument = (documentId: string) => {
-    Speech.stop();
-    setIsSpeaking(false);
-    setActiveSentenceIndex(null);
+    speech.stop();
     selectReaderDocument(readerState, documentId).then(setReaderState);
   };
 
@@ -304,80 +282,23 @@ export default function ReaderScreen() {
     setReaderSaveMessage('');
   };
 
-  const handleCreateFlashcardFromSelection = () => {
+  const handleSaveHighlight = (withFlashcard: boolean) => {
     if (!selectedHighlightText) return;
-
-    const folderId = getReaderSaveFolderId(libraryState);
-
-    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedHighlightText), folderId, quickNote)
-      .then((nextState) => {
-        const savedWordId = `word-${selectedHighlightText.toLowerCase()}`;
-        return createFlashcardsFromWordIds(nextState, [savedWordId], ['bilingual']);
-      })
-      .then((finalState) => {
-        setLibraryState(finalState);
-        setReaderSaveMessage(`Đã tạo flashcard cho "${selectedHighlightText}".`);
-        setQuickNote('');
-      })
-      .catch((err) => {
-        Alert.alert('Lỗi tạo flashcard', err instanceof Error ? err.message : 'Không thể tạo flashcard.');
-      });
-  };
-
-  const handleSaveSelection = () => {
-    if (!selectedHighlightText) return;
-
-    const folderId = getReaderSaveFolderId(libraryState);
-
-    saveWordToFolder(libraryState, createReaderDictionaryEntry(selectedHighlightText), folderId, quickNote)
+    saveReaderSelection(libraryState, selectedHighlightText, quickNote, { withFlashcard })
       .then((nextState) => {
         setLibraryState(nextState);
-        setReaderSaveMessage(`Đã lưu cụm từ "${selectedHighlightText}".`);
+        setReaderSaveMessage(withFlashcard ? `Đã tạo flashcard cho "${selectedHighlightText}".` : `Đã lưu cụm từ "${selectedHighlightText}".`);
         setQuickNote('');
       })
       .catch((err) => {
-        Alert.alert('Lỗi lưu', err instanceof Error ? err.message : 'Không thể lưu cụm từ.');
+        Alert.alert(
+          withFlashcard ? 'Lỗi tạo flashcard' : 'Lỗi lưu',
+          err instanceof Error ? err.message : withFlashcard ? 'Không thể tạo flashcard.' : 'Không thể lưu cụm từ.'
+        );
       });
   };
-
-  // ----------------------------------------------------
-  // READING PROGRESS SCRUBBER LOGIC
-  // ----------------------------------------------------
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setScrollOffset(event.nativeEvent.contentOffset.y);
-  };
-
-  const progress = useMemo(() => {
-    if (contentHeight <= scrollViewHeight) return 0;
-    return Math.min(100, Math.max(0, (scrollOffset / (contentHeight - scrollViewHeight)) * 100));
-  }, [scrollOffset, contentHeight, scrollViewHeight]);
-
-  const handleProgressChange = (pct: number) => {
-    if (scrollViewRef.current && contentHeight > scrollViewHeight) {
-      const targetY = (pct / 100) * (contentHeight - scrollViewHeight);
-      scrollViewRef.current.scrollTo({ y: targetY, animated: false });
-    }
-  };
-
-  const handleScrubberTouch = (event: GestureResponderEvent) => {
-    const touchX = event.nativeEvent.locationX;
-    const pct = Math.min(100, Math.max(0, (touchX / scrubberWidth) * 100));
-    handleProgressChange(pct);
-  };
-
-  const handleNextPage = () => {
-    if (!scrollViewRef.current) return;
-    setIsAutoScrolling(false);
-    const nextOffset = Math.min(Math.max(0, contentHeight - scrollViewHeight), scrollOffset + scrollViewHeight * 0.82);
-    scrollViewRef.current.scrollTo({ y: nextOffset, animated: true });
-  };
-
-  const handlePrevPage = () => {
-    if (!scrollViewRef.current) return;
-    setIsAutoScrolling(false);
-    const prevOffset = Math.max(0, scrollOffset - scrollViewHeight * 0.82);
-    scrollViewRef.current.scrollTo({ y: prevOffset, animated: true });
-  };
+  const handleCreateFlashcardFromSelection = () => handleSaveHighlight(true);
+  const handleSaveSelection = () => handleSaveHighlight(false);
 
   const handleJumpToProgress = (pct: number) => {
     setActiveSheet(null);
@@ -394,112 +315,22 @@ export default function ReaderScreen() {
   // ----------------------------------------------------
   // AI VOICE READER (TTS) LOGIC
   // ----------------------------------------------------
-  const scrollToActiveSentence = (index: number) => {
+  const speech = useReaderSpeech({
+    onSentenceStart: (index) => scrollToActiveSentence(index),
+    sentences,
+    speed: preferences.ttsSpeed,
+    voice: preferences.ttsVoice,
+  });
+  const { activeSentenceIndex, handleNextSentence, handlePlayPause, handlePrevSentence, handleStop, isSpeaking } = speech;
+
+  function scrollToActiveSentence(index: number) {
     if (scrollViewRef.current && sentences.length > 0 && contentHeight > 0) {
       const fraction = index / sentences.length;
       const targetY = fraction * contentHeight - 140; // Offset to center the highlighted text
       scrollViewRef.current.scrollTo({ y: Math.max(0, targetY), animated: true });
     }
-  };
+  }
 
-  const startSpeaking = (index: number, speed: number, voiceType: VoiceProfile) => {
-    if (index < 0 || index >= sentences.length) {
-      setIsSpeaking(false);
-      return;
-    }
-
-    Speech.stop();
-    setActiveSentenceIndex(index);
-    scrollToActiveSentence(index);
-
-    const textToRead = sentences[index];
-
-    // Compute voice variables
-    let pitch = 1.0;
-    let rate = speed;
-
-    if (voiceType === 'female') {
-      pitch = 1.15;
-    } else if (voiceType === 'male') {
-      pitch = 0.85;
-    } else if (voiceType === 'child') {
-      pitch = 1.45;
-    } else if (voiceType === 'old') {
-      pitch = 0.7;
-      rate = speed * 0.8; // Old voices read slightly slower
-    }
-
-    const isVi = /[À-ÿ]/.test(textToRead);
-    const language = isVi ? 'vi-VN' : 'en-US';
-
-    setIsSpeaking(true);
-    Speech.speak(textToRead, {
-      language,
-      pitch,
-      rate,
-      onDone: () => {
-        if (index + 1 < sentences.length) {
-          startSpeaking(index + 1, speed, voiceType);
-        } else {
-          setIsSpeaking(false);
-          setActiveSentenceIndex(null);
-        }
-      },
-      onStopped: () => {
-        setIsSpeaking(false);
-      },
-      onError: () => {
-        setIsSpeaking(false);
-      },
-    });
-  };
-
-  const handlePlayPause = () => {
-    if (isSpeaking) {
-      Speech.stop();
-      setIsSpeaking(false);
-    } else {
-      const startIndex = activeSentenceIndex ?? 0;
-      startSpeaking(startIndex, preferences.ttsSpeed, preferences.ttsVoice);
-    }
-  };
-
-  const handleAutoScrollToggle = () => {
-    if (contentHeight <= scrollViewHeight) return;
-    setIsAutoScrolling((value) => !value);
-  };
-
-  const handleStop = () => {
-    Speech.stop();
-    setIsSpeaking(false);
-    setActiveSentenceIndex(null);
-  };
-
-  const handleNextSentence = () => {
-    const nextIdx = (activeSentenceIndex ?? -1) + 1;
-    if (nextIdx < sentences.length) {
-      startSpeaking(nextIdx, preferences.ttsSpeed, preferences.ttsVoice);
-    }
-  };
-
-  const handlePrevSentence = () => {
-    const prevIdx = (activeSentenceIndex ?? 0) - 1;
-    if (prevIdx >= 0) {
-      startSpeaking(prevIdx, preferences.ttsSpeed, preferences.ttsVoice);
-    }
-  };
-
-  const audioProgress = useMemo(() => {
-    if (!sentences.length) return 0;
-    return Math.min(100, Math.max(0, (((activeSentenceIndex ?? 0) + 1) / sentences.length) * 100));
-  }, [activeSentenceIndex, sentences.length]);
-
-  const handleAudioScrubberTouch = (event: GestureResponderEvent) => {
-    if (!sentences.length || audioScrubberWidth <= 0) return;
-    const pct = Math.min(100, Math.max(0, (event.nativeEvent.locationX / audioScrubberWidth) * 100));
-    const index = Math.min(sentences.length - 1, Math.max(0, Math.floor((pct / 100) * sentences.length)));
-    startSpeaking(index, preferences.ttsSpeed, preferences.ttsVoice);
-  };
 
   return (
     <Screen edges={['top', 'left', 'right', 'bottom']} style={{ backgroundColor: activeTheme.bg }}>
@@ -645,41 +476,7 @@ export default function ReaderScreen() {
             <View style={[styles.scrubberThumbCircle, { left: `${Math.min(97, Math.max(0, progress))}%`, backgroundColor: activeTheme.accent, borderColor: activeTheme.cardBg }]} />
           </View>
           {showAudioProgress ? (
-            <View style={[styles.audioProgressPanel, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
-              <Touchable accessibilityLabel="Câu trước" accessibilityRole="button" activeOpacity={0.82} onPress={handlePrevSentence} style={styles.audioSeekButton}>
-                <Ionicons name="play-skip-back" size={18} color={activeTheme.accent} />
-              </Touchable>
-              <View
-                accessible
-                accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
-                accessibilityLabel="Vị trí đọc to"
-                accessibilityRole="adjustable"
-                aria-valuemax={sentences.length}
-                aria-valuemin={1}
-                aria-valuenow={(activeSentenceIndex ?? 0) + 1}
-                aria-valuetext={`Câu ${(activeSentenceIndex ?? 0) + 1}/${sentences.length}`}
-                onAccessibilityAction={(event) => {
-                  if (event.nativeEvent.actionName === 'increment') handleNextSentence();
-                  else handlePrevSentence();
-                }}
-                style={styles.audioScrubberTouchArea}
-                onLayout={(e) => setAudioScrubberWidth(e.nativeEvent.layout.width)}
-                onTouchMove={handleAudioScrubberTouch}
-                onTouchStart={handleAudioScrubberTouch}>
-                <View style={[styles.audioScrubberTrack, { backgroundColor: activeTheme.border }]}>
-                  <View style={[styles.audioScrubberProgress, { backgroundColor: activeTheme.accent, width: `${audioProgress}%` }]} />
-                </View>
-              </View>
-              <Text style={[styles.audioProgressText, { color: activeTheme.secondaryText }]}>
-                {sentences.length ? `${Math.min(sentences.length, (activeSentenceIndex ?? 0) + 1)}/${sentences.length}` : '0/0'}
-              </Text>
-              <Touchable activeOpacity={0.82} onPress={handlePlayPause} style={styles.audioSeekButton}>
-                <Ionicons name={isSpeaking ? 'pause' : 'play'} size={18} color={activeTheme.accent} />
-              </Touchable>
-              <Touchable accessibilityLabel="Câu sau" accessibilityRole="button" activeOpacity={0.82} onPress={handleNextSentence} style={styles.audioSeekButton}>
-                <Ionicons name="play-skip-forward" size={18} color={activeTheme.accent} />
-              </Touchable>
-            </View>
+            <ReaderAudioPanel sentenceCount={sentences.length} speech={speech} theme={activeTheme} />
           ) : null}
           <View style={styles.readerDockControls}>
             <ReaderDockButton icon="chevron-back" label="Trang trước" onPress={handlePrevPage} theme={activeTheme} />
@@ -749,36 +546,4 @@ export default function ReaderScreen() {
       </Modal>
     </Screen>
   );
-}
-
-function getReaderSaveFolderId(libraryState: LibraryState) {
-  const dailyReviewFolder = libraryState.folders.find((folder) => folder.name.toLowerCase() === 'daily review');
-  return dailyReviewFolder?.id ?? getFavoriteFolderId();
-}
-
-function createReaderDictionaryEntry(word: string): DictionaryEntry {
-  return {
-    word,
-    ipa: '',
-    audio: '',
-    level: 'TXT',
-    topic: 'Reader',
-    vietnamese: 'Reader highlight',
-    shortDefinition: 'Saved from Reader.',
-    definitions: [
-      {
-        partOfSpeech: 'reader',
-        meaning: 'Saved from Reader.',
-        vietnamese: 'Từ được lưu khi đọc văn bản.',
-        examples: [],
-      },
-    ],
-    synonyms: [],
-    antonyms: [],
-    collocations: [],
-    idioms: [],
-    conjugation: [],
-    etymology: '',
-    pronunciationTips: [],
-  };
 }
