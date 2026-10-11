@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
-import { ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ComponentProps, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   GestureResponderEvent,
@@ -40,6 +40,13 @@ import { TranslationPanel } from '@/components/TranslationPanel';
 import { getDefinitionTranslationTarget, toDeepLSourceLanguage } from '@/data/translationTargets';
 import { loadAppColorSchemePreference, resolveAppColorScheme } from '@/data/appThemePreference';
 import { getLanguageByCode, languageOptions, type LanguageCode } from '@/data/languages';
+import {
+  buildTokenSentenceMap,
+  groupReaderParagraphs,
+  isReaderWordToken,
+  splitReaderSentences,
+  tokenizeReaderText,
+} from '@/data/readerText';
 import { getReaderBackgroundPreset, readerBackgroundPresets, type ReaderBackgroundPresetId, type ReaderThemeMode } from '@/data/readerTheme';
 
 // Extra Local Preferences Storage Keys
@@ -227,27 +234,18 @@ export default function ReaderScreen() {
   const isRtl = useMemo(() => /[\u0600-\u06FF\u0590-\u05FF]/.test(selectedDocument?.content ?? ''), [selectedDocument?.content]);
 
   // Compute sentences inside the document content
-  const sentences = useMemo(() => {
-    if (!selectedDocument?.content) return [];
-    // Split by sentence ending punctuation followed by spacing
-    return selectedDocument.content
-      .split(/(?<=[.!?])\s+/)
-      .filter((s) => s.trim().length > 0);
-  }, [selectedDocument?.content]);
+  const sentences = useMemo(() => splitReaderSentences(selectedDocument?.content ?? ''), [selectedDocument?.content]);
 
-  // Map each token's index to its corresponding sentence index
-  const tokenToSentenceMap = useMemo(() => {
-    if (!selectedDocument?.content) return [];
-    const mapping: number[] = [];
+  const tokenToSentenceMap = useMemo(
+    () => buildTokenSentenceMap(readerTokens, sentences.length),
+    [readerTokens, sentences.length]
+  );
 
-    sentences.forEach((sentence, sIdx) => {
-      const sentenceTokens = tokenizeReaderText(sentence);
-      for (let i = 0; i < sentenceTokens.length; i++) {
-        mapping.push(sIdx);
-      }
-    });
-    return mapping;
-  }, [sentences, selectedDocument?.content]);
+  const readerParagraphs = useMemo(
+    () => groupReaderParagraphs(readerTokens, tokenToSentenceMap),
+    [readerTokens, tokenToSentenceMap]
+  );
+  const readerTextStyle = useMemo(() => getReaderTextStyle(readerState.settings), [readerState.settings]);
 
   const selectedHighlightText = useMemo(() => {
     if (!selectionRange) return '';
@@ -365,6 +363,11 @@ export default function ReaderScreen() {
       setReaderSaveMessage('');
     }
   };
+
+  // Paragraphs are memoized, so they get a stable callback that always calls the latest handler.
+  const handleTokenPressRef = useRef(handleTokenPress);
+  handleTokenPressRef.current = handleTokenPress;
+  const handleTokenPressStable = useCallback((index: number) => handleTokenPressRef.current(index), []);
 
   const handleOpenLookup = () => {
     if (!selectedHighlightText) return;
@@ -662,53 +665,25 @@ export default function ReaderScreen() {
                 onUpdateNote={setQuickNote}
               />
             ) : null}
-            <View style={[styles.readerTextWrap, isRtl && { flexDirection: 'row-reverse' }]}>
-              {readerTokens.map((token, index) => {
-                const isWord = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F]/.test(token);
-                const inSelection = selectionRange ? index >= selectionRange.start && index <= selectionRange.end : false;
-
-                // Highlight active sentence currently being read by AI
-                const tokenSentenceIdx = tokenToSentenceMap[index];
-                const isActiveSentence = activeSentenceIndex !== null && tokenSentenceIdx === activeSentenceIndex;
-
-                return (
-                  isWord ? (
-                    <TouchableOpacity
-                      key={`${token}-${index}`}
-                      activeOpacity={0.72}
-                      onPress={() => handleTokenPress(index)}
-                      style={[
-                        inSelection && styles.selectedRangeWord,
-                        isActiveSentence && { backgroundColor: activeTheme.highlightBg, borderRadius: 2 },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.readerWord,
-                          { color: readerPageTextColor },
-                          getReaderTextStyle(readerState.settings),
-                          inSelection && { color: activeTheme.highlightText },
-                          isActiveSentence && { color: activeTheme.highlightText },
-                        ]}
-                      >
-                        {token}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <Text
-                      key={`${token}-${index}`}
-                      style={[
-                        styles.readerWord,
-                        { color: readerPageTextColor },
-                        getReaderTextStyle(readerState.settings),
-                        isActiveSentence && { backgroundColor: activeTheme.highlightBg, color: activeTheme.highlightText, borderRadius: 2 },
-                      ]}
-                    >
-                      {token}
-                    </Text>
-                  )
-                );
-              })}
+            <View style={styles.readerTextWrap}>
+              {readerParagraphs.map((paragraph) => (
+                <ReaderParagraph
+                  key={paragraph.start}
+                  activeSentenceIndex={paragraph.sentenceIndexes.has(activeSentenceIndex ?? -1) ? activeSentenceIndex : null}
+                  end={paragraph.end}
+                  highlightBackground={activeTheme.highlightBg}
+                  highlightText={activeTheme.highlightText}
+                  isRtl={isRtl}
+                  onTokenPress={handleTokenPressStable}
+                  selectionEnd={selectionRange && selectionRange.start <= paragraph.end && selectionRange.end >= paragraph.start ? selectionRange.end : null}
+                  selectionStart={selectionRange && selectionRange.start <= paragraph.end && selectionRange.end >= paragraph.start ? selectionRange.start : null}
+                  start={paragraph.start}
+                  textColor={readerPageTextColor}
+                  textStyle={readerTextStyle}
+                  tokenToSentenceMap={tokenToSentenceMap}
+                  tokens={readerTokens}
+                />
+              ))}
             </View>
           </View>
         ) : (
@@ -835,6 +810,70 @@ export default function ReaderScreen() {
     </Screen>
   );
 }
+
+type ReaderParagraphProps = {
+  activeSentenceIndex: number | null;
+  end: number;
+  highlightBackground: string;
+  highlightText: string;
+  isRtl: boolean;
+  onTokenPress: (index: number) => void;
+  selectionEnd: number | null;
+  selectionStart: number | null;
+  start: number;
+  textColor: string;
+  textStyle: ReturnType<typeof getReaderTextStyle>;
+  tokenToSentenceMap: number[];
+  tokens: string[];
+};
+
+// One Text per paragraph with nested pressable spans: far cheaper than a touchable view per word,
+// and the text wraps like normal prose.
+const ReaderParagraph = memo(function ReaderParagraph({
+  activeSentenceIndex,
+  end,
+  highlightBackground,
+  highlightText,
+  isRtl,
+  onTokenPress,
+  selectionEnd,
+  selectionStart,
+  start,
+  textColor,
+  textStyle,
+  tokenToSentenceMap,
+  tokens,
+}: ReaderParagraphProps) {
+  const spans = [];
+  for (let index = start; index <= end; index += 1) {
+    const token = tokens[index];
+    // Paragraphs are separate blocks, so the line break that ends one is not drawn.
+    if (token === '\n') continue;
+    const inSelection = selectionStart !== null && selectionEnd !== null && index >= selectionStart && index <= selectionEnd;
+    const isActiveSentence = activeSentenceIndex !== null && tokenToSentenceMap[index] === activeSentenceIndex;
+    const highlighted = inSelection
+      ? styles.selectedRangeWord
+      : isActiveSentence
+        ? { backgroundColor: highlightBackground, color: highlightText }
+        : null;
+
+    spans.push(
+      isReaderWordToken(token) ? (
+        <Text key={index} onPress={() => onTokenPress(index)} style={highlighted} suppressHighlighting>
+          {token}
+        </Text>
+      ) : (
+        <Text key={index} style={highlighted}>{token}</Text>
+      )
+    );
+  }
+
+  return (
+    <Text style={[{ color: textColor }, textStyle, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>
+      {spans}
+    </Text>
+  );
+});
 
 function ReaderDockButton({
   icon,
@@ -1318,38 +1357,6 @@ function buildReaderTocItems(content: string): ReaderTocItem[] {
   return items.slice(0, 80);
 }
 
-function tokenizeReaderText(text: string) {
-  if (!text) return [];
-
-  if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
-    try {
-      const hasCjkOrBurmeseOrTibetanOrTamilOrTeluguOrKannadaOrMalayalam = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F]/.test(text);
-      if (hasCjkOrBurmeseOrTibetanOrTamilOrTeluguOrKannadaOrMalayalam) {
-        let locale = 'zh';
-        if (/[\u1000-\u109F]/.test(text)) {
-          locale = 'my';
-        } else if (/[\u0F00-\u0FFF]/.test(text)) {
-          locale = 'bo';
-        } else if (/[\u0B80-\u0BFF]/.test(text)) {
-          locale = 'ta';
-        } else if (/[\u0C00-\u0C7F]/.test(text)) {
-          locale = 'te';
-        } else if (/[\u0C80-\u0CFF]/.test(text)) {
-          locale = 'kn';
-        } else if (/[\u0D00-\u0D7F]/.test(text)) {
-          locale = 'ml';
-        }
-        const segmenter = new Intl.Segmenter(locale, { granularity: 'word' });
-        return Array.from(segmenter.segment(text), (s) => s.segment);
-      }
-    } catch {
-      // Fallback
-    }
-  }
-
-  const regex = /[A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF][A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF'-]*|[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F]|[\u0B80-\u0BFF]+|[\u0C00-\u0C7F]+|[\u0C80-\u0CFF]+|[\u0D00-\u0D7F]+|[\u0F00-\u0F0A\u0F0C-\u0FFF]+\u0F0B?|[^A-Za-zÀ-ÿ\u0600-\u06FF\u0590-\u05FF\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af\u1000-\u109F\u0F00-\u0FFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F]+/g;
-  return text.replace(/\s+/g, ' ').match(regex) ?? [];
-}
 
 function getReaderTextStyle(settings: ReaderSettings) {
   return {
@@ -1544,16 +1551,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   readerTextWrap: {
-    alignItems: 'baseline',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  readerWord: {
-    marginHorizontal: 1,
+    gap: 0,
   },
   selectedRangeWord: {
     backgroundColor: '#FEF3C7',
-    borderRadius: 4,
+    color: '#1F2937',
   },
   readerActionPanel: {
     borderRadius: 12,
