@@ -17,6 +17,7 @@ import { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from '@/
 import { getLanguageByCode } from '@/data/languages';
 import { PhrasebookItem, getPhrasebookItems } from '@/data/phrasebook';
 import { TranslationPanel } from '@/components/TranslationPanel';
+import { getDefinitionTranslationTarget, toDeepLSourceLanguage } from '@/data/translationTargets';
 import SkeletonBlock from '@/components/app/SkeletonBlock';
 import { useToken } from '@/hooks/use-token';
 
@@ -209,6 +210,7 @@ function MeaningTab({
   const { colors } = useTabPagerToken();
   const shouldPreferVietnamese = targetLang === 'vi' && sourceLang !== 'vi';
   const isBilingualLookup = sourceLang !== targetLang;
+  const translationTarget = getDefinitionTranslationTarget(sourceLang, targetLang);
   const sourceLanguage = getLanguageByCode(sourceLang, 'en');
   const isRtl = sourceLanguage.writingDirection === 'rtl';
   const localDefinitions = entry.definitions.map((definition) => ({
@@ -325,7 +327,13 @@ function MeaningTab({
           ))}
         </View>
       ))}
-      <TranslationPanel sourceText={entry.shortDefinition || entry.word} targetLang="VI" />
+      {translationTarget ? (
+        <TranslationPanel
+          sourceText={entry.shortDefinition || entry.word}
+          sourceLang={toDeepLSourceLanguage(sourceLang)}
+          targetLang={translationTarget}
+        />
+      ) : null}
     </View>
   );
 }
