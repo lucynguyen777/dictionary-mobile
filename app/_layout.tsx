@@ -12,6 +12,7 @@ import { loadUserProfile } from '@/data/profileStore';
 import { addSpecializedGlossaryListener } from '@/data/specializedGlossaryStore';
 import { startSyncLifecycle } from '@/data/supabaseSyncLifecycle';
 import PdfTextExtractorHost from '@/components/reader/PdfTextExtractorHost';
+import { installGlobalErrorHandlers } from '@/data/errorReporting';
 import { NATIVE_PDF_IMPORT_ENABLED } from '@/constants/featureFlags';
 import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -24,6 +25,9 @@ export const unstable_settings = {
 };
 
 type AppLockState = 'checking' | 'unlocked' | 'locked' | 'unsupported';
+
+// Expo Router renders this when any screen throws during render.
+export { default as ErrorBoundary } from '@/components/app/AppErrorScreen';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -62,6 +66,9 @@ export default function RootLayout() {
       setAppLockState('unsupported');
     }
   }, []);
+
+  // Errors outside rendering (native global handler, web window errors, unhandled rejections).
+  useEffect(() => installGlobalErrorHandlers(), []);
 
   useEffect(() => {
     unlockApp();
