@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
@@ -87,5 +88,87 @@ describe('build-offline-pack script', () => {
       translation: 'Tôi đọc một cuốn sách.',
     });
     expect(entries[0].relations.synonyms).toEqual(['volume']);
+  });
+});
+
+describe('build-offline-pack pipeline guarantees', () => {
+  const dir = 'tmp/offline-packs/test-builder-pipeline';
+  const input = `${dir}/dump.jsonl`;
+
+  function build(out: string, extra: string[] = []) {
+    execFileSync('node', [
+      'scripts/build-offline-pack.mjs',
+      '--input', input,
+      '--lang', 'en',
+      '--source', 'enwiktionary',
+      '--source-revision', '2026-10-01',
+      '--generated-at', '2026-10-11T00:00:00.000Z',
+      '--public-base-url', 'https://cdn.example/packs/en/',
+      '--out', out,
+      ...extra,
+    ]);
+    return {
+      entries: JSON.parse(gunzipSync(readFileSync(`${out}/entries.json.gz`)).toString('utf8')) as Record<string, any>[],
+      manifest: JSON.parse(readFileSync(`${out}/manifest.json`, 'utf8')),
+      report: JSON.parse(readFileSync(`${out}/build-report.json`, 'utf8')),
+      source: JSON.parse(readFileSync(`${out}/download-source.json`, 'utf8')),
+    };
+  }
+
+  function writeDump() {
+    rmSync(dir, { force: true, recursive: true });
+    mkdirSync(dir, { recursive: true });
+    const lines = [
+      { lang_code: 'en', pos: 'noun', senses: [{ glosses: ['A tool for driving nails.'] }], sounds: [{ ipa: '/ˈhæm.ə/' }], word: 'hammer' },
+      { lang_code: 'en', pos: 'verb', senses: [{ examples: [{ text: 'Hammer it in.' }], glosses: ['To strike with a hammer.'] }], synonyms: [{ word: 'pound' }], word: 'Hammer' },
+      { lang_code: 'fr', pos: 'noun', senses: [{ glosses: ['bread (French section)'] }], word: 'pain' },
+      { lang_code: 'en', pos: 'noun', senses: [{ glosses: ['Suffering.'] }], word: 'pain' },
+      { lang_code: 'en', pos: 'noun', senses: [], word: 'empty' },
+      { lang_code: 'en', pos: 'noun', senses: Array.from({ length: 30 }, (_, index) => ({ glosses: [`Sense ${index} ${'x'.repeat(index === 0 ? 2_000 : 1)}`] })), word: 'set' },
+    ];
+    writeFileSync(input, `${lines.map((line) => JSON.stringify(line)).join('\n')}\n`);
+  }
+
+  it('keeps only the requested language section and merges parts of speech per headword', () => {
+    writeDump();
+    const { entries, manifest, report } = build(`${dir}/out-a`);
+
+    expect(entries.map((entry) => entry.normalizedWord)).toEqual(['hammer', 'pain', 'set']);
+    const hammer = entries[0];
+    expect(hammer.partOfSpeech).toBe('noun, verb');
+    expect(hammer.definitions.map((definition: { gloss: string }) => definition.gloss)).toEqual(['A tool for driving nails.', 'To strike with a hammer.']);
+    expect(hammer.relations.synonyms).toEqual(['pound']);
+    expect(hammer.examples).toEqual([{ source: 'Hammer it in.' }]);
+    expect(entries[1].definitions[0].gloss).toBe('Suffering.');
+    expect(manifest).toMatchObject({ entryCount: 3, sourceRevision: '2026-10-01' });
+    expect(report).toMatchObject({ mergedEntries: 1, otherLanguageSections: 1, withoutDefinitions: 1 });
+  });
+
+  it('caps oversized entries so one headword cannot bloat the pack', () => {
+    writeDump();
+    const set = build(`${dir}/out-a`).entries.find((entry) => entry.word === 'set')!;
+    expect(set.definitions).toHaveLength(16);
+    expect(set.definitions[0].gloss.length).toBe(1_000);
+  });
+
+  it('is reproducible and publishes checksums the app can verify', () => {
+    writeDump();
+    const first = build(`${dir}/out-a`);
+    const second = build(`${dir}/out-b`);
+    const md5 = (path: string) => createHash('md5').update(readFileSync(path)).digest('hex');
+
+    expect(second.source).toEqual(first.source);
+    expect(first.source).toEqual({
+      entriesMd5: md5(`${dir}/out-a/entries.json.gz`),
+      entriesUrl: 'https://cdn.example/packs/en/entries.json.gz',
+      entryCount: 3,
+      manifestMd5: md5(`${dir}/out-a/manifest.json`),
+      manifestUrl: 'https://cdn.example/packs/en/manifest.json',
+    });
+  });
+
+  it('honours an entry limit', () => {
+    writeDump();
+    expect(build(`${dir}/out-c`, ['--limit', '2']).entries.map((entry) => entry.word)).toEqual(['hammer', 'pain']);
   });
 });

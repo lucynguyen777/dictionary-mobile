@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { createReadStream, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -8,12 +9,23 @@ import { gzipSync } from 'node:zlib';
 const args = parseArgs(process.argv.slice(2));
 
 if (!args.input || !args.lang || !args.source || !args.out) {
-  console.error('Usage: node scripts/build-offline-pack.mjs --input <jsonl> --lang <code> --source <name> --out <dir> [--source-url <url>]');
+  console.error(
+    'Usage: node scripts/build-offline-pack.mjs --input <jsonl> --lang <code> --source <name> --out <dir>'
+      + ' [--source-url <url>] [--source-revision <dump date or id>] [--generated-at <ISO time>] [--limit <entries>]'
+      + ' [--public-base-url <url prefix where the pack is hosted>]'
+  );
   process.exit(1);
 }
 
-const generatedAt = new Date().toISOString();
-const entries = [];
+// A fixed --generated-at makes rebuilding the same dump byte-identical (same checksums).
+const generatedAt = args.generatedAt ?? new Date().toISOString();
+const limit = args.limit ? Number(args.limit) : Infinity;
+const MAX_DEFINITIONS_PER_ENTRY = 16;
+const MAX_EXAMPLES_PER_ENTRY = 8;
+const MAX_RELATIONS = 24;
+const MAX_TEXT_CHARS = 1_000;
+const entriesByKey = new Map();
+const stats = { mergedEntries: 0, otherLanguageSections: 0, scannedLines: 0, withoutDefinitions: 0 };
 
 const reader = createInterface({
   crlfDelay: Infinity,
@@ -24,12 +36,30 @@ for await (const line of reader) {
   const trimmed = line.trim();
   if (!trimmed) continue;
 
+  stats.scannedLines += 1;
   const rawEntry = JSON.parse(trimmed);
+  // Wiktextract dumps mix language sections; a French word on English Wiktionary must not enter an English pack.
+  if (typeof rawEntry.lang_code === 'string' && rawEntry.lang_code !== args.lang) {
+    stats.otherLanguageSections += 1;
+    continue;
+  }
   const normalizedEntry = normalizeEntry(rawEntry, args.lang, args.source, args.sourceUrl, generatedAt);
-  if (normalizedEntry) {
-    entries.push(normalizedEntry);
+  if (!normalizedEntry) {
+    stats.withoutDefinitions += 1;
+    continue;
+  }
+  const existing = entriesByKey.get(normalizedEntry.id);
+  if (existing) {
+    mergeEntry(existing, normalizedEntry);
+    stats.mergedEntries += 1;
+  } else if (entriesByKey.size < limit) {
+    entriesByKey.set(normalizedEntry.id, normalizedEntry);
   }
 }
+
+const entries = [...entriesByKey.values()]
+  .map(capEntry)
+  .sort((a, b) => (a.normalizedWord < b.normalizedWord ? -1 : a.normalizedWord > b.normalizedWord ? 1 : 0));
 
 mkdirSync(args.out, { recursive: true });
 
@@ -46,10 +76,71 @@ const manifest = {
   sourceRevision: args.sourceRevision ?? '',
 };
 
-writeFileSync(join(args.out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-writeFileSync(join(args.out, 'entries.json.gz'), gzipSync(JSON.stringify(entries)));
+const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
+// mtime 0 in the gzip header keeps the archive reproducible.
+const entriesBytes = gzipSync(JSON.stringify(entries), { level: 9 });
+entriesBytes.writeUInt32LE(0, 4);
+writeFileSync(join(args.out, 'manifest.json'), manifestBytes);
+writeFileSync(join(args.out, 'entries.json.gz'), entriesBytes);
 
-console.log(`Built offline pack ${manifest.packId} with ${entries.length} entries.`);
+// The app verifies downloads against these MD5s (OfflinePackDownloadSource in data/offlineDictionaryPacks.ts).
+const baseUrl = (args.publicBaseUrl ?? '').replace(/\/+$/, '');
+const downloadSource = {
+  entriesMd5: md5(entriesBytes),
+  entriesUrl: `${baseUrl}/entries.json.gz`,
+  entryCount: entries.length,
+  manifestMd5: md5(manifestBytes),
+  manifestUrl: `${baseUrl}/manifest.json`,
+};
+writeFileSync(join(args.out, 'download-source.json'), `${JSON.stringify(downloadSource, null, 2)}\n`);
+writeFileSync(join(args.out, 'build-report.json'), `${JSON.stringify({ ...stats, entryCount: entries.length, packId: manifest.packId }, null, 2)}\n`);
+
+console.log(`Built offline pack ${manifest.packId} with ${entries.length} entries (${stats.mergedEntries} merged, ${stats.otherLanguageSections} other-language sections skipped).`);
+
+function md5(bytes) {
+  return createHash('md5').update(bytes).digest('hex');
+}
+
+// Wiktextract emits one record per part of speech; the app looks words up by headword.
+function mergeEntry(target, extra) {
+  const partsOfSpeech = new Set([target.partOfSpeech, extra.partOfSpeech].flatMap((value) => value.split(', ')).filter(Boolean));
+  target.partOfSpeech = [...partsOfSpeech].join(', ');
+  target.definitions.push(...extra.definitions);
+  target.examples.push(...extra.examples);
+  target.audio = unique([...target.audio, ...extra.audio]);
+  target.ipa = target.ipa || extra.ipa;
+  target.etymology = target.etymology || extra.etymology;
+  target.relations = {
+    antonyms: unique([...target.relations.antonyms, ...extra.relations.antonyms]),
+    synonyms: unique([...target.relations.synonyms, ...extra.relations.synonyms]),
+  };
+}
+
+function capEntry(entry) {
+  const clip = (value) => (value.length > MAX_TEXT_CHARS ? `${value.slice(0, MAX_TEXT_CHARS - 1)}…` : value);
+  const seenGlosses = new Set();
+  return {
+    ...entry,
+    definitions: entry.definitions
+      .filter((definition) => !seenGlosses.has(definition.gloss) && seenGlosses.add(definition.gloss))
+      .slice(0, MAX_DEFINITIONS_PER_ENTRY)
+      .map((definition) => ({ ...definition, gloss: clip(definition.gloss) })),
+    etymology: clip(entry.etymology),
+    examples: entry.examples.slice(0, MAX_EXAMPLES_PER_ENTRY).map((example) => ({
+      ...example,
+      source: clip(example.source),
+      ...(example.translation ? { translation: clip(example.translation) } : {}),
+    })),
+    relations: {
+      antonyms: entry.relations.antonyms.slice(0, MAX_RELATIONS),
+      synonyms: entry.relations.synonyms.slice(0, MAX_RELATIONS),
+    },
+  };
+}
+
+function unique(values) {
+  return [...new Set(values)];
+}
 
 function normalizeEntry(rawEntry, langCode, sourceName, sourceUrl, updatedAt) {
   const word = getString(rawEntry.word);
@@ -108,10 +199,8 @@ function normalizeExamples(rawEntry) {
     .flatMap((sense) => (Array.isArray(sense.examples) ? sense.examples : []))
     .map((example) => {
       if (typeof example === 'string') return { source: example };
-      return {
-        source: getString(example.text),
-        translation: getString(example.translation) || getString(example.english),
-      };
+      const translation = getString(example.translation) || getString(example.english);
+      return translation ? { source: getString(example.text), translation } : { source: getString(example.text) };
     })
     .filter((example) => example.source);
 }
@@ -119,8 +208,8 @@ function normalizeExamples(rawEntry) {
 function normalizeRelations(rawEntry) {
   const senses = Array.isArray(rawEntry.senses) ? rawEntry.senses : [];
   return {
-    antonyms: normalizeLinkage([...(rawEntry.antonyms ?? []), ...senses.flatMap((sense) => sense.antonyms ?? [])]),
-    synonyms: normalizeLinkage([...(rawEntry.synonyms ?? []), ...senses.flatMap((sense) => sense.synonyms ?? [])]),
+    antonyms: unique(normalizeLinkage([...(rawEntry.antonyms ?? []), ...senses.flatMap((sense) => sense.antonyms ?? [])])),
+    synonyms: unique(normalizeLinkage([...(rawEntry.synonyms ?? []), ...senses.flatMap((sense) => sense.synonyms ?? [])])),
   };
 }
 
