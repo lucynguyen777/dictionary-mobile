@@ -278,6 +278,8 @@ export async function submitFeedback(input: { category: FeedbackCategory; contex
 
 export interface SpecializedTranslateRequest {
   domainId: 'general' | 'medical' | 'legal' | 'tech' | 'academic';
+  // Up to 5 similar pairs from the user's sentence memory (data/sentenceMemory.ts).
+  examples?: { source: string; target: string }[];
   glossary: { sourceTerm: string; targetTerm: string }[];
   sourceLang: string;
   sourceText: string;
@@ -287,6 +289,7 @@ export interface SpecializedTranslateRequest {
 export interface SpecializedTranslateResponse {
   appliedTerms: { sourceTerm: string; targetTerm: string }[];
   characterCount: number;
+  examplesUsed?: number;
   provider: 'openai';
   translatedText: string;
 }

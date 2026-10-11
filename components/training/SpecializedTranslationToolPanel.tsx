@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 
@@ -10,12 +10,10 @@ import { styles } from '@/components/training/styles';
 import { translateSpecialized, type SpecializedTranslateRequest, type SpecializedTranslateResponse } from '@/data/backendProxyClient';
 import { glossaryLinesFromFile, mergeGlossaryText } from '@/data/glossaryImport';
 import { findGlossaryMatches, parseGlossaryText } from '@/data/glossaryMatching';
-import {
-  addSpecializedGlossaryListener,
-  loadSpecializedGlossaries,
-  saveSpecializedGlossary,
-  type SpecializedGlossaries,
-} from '@/data/specializedGlossaryStore';
+import { parseSentenceMemoryText, selectSimilarSentencePairs } from '@/data/sentenceMemory';
+import { specializedGlossaryStore } from '@/data/specializedGlossaryStore';
+import { specializedSentenceStore } from '@/data/specializedSentenceStore';
+import { useDomainText } from '@/hooks/use-domain-text';
 import { useToken } from '@/hooks/use-token';
 
 const translationDomains: { id: SpecializedTranslateRequest['domainId']; label: string }[] = [
@@ -41,6 +39,7 @@ export function describeSpecializedTranslationError(error: unknown) {
   if (status === 429) return 'Bạn đã dùng hết hạn mức ký tự dịch hôm nay. Thử lại vào ngày mai.';
   if (code === 'text_too_large') return `Văn bản tối đa ${MAX_SOURCE_CHARS.toLocaleString('vi-VN')} ký tự mỗi lần dịch.`;
   if (code === 'glossary_entry_invalid' || code === 'glossary_entry_duplicate') return 'Glossary có dòng không hợp lệ (mỗi thuật ngữ tối đa 120 ký tự, không trùng).';
+  if (code === 'sentence_example_invalid') return 'Câu mẫu quá dài (tối đa 500 ký tự mỗi câu).';
   return 'Máy chủ dịch tạm thời không phản hồi. Thử lại sau.';
 }
 
@@ -48,31 +47,12 @@ export function SpecializedTranslationToolPanel() {
   const { colors } = useToken();
   const [domainId, setDomainId] = useState<SpecializedTranslateRequest['domainId']>('general');
   const [pairId, setPairId] = useState(languagePairs[0].id);
-  const [glossaries, setGlossaries] = useState<SpecializedGlossaries>({});
+  const [glossaries, setGlossaryText] = useDomainText(specializedGlossaryStore);
+  const [sentenceMemories, setSentenceText] = useDomainText(specializedSentenceStore);
   const [sourceText, setSourceText] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [result, setResult] = useState<SpecializedTranslateResponse | null>(null);
   const [translationError, setTranslationError] = useState('');
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingSave = useRef<{ domainId: string; text: string } | null>(null);
-
-  useEffect(() => {
-    const reload = () => {
-      // A pending local edit is newer than anything stored; reloading now would revert it.
-      if (pendingSave.current) return;
-      loadSpecializedGlossaries().then(setGlossaries).catch(() => undefined);
-    };
-    reload();
-    const unsubscribe = addSpecializedGlossaryListener(reload);
-    return () => {
-      unsubscribe();
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      // Leaving the panel right after typing must not drop the last edit.
-      const pending = pendingSave.current;
-      pendingSave.current = null;
-      if (pending) saveSpecializedGlossary(pending.domainId, pending.text).catch(() => undefined);
-    };
-  }, []);
 
   const glossaryText = glossaries[domainId] ?? '';
   const pair = languagePairs.find((item) => item.id === pairId) ?? languagePairs[0];
@@ -86,22 +66,20 @@ export function SpecializedTranslationToolPanel() {
       return true;
     });
   }, [sourceText, terms]);
+  const sentenceText = sentenceMemories[domainId] ?? '';
+  const sentenceMemory = useMemo(() => parseSentenceMemoryText(sentenceText), [sentenceText]);
+  // Pairs are written in the pair's direction; when translating the other way they are swapped.
+  const directedPairs = useMemo(
+    () => (pair.sourceLang === 'en' ? sentenceMemory.pairs : sentenceMemory.pairs.map((item) => ({ source: item.target, target: item.source }))),
+    [pair.sourceLang, sentenceMemory.pairs]
+  );
+  const similarPairs = useMemo(() => selectSimilarSentencePairs(sourceText, directedPairs), [directedPairs, sourceText]);
   const sourceLength = Array.from(sourceText.trim()).length;
   const canTranslate = sourceLength > 0 && sourceLength <= MAX_SOURCE_CHARS && terms.length <= MAX_GLOSSARY_TERMS && !isTranslating;
 
-  const handleGlossaryChange = (value: string) => {
-    setGlossaries((current) => ({ ...current, [domainId]: value }));
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    pendingSave.current = { domainId, text: value };
-    saveTimer.current = setTimeout(() => {
-      saveTimer.current = null;
-      const pending = pendingSave.current;
-      pendingSave.current = null;
-      if (pending) saveSpecializedGlossary(pending.domainId, pending.text).catch(() => undefined);
-    }, 400);
-  };
+  const handleGlossaryChange = (value: string) => setGlossaryText(domainId, value);
 
-  const handleImportGlossary = async () => {
+  const handleImport = async (kind: 'glossary' | 'sentences') => {
     try {
       const picked = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
@@ -118,17 +96,23 @@ export function SpecializedTranslationToolPanel() {
       if (picked.canceled || !picked.assets?.length) return;
       const asset = picked.assets[0];
       const { lines, skippedRows } = await glossaryLinesFromFile(asset.file ?? new File(asset.uri), asset.name, asset.mimeType ?? '');
-      const merged = mergeGlossaryText(glossaryText, lines);
-      handleGlossaryChange(merged.text);
+      const isGlossary = kind === 'glossary';
+      const merged = mergeGlossaryText(isGlossary ? glossaryText : sentenceText, lines);
+      if (isGlossary) setGlossaryText(domainId, merged.text);
+      else setSentenceText(domainId, merged.text);
       const domainLabel = translationDomains.find((domain) => domain.id === domainId)?.label ?? '';
+      const noun = isGlossary ? 'thuật ngữ' : 'câu mẫu';
       Alert.alert(
-        'Đã nhập glossary',
-        `Thêm ${merged.addedCount} thuật ngữ vào glossary ${domainLabel}.`
-          + (lines.length > merged.addedCount ? ` ${lines.length - merged.addedCount} thuật ngữ đã có được giữ nguyên.` : '')
+        isGlossary ? 'Đã nhập glossary' : 'Đã nhập câu mẫu',
+        `Thêm ${merged.addedCount} ${noun} vào ${isGlossary ? 'glossary' : 'bộ câu mẫu'} ${domainLabel}.`
+          + (lines.length > merged.addedCount ? ` ${lines.length - merged.addedCount} ${noun} đã có được giữ nguyên.` : '')
           + (skippedRows ? ` Bỏ qua ${skippedRows} dòng thiếu cột.` : '')
       );
     } catch {
-      Alert.alert('Không thể nhập glossary', 'Chọn file CSV/TSV, DOCX (bảng 2 cột) hoặc PDF có dòng “thuật ngữ -> bản dịch”.');
+      Alert.alert(
+        kind === 'glossary' ? 'Không thể nhập glossary' : 'Không thể nhập câu mẫu',
+        'Chọn file CSV/TSV, DOCX (bảng 2 cột) hoặc PDF có dòng “câu nguồn -> bản dịch”.'
+      );
     }
   };
 
@@ -144,6 +128,7 @@ export function SpecializedTranslationToolPanel() {
     try {
       setResult(await translateSpecialized({
         domainId,
+        examples: similarPairs,
         glossary: terms,
         sourceLang: pair.sourceLang,
         sourceText: sourceText.trim(),
@@ -165,7 +150,7 @@ export function SpecializedTranslationToolPanel() {
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>Dịch chuyên ngành</Text>
           <Text style={styles.description}>
-            Dịch bằng AI theo chuyên ngành và glossary của bạn. Glossary lưu trên thiết bị và đồng bộ theo tài khoản khi bật Cloud Sync; khi dịch chỉ gửi kèm thuật ngữ có trong đoạn văn. Cần đăng nhập cloud.
+            Dịch bằng AI theo chuyên ngành, glossary và câu mẫu của bạn. Dữ liệu lưu trên thiết bị và đồng bộ theo tài khoản khi bật Cloud Sync; khi dịch chỉ gửi kèm thuật ngữ có trong đoạn văn và tối đa 5 câu mẫu giống nhất. Cần đăng nhập cloud.
           </Text>
         </View>
       </View>
@@ -195,7 +180,7 @@ export function SpecializedTranslationToolPanel() {
       <Touchable
         accessibilityRole="button"
         activeOpacity={0.85}
-        onPress={handleImportGlossary}
+        onPress={() => handleImport('glossary')}
         style={[localStyles.importButton, { borderColor: colors.accentPrimary }]}>
         <Ionicons name="document-attach-outline" size={16} color={colors.accentPrimary} />
         <Text style={[localStyles.importButtonText, { color: colors.accentPrimary }]}>Nhập CSV/TSV/DOCX/PDF</Text>
@@ -222,6 +207,36 @@ export function SpecializedTranslationToolPanel() {
         <Text accessibilityRole="alert" style={[styles.toolStateText, { color: colors.accentError }]}>
           Glossary tối đa {MAX_GLOSSARY_TERMS.toLocaleString('vi-VN')} thuật ngữ mỗi chuyên ngành.
         </Text>
+      ) : null}
+
+      <Text style={styles.toolSectionLabel}>
+        Câu mẫu {translationDomains.find((domain) => domain.id === domainId)?.label} ({sentenceMemory.pairs.length} câu)
+      </Text>
+      <Text style={styles.toolStateText}>Các cặp câu đã dịch chuẩn (tiếng Anh → tiếng Việt). Câu giống đoạn văn nhất được gửi kèm để AI dịch theo cách dùng từ và văn phong của bạn.</Text>
+      <Touchable
+        accessibilityRole="button"
+        activeOpacity={0.85}
+        onPress={() => handleImport('sentences')}
+        style={[localStyles.importButton, { borderColor: colors.accentPrimary }]}>
+        <Ionicons name="document-attach-outline" size={16} color={colors.accentPrimary} />
+        <Text style={[localStyles.importButtonText, { color: colors.accentPrimary }]}>Nhập câu mẫu từ file</Text>
+      </Touchable>
+      <TextInput
+        accessibilityLabel="Câu mẫu"
+        multiline
+        onChangeText={(value) => setSentenceText(domainId, value)}
+        placeholder={'Mỗi dòng một cặp câu, ví dụ:\nThe patient was discharged. → Bệnh nhân đã được xuất viện.'}
+        placeholderTextColor={colors.textTertiary}
+        style={styles.toolTextArea}
+        value={sentenceText}
+      />
+      {sentenceMemory.invalidLines.length ? (
+        <View accessibilityRole="alert" style={styles.toolStateCardError}>
+          <Ionicons name="warning-outline" size={16} color={colors.accentWarning} />
+          <Text style={styles.toolStateText}>
+            Bỏ qua dòng {sentenceMemory.invalidLines.slice(0, 5).join(', ')}{sentenceMemory.invalidLines.length > 5 ? '…' : ''}: cần dạng “câu nguồn → bản dịch”.
+          </Text>
+        </View>
       ) : null}
 
       <Text style={styles.toolSectionLabel}>Văn bản nguồn</Text>
@@ -251,6 +266,15 @@ export function SpecializedTranslationToolPanel() {
         </View>
       ) : null}
 
+      {similarPairs.length ? (
+        <View style={styles.terminologyCard}>
+          <Text style={styles.toolSectionLabel}>Câu mẫu tương tự ({similarPairs.length})</Text>
+          {similarPairs.map((item) => (
+            <Text key={item.source} numberOfLines={2} style={styles.toolStateText}>{item.source} → {item.target}</Text>
+          ))}
+        </View>
+      ) : null}
+
       <Touchable
         accessibilityRole="button"
         accessibilityState={{ busy: isTranslating, disabled: !canTranslate }}
@@ -270,7 +294,7 @@ export function SpecializedTranslationToolPanel() {
           <>
             <Text selectable style={styles.translationOutputText}>{result.translatedText}</Text>
             <Text style={styles.toolStateText}>
-              Đã áp dụng {result.appliedTerms.length} thuật ngữ · {result.characterCount.toLocaleString('vi-VN')} ký tự · Bản dịch AI, hãy kiểm tra lại trước khi dùng chính thức.
+              Đã áp dụng {result.appliedTerms.length} thuật ngữ{result.examplesUsed ? ` và ${result.examplesUsed} câu mẫu` : ''} · {result.characterCount.toLocaleString('vi-VN')} ký tự · Bản dịch AI, hãy kiểm tra lại trước khi dùng chính thức.
             </Text>
           </>
         ) : translationError ? (

@@ -23,22 +23,13 @@ export function isSpecializedGlossaryDomain(value: unknown): value is Specialize
   return SPECIALIZED_GLOSSARY_DOMAINS.includes(value as SpecializedGlossaryDomain);
 }
 
-const listeners = new Set<() => void>();
-
-export function addSpecializedGlossaryListener(listener: () => void) {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-}
-
-// Saves from the editor and sync results both read-modify-write the same key; run them one at a time.
-let queue: Promise<unknown> = Promise.resolve();
-function serialized<T>(task: () => Promise<T>): Promise<T> {
-  const run = queue.then(task, task);
-  queue = run.catch(() => undefined);
-  return run;
-}
+export type DomainTextStore = {
+  addListener: (listener: () => void) => () => void;
+  applySynced: (domainId: SpecializedGlossaryDomain, expectedUpdatedAt: string | null, record: SpecializedGlossaryRecord) => Promise<boolean>;
+  loadRecords: () => Promise<SpecializedGlossaryRecords>;
+  loadTexts: () => Promise<SpecializedGlossaries>;
+  saveText: (domainId: string, text: string, now?: string) => Promise<SpecializedGlossaries>;
+};
 
 function parseRecords(raw: string | null): SpecializedGlossaryRecords | null {
   if (!raw) return null;
@@ -62,9 +53,9 @@ function parseRecords(raw: string | null): SpecializedGlossaryRecords | null {
 }
 
 // v1 stored plain text per domain; it becomes unsynced records so the next sync uploads it.
-async function readLegacyRecords(now: string): Promise<SpecializedGlossaryRecords> {
+async function readLegacyRecords(legacyKey: string, now: string): Promise<SpecializedGlossaryRecords> {
   try {
-    const parsed = JSON.parse((await getStoredItem(LEGACY_SPECIALIZED_GLOSSARY_STORAGE_KEY)) ?? '{}') as unknown;
+    const parsed = JSON.parse((await getStoredItem(legacyKey)) ?? '{}') as unknown;
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
     const records: SpecializedGlossaryRecords = {};
     for (const [domain, text] of Object.entries(parsed as Record<string, unknown>)) {
@@ -78,56 +69,86 @@ async function readLegacyRecords(now: string): Promise<SpecializedGlossaryRecord
   }
 }
 
-async function readRecords(): Promise<SpecializedGlossaryRecords> {
-  const current = parseRecords(await getStoredItem(SPECIALIZED_GLOSSARY_STORAGE_KEY));
-  if (current) return current;
-  const legacy = await readLegacyRecords(new Date().toISOString());
-  if (Object.keys(legacy).length) {
-    await setStoredItem(SPECIALIZED_GLOSSARY_STORAGE_KEY, JSON.stringify(legacy));
-    await removeStoredItem(LEGACY_SPECIALIZED_GLOSSARY_STORAGE_KEY);
+const toTexts = (records: SpecializedGlossaryRecords) =>
+  Object.fromEntries(Object.entries(records).map(([domain, record]) => [domain, record!.text])) as SpecializedGlossaries;
+
+// One text per domain with sync timestamps. Used for glossaries and for sentence memory
+// (data/specializedSentenceStore.ts).
+export function createDomainTextStore({ legacyKey, maxChars, storageKey }: { legacyKey?: string; maxChars: number; storageKey: string }): DomainTextStore {
+  const listeners = new Set<() => void>();
+
+  // Saves from the editor and sync results both read-modify-write the same key; run them one at a time.
+  let queue: Promise<unknown> = Promise.resolve();
+  function serialized<T>(task: () => Promise<T>): Promise<T> {
+    const run = queue.then(task, task);
+    queue = run.catch(() => undefined);
+    return run;
   }
-  return legacy;
-}
 
-async function writeRecords(records: SpecializedGlossaryRecords) {
-  await setStoredItem(SPECIALIZED_GLOSSARY_STORAGE_KEY, JSON.stringify(records));
-  listeners.forEach((listener) => listener());
-}
-
-export function loadSpecializedGlossaryRecords(): Promise<SpecializedGlossaryRecords> {
-  return serialized(readRecords);
-}
-
-export async function loadSpecializedGlossaries(): Promise<SpecializedGlossaries> {
-  const records = await loadSpecializedGlossaryRecords();
-  return Object.fromEntries(Object.entries(records).map(([domain, record]) => [domain, record!.text]));
-}
-
-export function saveSpecializedGlossary(domainId: string, text: string, now = new Date().toISOString()) {
-  return serialized(async () => {
-    const records = await readRecords();
-    if (isSpecializedGlossaryDomain(domainId)) {
-      const previous = records[domainId];
-      // Keep timestamps strictly increasing so an edit is never mistaken for the synced version.
-      const updatedAt = previous && now <= previous.updatedAt ? new Date(Date.parse(previous.updatedAt) + 1).toISOString() : now;
-      records[domainId] = { syncedAt: previous?.syncedAt ?? null, text: text.slice(0, SPECIALIZED_GLOSSARY_MAX_CHARS), updatedAt };
-      await writeRecords(records);
+  async function readRecords(): Promise<SpecializedGlossaryRecords> {
+    const current = parseRecords(await getStoredItem(storageKey));
+    if (current) return current;
+    if (!legacyKey) return {};
+    const legacy = await readLegacyRecords(legacyKey, new Date().toISOString());
+    if (Object.keys(legacy).length) {
+      await setStoredItem(storageKey, JSON.stringify(legacy));
+      await removeStoredItem(legacyKey);
     }
-    return Object.fromEntries(Object.entries(records).map(([domain, record]) => [domain, record!.text])) as SpecializedGlossaries;
-  });
+    return legacy;
+  }
+
+  async function writeRecords(records: SpecializedGlossaryRecords) {
+    await setStoredItem(storageKey, JSON.stringify(records));
+    listeners.forEach((listener) => listener());
+  }
+
+  const loadRecords = () => serialized(readRecords);
+
+  return {
+    addListener(listener) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    // Writes a sync result only if the text was not edited meanwhile (its updatedAt is unchanged).
+    applySynced(domainId, expectedUpdatedAt, record) {
+      return serialized(async () => {
+        const records = await readRecords();
+        if ((records[domainId]?.updatedAt ?? null) !== expectedUpdatedAt) return false;
+        records[domainId] = { ...record, text: record.text.slice(0, maxChars) };
+        await writeRecords(records);
+        return true;
+      });
+    },
+    loadRecords,
+    async loadTexts() {
+      return toTexts(await loadRecords());
+    },
+    saveText(domainId, text, now = new Date().toISOString()) {
+      return serialized(async () => {
+        const records = await readRecords();
+        if (isSpecializedGlossaryDomain(domainId)) {
+          const previous = records[domainId];
+          // Keep timestamps strictly increasing so an edit is never mistaken for the synced version.
+          const updatedAt = previous && now <= previous.updatedAt ? new Date(Date.parse(previous.updatedAt) + 1).toISOString() : now;
+          records[domainId] = { syncedAt: previous?.syncedAt ?? null, text: text.slice(0, maxChars), updatedAt };
+          await writeRecords(records);
+        }
+        return toTexts(records);
+      });
+    },
+  };
 }
 
-// Writes a sync result only if the glossary was not edited meanwhile (its updatedAt is unchanged).
-export function applySyncedGlossary(
-  domainId: SpecializedGlossaryDomain,
-  expectedUpdatedAt: string | null,
-  record: SpecializedGlossaryRecord
-) {
-  return serialized(async () => {
-    const records = await readRecords();
-    if ((records[domainId]?.updatedAt ?? null) !== expectedUpdatedAt) return false;
-    records[domainId] = { ...record, text: record.text.slice(0, SPECIALIZED_GLOSSARY_MAX_CHARS) };
-    await writeRecords(records);
-    return true;
-  });
-}
+export const specializedGlossaryStore = createDomainTextStore({
+  legacyKey: LEGACY_SPECIALIZED_GLOSSARY_STORAGE_KEY,
+  maxChars: SPECIALIZED_GLOSSARY_MAX_CHARS,
+  storageKey: SPECIALIZED_GLOSSARY_STORAGE_KEY,
+});
+
+export const addSpecializedGlossaryListener = specializedGlossaryStore.addListener;
+export const loadSpecializedGlossaryRecords = specializedGlossaryStore.loadRecords;
+export const loadSpecializedGlossaries = specializedGlossaryStore.loadTexts;
+export const saveSpecializedGlossary = specializedGlossaryStore.saveText;
+export const applySyncedGlossary = specializedGlossaryStore.applySynced;

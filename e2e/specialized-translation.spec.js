@@ -30,6 +30,7 @@ test('Specialized translation applies the device glossary and keeps it after rel
   await expect(page.getByText('Đã áp dụng 1 thuật ngữ', { exact: false })).toBeVisible();
   expect(requestBody).toEqual({
     domainId: 'medical',
+    examples: [],
     glossary: [
       { sourceTerm: 'MRI', targetTerm: 'cộng hưởng từ' },
       { sourceTerm: 'ECG', targetTerm: 'điện tâm đồ' },
@@ -46,6 +47,40 @@ test('Specialized translation applies the device glossary and keeps it after rel
   await expect(page.getByLabel('Glossary')).toHaveValue('MRI → cộng hưởng từ\nECG → điện tâm đồ\nbroken line');
   await page.getByText('Chung', { exact: true }).click();
   await expect(page.getByLabel('Glossary')).toHaveValue('');
+});
+
+test('Specialized translation sends the most similar sentence pairs from the sentence memory', async ({ page }) => {
+  let requestBody = null;
+  await page.route('**/backend-proxy/proxy/translate/specialized', (route) => {
+    requestBody = route.request().postDataJSON();
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ appliedTerms: [], characterCount: 37, examplesUsed: 1, provider: 'openai', translatedText: 'Bệnh nhân đã được xuất viện hôm qua.' }),
+    });
+  });
+
+  await page.goto('/advanced');
+  await page.getByText('Dịch chuyên ngành', { exact: true }).first().click();
+  await page.getByText('Y khoa', { exact: true }).click();
+  await page.getByLabel('Câu mẫu').fill([
+    'The patient was discharged. → Bệnh nhân đã được xuất viện.',
+    'The contract is terminated. → Hợp đồng bị chấm dứt.',
+  ].join('\n'));
+  await expect(page.getByText('Câu mẫu Y khoa (2 câu)', { exact: false })).toBeVisible();
+
+  await page.getByLabel('Văn bản nguồn').fill('The patient was discharged yesterday.');
+  await expect(page.getByText('Câu mẫu tương tự (1)')).toBeVisible();
+  await page.getByRole('button', { name: 'Dịch theo glossary' }).click();
+
+  await expect(page.getByText('Đã áp dụng 0 thuật ngữ và 1 câu mẫu', { exact: false })).toBeVisible();
+  expect(requestBody.examples).toEqual([{ source: 'The patient was discharged.', target: 'Bệnh nhân đã được xuất viện.' }]);
+
+  // Việt → Anh uses the same pairs in the other direction.
+  await page.getByText('Việt → Anh', { exact: true }).click();
+  await page.getByLabel('Văn bản nguồn').fill('Hợp đồng bị chấm dứt vào tháng trước.');
+  await page.getByRole('button', { name: 'Dịch theo glossary' }).click();
+  await expect.poll(() => requestBody.sourceLang).toBe('vi');
+  expect(requestBody.examples).toEqual([{ source: 'Hợp đồng bị chấm dứt.', target: 'The contract is terminated.' }]);
 });
 
 test('Specialized translation explains a missing sign-in', async ({ page }) => {

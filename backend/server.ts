@@ -337,6 +337,7 @@ export function createServer(deps: ServerDependencies) {
       res.json({
         appliedTerms,
         characterCount: validation.data.characterCount,
+        examplesUsed: validation.data.examples.length,
         provider: 'openai',
         translatedText: completion.content.trim(),
       });

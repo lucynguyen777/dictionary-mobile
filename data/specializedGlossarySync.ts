@@ -5,11 +5,12 @@
 import { parseGlossaryText, type GlossaryTerm } from './glossaryMatching';
 import {
   SPECIALIZED_GLOSSARY_DOMAINS,
-  applySyncedGlossary,
   isSpecializedGlossaryDomain,
-  loadSpecializedGlossaryRecords,
+  specializedGlossaryStore,
+  type DomainTextStore,
   type SpecializedGlossaryDomain,
 } from './specializedGlossaryStore';
+import { specializedSentenceStore } from './specializedSentenceStore';
 
 const GLOSSARY_ID_PREFIX = 'specialized-';
 
@@ -36,9 +37,13 @@ export type SpecializedGlossarySyncResult = {
 
 const later = (a: string, b: string) => Date.parse(a) > Date.parse(b);
 
-export async function syncSpecializedGlossaries(remote: SpecializedGlossaryRemote): Promise<SpecializedGlossarySyncResult> {
+// Also syncs sentence memory (same store shape and line format) when given that store and remote.
+export async function syncSpecializedGlossaries(
+  remote: SpecializedGlossaryRemote,
+  store: DomainTextStore = specializedGlossaryStore
+): Promise<SpecializedGlossarySyncResult> {
   const result: SpecializedGlossarySyncResult = { pulled: [], pushed: [] };
-  const [records, remoteList] = await Promise.all([loadSpecializedGlossaryRecords(), remote.listGlossaries()]);
+  const [records, remoteList] = await Promise.all([store.loadRecords(), remote.listGlossaries()]);
   const remoteByDomain = new Map(remoteList.map((summary) => [summary.domainId, summary]));
 
   for (const domainId of SPECIALIZED_GLOSSARY_DOMAINS) {
@@ -51,7 +56,7 @@ export async function syncSpecializedGlossaries(remote: SpecializedGlossaryRemot
     if (shouldPull) {
       const terms = await remote.loadTerms(domainId);
       const text = terms.map((term) => `${term.sourceTerm} → ${term.targetTerm}`).join('\n');
-      const applied = await applySyncedGlossary(domainId, local?.updatedAt ?? null, {
+      const applied = await store.applySynced(domainId, local?.updatedAt ?? null, {
         syncedAt: remoteSummary!.updatedAt,
         text,
         updatedAt: remoteSummary!.updatedAt,
@@ -63,7 +68,7 @@ export async function syncSpecializedGlossaries(remote: SpecializedGlossaryRemot
     if (localDirty && local) {
       await remote.replaceGlossary(domainId, parseGlossaryText(local.text).terms, local.updatedAt);
       // Marks the pushed version as synced unless the user edited again while it uploaded.
-      const applied = await applySyncedGlossary(domainId, local.updatedAt, { ...local, syncedAt: local.updatedAt });
+      const applied = await store.applySynced(domainId, local.updatedAt, { ...local, syncedAt: local.updatedAt });
       if (applied) result.pushed.push(domainId);
     }
   }
@@ -178,10 +183,101 @@ export function createSupabaseGlossaryRemote(client: GlossarySupabaseClient): Sp
   };
 }
 
-// Runs glossary sync with the app's signed-in Supabase client; skipped when auth is not configured.
+const SENTENCE_DATASET_ID_PREFIX = 'specialized-sentences-';
+
+// Sentence memory lives in `translation_datasets` / `translation_dataset_entries` (migration 002,
+// owner RLS): one dataset per domain, entries of type "sentence".
+export function createSupabaseSentenceRemote(client: GlossarySupabaseClient): SpecializedGlossaryRemote {
+  const requireUserId = async () => {
+    const { data } = await client.auth.getSession();
+    const userId = data.session?.user.id;
+    if (!userId) throw new Error('glossary_sync_signed_out');
+    return userId;
+  };
+
+  const listGlossaries = async (): Promise<RemoteGlossarySummary[]> => {
+    const { data } = throwOnError(
+      await client.from('translation_datasets').select('id, updated_at').like('id', `${SENTENCE_DATASET_ID_PREFIX}%`).is('deleted_at', null),
+      'glossary_sync_list_failed'
+    );
+    return ((data ?? []) as { id: string; updated_at: string }[])
+      .map((row) => ({ domainId: row.id.slice(SENTENCE_DATASET_ID_PREFIX.length), updatedAt: new Date(row.updated_at).toISOString() }))
+      .filter((row): row is RemoteGlossarySummary => isSpecializedGlossaryDomain(row.domainId));
+  };
+
+  return {
+    listGlossaries,
+
+    async loadTerms(domainId) {
+      const { data } = throwOnError(
+        await client
+          .from('translation_dataset_entries')
+          .select('source_text, target_text')
+          .eq('dataset_id', `${SENTENCE_DATASET_ID_PREFIX}${domainId}`)
+          .is('deleted_at', null)
+          .order('source_text', { ascending: true }),
+        'glossary_sync_entries_failed'
+      );
+      return ((data ?? []) as { source_text: string; target_text: string }[])
+        .map((row) => ({ sourceTerm: row.source_text, targetTerm: row.target_text }));
+    },
+
+    // Same order as glossaries: entries first, then the dataset's updated_at marks the upload complete.
+    async replaceGlossary(domainId, terms, updatedAt) {
+      const userId = await requireUserId();
+      const datasetId = `${SENTENCE_DATASET_ID_PREFIX}${domainId}`;
+      const datasetRow = { domain_id: domainId, id: datasetId, name: `Câu mẫu ${DOMAIN_NAMES[domainId]}`, user_id: userId };
+      const isNew = !(await listGlossaries()).some((summary) => summary.domainId === domainId);
+      if (isNew) {
+        throwOnError(
+          await client.from('translation_datasets').upsert([{ ...datasetRow, updated_at: new Date(0).toISOString() }], { onConflict: 'user_id,id' }),
+          'glossary_sync_push_failed'
+        );
+      }
+      const entries = terms.map((term) => ({
+        dataset_id: datasetId,
+        domain_id: domainId,
+        id: entryId(datasetId, term.sourceTerm),
+        source_text: term.sourceTerm,
+        target_text: term.targetTerm,
+        type: 'sentence',
+        updated_at: updatedAt,
+        user_id: userId,
+      }));
+      for (let index = 0; index < entries.length; index += 200) {
+        throwOnError(
+          await client.from('translation_dataset_entries').upsert(entries.slice(index, index + 200), { onConflict: 'user_id,id' }),
+          'glossary_sync_push_failed'
+        );
+      }
+      const { data: existing } = throwOnError(
+        await client.from('translation_dataset_entries').select('id').eq('dataset_id', datasetId),
+        'glossary_sync_push_failed'
+      );
+      const keep = new Set(entries.map((entry) => entry.id));
+      const stale = ((existing ?? []) as { id: string }[]).map((row) => row.id).filter((id) => !keep.has(id));
+      for (let index = 0; index < stale.length; index += 200) {
+        throwOnError(
+          await client.from('translation_dataset_entries').delete().eq('dataset_id', datasetId).in('id', stale.slice(index, index + 200)),
+          'glossary_sync_push_failed'
+        );
+      }
+      throwOnError(
+        await client.from('translation_datasets').upsert([{ ...datasetRow, updated_at: updatedAt }], { onConflict: 'user_id,id' }),
+        'glossary_sync_push_failed'
+      );
+    },
+  };
+}
+
+// Runs glossary and sentence-memory sync with the app's signed-in Supabase client; skipped when
+// auth is not configured.
 export async function syncSpecializedGlossariesWithSharedClient() {
   const { getSharedSupabaseAuthClient } = await import('./supabaseAuthClient');
   const auth = getSharedSupabaseAuthClient();
   if (auth.status !== 'configured') return null;
-  return syncSpecializedGlossaries(createSupabaseGlossaryRemote(auth.client as unknown as GlossarySupabaseClient));
+  const client = auth.client as unknown as GlossarySupabaseClient;
+  const glossaries = await syncSpecializedGlossaries(createSupabaseGlossaryRemote(client));
+  const sentences = await syncSpecializedGlossaries(createSupabaseSentenceRemote(client), specializedSentenceStore);
+  return { glossaries, sentences };
 }

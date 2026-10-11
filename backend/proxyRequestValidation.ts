@@ -1,5 +1,6 @@
 import type { BackendProxyLimits } from './proxyConfig';
 import type { UserProviderSecretScope } from './userProviderSecrets';
+import { MAX_SENTENCE_EXAMPLE_CHARS, MAX_SENTENCE_EXAMPLES, type SentencePair } from '../data/sentenceMemory';
 
 export const AI_CHAT_MAX_MESSAGES = 20;
 export const AI_CHAT_MAX_MESSAGE_CHARS = 4_000;
@@ -14,6 +15,7 @@ export type ProxyValidationErrorCode =
   | 'glossary_entry_invalid'
   | 'glossary_language_mismatch'
   | 'provider_secret_invalid'
+  | 'sentence_example_invalid'
   | 'text_too_large'
   | 'unsupported_language_pair'
   | 'voice_feedback_audio_not_supported';
@@ -87,6 +89,7 @@ export type SpecializedTranslationDomain = (typeof SPECIALIZED_TRANSLATION_DOMAI
 
 export type SpecializedTranslateRequest = {
   domainId?: unknown;
+  examples?: unknown;
   glossary?: unknown;
   sourceLang?: unknown;
   sourceText?: unknown;
@@ -96,6 +99,7 @@ export type SpecializedTranslateRequest = {
 export type ValidatedSpecializedTranslateRequest = {
   characterCount: number;
   domainId: SpecializedTranslationDomain;
+  examples: SentencePair[];
   glossary: ValidatedGlossaryEntry[];
   sourceLang: string;
   sourceText: string;
@@ -238,8 +242,24 @@ export function validateSpecializedTranslateRequest(
     entries.push({ sourceTerm, targetTerm });
   }
 
+  // Reference sentence pairs the device picked from the user's sentence memory (data/sentenceMemory.ts).
+  const rawExamples = request.examples === undefined ? [] : request.examples;
+  if (!Array.isArray(rawExamples) || rawExamples.length > MAX_SENTENCE_EXAMPLES) {
+    return invalid('sentence_example_invalid', 'examples', `At most ${MAX_SENTENCE_EXAMPLES} reference sentences are allowed.`);
+  }
+  const examples: SentencePair[] = [];
+  for (let index = 0; index < rawExamples.length; index += 1) {
+    const example = (rawExamples[index] ?? {}) as { source?: unknown; target?: unknown };
+    const source = sanitizeSentenceExample(example.source);
+    const target = sanitizeSentenceExample(example.target);
+    if (!source || !target) {
+      return invalid('sentence_example_invalid', `examples.${index}`, 'Reference sentences require a source and a target.');
+    }
+    examples.push({ source, target });
+  }
+
   const domainId = SPECIALIZED_TRANSLATION_DOMAINS.find((domain) => domain === request.domainId) ?? 'general';
-  return { data: { characterCount, domainId, glossary: entries, sourceLang, sourceText, targetLang }, ok: true };
+  return { data: { characterCount, domainId, examples, glossary: entries, sourceLang, sourceText, targetLang }, ok: true };
 }
 
 export function validateGlossaryRequest(
@@ -432,6 +452,12 @@ function sanitizeGlossaryTerm(value: unknown) {
 
 function hasControlCharacters(value: string) {
   return /[\u0000-\u001f\u007f]/u.test(value);
+}
+
+function sanitizeSentenceExample(value: unknown) {
+  const text = readTrimmedString(value);
+  if (!text || hasControlCharacters(text) || countCodePoints(text) > MAX_SENTENCE_EXAMPLE_CHARS) return undefined;
+  return text;
 }
 
 function countCodePoints(value: string) {

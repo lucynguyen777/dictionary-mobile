@@ -18,7 +18,13 @@ import {
   loadSpecializedGlossaryRecords,
   saveSpecializedGlossary,
 } from '../data/specializedGlossaryStore';
-import { createSupabaseGlossaryRemote, syncSpecializedGlossaries, type SpecializedGlossaryRemote } from '../data/specializedGlossarySync';
+import {
+  createSupabaseGlossaryRemote,
+  createSupabaseSentenceRemote,
+  syncSpecializedGlossaries,
+  type SpecializedGlossaryRemote,
+} from '../data/specializedGlossarySync';
+import { specializedSentenceStore } from '../data/specializedSentenceStore';
 import { createPgliteQueryClient } from './helpers/pgliteQueryBuilder';
 import { createAuthUser, createSupabaseTestDatabase } from './helpers/supabaseTestDatabase';
 
@@ -115,5 +121,46 @@ describe('specialized glossary sync (Postgres + RLS)', () => {
     const oldPhone = new Map([[LEGACY_SPECIALIZED_GLOSSARY_STORAGE_KEY, JSON.stringify({ general: 'hello → xin chào', bogus: 'x → y' })]]);
     expect(await on(oldPhone, () => syncSpecializedGlossaries(remoteFor(BOB)))).toEqual({ pulled: [], pushed: ['general'] });
     expect(oldPhone.has(LEGACY_SPECIALIZED_GLOSSARY_STORAGE_KEY)).toBe(false);
+  });
+});
+
+describe('specialized sentence memory sync (Postgres + RLS)', () => {
+  const sentenceRemoteFor = (userId: string) => createSupabaseSentenceRemote(createPgliteQueryClient(db, userId));
+  const syncSentences = (userId: string) => syncSpecializedGlossaries(sentenceRemoteFor(userId), specializedSentenceStore);
+
+  it('mirrors sentence pairs to translation datasets and back, per account', async () => {
+    const phoneA = new Map<string, string>();
+    const laptopA = new Map<string, string>();
+    await on(phoneA, () => specializedSentenceStore.saveText(
+      'medical',
+      'The patient was discharged. → Bệnh nhân đã được xuất viện.\nThe patient has a fever. → Bệnh nhân bị sốt.',
+      '2026-10-11T13:00:00.000Z'
+    ));
+    expect(await on(phoneA, () => syncSentences(ALICE))).toEqual({ pulled: [], pushed: ['medical'] });
+
+    const rows = await db.query(
+      "select dataset_id, type, domain_id from public.translation_dataset_entries where user_id = $1 order by source_text",
+      [ALICE]
+    );
+    expect(rows.rows).toEqual([
+      { dataset_id: 'specialized-sentences-medical', domain_id: 'medical', type: 'sentence' },
+      { dataset_id: 'specialized-sentences-medical', domain_id: 'medical', type: 'sentence' },
+    ]);
+
+    expect(await on(laptopA, () => syncSentences(ALICE))).toEqual({ pulled: ['medical'], pushed: [] });
+    expect((await on(laptopA, specializedSentenceStore.loadTexts)).medical).toBe(
+      'The patient has a fever. → Bệnh nhân bị sốt.\nThe patient was discharged. → Bệnh nhân đã được xuất viện.'
+    );
+
+    // Removing a pair on one device removes it everywhere; glossaries are untouched.
+    await on(laptopA, () => specializedSentenceStore.saveText('medical', 'The patient has a fever. → Bệnh nhân bị sốt.', '2026-10-11T13:10:00.000Z'));
+    await on(laptopA, () => syncSentences(ALICE));
+    await on(phoneA, () => syncSentences(ALICE));
+    expect((await on(phoneA, specializedSentenceStore.loadTexts)).medical).toBe('The patient has a fever. → Bệnh nhân bị sốt.');
+    expect(await on(phoneA, loadSpecializedGlossaries)).toEqual({});
+
+    const bobDevice = new Map<string, string>();
+    expect(await on(bobDevice, () => syncSentences(BOB))).toEqual({ pulled: [], pushed: [] });
+    expect(await on(bobDevice, specializedSentenceStore.loadTexts)).toEqual({});
   });
 });

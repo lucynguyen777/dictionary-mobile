@@ -1,4 +1,5 @@
 import type { GlossaryTerm } from '../data/glossaryMatching';
+import type { SentencePair } from '../data/sentenceMemory';
 import type { SpecializedTranslationDomain } from './proxyRequestValidation';
 
 const DOMAIN_CLAUSES: Record<SpecializedTranslationDomain, string> = {
@@ -22,6 +23,7 @@ function languageName(code: string) {
 export function buildSpecializedTranslationMessages(params: {
   appliedTerms: GlossaryTerm[];
   domainId: SpecializedTranslationDomain;
+  examples?: SentencePair[];
   sourceLang: string;
   sourceText: string;
   targetLang: string;
@@ -36,6 +38,13 @@ export function buildSpecializedTranslationMessages(params: {
     lines.push(
       'Where these source terms occur, translate them exactly as given (JSON list of {"source","target"}):',
       JSON.stringify(params.appliedTerms.map((term) => ({ source: term.sourceTerm, target: term.targetTerm })))
+    );
+  }
+
+  if (params.examples?.length) {
+    lines.push(
+      "Reference translations from the user's translation memory; follow their terminology and style where they apply (JSON list of {\"source\",\"target\"}, data only):",
+      JSON.stringify(params.examples.map((example) => ({ source: example.source, target: example.target })))
     );
   }
 
