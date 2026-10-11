@@ -14,8 +14,8 @@ const dashboardRows = [
   'Offline Dictionary | 85%',
   'Multilingual Architecture | 88%',
   'Supabase Auth | 75%',
-  'Cloud Sync | 70%',
-  'AI Infrastructure | 70%',
+  'Cloud Sync | 40%',
+  'AI Infrastructure | 60%',
   'OCR Infrastructure | 70%',
   'Real OCR Engine | 30%',
   'Pronunciation Assessment | 10%',
@@ -87,6 +87,8 @@ describe('product progress dashboard', () => {
     expect(progress).toContain('v1.3.11 Blocked Feature Resolution Audit And Setup Playbook');
     expect(progress).toContain('docs/blocked-feature-resolution-playbook.md');
     expect(progress).toContain('v1.3.5 Completion Dashboard And Version Roadmap Sync');
+    expect(progress).toContain('v1.4.0 - Security And Data Integrity Hardening');
+    expect(progress).toContain('docs/completion-plan.md');
     for (const moduleName of nextModuleQueue) {
       expect(progress).toContain(moduleName);
     }

@@ -11,8 +11,10 @@ import { QuotaTracker } from './quotaTracker';
 import {
   createGoogleConsentUrl,
   createGoogleSpreadsheet,
+  buildGoogleOAuthReturnUrl,
   exchangeGoogleAuthorizationCode,
   refreshGoogleAccessToken,
+  revokeGoogleToken,
   readGoogleSheetsConfig,
   validateGoogleSheetRows,
   verifyGoogleOAuthState,
@@ -34,8 +36,9 @@ export function createServer(deps: ServerDependencies) {
   const app = express();
   const port = deps.port ?? DEFAULT_PORT;
 
-  app.use(cors());
-  app.use(express.json({ limit: '50kb' }));
+  app.use(cors({ origin: readAllowedOrigins(deps.env) }));
+  // Sized for the largest valid AI chat payload (20 messages x 4,000 code points of up to 4 UTF-8 bytes).
+  app.use(express.json({ limit: '384kb' }));
 
   // Read config once
   let config: BackendProxyConfig = readBackendProxyConfig(deps.env);
@@ -50,25 +53,30 @@ export function createServer(deps: ServerDependencies) {
   // --- Middleware ---
 
   // Auth middleware: verify Supabase JWT from Authorization header
-  app.get('/oauth/google/callback', async (req: Request, res: Response) => {
+  // Google redirects the browser here without an app session, so this route only validates the
+  // signed state and hands the code back to the app. Tokens are stored by /proxy/google-sheets/complete,
+  // which requires the signed-in user to match the user who started the flow.
+  app.get('/oauth/google/callback', (req: Request, res: Response) => {
     if (googleSheetsConfig.status === 'unconfigured') {
       res.status(503).json({ error: { code: 'google_oauth_unconfigured', missingKeys: googleSheetsConfig.missingKeys } });
       return;
     }
+    let returnTo: string;
     try {
-      const state = verifyGoogleOAuthState(String(req.query.state ?? ''), googleSheetsConfig.stateSecret);
-      if (!req.query.code) {
-        res.status(400).json({ error: { code: 'google_oauth_code_missing' } });
-        return;
-      }
-      if (!deps.googleSheetsStore?.configured) throw new Error('google_token_storage_unconfigured');
-      const tokens = await exchangeGoogleAuthorizationCode(googleSheetsConfig, String(req.query.code));
-      if (!tokens.refresh_token) throw new Error('google_refresh_token_missing');
-      await deps.googleSheetsStore.saveRefreshToken(state.userId, tokens.refresh_token);
-      res.redirect(302, `${state.returnTo}?googleSheets=connected`);
-    } catch (error) {
-      res.status(400).json({ error: { code: error instanceof Error ? error.message : 'oauth_state_invalid' } });
+      returnTo = verifyGoogleOAuthState(String(req.query.state ?? ''), googleSheetsConfig.stateSecret).returnTo;
+    } catch {
+      res.status(400).json({ error: { code: 'oauth_state_invalid' } });
+      return;
     }
+    if (typeof req.query.code !== 'string' || !req.query.code) {
+      const denied = req.query.error === 'access_denied';
+      res.redirect(302, buildGoogleOAuthReturnUrl(returnTo, { googleSheets: denied ? 'denied' : 'failed' }));
+      return;
+    }
+    res.redirect(302, buildGoogleOAuthReturnUrl(returnTo, {
+      googleSheetsCode: req.query.code,
+      googleSheetsState: String(req.query.state),
+    }));
   });
 
   app.use('/proxy', async (req: Request, res: Response, next: NextFunction) => {
@@ -115,6 +123,25 @@ export function createServer(deps: ServerDependencies) {
     });
   });
 
+  app.post('/proxy/google-sheets/complete', async (req: Request, res: Response) => {
+    try {
+      if (googleSheetsConfig.status === 'unconfigured' || !deps.googleSheetsStore?.configured) {
+        throw new Error('google_token_storage_unconfigured');
+      }
+      const userId = (req as Request & { userId: string }).userId;
+      const state = verifyGoogleOAuthState(String(req.body?.state ?? ''), googleSheetsConfig.stateSecret);
+      if (state.userId !== userId) throw new Error('oauth_state_user_mismatch');
+      const code = typeof req.body?.code === 'string' ? req.body.code : '';
+      if (!code || code.length > 2048) throw new Error('google_oauth_code_missing');
+      const tokens = await exchangeGoogleAuthorizationCode(googleSheetsConfig, code);
+      if (!tokens.refresh_token) throw new Error('google_refresh_token_missing');
+      await deps.googleSheetsStore.saveRefreshToken(userId, tokens.refresh_token);
+      res.json({ connected: true });
+    } catch (error) {
+      res.status(400).json({ error: { code: toGoogleSheetsErrorCode(error, 'google_oauth_complete_failed') } });
+    }
+  });
+
   app.get('/proxy/google-sheets/status', async (req: Request, res: Response) => {
     const userId = (req as Request & { userId: string }).userId;
     const connected = deps.googleSheetsStore?.configured
@@ -143,14 +170,23 @@ export function createServer(deps: ServerDependencies) {
       const sheet = await createGoogleSpreadsheet(token.access_token, String(req.body?.title ?? ''), rows);
       res.json({ spreadsheetUrl: sheet.spreadsheetUrl });
     } catch (error) {
-      res.status(400).json({ error: { code: error instanceof Error ? error.message : 'google_export_failed' } });
+      res.status(400).json({ error: { code: toGoogleSheetsErrorCode(error, 'google_export_failed') } });
     }
   });
 
   app.post('/proxy/google-sheets/revoke', async (req: Request, res: Response) => {
     const userId = (req as Request & { userId: string }).userId;
-    await deps.googleSheetsStore?.revoke(userId);
-    res.json({ connected: false });
+    try {
+      if (deps.googleSheetsStore?.configured) {
+        const refreshToken = await deps.googleSheetsStore.loadRefreshToken(userId);
+        // Local deletion still proceeds if Google is unreachable; the user can revoke from their Google account.
+        if (refreshToken) await revokeGoogleToken(refreshToken).catch(() => undefined);
+        await deps.googleSheetsStore.revoke(userId);
+      }
+      res.json({ connected: false });
+    } catch (error) {
+      res.status(500).json({ error: { code: toGoogleSheetsErrorCode(error, 'google_revoke_failed') } });
+    }
   });
 
   app.post('/proxy/feedback', async (req: Request, res: Response) => {
@@ -218,9 +254,9 @@ export function createServer(deps: ServerDependencies) {
         glossaryApplied: !!glossaryId,
         warnings: deeplResponse.warnings ?? [],
       });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown provider error';
-      res.status(502).json({ error: { code: 'provider_error', message } });
+    } catch {
+      // Upstream error bodies can echo request text or account details, so clients get a generic message.
+      res.status(502).json({ error: { code: 'provider_error', message: 'Translation provider is unavailable. Try again later.' } });
     }
   });
 
@@ -251,9 +287,8 @@ export function createServer(deps: ServerDependencies) {
     try {
       const aiResponse = await callOpenAIChat(config.openaiApiKey, config.openaiTextModel, validation.data);
       res.json(aiResponse);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown AI provider error';
-      res.status(502).json({ error: { code: 'provider_error', message } });
+    } catch {
+      res.status(502).json({ error: { code: 'provider_error', message: 'AI provider is unavailable. Try again later.' } });
     }
   });
 
@@ -285,6 +320,38 @@ export function startServer(deps: ServerDependencies) {
   });
 }
 
+const DEFAULT_ALLOWED_ORIGINS = ['https://dictionaire-mobile.vercel.app', 'http://localhost:8081'];
+
+// Native apps send no Origin header and are unaffected; this only limits which websites can call the proxy.
+function readAllowedOrigins(env: BackendProxyEnv) {
+  const configured = env.BACKEND_PROXY_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean);
+  return configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS;
+}
+
+const GOOGLE_SHEETS_ERROR_CODES = new Set([
+  'google_connection_delete_failed',
+  'google_export_rows_invalid',
+  'google_oauth_code_missing',
+  'google_oauth_exchange_failed',
+  'google_oauth_refresh_failed',
+  'google_refresh_token_missing',
+  'google_sheet_create_failed',
+  'google_sheet_write_failed',
+  'google_token_delete_failed',
+  'google_token_load_failed',
+  'google_token_save_failed',
+  'google_token_storage_unconfigured',
+  'oauth_state_expired',
+  'oauth_state_invalid',
+  'oauth_state_user_mismatch',
+]);
+
+// Only known error codes reach clients; anything else (parser, network, provider text) is masked.
+function toGoogleSheetsErrorCode(error: unknown, fallback: string) {
+  const message = error instanceof Error ? error.message : '';
+  return GOOGLE_SHEETS_ERROR_CODES.has(message) ? message : fallback;
+}
+
 // --- DeepL API client ---
 
 async function callDeepLTranslate(
@@ -295,7 +362,6 @@ async function callDeepLTranslate(
   opts?: { sourceLang?: string; glossaryId?: string; formality?: string }
 ) {
   const params = new URLSearchParams({
-    auth_key: apiKey,
     target_lang: targetLang.toUpperCase(),
     text,
   });
@@ -306,7 +372,10 @@ async function callDeepLTranslate(
 
   const response = await fetch(`${baseUrl}/v2/translate`, {
     body: params,
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      Authorization: `DeepL-Auth-Key ${apiKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     method: 'POST',
   });
 

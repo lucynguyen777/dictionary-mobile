@@ -79,7 +79,7 @@ export function verifyGoogleOAuthState(value: string, secret: string, now = Date
 
   const state = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as OAuthState;
   if (!state.userId || !state.nonce || state.expiresAt <= now) throw new Error('oauth_state_expired');
-  return state;
+  return { ...state, returnTo: normalizeReturnTo(state.returnTo) };
 }
 
 export function validateGoogleSheetRows(rows: unknown) {
@@ -160,7 +160,25 @@ function sign(payload: string, secret: string) {
   return createHmac('sha256', secret).update(payload).digest('base64url');
 }
 
-function normalizeReturnTo(value?: string) {
-  if (!value?.startsWith('/')) return '/advanced';
-  return value.slice(0, 200);
+const DEFAULT_RETURN_TO = '/advanced';
+// Same-origin app paths only: rejects `//host`, `/\host`, schemes, queries, and fragments.
+const SAFE_RETURN_TO = /^\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/;
+
+export function normalizeReturnTo(value?: string) {
+  if (!value || value.length > 200 || !SAFE_RETURN_TO.test(value)) return DEFAULT_RETURN_TO;
+  return value;
+}
+
+export function buildGoogleOAuthReturnUrl(returnTo: string, params: Record<string, string>) {
+  return `${normalizeReturnTo(returnTo)}?${new URLSearchParams(params)}`;
+}
+
+export async function revokeGoogleToken(token: string) {
+  const response = await fetch('https://oauth2.googleapis.com/revoke', {
+    body: new URLSearchParams({ token }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    method: 'POST',
+  });
+  // 400 means Google already considers the token invalid, which is the desired end state.
+  if (!response.ok && response.status !== 400) throw new Error('google_token_revoke_failed');
 }

@@ -61,8 +61,10 @@ export function createGoogleSheetsStore(client: SupabaseClient, env: UserProvide
       if (secret.error) throw new Error('google_token_save_failed');
     },
     async revoke(userId: string) {
-      await client.from('user_provider_secret_envelopes').delete().eq('user_id', userId).eq('connection_id', CONNECTION_ID);
-      await client.from('user_provider_connections').delete().eq('user_id', userId).eq('id', CONNECTION_ID);
+      const secret = await client.from('user_provider_secret_envelopes').delete().eq('user_id', userId).eq('connection_id', CONNECTION_ID);
+      if (secret.error) throw new Error('google_token_delete_failed');
+      const connection = await client.from('user_provider_connections').delete().eq('user_id', userId).eq('id', CONNECTION_ID);
+      if (connection.error) throw new Error('google_connection_delete_failed');
     },
   };
 }

@@ -206,6 +206,58 @@ export const USER_DATABASE_SCHEMA_SQL = [
   'CREATE INDEX IF NOT EXISTS reader_documents_sync_status_idx ON reader_documents(sync_status, updated_at)',
 ] as const;
 
+// Oldest schema whose data may already have been removed from AsyncStorage by legacy cleanup,
+// which only runs once SQLite holds this version. From here on, data must never be re-imported.
+export const FIRST_SQLITE_ONLY_USER_DATABASE_SCHEMA_VERSION = 2;
+
+// Additive upgrade statements keyed by the schema version they produce. Each step must keep existing
+// rows (ALTER TABLE ... ADD COLUMN, CREATE TABLE/INDEX IF NOT EXISTS, backfill UPDATEs), never drop data.
+// When bumping USER_DATABASE_SCHEMA_VERSION, add the matching entry here and update the CREATE TABLE above.
+export type UserDatabaseUpgrades = Readonly<Record<number, readonly string[]>>;
+export const USER_DATABASE_UPGRADES: UserDatabaseUpgrades = {};
+
+export type UserDatabaseMigrationPlan =
+  | { kind: 'current' }
+  | { kind: 'import-legacy' }
+  | { kind: 'upgrade'; fromVersion: number }
+  | { kind: 'newer-than-app'; storedVersion: number };
+
+export function planUserDatabaseMigration(
+  storedVersion: string | null | undefined,
+  currentVersion = USER_DATABASE_SCHEMA_VERSION
+): UserDatabaseMigrationPlan {
+  const version = storedVersion == null ? Number.NaN : Number.parseInt(storedVersion, 10);
+  if (!Number.isFinite(version) || version < FIRST_SQLITE_ONLY_USER_DATABASE_SCHEMA_VERSION) {
+    return { kind: 'import-legacy' };
+  }
+  if (version === currentVersion) return { kind: 'current' };
+  if (version > currentVersion) return { kind: 'newer-than-app', storedVersion: version };
+  return { fromVersion: version, kind: 'upgrade' };
+}
+
+export async function upgradeUserDatabaseSchema(
+  database: UserSqliteDatabase,
+  fromVersion: number,
+  { targetVersion = USER_DATABASE_SCHEMA_VERSION, upgrades = USER_DATABASE_UPGRADES } = {}
+) {
+  for (let version = fromVersion + 1; version <= targetVersion; version += 1) {
+    if (!upgrades[version]) throw new Error(`Missing user database upgrade to schema version ${version}.`);
+  }
+
+  await database.withTransactionAsync(async () => {
+    for (let version = fromVersion + 1; version <= targetVersion; version += 1) {
+      for (const statement of upgrades[version]) {
+        await database.execAsync(statement);
+      }
+    }
+    await database.runAsync(
+      'INSERT OR REPLACE INTO user_database_meta (key, value) VALUES (?, ?)',
+      'schema_version',
+      String(targetVersion)
+    );
+  });
+}
+
 export async function ensureUserDatabaseSchema(database: UserSqliteDatabase) {
   for (const statement of USER_DATABASE_SCHEMA_SQL) {
     await database.execAsync(statement);
