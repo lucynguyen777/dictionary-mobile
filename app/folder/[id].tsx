@@ -5,13 +5,12 @@ import { Alert, Image, ScrollView, Text, TextInput, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 
 import Screen from '@/components/app/Screen';
+import { exportFolderWithAlert } from '@/components/library/exportFolder';
 import { useFolderStyles } from '@/components/library/folderDetailStyles';
 import {
   LibraryState,
   SavedWord,
   deleteFolder,
-  exportFolderToCsv,
-  exportFolderToExcel,
   getDefaultLibraryState,
   getFavoriteFolderId,
   getFolderById,
@@ -74,17 +73,10 @@ export default function FolderDetailScreen() {
     });
   }, [folderId, libraryState, query]);
 
-  const handleExport = async (format: 'csv' | 'excel') => {
+  const handleExport = (format: 'csv' | 'excel') => {
     if (!folderId) return;
     setFolderMenuOpen(false);
-
-    try {
-      const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
-
-      Alert.alert(result.ok ? 'Xuất dữ liệu xong' : 'Chưa thể xuất dữ liệu', result.message);
-    } catch (error) {
-      Alert.alert('Xuất dữ liệu thất bại', error instanceof Error ? error.message : 'Chưa thể xuất bộ từ này.');
-    }
+    exportFolderWithAlert(libraryState, folderId, format);
   };
 
   const handleSaveNote = (wordId: string, note: string) => {

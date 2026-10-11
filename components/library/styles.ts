@@ -1,6 +1,10 @@
 import { Platform, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  loadingBlock: {
+    gap: 12,
+    marginTop: 8,
+  },
   screenBody: {
     flex: 1,
   },

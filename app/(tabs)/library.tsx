@@ -6,10 +6,13 @@ import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
-import { Folder, LibraryState, duplicateFolder, exportFolderToAnkiTsv, exportFolderToCsv, exportFolderToExcel, FolderExportFormat, shareFolder, getDefaultLibraryState, getFolderWords, isFavoriteWordsFolder, loadLibraryState, toggleFavoriteFolder } from '@/data/libraryStore';
+import { Folder, LibraryState, duplicateFolder, FolderExportFormat, shareFolder, getDefaultLibraryState, getFolderWords, isFavoriteWordsFolder, loadLibraryState, toggleFavoriteFolder } from '@/data/libraryStore';
 
 import { getSortLabel, sortFolders, sortOptions, type FolderSortOption } from '@/components/library/folderSorting';
 import AddToLibrarySheet from '@/components/library/AddToLibrarySheet';
+import LoadErrorNotice from '@/components/app/LoadErrorNotice';
+import SkeletonBlock from '@/components/app/SkeletonBlock';
+import { exportFolderWithAlert, type FolderFileFormat } from '@/components/library/exportFolder';
 import { FolderColorSheet, RenameFolderSheet } from '@/components/library/FolderEditSheets';
 import { styles } from '@/components/library/styles';
 
@@ -118,19 +121,29 @@ export default function LibraryScreen() {
   const floatingButtonBottom = FAB_BOTTOM_GAP + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0);
   const scrollBottomPadding = SCROLL_BOTTOM_PADDING + Math.max(insets.bottom, Platform.OS === 'web' ? 8 : 0);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
+  // Until the first load finishes, empty-state copy would be wrong ("no saved words yet").
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
-      loadLibraryState().then((state) => {
-        if (isMounted) setLibraryState(state);
+  // Returns a cleanup so a reload that finishes after the screen loses focus is ignored.
+  const loadLibrary = useCallback(() => {
+    let isMounted = true;
+
+    loadLibraryState()
+      .then((state) => {
+        if (!isMounted) return;
+        setLibraryState(state);
+        setLoadStatus('ready');
+      })
+      .catch(() => {
+        if (isMounted) setLoadStatus((current) => (current === 'ready' ? current : 'error'));
       });
 
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useFocusEffect(loadLibrary);
 
   const filteredFolders = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -154,20 +167,7 @@ export default function LibraryScreen() {
   const colorPickerFolder = libraryState.folders.find((folder) => folder.id === colorPickerFolderId);
   const renameFolderTarget = libraryState.folders.find((folder) => folder.id === renameFolderId);
 
-  const handleExportFolder = async (folderId: string, format: 'csv' | 'excel' | 'anki') => {
-    try {
-      const result =
-        format === 'excel'
-          ? await exportFolderToExcel(libraryState, folderId)
-          : format === 'anki'
-          ? await exportFolderToAnkiTsv(libraryState, folderId)
-          : await exportFolderToCsv(libraryState, folderId);
-
-      Alert.alert(result.ok ? 'Xuất dữ liệu xong' : 'Chưa thể xuất dữ liệu', result.message);
-    } catch (error) {
-      Alert.alert('Xuất dữ liệu thất bại', error instanceof Error ? error.message : 'Chưa thể xuất bộ từ này.');
-    }
-  };
+  const handleExportFolder = (folderId: string, format: FolderFileFormat) => exportFolderWithAlert(libraryState, folderId, format);
 
   const handleShareFolder = async (folderId: string, format: FolderExportFormat) => {
     try {
@@ -496,7 +496,22 @@ export default function LibraryScreen() {
             );
           })}
         </View>
-        {!filteredFolders.length ? <Text style={styles.emptyText}>{getEmptyFolderText(activeSegment, query)}</Text> : null}
+        {loadStatus === 'loading' ? (
+          <View accessibilityLabel="Đang tải tủ từ" style={styles.loadingBlock}>
+            <SkeletonBlock height={64} />
+            <SkeletonBlock height={64} />
+          </View>
+        ) : null}
+        {loadStatus === 'error' ? (
+          <LoadErrorNotice
+            message="Không đọc được tủ từ trên thiết bị."
+            onRetry={() => {
+              setLoadStatus('loading');
+              loadLibrary();
+            }}
+          />
+        ) : null}
+        {loadStatus === 'ready' && !filteredFolders.length ? <Text style={styles.emptyText}>{getEmptyFolderText(activeSegment, query)}</Text> : null}
 
         <Text style={styles.sectionTitle}>Vừa lưu</Text>
         {recentWords.map((entry) => (
@@ -513,7 +528,7 @@ export default function LibraryScreen() {
             </Touchable>
           </Link>
         ))}
-        {!recentWords.length ? (
+        {loadStatus === 'ready' && !recentWords.length ? (
           <View style={styles.emptyCard}>
             <Ionicons name="bookmark-outline" size={24} color="#94A3B8" />
             <Text style={styles.emptyCardTitle}>Chưa có từ đã lưu</Text>
