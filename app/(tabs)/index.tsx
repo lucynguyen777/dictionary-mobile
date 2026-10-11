@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import LanguageSelect, { getUnavailableLanguageMessage } from '@/components/app/LanguageSelect';
 import MotionPressable from '@/components/app/MotionPressable';
 import Screen from '@/components/app/Screen';
 import { loadAppColorSchemePreference, saveAppColorSchemePreference, type AppColorSchemePreference } from '@/data/appThemePreference';
@@ -131,6 +132,12 @@ export default function HomeScreen() {
   };
 
   const handleSelectLanguage = (field: LanguageField, language: LanguageOption) => {
+    // Same rule as the Word screen: languages without an approved dictionary source cannot be looked up yet.
+    if (language.dictionaryStatus === 'unavailable') {
+      Alert.alert('Cập nhật trong phiên bản sau', getUnavailableLanguageMessage(language));
+      return;
+    }
+
     if (field === 'source') {
       setSourceLanguage(language);
     } else {
@@ -210,26 +217,20 @@ export default function HomeScreen() {
             <View style={styles.languageRow}>
               <LanguageSelect
                 active={activeLanguageField === 'source'}
-                field="source"
                 label="Ngôn ngữ gốc"
                 selectedLanguage={sourceLanguage}
-                styles={styles}
-                colors={colors}
-                onPress={handleLanguagePress}
-                onSelect={handleSelectLanguage}
+                onToggle={() => handleLanguagePress('source')}
+                onSelect={(language) => handleSelectLanguage('source', language)}
               />
               <View style={styles.languageSwap}>
                 <Ionicons name="swap-horizontal" size={18} color={colors.textSecondary} />
               </View>
               <LanguageSelect
                 active={activeLanguageField === 'target'}
-                field="target"
                 label="Tra / dịch sang"
                 selectedLanguage={targetLanguage}
-                styles={styles}
-                colors={colors}
-                onPress={handleLanguagePress}
-                onSelect={handleSelectLanguage}
+                onToggle={() => handleLanguagePress('target')}
+                onSelect={(language) => handleSelectLanguage('target', language)}
               />
             </View>
             {detectedLanguage ? (
@@ -351,64 +352,6 @@ export default function HomeScreen() {
       </MotionPressable>
       </View>
     </Screen>
-  );
-}
-
-function LanguageSelect({
-  active,
-  field,
-  label,
-  selectedLanguage,
-  styles,
-  colors,
-  onPress,
-  onSelect,
-}: {
-  active: boolean;
-  field: LanguageField;
-  label: string;
-  selectedLanguage: LanguageOption;
-  styles: ReturnType<typeof createHomeStyles>;
-  colors: ReturnType<typeof useToken>['colors'];
-  onPress: (field: LanguageField) => void;
-  onSelect: (field: LanguageField, language: LanguageOption) => void;
-}) {
-  return (
-    <View style={styles.languageSelectWrap}>
-      <TouchableOpacity
-        activeOpacity={0.82}
-        onPress={() => onPress(field)}
-        style={[styles.languageSelect, active && styles.activeLanguageSelect]}>
-          <Text style={styles.languageSelectLabel}>{label}</Text>
-        <View style={styles.languageSelectValueRow}>
-          <Text style={styles.languageSelectValue}>{selectedLanguage.label}</Text>
-          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
-        </View>
-      </TouchableOpacity>
-      {active ? (
-        <View style={styles.languageMenu}>
-          {languageOptions.map((language) => {
-            const isSelected = language.code === selectedLanguage.code;
-
-            return (
-              <TouchableOpacity
-                key={`${field}-${language.code}`}
-                activeOpacity={0.82}
-                onPress={() => onSelect(field, language)}
-                style={[styles.languageOption, isSelected && styles.activeLanguageOption]}>
-                <View style={styles.languageOptionCopy}>
-                  <Text style={[styles.languageOptionText, isSelected && styles.activeLanguageOptionText]}>
-                    {language.label}
-                  </Text>
-                  <Text style={styles.languageOptionHint}>{language.hint}</Text>
-                </View>
-                {isSelected ? <Ionicons name="checkmark" size={16} color={colors.accentPrimary} /> : null}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ) : null}
-    </View>
   );
 }
 
@@ -622,38 +565,6 @@ return StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  languageSelectWrap: {
-    flex: 1,
-  },
-  languageSelect: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    minHeight: 72,
-    padding: 12,
-  },
-  activeLanguageSelect: {
-    borderColor: colors.accentPrimary,
-  },
-  languageSelectLabel: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  languageSelectValueRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  languageSelectValue: {
-    color: colors.textPrimary,
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
-  },
   languageSwap: {
     alignItems: 'center',
     backgroundColor: colors.accentSoft,
@@ -662,44 +573,6 @@ return StyleSheet.create({
     justifyContent: 'center',
     marginTop: 18,
     width: 36,
-  },
-  languageMenu: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    marginTop: 8,
-    overflow: 'hidden',
-  },
-  languageOption: {
-    alignItems: 'center',
-    borderBottomColor: colors.borderDefault,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-  },
-  activeLanguageOption: {
-    backgroundColor: colors.accentSoft,
-  },
-  languageOptionCopy: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  languageOptionText: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  activeLanguageOptionText: {
-    color: colors.accentPrimary,
-  },
-  languageOptionHint: {
-    color: colors.textTertiary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 2,
   },
   startLookupButton: {
     alignItems: 'center',

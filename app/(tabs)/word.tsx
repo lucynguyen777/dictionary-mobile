@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import LanguageSelect, { getUnavailableLanguageMessage } from '@/components/app/LanguageSelect';
 import StickyTabBar from '@/components/word/StickyTabBar';
 import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
@@ -34,7 +35,7 @@ import {
   resolveEtymologyDisplay,
 } from '@/data/etymologyAdapter';
 import { detectLookupSourceLanguage, type LookupLanguageDetection } from '@/data/languageDetection';
-import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair, languageOptions } from '@/data/languages';
+import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair } from '@/data/languages';
 import {
   LibraryState,
   addSearchHistory,
@@ -358,9 +359,7 @@ export default function WordScreen() {
 
   const handleLanguageSelect = (field: LanguageField, language: LanguageOption) => {
     if (language.dictionaryStatus === 'unavailable') {
-      showFutureFeatureNotice(
-        `${language.label}: Cập nhật trong phiên bản sau. Cần nguồn dữ liệu từ điển hợp pháp trước khi bật tra cứu production.`
-      );
+      showFutureFeatureNotice(getUnavailableLanguageMessage(language));
       return;
     }
 
@@ -457,24 +456,22 @@ export default function WordScreen() {
           ) : null}
           {showLanguageControls ? (
             <View style={styles.languageControls}>
-              <LookupLanguageSelect
+              <LanguageSelect
                 active={activeLanguageField === 'source'}
-                field="source"
                 label="Ngôn ngữ gốc"
                 selectedLanguage={sourceLanguage}
-                onPress={setActiveLanguageField}
-                onSelect={handleLanguageSelect}
+                onToggle={() => setActiveLanguageField((current) => (current === 'source' ? null : 'source'))}
+                onSelect={(language) => handleLanguageSelect('source', language)}
               />
               <View style={styles.languageSwap}>
                 <Ionicons name="swap-horizontal" size={17} color={colors.textSecondary} />
               </View>
-              <LookupLanguageSelect
+              <LanguageSelect
                 active={activeLanguageField === 'target'}
-                field="target"
                 label="Tra / dịch sang"
                 selectedLanguage={targetLanguage}
-                onPress={setActiveLanguageField}
-                onSelect={handleLanguageSelect}
+                onToggle={() => setActiveLanguageField((current) => (current === 'target' ? null : 'target'))}
+                onSelect={(language) => handleLanguageSelect('target', language)}
               />
             </View>
           ) : null}
@@ -577,76 +574,6 @@ export default function WordScreen() {
         scrollRef={scrollRef}
         onIndexChange={setActiveIndex}
       />
-    </View>
-  );
-}
-
-function LookupLanguageSelect({
-  active,
-  field,
-  label,
-  selectedLanguage,
-  onPress,
-  onSelect,
-}: {
-  active: boolean;
-  field: LanguageField;
-  label: string;
-  selectedLanguage: LanguageOption;
-  onPress: (field: LanguageField | null) => void;
-  onSelect: (field: LanguageField, language: LanguageOption) => void;
-}) {
-  const token = useToken();
-  const styles = useMemo(() => createWordStyles(token), [token]);
-  const { colors } = token;
-
-  return (
-    <View style={styles.languageSelectWrap}>
-      <TouchableOpacity
-        activeOpacity={0.82}
-        onPress={() => onPress(active ? null : field)}
-        style={[styles.languageSelect, active && styles.activeLanguageSelect]}>
-        <Text style={styles.languageSelectLabel}>{label}</Text>
-        <View style={styles.languageSelectValueRow}>
-          <Text numberOfLines={1} style={styles.languageSelectValue}>{selectedLanguage.label}</Text>
-          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={15} color={colors.textSecondary} />
-        </View>
-      </TouchableOpacity>
-      {active ? (
-        <View style={styles.languageMenu}>
-          {languageOptions.map((language) => {
-            const isSelected = language.code === selectedLanguage.code;
-            const isUnavailable = language.dictionaryStatus === 'unavailable';
-
-            return (
-              <TouchableOpacity
-                key={`${field}-${language.code}`}
-                activeOpacity={isUnavailable ? 0.72 : 0.82}
-                onPress={() => onSelect(field, language)}
-                style={[
-                  styles.languageOption,
-                  isSelected && styles.activeLanguageOption,
-                  isUnavailable && styles.futureLanguageOption,
-                ]}>
-                <View style={styles.languageOptionCopy}>
-                  <Text style={[
-                    styles.languageOptionText,
-                    isSelected && styles.activeLanguageOptionText,
-                    isUnavailable && styles.futureLanguageOptionText,
-                  ]}>
-                    {language.label}
-                  </Text>
-                  <Text style={[styles.languageOptionHint, isUnavailable && styles.futureLanguageHint]}>
-                    {isUnavailable ? 'Cập nhật trong phiên bản sau · Cần nguồn dữ liệu' : language.hint}
-                  </Text>
-                </View>
-                {isSelected ? <Ionicons name="checkmark" size={16} color={colors.accentPrimary} /> : null}
-                {!isSelected && isUnavailable ? <Ionicons name="time-outline" size={15} color={colors.textSecondary} /> : null}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -991,38 +918,6 @@ return StyleSheet.create({
     gap: 8,
     marginTop: 10,
   },
-  languageSelectWrap: {
-    flex: 1,
-  },
-  languageSelect: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    minHeight: 62,
-    padding: 10,
-  },
-  activeLanguageSelect: {
-    borderColor: colors.accentPrimary,
-  },
-  languageSelectLabel: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  languageSelectValueRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  languageSelectValue: {
-    color: colors.textPrimary,
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
-  },
   languageSwap: {
     alignItems: 'center',
     backgroundColor: colors.accentSoft,
@@ -1031,54 +926,6 @@ return StyleSheet.create({
     justifyContent: 'center',
     marginTop: 14,
     width: 34,
-  },
-  languageMenu: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    marginTop: 7,
-    overflow: 'hidden',
-  },
-  languageOption: {
-    alignItems: 'center',
-    borderBottomColor: colors.borderDefault,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-  },
-  activeLanguageOption: {
-    backgroundColor: colors.accentSoft,
-  },
-  futureLanguageOption: {
-    backgroundColor: colors.surfaceMuted,
-    opacity: 0.58,
-  },
-  languageOptionCopy: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  languageOptionText: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  activeLanguageOptionText: {
-    color: colors.accentPrimary,
-  },
-  futureLanguageOptionText: {
-    color: colors.textSecondary,
-  },
-  languageOptionHint: {
-    color: colors.textTertiary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  futureLanguageHint: {
-    color: colors.textSecondary,
   },
   resultRow: {
     gap: 10,
