@@ -34,7 +34,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Offline Dictionary | 85% | MVP pack runtime ready | More hosted packs blocked until source/corpus packaging candidates pass | Language Corpus Expansion Follow-up |
 | Multilingual Architecture | 88% | Adapter architecture ready with v1.3.6 source smoke | Most languages remain fixture/Wiktionary preview | Language corpus expansion |
 | Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
-| Cloud Sync | 40% | Manual beta runner exists but does not sync data yet | Push sends only `{id, user_id}` and pull applies only deletions (2026-10 audit) | v1.5.0 Cloud Sync Data Path |
+| Cloud Sync | 80% | Two-way sync implemented and proven against Postgres+RLS in tests; automatic when enabled | Migrations 009/010 unapplied, real two-device smoke, account deletion decision | Supabase production smoke |
 | AI Infrastructure | 70% | Backend proxy hardened (v1.4.0); native URL wired (v1.4.1) | Provider env, durable quota, authenticated smoke | AI/provider production gates |
 | OCR Infrastructure | 70% | Contracts/preview/provider registry plus Chandra request boundary | Native/dev-client and live Chandra service smoke | OCR backend/native smoke |
 | Real OCR Engine | 30% | Scanned PDF request path exists but live endpoint/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
@@ -57,7 +57,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Multilingual Architecture | 88% | Adapter architecture ready | Language metadata, adapter registry, morphology helpers, coverage inventory | Most languages remain preview fixtures/API | Language Source And Corpus Smoke |
 | Language Production Parity | 35% | Limited production parity | English, Vietnamese, supported `en->vi`, `vi->en`, `fr->vi`; 34-language inventory exists | Corpus size/source/offline/UI smoke for preview languages | Language Source And Corpus Smoke |
 | Supabase Auth | 75% | Implemented and env-gated | SecureStore/web token storage, sign-in/up/recovery/callback/session lifecycle UI | Redirect allow-list and production auth smoke | Supabase Auth And Cloud Sync Production Smoke |
-| Cloud Sync | 40% | Manual beta runner exists but does not sync data yet | SQL/RLS, PGlite RLS tests, client/local/runtime ports, manual runner and lifecycle tests | Push omits row data (no `remoteRow` mapping) and pull ignores inserts/updates | v1.5.0 Cloud Sync Data Path |
+| Cloud Sync | 80% | Two-way sync implemented; automatic when enabled | Dirty tracking, full-row push, LWW pull, server cursor, two-device PGlite+RLS integration test, auto-sync lifecycle | Migrations 009/010 unapplied, real two-device smoke | Supabase production smoke |
 | AI/Translation | 70% | Backend-proxy gated | Vercel proxy, DeepL text translation with pair-aware targets, AI Tutor, v1.4.0 hardening, native proxy URL | Provider env, durable quota, authenticated smoke | Provider Feature Gates |
 | OCR | 70% | Architecture ready; engines gated | OCR contracts, capture previews, provider registry, Chandra service, scanned-PDF hook, JSON/base64 request boundary | Live Chandra endpoint config and MLKit dev-client smoke | Reader OCR endpoint smoke |
 | Pronunciation | 10% | Decision accepted only | Recording playback and Azure decision prep | Azure upload/proxy/privacy/quota/fake-provider tests | Provider Feature Gates |
@@ -175,6 +175,11 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 ## Current Baseline
 - 2026-10 audit and completion plan: `docs/completion-plan.md`.
 - Latest completed commits:
+  - `664b8c4` feat(sync): sync automatically for users who turned Cloud Sync on
+  - `3860cdb` test(sync): prove two-device sync against Postgres with RLS
+  - `23466ab` feat(sync): push full rows and apply pulled changes
+  - `8f07154` feat(db): track sync state per row across full-snapshot saves
+  - `f5ba488` feat(supabase): add server-assigned synced_at for sync pull cursors
   - `f165651` fix(home): count today in the streak while app-open is still recording
   - `555402b` fix(word): stop presenting fixture OCR text as recognition results
   - `57e3a1c` fix(translate): translate into the lookup's target language
@@ -199,12 +204,24 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [EASY]: `performOCR` throws `OcrEngineUnavailableError` instead of returning fixture text; the unreachable recognition modal is removed from `word.tsx`; `e2e/word-recognition.spec.js` asserts the later-version state.
 - Known pre-existing issue: `e2e/profile-offline-pack.spec.js` also fails on `main` (expected offline-pack status text not found); tracked for the next UI module.
 
-**Module: v1.5.0 Cloud Sync Data Path** - TODO
+**Module: v1.5.0 Cloud Sync Data Path** - DONE (code); migrations 009/010 not yet applied to Supabase
 - Module Completion Plan: plan Phase 2 in `docs/completion-plan.md`.
-- [ ] TODO [HARD]: Map dirty SQLite rows to full remote rows (`supabaseSyncMappers`) on push; fix conflict targets for tables without `id`.
-- [ ] TODO [HARD]: Apply remote inserts/updates on pull with last-writer-wins on `updated_at`/`remote_version`, keeping tombstones.
-- [ ] TODO [MEDIUM]: Paginated `(updated_at, id)` pull cursor.
-- [ ] TODO [HARD]: Two-client sync integration tests against PGlite Supabase schema.
+- Acceptance criteria: edits, creations and deletions on one device reach another device of the same account; concurrent edits resolve by latest change; stale screens cannot delete pulled data; accounts stay isolated; proven end to end against Postgres with RLS.
+- [x] DONE [HARD]: Per-row dirty tracking across full-snapshot saves (`data/userDatabaseSyncReconcile.ts`): unchanged rows keep sync state, edits become dirty, removals become soft-deletes (dropped if never synced), rows pulled after a snapshot loaded win over that stale snapshot (schema v3 `last_pulled_at`).
+- [x] DONE [HARD]: Push sends full mapped rows stamped with the local change time; pull applies inserts/updates/deletes with last-writer-wins, keeps device-only profile settings, and skips unchanged rows.
+- [x] DONE [MEDIUM]: Server-assigned `synced_at` cursor (migration `010_sync_server_cursor.sql`) with inclusive paging; timestamps normalized between Postgres and app formats.
+- [x] DONE [HARD]: `tests/cloudSyncTwoDevices.test.ts` syncs two SQLite devices through PGlite running all migrations with RLS (create/edit/delete/conflict/stale-screen/profile/isolation); mutation checks confirm the guards are exercised.
+- [x] DONE [MEDIUM]: Automatic sync when Cloud Sync is on (unlock, foreground, 30s after local saves), single-flight with manual sync; the app now uses the real shared Supabase client instead of a stub that always reported "unconfigured".
+- [!] BLOCKED [HARD]: Account deletion waits on an owner decision (immediate vs recovery window, keep vs wipe local data); see "Pending owner decisions" in `docs/completion-plan.md`.
+- [!] BLOCKED [MEDIUM]: Apply migrations 009 and 010 to the Supabase project (paused) and run a real two-device smoke.
+
+**Module: v1.6.0 Design System And UI Quality** - TODO
+- Module Completion Plan: plan Phase 3 in `docs/completion-plan.md`.
+- [ ] TODO [EASY]: Remove create-expo-app template leftovers.
+- [ ] TODO [MEDIUM]: Theme `folder/[id].tsx` and `auth/callback.tsx`; fix the pre-existing failing `e2e/profile-offline-pack.spec.js`.
+- [ ] TODO [MEDIUM]: Shared `LanguageSelect` (Home must block unavailable languages) and `FutureFeatureNotice`.
+- [ ] TODO [MEDIUM]: Loading/error states for initial loads; `Screen` safe area via `react-native-safe-area-context`.
+- [ ] TODO [MEDIUM]: Accessibility labels/roles for icon buttons and tab bar.
 
 **Module: Kannada Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
 - Module Completion Plan: validate Kannada Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix fallback for related words without broad glide/sandhi guessing.

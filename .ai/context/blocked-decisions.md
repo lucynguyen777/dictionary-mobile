@@ -34,7 +34,7 @@ Accepted:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Partially implemented (2026-10 audit). Manual runner, SQLite ports, tombstones, RLS, and mappers exist, but push upserts only `{id, user_id}` because dirty rows are never mapped to `remoteRow`, and pull applies only tombstones. Lifecycle start/stop are no-ops. Do not describe sync as working until plan Phase 2 (`docs/completion-plan.md`) lands.
+Status: Implemented in v1.5.0 (two-way, automatic when enabled) and proven by `tests/cloudSyncTwoDevices.test.ts` against Postgres+RLS. Production still needs migrations 009/010 applied and a real two-device smoke. Account deletion is pending an owner decision.
 
 Accepted:
 - Supabase backend architecture

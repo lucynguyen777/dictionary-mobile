@@ -207,3 +207,14 @@ Mỗi phase là một hoặc vài module trong `docs/product-progress.md`. Các 
 - [ ] TODO [MEDIUM]: 0.3 AI proxy system-role, error redaction, CORS, DeepL header.
 - [ ] TODO [HARD]: 0.6 SQLite incremental schema migration without legacy re-migration.
 - [ ] TODO [EASY]: 1.6 Correct Cloud Sync/AI/OCR status in progress docs.
+
+## 8. Pending owner decisions
+
+Work that needs one of these decisions is paused; other work continues. Updated as modules land.
+
+| # | Decision | Why it matters | Default if no answer |
+| --- | --- | --- | --- |
+| D1 | Create PRs for the stacked branches `claude/v1.4.1-product-truth` and `claude/v1.5.0-cloud-sync`? | Code is pushed but not under review. | Keep stacking branches; open PRs when asked. |
+| D2 | Restore the paused Supabase project and apply migrations 009 and 010? | Security hardening and sync cursor only take effect once applied; production smoke needs it. | Not applied. |
+| D3 | Account deletion: delete immediately, or soft-delete with a recovery window (e.g. 30 days)? After deletion, keep or wipe the data on the device? | Determines backend design (immediate admin delete vs scheduled purge) and UI copy. Store review requires in-app deletion. | Paused (plan 2.6). Suggested: immediate server deletion, keep local data with an explicit "also erase this device" option. |
+| D4 | Set `BACKEND_PROXY_ALLOWED_ORIGINS` on Vercel if the web app runs on domains other than production. | Other web origins are blocked by CORS. | Production + localhost only. |
