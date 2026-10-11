@@ -34,7 +34,7 @@ Accepted:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Fully implemented. Realtime sync runner, SQLite data ports, tombstones, and data mappers synchronizing user profiles, vocabulary folders, saved words, memberships, search history, and flashcard schedules with conflict resolution are fully functional.
+Status: Partially implemented (2026-10 audit). Manual runner, SQLite ports, tombstones, RLS, and mappers exist, but push upserts only `{id, user_id}` because dirty rows are never mapped to `remoteRow`, and pull applies only tombstones. Lifecycle start/stop are no-ops. Do not describe sync as working until plan Phase 2 (`docs/completion-plan.md`) lands.
 
 Accepted:
 - Supabase backend architecture

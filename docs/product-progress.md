@@ -34,8 +34,8 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Offline Dictionary | 85% | MVP pack runtime ready | More hosted packs blocked until source/corpus packaging candidates pass | Language Corpus Expansion Follow-up |
 | Multilingual Architecture | 88% | Adapter architecture ready with v1.3.6 source smoke | Most languages remain fixture/Wiktionary preview | Language corpus expansion |
 | Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
-| Cloud Sync | 70% | Manual beta runner available | RLS/two-device production smoke | Cloud sync production smoke |
-| AI Infrastructure | 70% | Backend proxy foundation ready | Provider env, quota, privacy smoke | AI/provider production gates |
+| Cloud Sync | 40% | Manual beta runner exists but does not sync data yet | Push sends only `{id, user_id}` and pull applies only deletions (2026-10 audit) | v1.5.0 Cloud Sync Data Path |
+| AI Infrastructure | 60% | Backend proxy hardened (v1.4.0); web only | Native base URL unset, provider env, durable quota | v1.4.1 Product Truth Fixes |
 | OCR Infrastructure | 70% | Contracts/preview/provider registry plus Chandra request boundary | Native/dev-client and live Chandra service smoke | OCR backend/native smoke |
 | Real OCR Engine | 30% | Scanned PDF request path exists but live endpoint/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
 | Pronunciation Assessment | 10% | Decision accepted only | Azure backend upload/proxy/privacy/quota | Speech scoring MVP |
@@ -57,8 +57,8 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Multilingual Architecture | 88% | Adapter architecture ready | Language metadata, adapter registry, morphology helpers, coverage inventory | Most languages remain preview fixtures/API | Language Source And Corpus Smoke |
 | Language Production Parity | 35% | Limited production parity | English, Vietnamese, supported `en->vi`, `vi->en`, `fr->vi`; 34-language inventory exists | Corpus size/source/offline/UI smoke for preview languages | Language Source And Corpus Smoke |
 | Supabase Auth | 75% | Implemented and env-gated | SecureStore/web token storage, sign-in/up/recovery/callback/session lifecycle UI | Redirect allow-list and production auth smoke | Supabase Auth And Cloud Sync Production Smoke |
-| Cloud Sync | 70% | Manual beta runner available | SQL/RLS draft, mapper/client/local/runtime ports, manual runner and lifecycle tests | RLS/two-device production smoke | Supabase Auth And Cloud Sync Production Smoke |
-| AI/Translation | 70% | Backend-proxy gated | Vercel proxy, DeepL text translation, AI Tutor, quota/logging contracts | Provider env, quota, privacy, authenticated smoke | Provider Feature Gates |
+| Cloud Sync | 40% | Manual beta runner exists but does not sync data yet | SQL/RLS, PGlite RLS tests, client/local/runtime ports, manual runner and lifecycle tests | Push omits row data (no `remoteRow` mapping) and pull ignores inserts/updates | v1.5.0 Cloud Sync Data Path |
+| AI/Translation | 60% | Backend-proxy gated; web only | Vercel proxy, DeepL text translation, AI Tutor, v1.4.0 system-role/error/CORS hardening, no-overshoot quota | Native proxy base URL, provider env, durable quota, authenticated smoke | v1.4.1 Product Truth Fixes |
 | OCR | 70% | Architecture ready; engines gated | OCR contracts, capture previews, provider registry, Chandra service, scanned-PDF hook, JSON/base64 request boundary | Live Chandra endpoint config and MLKit dev-client smoke | Reader OCR endpoint smoke |
 | Pronunciation | 10% | Decision accepted only | Recording playback and Azure decision prep | Azure upload/proxy/privacy/quota/fake-provider tests | Provider Feature Gates |
 | Google Sheets | 15% | Accepted/staged | Backend-mediated OAuth decision and export contract plan | Google Cloud OAuth, token storage, fake client tests | Provider Feature Gates |
@@ -79,7 +79,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Multilingual Architecture | Broader per-language corpus expansion and preview-to-production promotion gates after v1.3.6 smoke. | Follow-up language corpus expansion |
 | Language Production Parity | Production corpus size, attribution, examples, related words, offline packaging, UI smoke, and tests for preview languages. | Follow-up language corpus expansion |
 | Supabase Auth | Production env/redirect allow-list smoke, callback verification, recovery flow smoke, and no-local-data-delete proof. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
-| Cloud Sync | RLS probes, two-device manual beta sync, conflict/tombstone smoke, and signed-out preservation. | v1.3.7 Supabase Auth And Cloud Sync Production Smoke |
+| Cloud Sync | RLS probes, two-device manual beta sync, conflict/tombstone smoke, and signed-out preservation. Before any smoke: map dirty rows to full remote rows on push and apply remote inserts/updates on pull. | v1.5.0 Cloud Sync Data Path, then v1.3.7 smoke |
 | AI/Translation | Provider env, authenticated smoke, quota/privacy checks, glossary persistence gates, and failure copy. | v1.3.9 Provider Feature Gates |
 | OCR | Live Chandra endpoint deployment/smoke, MLKit dev-client validation, and privacy/fallback copy. | OCR backend/native smoke follow-up |
 | Pronunciation | Azure backend upload/proxy, privacy/retention/quota policy, fake-provider tests, and first-language smoke. | v1.3.9 Provider Feature Gates |
@@ -108,6 +108,16 @@ Goal: raise preview languages toward the Anh-Viet production standard without pr
 Recommended execution order: French, Malay, Spanish; Latin fixture previews; agglutinative Latin previews; Russian/Kazakh/Hindi; Arabic/Hebrew; Mandarin/Japanese/Korean; complex-script previews; then source-gated targets only after the matching source gate passes.
 
 ### Versioned Completion Roadmap
+
+**v1.4.0 - Security And Data Integrity Hardening** - DONE (local); migration 009 not yet applied to Supabase
+- Module Completion Plan: close the security and data-loss findings from the 2026-10 audit in `docs/completion-plan.md` before more feature or language work.
+- Acceptance criteria: clients cannot write server-owned tables; Google OAuth cannot link another user's Google account and cannot redirect off-site; AI proxy rejects client system prompts and hides upstream errors; quota cannot overshoot; SQLite schema bumps never wipe data; every fix has tests that fail without it.
+- [x] DONE [HARD]: Added `supabase/migrations/009_server_only_tables.sql` (read-only usage/connections, hidden secret envelopes, feedback insert via backend only, agent FK fix) and PGlite-backed RLS tests in `tests/supabaseRlsPolicies.test.ts`.
+- [x] DONE [MEDIUM]: Google OAuth callback no longer stores tokens; new authenticated `POST /proxy/google-sheets/complete` requires the session user to match the signed state; `returnTo` restricted to same-origin app paths; revoke calls Google.
+- [x] DONE [MEDIUM]: AI proxy rejects `system` role messages, returns generic `provider_error`, limits CORS via `BACKEND_PROXY_ALLOWED_ORIGINS`, uses the DeepL `Authorization` header, and quota rejects requests that would exceed limits.
+- [x] DONE [HARD]: SQLite schema upgrades run ordered additive steps (`USER_DATABASE_UPGRADES`) instead of re-importing from emptied AsyncStorage; tested on real SQLite via `node:sqlite`.
+- [x] DONE [EASY]: Corrected Cloud Sync and AI status in this dashboard and `.ai/context/` after the audit found the sync data path incomplete.
+- [!] BLOCKED [MEDIUM]: Apply migration 009 to the Supabase project; the project is paused (INACTIVE) and needs the owner to restore it.
 
 **v1.3.6 - Language Source And Corpus Smoke** - DONE
 - Module Completion Plan: convert the v1.3.3 language inventory into source/corpus smoke reports for the first production-promotion candidates before changing lookup behavior.
@@ -163,10 +173,23 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 5. **Remaining Language Batches**: prioritize high-usage scripts and keep source-gated languages blocked until license/source evidence exists.
 
 ## Current Baseline
+- 2026-10 audit and completion plan: `docs/completion-plan.md`.
 - Latest completed commits:
+  - `0673cfb` fix(db): upgrade SQLite schema in place instead of re-importing
+  - `acc6cc4` fix(proxy): harden AI and translation proxy boundaries
+  - `e7ee1e7` fix(sheets): bind Google OAuth completion to the signed-in user
+  - `d3a10bb` fix(supabase): make usage, secret, and feedback tables server-only
   - `45bd963` fix(reader): wire Chandra scanned PDF requests
 
 ## Next Work Module
+
+**Module: v1.4.1 Product Truth Fixes** - TODO
+- Module Completion Plan: make every visible UI claim match runtime behavior (plan Phase 1 in `docs/completion-plan.md`).
+- [ ] TODO [EASY]: Home stats from `libraryStore`/`activityStore` instead of hardcoded `data/dictionary.ts` values; word of the day per current date.
+- [ ] TODO [EASY]: Native backend proxy base URL via `EXPO_PUBLIC_BACKEND_PROXY_URL` and a shared Supabase client in `data/backendProxyClient.ts`.
+- [ ] TODO [EASY]: Replace the disabled AI panel in `advanced.tsx` with a link to the working AI Tutor.
+- [ ] TODO [EASY]: Word-tab translation target follows the selected pair/native language instead of hardcoded `VI`.
+- [ ] TODO [EASY]: Camera OCR never returns fixture text outside tests; remove the unreachable recognition modal or wire it.
 
 **Module: Kannada Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
 - Module Completion Plan: validate Kannada Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix fallback for related words without broad glide/sandhi guessing.
