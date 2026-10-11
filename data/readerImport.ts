@@ -402,12 +402,24 @@ async function extractImageBasedPdfReaderText(
 export function getConfiguredChandraPdfOcrParser(): ReaderPdfOcrParser | undefined {
   const endpoint = getChandraOcrEndpoint();
 
-  return createChandraPdfOcrParser(endpoint);
+  return createChandraPdfOcrParser(endpoint, fetch as ReaderPdfOcrFetch, getSupabaseAccessToken);
 }
 
+// Loaded lazily so Reader parsing stays importable without the Supabase/React Native runtime.
+async function getSupabaseAccessToken() {
+  const { getSharedSupabaseAuthClient } = await import('./supabaseAuthClient');
+  const auth = getSharedSupabaseAuthClient();
+  if (auth.status !== 'configured') return null;
+  const { data } = await auth.client.auth.getSession();
+  return data.session?.access_token ?? null;
+}
+
+// The Chandra service verifies the user's Supabase session itself (scanned PDFs exceed the Vercel
+// proxy's request size limit, so the app calls the OCR host directly).
 export function createChandraPdfOcrParser(
   endpoint: string,
-  fetchImpl: ReaderPdfOcrFetch = fetch as ReaderPdfOcrFetch
+  fetchImpl: ReaderPdfOcrFetch = fetch as ReaderPdfOcrFetch,
+  getAccessToken: () => Promise<string | null> = async () => null
 ): ReaderPdfOcrParser | undefined {
   const normalizedEndpoint = normalizeChandraOcrEndpoint(endpoint);
   if (!normalizedEndpoint) return undefined;
@@ -417,6 +429,11 @@ export function createChandraPdfOcrParser(
       throw new Error('Kích thước file quá lớn. Vui lòng import file nhỏ hơn 50MB.');
     }
 
+    const accessToken = await getAccessToken().catch(() => null);
+    if (!accessToken) {
+      throw new Error('Đăng nhập cloud để dùng OCR cho PDF dạng ảnh/scanned.');
+    }
+
     const response = await fetchImpl(`${normalizedEndpoint}/ocr/pdf`, {
       body: JSON.stringify({
         fileBase64: arrayBufferToBase64(rawContent),
@@ -424,6 +441,7 @@ export function createChandraPdfOcrParser(
       }),
       headers: {
         Accept: 'application/json',
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       method: 'POST',
@@ -432,6 +450,12 @@ export function createChandraPdfOcrParser(
     if (!response.ok) {
       if (response.status === 413) {
         throw new Error('Chandra OCR từ chối file quá lớn. Vui lòng dùng file nhỏ hơn hoặc tăng giới hạn backend.');
+      }
+      if (response.status === 401) {
+        throw new Error('Phiên đăng nhập đã hết hạn. Đăng nhập lại để dùng OCR.');
+      }
+      if (response.status === 429) {
+        throw new Error('Bạn đã dùng hết lượt OCR hôm nay. Thử lại vào ngày mai.');
       }
 
       throw new Error(`Chandra OCR chưa thể xử lý PDF scanned (${response.status}).`);
@@ -453,8 +477,10 @@ export function isChandraPdfOcrConfigured() {
   return Boolean(getChandraOcrEndpoint());
 }
 
+// Documents and session tokens only travel over HTTPS (plain HTTP is allowed for local hosts).
 function normalizeChandraOcrEndpoint(endpoint: string) {
-  return endpoint.trim().replace(/\/+$/, '');
+  const url = endpoint.trim().replace(/\/+$/, '');
+  return /^https:\/\//.test(url) || /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?$/.test(url) ? url : '';
 }
 
 function arrayBufferToBase64(arrayBuffer: ArrayBuffer) {

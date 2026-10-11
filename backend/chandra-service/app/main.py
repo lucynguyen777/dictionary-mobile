@@ -1,30 +1,117 @@
 import base64
 import json
+import logging
 import os
-import shutil
 import subprocess
 import tempfile
+import threading
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, ConfigDict, Field
 
 
 MAX_INPUT_BYTES = int(os.getenv("CHANDRA_MAX_INPUT_BYTES", str(10 * 1024 * 1024)))
 CHANDRA_TIMEOUT_SECONDS = int(os.getenv("CHANDRA_TIMEOUT_SECONDS", "180"))
 CHANDRA_CLI = os.getenv("CHANDRA_CLI", "chandra")
 CHANDRA_METHOD = os.getenv("CHANDRA_METHOD", "vllm")
+DAILY_REQUESTS_PER_USER = int(os.getenv("CHANDRA_DAILY_REQUESTS_PER_USER", "20"))
+
+# Requests carry the app user's Supabase access token; the service checks it with Supabase Auth.
+# Only the public project URL and publishable key are needed, no service-role secret.
+SUPABASE_URL = os.getenv("CHANDRA_SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_PUBLISHABLE_KEY = os.getenv("CHANDRA_SUPABASE_PUBLISHABLE_KEY", "").strip()
+# Local development only: skips auth entirely. Never set this on a public host.
+ALLOW_UNAUTHENTICATED = os.getenv("CHANDRA_ALLOW_UNAUTHENTICATED") == "1"
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CHANDRA_ALLOWED_ORIGINS", "https://dictionaire-mobile.vercel.app,http://localhost:8081"
+    ).split(",")
+    if origin.strip()
+]
+
+logger = logging.getLogger("chandra-service")
 
 
 class OcrRequest(BaseModel):
-    file_base64: str | None = Field(default=None, alias="fileBase64")
-    file_path: str | None = Field(default=None, alias="filePath")
-    file_name: str | None = Field(default=None, alias="fileName")
-    language_code: str | None = Field(default=None, alias="languageCode")
+    # Unknown fields (including the removed server-side `filePath`) are rejected, not ignored.
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    file_base64: str = Field(alias="fileBase64", min_length=1)
+    file_name: str | None = Field(default=None, alias="fileName", max_length=255)
+    language_code: str | None = Field(default=None, alias="languageCode", max_length=35)
 
 
-app = FastAPI(title="Dictionary Mobile Chandra OCR Service", version="1.0.0")
+app = FastAPI(title="Dictionary Mobile Chandra OCR Service", version="1.1.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_headers=["Authorization", "Content-Type"],
+    allow_methods=["POST"],
+    allow_origins=ALLOWED_ORIGINS,
+)
+
+
+def verify_user_token(token: str) -> str | None:
+    """Returns the Supabase user id for a valid access token, else None."""
+    request = urllib.request.Request(
+        f"{SUPABASE_URL}/auth/v1/user",
+        headers={"Authorization": f"Bearer {token}", "apikey": SUPABASE_PUBLISHABLE_KEY},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            user = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        if error.code in (401, 403):
+            return None
+        raise
+    user_id = user.get("id") if isinstance(user, dict) else None
+    return user_id if isinstance(user_id, str) and user_id else None
+
+
+class DailyLimiter:
+    """Per-user request cap for one service instance (OCR runs on a single GPU host)."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._counts: dict[tuple[str, str], int] = {}
+
+    def consume(self, user_id: str, limit: int) -> bool:
+        day = time.strftime("%Y-%m-%d", time.gmtime())
+        with self._lock:
+            self._counts = {key: count for key, count in self._counts.items() if key[1] == day}
+            used = self._counts.get((user_id, day), 0)
+            if used >= limit:
+                return False
+            self._counts[(user_id, day)] = used + 1
+            return True
+
+
+daily_limiter = DailyLimiter()
+
+
+def require_user(authorization: str | None = Header(default=None)) -> str:
+    if ALLOW_UNAUTHENTICATED:
+        return "local-development"
+    if not SUPABASE_URL or not SUPABASE_PUBLISHABLE_KEY:
+        raise HTTPException(status_code=503, detail="OCR authentication is not configured.")
+    if not authorization or not authorization.startswith("Bearer ") or not authorization[7:].strip():
+        raise HTTPException(status_code=401, detail="Sign in to use OCR.")
+    try:
+        user_id = verify_user_token(authorization[7:].strip())
+    except Exception as error:  # noqa: BLE001 - any auth backend failure must fail closed
+        logger.warning("Supabase token check failed: %s", type(error).__name__)
+        raise HTTPException(status_code=503, detail="OCR authentication is unavailable.") from error
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Sign in to use OCR.")
+    if not daily_limiter.consume(user_id, DAILY_REQUESTS_PER_USER):
+        raise HTTPException(status_code=429, detail="Daily OCR limit reached.")
+    return user_id
 
 
 @app.get("/health")
@@ -33,12 +120,12 @@ def health() -> dict[str, str]:
 
 
 @app.post("/ocr/image")
-def ocr_image(request: OcrRequest) -> dict[str, Any]:
+def ocr_image(request: OcrRequest, _user_id: str = Depends(require_user)) -> dict[str, Any]:
     return run_chandra_request(request, default_suffix=".png")
 
 
 @app.post("/ocr/pdf")
-def ocr_pdf(request: OcrRequest) -> dict[str, Any]:
+def ocr_pdf(request: OcrRequest, _user_id: str = Depends(require_user)) -> dict[str, Any]:
     return run_chandra_request(request, default_suffix=".pdf")
 
 
@@ -71,41 +158,31 @@ def run_chandra_request(request: OcrRequest, default_suffix: str) -> dict[str, A
         except subprocess.TimeoutExpired as error:
             raise HTTPException(status_code=504, detail="Chandra OCR timed out.") from error
         except subprocess.CalledProcessError as error:
-            raise HTTPException(status_code=502, detail=safe_process_error(error)) from error
+            # stderr can echo document text or file paths, so it stays in the service log.
+            logger.warning("Chandra CLI failed: %s", safe_process_error(error))
+            raise HTTPException(status_code=502, detail="Chandra OCR failed.") from error
 
         return read_chandra_output(output_dir)
 
 
 def materialize_input(request: OcrRequest, temp_dir: Path, default_suffix: str) -> Path:
-    if request.file_base64:
-        try:
-            payload = base64.b64decode(request.file_base64, validate=True)
-        except ValueError as error:
-            raise HTTPException(status_code=400, detail="fileBase64 must be valid base64.") from error
+    # Reject oversized input from the encoded length, before allocating the decoded bytes.
+    encoded = request.file_base64.strip()
+    if len(encoded) // 4 * 3 > MAX_INPUT_BYTES + 2:
+        raise HTTPException(status_code=413, detail="OCR input exceeds the configured size limit.")
+    try:
+        payload = base64.b64decode(encoded, validate=True)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail="fileBase64 must be valid base64.") from error
+    if len(payload) > MAX_INPUT_BYTES:
+        raise HTTPException(status_code=413, detail="OCR input exceeds the configured size limit.")
 
-        if len(payload) > MAX_INPUT_BYTES:
-            raise HTTPException(status_code=413, detail="OCR input exceeds the configured size limit.")
-
-        safe_name = sanitize_file_name(request.file_name or f"input{default_suffix}")
-        input_path = temp_dir / safe_name
-        input_path.write_bytes(payload)
-        return input_path
-
-    if request.file_path:
-        source_path = Path(request.file_path)
-        if not source_path.exists() or not source_path.is_file():
-            raise HTTPException(status_code=400, detail="filePath must point to a readable file in the service container.")
-
-        size = source_path.stat().st_size
-        if size > MAX_INPUT_BYTES:
-            raise HTTPException(status_code=413, detail="OCR input exceeds the configured size limit.")
-
-        safe_name = sanitize_file_name(request.file_name or source_path.name or f"input{default_suffix}")
-        input_path = temp_dir / safe_name
-        shutil.copyfile(source_path, input_path)
-        return input_path
-
-    raise HTTPException(status_code=400, detail="Provide fileBase64 or filePath.")
+    safe_name = sanitize_file_name(request.file_name or f"input{default_suffix}")
+    if "." not in safe_name.lstrip("."):
+        safe_name = f"{safe_name}{default_suffix}"
+    input_path = temp_dir / safe_name
+    input_path.write_bytes(payload)
+    return input_path
 
 
 def read_chandra_output(output_dir: Path) -> dict[str, Any]:
@@ -142,7 +219,8 @@ def markdown_to_plain_text(markdown: str) -> str:
 
 
 def sanitize_file_name(file_name: str) -> str:
-    safe = "".join(character for character in file_name if character.isalnum() or character in "._-")
+    safe = "".join(character for character in file_name if character.isascii() and (character.isalnum() or character in "._-"))
+    safe = safe.lstrip(".")[:120]
     return safe or "input"
 
 

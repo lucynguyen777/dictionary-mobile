@@ -128,7 +128,7 @@ describe('Chandra OCR provider integration', () => {
       ok: true,
       status: 200,
     }));
-    const parser = createChandraPdfOcrParser('https://ocr.example.com///', fetchImpl);
+    const parser = createChandraPdfOcrParser('https://ocr.example.com///', fetchImpl, async () => 'user-token');
 
     await expect(parser?.({ fileName: 'scan.pdf', rawContent: new Uint8Array([1, 2, 3, 4]).buffer })).resolves.toEqual({
       markdown: '# OCR\n\nscan text',
@@ -141,6 +141,7 @@ describe('Chandra OCR provider integration', () => {
       }),
       headers: {
         Accept: 'application/json',
+        Authorization: 'Bearer user-token',
         'Content-Type': 'application/json',
       },
       method: 'POST',
@@ -148,16 +149,17 @@ describe('Chandra OCR provider integration', () => {
   });
 
   it('surfaces Chandra provider failure and backend size-limit errors clearly', async () => {
+    const token = async () => 'user-token';
     const providerFailureParser = createChandraPdfOcrParser('https://ocr.example.com', async () => ({
       json: async () => ({}),
       ok: false,
       status: 502,
-    }));
+    }), token);
     const sizeLimitParser = createChandraPdfOcrParser('https://ocr.example.com', async () => ({
       json: async () => ({}),
       ok: false,
       status: 413,
-    }));
+    }), token);
 
     await expect(providerFailureParser?.({ fileName: 'scan.pdf', rawContent: new ArrayBuffer(4) })).rejects.toThrow(
       'Chandra OCR chưa thể xử lý PDF scanned (502).'
@@ -165,6 +167,36 @@ describe('Chandra OCR provider integration', () => {
     await expect(sizeLimitParser?.({ fileName: 'scan.pdf', rawContent: new ArrayBuffer(4) })).rejects.toThrow(
       'Chandra OCR từ chối file quá lớn'
     );
+  });
+});
+
+describe('Chandra OCR authentication', () => {
+  const okFetch = () => vi.fn(async () => ({ json: async () => ({ text: 'scan' }), ok: true, status: 200 }));
+
+  it('asks the user to sign in instead of sending an anonymous request', async () => {
+    const fetchImpl = okFetch();
+    const parser = createChandraPdfOcrParser('https://ocr.example.com', fetchImpl, async () => null);
+
+    await expect(parser?.({ fileName: 'scan.pdf', rawContent: new ArrayBuffer(4) })).rejects.toThrow('Đăng nhập cloud');
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [401, 'Phiên đăng nhập đã hết hạn'],
+    [429, 'hết lượt OCR hôm nay'],
+  ])('explains a %s from the OCR service', async (status, message) => {
+    const parser = createChandraPdfOcrParser(
+      'https://ocr.example.com',
+      async () => ({ json: async () => ({}), ok: false, status }),
+      async () => 'user-token'
+    );
+
+    await expect(parser?.({ fileName: 'scan.pdf', rawContent: new ArrayBuffer(4) })).rejects.toThrow(message);
+  });
+
+  it('never sends documents or tokens over plain HTTP to a remote host', () => {
+    expect(createChandraPdfOcrParser('http://ocr.example.com', okFetch(), async () => 'user-token')).toBeUndefined();
+    expect(createChandraPdfOcrParser('http://localhost:8080', okFetch(), async () => 'user-token')).toBeDefined();
   });
 });
 
