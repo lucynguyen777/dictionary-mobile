@@ -13,11 +13,14 @@ Input for owner decision D9 (pack hosting and size). Packs were built from the w
 | Spanish, lemma-only | 136,522 | 11.7 MB | 72 MB | 4 s | 37 ms | 100% (after the irregular fix below) |
 | Russian, lemma-only | 445,824 | 50.3 MB | 382 MB | 14 s | 156 ms | 97% (100% after the irregular forms below) |
 | French, lemma-only | 495,763 | 91.2 MB | 474 MB | 15 s | 153 ms | 100% (87% before the new French morphology) |
+| Russian, lemma-only, 50k by richness | 50,000 | 20.7 MB | 122 MB | 2 s | 34 ms | 99% (missing headword `студент`; `пишу` fixed since) |
+| French, lemma-only, 50k by richness | 50,000 | 30.0 MB | 138 MB | 2 s | 39 ms | 100% |
 
 Findings:
 
 - Full dumps are too big for phones in every large edition: hundreds of MB on device and lookups above 100 ms. Lemma-only cuts Spanish by 82% with no loss of probe coverage, so packs should always be built lemma-only.
 - Lemma-only still leaves Russian (and French) far above the suggested D9 budget. A cap is needed. `--limit N --rank-by richness` keeps the N best-documented entries (senses, examples, related words, pronunciation, etymology) as a stand-in for a licensed frequency list.
+- A 50k cap brings lookups back to Korean-like speed (34–39 ms) and the download to 21–30 MB. The richest entries are also the largest, though, so 50k Russian/French entries still take 120–140 MB on the device. Richness is a usable proxy: it kept 99–100% of the common-word probes. It is not a frequency list, as `студент` (student) fell outside the top 50k. For D9 that suggests a lemma-only, richness-ranked pack of about 50k entries (about 20–30 MB to download). It also suggests capping definitions or examples per entry further if on-device size matters more than depth.
 - Phones decode and import more slowly than this machine. On-device timing belongs in the dev-client smoke (`docs/dev-client-smoke-matrix.md`).
 - Gaps the full-size smoke found and fixed in the app's morphology (`tests/cjkMorphologyForms.test.ts`):
   - Turkish present continuous and past-with-person verbs (gidiyor → gitmek, yaptım → yapmak);
