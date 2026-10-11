@@ -38,3 +38,9 @@ Spanish source gates pass; promotion waits on the pack decision (D9) and the pac
 node scripts/measure-kaikki-dump.mjs --lang es --probes data/headword-lists/spanish-promotion-100.txt \\
   --url 'https://kaikki.org/eswiktionary/Espa%C3%B1ol/kaikki.org-dictionary-Espa%C3%B1ol.jsonl'
 ```
+
+### Pack and UI smoke (2026-10-11)
+
+- `tests/offlinePackProbeSmoke.test.ts`: a probe-scoped pack built from this dump (126 merged entries, `tests/fixtures/offline-packs/es-probe-smoke/`) goes through the app's own validation, SQLite import (FTS5 schema on `node:sqlite`), lookup of all promotion probes (≥95% headwords, ≥85% inflected, every hit carries licence + attribution) and pack deletion. Passes.
+- `e2e/language-preview-smoke.spec.js`: Word screen on Expo web with a recorded wiktapi.dev response shows the Wiktionary meaning, and the word can be favourited and found in Library. Passes. It caught and fixed: a placeholder "word" part-of-speech heading, French `\\…\\` IPA, and audio picked as a bare file name.
+- Still open: the same pack import on a native device build, and choosing the production pack scope and host (D9).

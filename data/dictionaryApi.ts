@@ -429,14 +429,17 @@ export async function fetchWiktApiMonolingualMeaning(word: string, languageCode:
   }
 
   const sounds = entries.flatMap((entry) => entry.sounds ?? []);
-  const preferredSound = sounds.find((sound) => sound.ipa || sound.mp3_url || sound.audio || sound.ogg_url);
+  // `audio` is a bare Commons file name; only the transcoded URLs play (MP3 first: iOS cannot play Ogg).
+  const playableAudio = sounds
+    .map((sound) => [sound.mp3_url, sound.ogg_url, sound.audio].map((value) => normalizeAudioUrl(value ?? '')).find((value) => /^https:\/\//.test(value)))
+    .find(Boolean);
 
   const sourceRows = extractWiktApiAttributedRows(result, normalizedWord, languageCode);
 
   return {
     word: result.word ?? entries[0]?.word ?? normalizedWord,
-    ipa: preferredSound?.ipa ?? '',
-    audio: normalizeAudioUrl(preferredSound?.mp3_url ?? preferredSound?.audio ?? preferredSound?.ogg_url ?? ''),
+    ipa: normalizeWiktionaryIpa(sounds.find((sound) => sound.ipa?.trim())?.ipa ?? ''),
+    audio: playableAudio ?? '',
     definitions,
     source: 'wiktapi.dev',
     ...sourceRows,
@@ -596,7 +599,8 @@ function mapWiktApiDefinitions(entry: WiktApiEntry, languageCode: string): ApiDe
     .slice(0, 12)
     .flatMap((sense) =>
       (sense.glosses ?? []).map((gloss) => ({
-        partOfSpeech: entry.pos ?? 'word',
+        // Some editions (e.g. French via wiktapi.dev) omit the part of speech; the UI then shows no heading.
+        partOfSpeech: entry.pos ?? '',
         meaning: gloss,
         examples: mapWiktApiExamples(sense.examples ?? []).slice(0, 2),
         synonyms: uniqueWords(mapWiktApiLinkages(entry.synonyms ?? [])),
@@ -775,6 +779,12 @@ function getAudioPreferenceScore(audioUrl: string) {
   if (isUkAudio) return 50;
 
   return 10;
+}
+
+// French Wiktionary writes phonemic transcriptions as \mɛ.zɔ̃\; show the usual /mɛ.zɔ̃/ form.
+export function normalizeWiktionaryIpa(ipa: string) {
+  const trimmed = ipa.trim();
+  return /^\\[^\\]+\\$/.test(trimmed) ? `/${trimmed.slice(1, -1)}/` : trimmed;
 }
 
 function normalizeAudioUrl(audioUrl: string) {

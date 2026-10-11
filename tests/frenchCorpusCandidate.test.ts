@@ -8,7 +8,7 @@ describe('French corpus candidate tooling', () => {
     const builder = readFileSync(resolve(process.cwd(), 'scripts/build-offline-pack.mjs'), 'utf8');
     const gitignore = readFileSync(resolve(process.cwd(), '.gitignore'), 'utf8');
 
-    expect(extractor).toContain("const limit = Number(args.limit ?? 5_000)");
+    expect(extractor).toContain("const limit = Number(args.limit ?? (headwordFilter ? Infinity : 5_000))");
     expect(extractor).toContain("license: 'CC-BY-SA-4.0/GFDL'");
     expect(extractor).toContain("sourceLastModified: response.headers.get('last-modified')");
     expect(builder).toContain("sourceRevision: args.sourceRevision ?? ''");

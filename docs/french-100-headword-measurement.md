@@ -54,3 +54,9 @@ node scripts/measure-kaikki-dump.mjs --lang fr --probes data/headword-lists/fren
 node scripts/extract-kaikki-candidate.mjs --lang fr --definition-lang fr --limit 5000 \
   --source-url 'https://kaikki.org/frwiktionary/Fran%C3%A7ais/kaikki.org-dictionary-Fran%C3%A7ais.jsonl'
 ```
+
+### Pack and UI smoke (2026-10-11)
+
+- `tests/offlinePackProbeSmoke.test.ts`: a probe-scoped pack built from this dump (216 merged entries, `tests/fixtures/offline-packs/fr-probe-smoke/`) goes through the app's own validation, SQLite import (FTS5 schema on `node:sqlite`), lookup of all promotion probes (≥95% headwords, ≥85% inflected, every hit carries licence + attribution) and pack deletion. Passes.
+- `e2e/language-preview-smoke.spec.js`: Word screen on Expo web with a recorded wiktapi.dev response shows the Wiktionary meaning, and the word can be favourited and found in Library. Passes. It caught and fixed: a placeholder "word" part-of-speech heading, French `\\…\\` IPA, and audio picked as a bare file name.
+- Still open: the same pack import on a native device build, and choosing the production pack scope and host (D9).

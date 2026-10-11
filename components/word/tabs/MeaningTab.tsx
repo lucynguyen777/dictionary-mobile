@@ -105,8 +105,8 @@ export function MeaningTab({
         />
       ) : null}
       {groupedDefinitions.map((group) => (
-        <View key={group.partOfSpeech} style={styles.block}>
-          <Text style={styles.heading}>{group.partOfSpeech}</Text>
+        <View key={group.partOfSpeech || 'unspecified'} style={styles.block}>
+          {group.partOfSpeech ? <Text style={styles.heading}>{group.partOfSpeech}</Text> : null}
           {group.definitions.map((item, index) => (
             <View
               key={`${item.meaning}-${index}`}
@@ -214,7 +214,7 @@ function groupDefinitionsByPartOfSpeech(definitions: MeaningDefinitionItem[]) {
   const groups: { partOfSpeech: string; definitions: MeaningDefinitionItem[] }[] = [];
 
   definitions.forEach((definition) => {
-    const partOfSpeech = definition.partOfSpeech.trim() || 'word';
+    const partOfSpeech = definition.partOfSpeech.trim();
     const existingGroup = groups.find((group) => group.partOfSpeech.toLowerCase() === partOfSpeech.toLowerCase());
 
     if (existingGroup) {
