@@ -1,6 +1,10 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  avatarPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: {
     paddingBottom: 28,
     paddingHorizontal: 16,

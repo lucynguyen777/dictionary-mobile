@@ -45,7 +45,7 @@ Plan task 7.5. One place to see what must be true before a store release. Owner 
 - [ ] Privacy Policy and Terms published; links in Profile point to them (D5).
 - [ ] Help center content and support inbox; feedback notification (Resend) if chosen (D5).
 - [ ] Crash/error reporting decided and wired, with privacy copy (D8).
-- [ ] Apple Privacy Nutrition Label and Google Data Safety filled from what actually leaves the device: account email, synced learning data (opt-in), translation/AI text sent to providers, feedback text.
+- [ ] Apple Privacy Nutrition Label and Google Data Safety filled from what actually leaves the device: account email, synced learning data (opt-in), translation/AI text sent to providers, feedback text. Draft answers with the full network inventory: `docs/store-privacy-answers-draft.md`.
 - [ ] Store screenshots from the release build (light and dark), Vietnamese copy reviewed.
 - [ ] Licences: Wiktionary-derived content shown with CC BY-SA attribution; Acknowledgements screen lists sources.
 

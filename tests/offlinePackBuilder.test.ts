@@ -217,6 +217,13 @@ describe('build-offline-pack pipeline guarantees', () => {
     expect(lemmas.report.formOfEntriesSkipped).toBe(1);
   });
 
+  it('keeps the best-documented entries when ranking by richness', () => {
+    writeDump();
+    const ranked = build(`${dir}/out-f`, ['--limit', '2', '--rank-by', 'richness']);
+    expect(ranked.entries.map((entry) => entry.word)).toEqual(['hammer', 'set']);
+    expect(ranked.report.droppedByRank).toBe(1);
+  });
+
   it('honours an entry limit', () => {
     writeDump();
     expect(build(`${dir}/out-c`, ['--limit', '2']).entries.map((entry) => entry.word)).toEqual(['hammer', 'pain']);

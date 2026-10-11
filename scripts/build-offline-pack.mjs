@@ -15,6 +15,7 @@ if (!args.input || !args.lang || !args.source || !args.out) {
       + ' [--public-base-url <url prefix where the pack is hosted>]'
       + ' [--helper-input <jsonl> --helper-source <name>]  (related words only, e.g. from another Wiktionary edition)'
       + ' [--lemmas-only]  (skip inflected-form entries; the app resolves inflections with its morphology)'
+      + ' [--rank-by richness]  (with --limit: keep the best-documented entries instead of the first ones in the dump)'
   );
   process.exit(1);
 }
@@ -22,6 +23,11 @@ if (!args.input || !args.lang || !args.source || !args.out) {
 // A fixed --generated-at makes rebuilding the same dump byte-identical (same checksums).
 const generatedAt = args.generatedAt ?? new Date().toISOString();
 const limit = args.limit ? Number(args.limit) : Infinity;
+if (args.rankBy !== undefined && args.rankBy !== 'richness') {
+  console.error('--rank-by only supports "richness".');
+  process.exit(1);
+}
+const rankByRichness = args.rankBy === 'richness';
 const MAX_DEFINITIONS_PER_ENTRY = 16;
 const MAX_EXAMPLES_PER_ENTRY = 8;
 const MAX_RELATIONS = 24;
@@ -63,7 +69,7 @@ for await (const line of reader) {
   if (existing) {
     mergeEntry(existing, normalizedEntry);
     stats.mergedEntries += 1;
-  } else if (entriesByKey.size < limit) {
+  } else if (rankByRichness || entriesByKey.size < limit) {
     entriesByKey.set(normalizedEntry.id, normalizedEntry);
   }
 }
@@ -92,7 +98,28 @@ if (args.helperInput && args.helperSource) {
   }
 }
 
-const entries = [...entriesByKey.values()]
+// Without a licensed frequency list, how well Wiktionary documents a word is the available proxy for
+// how common it is: senses, examples, related words, pronunciation and etymology.
+function richness(entry) {
+  return entry.definitions.length * 2
+    + Math.min(entry.examples.length, 8)
+    + Math.min(entry.relations.synonyms.length + entry.relations.antonyms.length, 8)
+    + (entry.ipa ? 2 : 0)
+    + (entry.audio.length ? 2 : 0)
+    + (entry.etymology ? 1 : 0);
+}
+
+let selected = [...entriesByKey.values()];
+if (rankByRichness && selected.length > limit) {
+  stats.droppedByRank = selected.length - limit;
+  selected = selected
+    .map((entry) => ({ entry, score: richness(entry) }))
+    .sort((a, b) => b.score - a.score || (a.entry.normalizedWord < b.entry.normalizedWord ? -1 : 1))
+    .slice(0, limit)
+    .map(({ entry }) => entry);
+}
+
+const entries = selected
   .map(capEntry)
   .sort((a, b) => (a.normalizedWord < b.normalizedWord ? -1 : a.normalizedWord > b.normalizedWord ? 1 : 0));
 

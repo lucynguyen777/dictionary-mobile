@@ -31,7 +31,6 @@ import { AuthModal, AuthStatusPanel } from '@/components/profile/AuthPanels';
 import { DarkDataStat, DataStat, ProfileMetric, formatMetricNumber } from '@/components/profile/Metrics';
 import { styles } from '@/components/profile/styles';
 
-const defaultAvatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop';
 
 const legalLinks = [
   {
@@ -518,7 +517,8 @@ export default function ProfileScreen() {
     !profile.email &&
     !profile.username &&
     !profile.avatarUrl;
-  const avatarUri = profile.avatarUrl || (isDefaultGuestProfile ? '' : defaultAvatarUri);
+  // No stock photo: without a picture of their own, users see a neutral placeholder.
+  const avatarUri = profile.avatarUrl;
   const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
   const dashboardNow = new Date();
   const activitySummary = getActivitySummary(activityState, dashboardNow);
@@ -862,7 +862,13 @@ export default function ProfileScreen() {
               </Pressable>
             </View>
             <View style={styles.sidebarProfileCard}>
-              <Image source={{ uri: avatarUri }} style={styles.sidebarProfileAvatar} />
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.sidebarProfileAvatar} />
+              ) : (
+                <View style={[styles.sidebarProfileAvatar, styles.avatarPlaceholder, themed.guestAvatar]}>
+                  <Ionicons name="person-outline" size={22} color={colors.accentPrimary} />
+                </View>
+              )}
               <View style={styles.sidebarProfileCopy}>
                 <Text style={styles.sidebarProfileName} numberOfLines={1}>{profile.displayName}</Text>
                 <Text style={styles.sidebarProfileMeta} numberOfLines={1}>
@@ -928,7 +934,13 @@ export default function ProfileScreen() {
                   onSignOutPress={handleSignOutAuth}
                 />
                 <View style={styles.sidebarAvatarBlock}>
-                  <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
+                  {avatarUri ? (
+                    <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
+                  ) : (
+                    <View style={[styles.sidebarAvatar, styles.avatarPlaceholder, themed.guestAvatar]}>
+                      <Ionicons name="person-outline" size={26} color={colors.accentPrimary} />
+                    </View>
+                  )}
                   <Pressable
                     onPress={() => setEditingAvatar((value) => !value)}
                     style={({ pressed }) => [styles.sidebarAvatarAction, pressed && styles.sidebarAvatarActionPressed]}>

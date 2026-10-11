@@ -63,3 +63,9 @@ describe('Spanish short irregular verbs', () => {
     expect(words('es', form)).toContain(lemma);
   });
 });
+
+describe('Russian irregular forms', () => {
+  it.each([['детей', 'ребёнок'], ['хочет', 'хотеть'], ['живёт', 'жить'], ['живет', 'жить'], ['людей', 'человек'], ['ест', 'есть'], ['может', 'мочь']])('%s → %s', (form, lemma) => {
+    expect(words('ru', form)).toContain(lemma);
+  });
+});

@@ -1695,12 +1695,30 @@ function getAmharicMorphologyCandidates(input: string): MorphologyCandidate[] {
   return uniqueCandidates(candidates, word).slice(0, 5);
 }
 
+// Keys use е for ё, so both spellings match.
+const RUSSIAN_IRREGULAR_FORMS: Record<string, string[]> = {
+  дети: ['ребёнок', 'дети'], детей: ['ребёнок', 'дети'], детям: ['ребёнок', 'дети'], детьми: ['ребёнок', 'дети'],
+  люди: ['человек', 'люди'], людей: ['человек', 'люди'], людям: ['человек', 'люди'],
+  хочу: ['хотеть'], хочешь: ['хотеть'], хочет: ['хотеть'], хотим: ['хотеть'], хотите: ['хотеть'], хотят: ['хотеть'],
+  живу: ['жить'], живешь: ['жить'], живет: ['жить'], живем: ['жить'], живете: ['жить'], живут: ['жить'],
+  иду: ['идти'], идешь: ['идти'], идет: ['идти'], шел: ['идти'], шла: ['идти'], шли: ['идти'],
+  ем: ['есть'], ешь: ['есть'], ест: ['есть'], едят: ['есть'],
+  даю: ['давать'], дает: ['давать'], дам: ['дать'], даст: ['дать'],
+  могу: ['мочь'], может: ['мочь'], могут: ['мочь'], мог: ['мочь'], могла: ['мочь'],
+  пью: ['пить'], пьет: ['пить'], пьют: ['пить'],
+  был: ['быть'], была: ['быть'], было: ['быть'], были: ['быть'], будет: ['быть'], буду: ['быть'],
+};
+
 function getRussianMorphologyCandidates(input: string): MorphologyCandidate[] {
   // Strip stress marks (U+0301 combining acute accent)
   const word = input.trim().normalize('NFD').replace(/\u0301/g, '').normalize('NFC').toLocaleLowerCase('ru-RU');
-  if (word.length < 3) return [];
-
   const candidates: MorphologyCandidate[] = [];
+
+  // Irregular and suppletive forms of very common words that no suffix rule reaches.
+  for (const base of RUSSIAN_IRREGULAR_FORMS[word.replace(/ё/g, 'е')] ?? []) {
+    candidates.push(createCandidate(base, 'irregular form'));
+  }
+  if (word.length < 3) return uniqueCandidates(candidates, word);
 
   // 0. Long-form adjective cases (хорошего → хороший, новые → новый, синей → синий).
   // Spelling rule: after г, к, х, ж, ш, щ, ч the masculine ending is -ий; soft stems also take -ий.
