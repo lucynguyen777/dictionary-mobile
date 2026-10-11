@@ -15,7 +15,7 @@ const dashboardRows = [
   'Multilingual Architecture | 88%',
   'Supabase Auth | 75%',
   'Cloud Sync | 40%',
-  'AI Infrastructure | 60%',
+  'AI Infrastructure | 70%',
   'OCR Infrastructure | 70%',
   'Real OCR Engine | 30%',
   'Pronunciation Assessment | 10%',
