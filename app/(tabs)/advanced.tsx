@@ -27,6 +27,7 @@ import {
   saveLibraryState,
 } from '@/data/libraryStore';
 
+import { countDueFlashcards } from '@/data/studyStats';
 import { BackendProxyError, aiChat, completeGoogleSheetsConnection, connectGoogleSheets, exportFolderToGoogleSheets, getGoogleSheetsStatus, translateText } from '@/data/backendProxyClient';
 import {
   extractReaderDocument,
@@ -315,10 +316,7 @@ export default function AdvancedScreen() {
     });
   }, [folderFilterId, libraryState.flashcards, reviewFilter, savedWordsById, typeFilter]);
 
-  const dueFlashcards = useMemo(() => {
-    const now = new Date();
-    return libraryState.flashcards.filter((card) => new Date(card.dueDate) <= now || card.reviewState !== 'reviewed').length;
-  }, [libraryState.flashcards]);
+  const dueFlashcards = useMemo(() => countDueFlashcards(libraryState.flashcards), [libraryState.flashcards]);
   const flashcardAnalytics = useMemo(() => getFlashcardAnalytics(libraryState, dueFlashcards), [dueFlashcards, libraryState]);
 
   const activeCard = filteredFlashcards[activeCardIndex];

@@ -222,20 +222,15 @@ export const savedFolders = [
   { name: 'Daily review', words: 15, color: '#EAF7FA' },
 ];
 
-export const studyStats = {
-  streak: 12,
-  mastered: 128,
-  dueToday: 18,
-  listeningScore: 86,
-};
-
 /**
  * Returns a word-of-the-day entry that stays constant for the entire day,
  * cycling through all dictionaryEntries using a date-based seed.
  */
-export function getWordOfDay(): DictionaryEntry {
+export function getWordOfDay(localDateKey?: string): DictionaryEntry {
   const now = new Date();
-  const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  const [year, month, day] = localDateKey?.split('-').map(Number)
+    ?? [now.getFullYear(), now.getMonth() + 1, now.getDate()];
+  const seed = year * 10000 + month * 100 + day;
   const index = seed % dictionaryEntries.length;
 
   return dictionaryEntries[index];
