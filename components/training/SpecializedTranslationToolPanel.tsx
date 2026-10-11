@@ -9,7 +9,12 @@ import { styles } from '@/components/training/styles';
 import { translateSpecialized, type SpecializedTranslateRequest, type SpecializedTranslateResponse } from '@/data/backendProxyClient';
 import { glossaryLinesFromDelimitedText, mergeGlossaryText } from '@/data/glossaryImport';
 import { findGlossaryMatches, parseGlossaryText } from '@/data/glossaryMatching';
-import { loadSpecializedGlossaries, saveSpecializedGlossary, type SpecializedGlossaries } from '@/data/specializedGlossaryStore';
+import {
+  addSpecializedGlossaryListener,
+  loadSpecializedGlossaries,
+  saveSpecializedGlossary,
+  type SpecializedGlossaries,
+} from '@/data/specializedGlossaryStore';
 import { useToken } from '@/hooks/use-token';
 
 const translationDomains: { id: SpecializedTranslateRequest['domainId']; label: string }[] = [
@@ -48,11 +53,23 @@ export function SpecializedTranslationToolPanel() {
   const [result, setResult] = useState<SpecializedTranslateResponse | null>(null);
   const [translationError, setTranslationError] = useState('');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSave = useRef<{ domainId: string; text: string } | null>(null);
 
   useEffect(() => {
-    loadSpecializedGlossaries().then(setGlossaries).catch(() => undefined);
+    const reload = () => {
+      // A pending local edit is newer than anything stored; reloading now would revert it.
+      if (pendingSave.current) return;
+      loadSpecializedGlossaries().then(setGlossaries).catch(() => undefined);
+    };
+    reload();
+    const unsubscribe = addSpecializedGlossaryListener(reload);
     return () => {
+      unsubscribe();
       if (saveTimer.current) clearTimeout(saveTimer.current);
+      // Leaving the panel right after typing must not drop the last edit.
+      const pending = pendingSave.current;
+      pendingSave.current = null;
+      if (pending) saveSpecializedGlossary(pending.domainId, pending.text).catch(() => undefined);
     };
   }, []);
 
@@ -74,9 +91,12 @@ export function SpecializedTranslationToolPanel() {
   const handleGlossaryChange = (value: string) => {
     setGlossaries((current) => ({ ...current, [domainId]: value }));
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    const domainToSave = domainId;
+    pendingSave.current = { domainId, text: value };
     saveTimer.current = setTimeout(() => {
-      saveSpecializedGlossary(domainToSave, value).catch(() => undefined);
+      saveTimer.current = null;
+      const pending = pendingSave.current;
+      pendingSave.current = null;
+      if (pending) saveSpecializedGlossary(pending.domainId, pending.text).catch(() => undefined);
     }, 400);
   };
 
@@ -138,7 +158,7 @@ export function SpecializedTranslationToolPanel() {
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>Dịch chuyên ngành</Text>
           <Text style={styles.description}>
-            Dịch bằng AI theo chuyên ngành và glossary của bạn. Glossary lưu trên thiết bị; chỉ thuật ngữ xuất hiện trong đoạn văn được gửi kèm. Cần đăng nhập cloud.
+            Dịch bằng AI theo chuyên ngành và glossary của bạn. Glossary lưu trên thiết bị và đồng bộ theo tài khoản khi bật Cloud Sync; khi dịch chỉ gửi kèm thuật ngữ có trong đoạn văn. Cần đăng nhập cloud.
           </Text>
         </View>
       </View>

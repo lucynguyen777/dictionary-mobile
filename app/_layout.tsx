@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { recordAppOpen } from '@/data/activityStore';
 import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
+import { addSpecializedGlossaryListener } from '@/data/specializedGlossaryStore';
 import { startSyncLifecycle } from '@/data/supabaseSyncLifecycle';
 import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -79,7 +80,14 @@ export default function RootLayout() {
         });
         return () => subscription.remove();
       },
-      subscribeToLocalSaves: addUserDataSavedListener,
+      subscribeToLocalSaves: (onSave) => {
+        const unsubscribeUserData = addUserDataSavedListener(onSave);
+        const unsubscribeGlossaries = addSpecializedGlossaryListener(onSave);
+        return () => {
+          unsubscribeUserData();
+          unsubscribeGlossaries();
+        };
+      },
     });
   }, [appLockState]);
 

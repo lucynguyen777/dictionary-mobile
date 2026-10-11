@@ -20,6 +20,11 @@ vi.mock('../data/supabaseSyncRunner', () => ({
   runSupabaseCloudSyncOnce,
 }));
 
+const syncSpecializedGlossariesWithSharedClient = vi.fn();
+vi.mock('../data/specializedGlossarySync', () => ({
+  syncSpecializedGlossariesWithSharedClient,
+}));
+
 describe('supabase sync lifecycle', () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -30,6 +35,29 @@ describe('supabase sync lifecycle', () => {
       status: 'synced',
       syncedAt: '2026-06-03T00:00:00.000Z',
     });
+    syncSpecializedGlossariesWithSharedClient.mockResolvedValue({ pulled: [], pushed: [] });
+  });
+
+  it('syncs glossaries after user data and reports a glossary failure as an error', async () => {
+    const { addSyncStateListener, triggerManualSync } = await import('../data/supabaseSyncLifecycle');
+    const states: string[] = [];
+    const unsubscribe = addSyncStateListener((state) => states.push(state));
+
+    await triggerManualSync();
+    expect(syncSpecializedGlossariesWithSharedClient).toHaveBeenCalledTimes(1);
+    expect(states.at(-1)).toBe('synced');
+
+    syncSpecializedGlossariesWithSharedClient.mockRejectedValueOnce(new Error('glossary_sync_push_failed'));
+    await triggerManualSync();
+    expect(states.at(-1)).toBe('error');
+    unsubscribe();
+  });
+
+  it('does not sync glossaries when the main sync did not finish', async () => {
+    runSupabaseCloudSyncOnce.mockResolvedValue({ status: 'offline' });
+    const { triggerManualSync } = await import('../data/supabaseSyncLifecycle');
+    await triggerManualSync();
+    expect(syncSpecializedGlossariesWithSharedClient).not.toHaveBeenCalled();
   });
 
   it('syncs once at start, on foreground, and once after a burst of local saves', async () => {

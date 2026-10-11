@@ -129,7 +129,7 @@ export function LearningToolPanel({ tool }: { tool: (typeof learningTools)[numbe
 
 function getToolRoadmapText(toolId: LearningToolId) {
   if (toolId === 'specialized-translation') {
-    return 'Glossary lưu trên thiết bị theo chuyên ngành và được áp dụng khi dịch qua máy chủ AI. Bước tiếp theo: import glossary từ CSV/TSV và đồng bộ glossary theo tài khoản.';
+    return 'Glossary theo chuyên ngành, nhập từ CSV/TSV, đồng bộ theo tài khoản khi bật Cloud Sync và được áp dụng khi dịch qua máy chủ AI. Bước tiếp theo: dataset câu mẫu và tối đa 3 agent ngữ cảnh.';
   }
   if (toolId === 'import') {
     return 'Polish flow import dataset: preview, mapping cột/hàng, chọn folder đích, validate trùng/trống và tạo flashcard từ dataset.';

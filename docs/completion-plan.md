@@ -209,7 +209,7 @@ Branches stack in order: `claude/v1.4.1-product-truth` → `claude/v1.5.0-cloud-
 | 1 Product truth | 1.1–1.6 | — |
 | 2 Cloud Sync | 2.0–2.5 (two-device test on Postgres + RLS) | 2.6 account deletion (D3); production smoke (D2) |
 | 3 Design system/UI | 3.1–3.4, 3.6–3.9 | Library/Training/Profile stylesheet palette → tokens (D7) |
-| 4 Providers | 4.1 AI streaming, 4.3 feedback form, 4.4 password change/reset, 4.5 specialized translation (device glossary, CSV/TSV import), Sheets export fake-API tests | 4.1/4.2 production smoke (keys); 4.3 legal/help + Resend (D5); 4.5 cloud glossaries + context agents; 4.6 Azure scoring (D6) |
+| 4 Providers | 4.1 AI streaming, 4.3 feedback form, 4.4 password change/reset, 4.5 specialized translation (glossary per domain, CSV/TSV import, account sync), Sheets export fake-API tests | 4.1/4.2 production smoke (keys); 4.3 legal/help + Resend (D5); 4.5 sentence datasets + context agents; 4.6 Azure scoring (D6) |
 | 5 Native recognition | — | Needs EAS account and devices |
 | 6 Languages/offline | 6.1 declarative local-pack registry | 6.2–6.6 data pipeline and source gates |
 | 7 Release v2.0 | — | 7.1 crash reporting provider (D8); 7.2–7.3 need EAS/store accounts, D3, D5 |
