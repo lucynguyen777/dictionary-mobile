@@ -31,7 +31,17 @@ export function getCurrentSyncState(): SyncState {
   return currentSyncState;
 }
 
-export async function triggerManualSync() {
+let inFlightSync: ReturnType<typeof runSyncOnce> | null = null;
+
+// One sync at a time: manual taps, foreground events and post-save timers share the running sync.
+export function triggerManualSync() {
+  inFlightSync ??= runSyncOnce().finally(() => {
+    inFlightSync = null;
+  });
+  return inFlightSync;
+}
+
+async function runSyncOnce() {
   try {
     const profile = await loadUserProfile();
     if (!profile.cloudSyncEnabled) {
@@ -73,10 +83,53 @@ export async function triggerManualSync() {
 
 export const triggerLifecycleSync = triggerManualSync;
 
-export function startSyncLifecycle() {
-  notifyListeners('idle');
+export const AUTO_SYNC_AFTER_SAVE_DELAY_MS = 30_000;
+
+export type SyncLifecycleOptions = {
+  autoSyncDelayMs?: number;
+  // Calls back when the app returns to the foreground; returns an unsubscribe function.
+  subscribeToForeground?: (onForeground: () => void) => () => void;
+  // Calls back after local user data is saved; returns an unsubscribe function.
+  subscribeToLocalSaves?: (onSave: () => void) => () => void;
+};
+
+let stopCurrentLifecycle: (() => void) | null = null;
+
+/**
+ * Automatic sync for users who turned Cloud Sync on: once at start, whenever the app returns to the
+ * foreground, and shortly after local edits (debounced so a burst of edits syncs once).
+ * With sync turned off, each trigger only reports 'idle'.
+ */
+export function startSyncLifecycle({
+  autoSyncDelayMs = AUTO_SYNC_AFTER_SAVE_DELAY_MS,
+  subscribeToForeground,
+  subscribeToLocalSaves,
+}: SyncLifecycleOptions = {}) {
+  stopSyncLifecycle();
+
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const scheduleSync = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      void triggerManualSync();
+    }, autoSyncDelayMs);
+  };
+
+  const unsubscribeForeground = subscribeToForeground?.(() => void triggerManualSync());
+  const unsubscribeSaves = subscribeToLocalSaves?.(scheduleSync);
+
+  stopCurrentLifecycle = () => {
+    if (timer) clearTimeout(timer);
+    unsubscribeForeground?.();
+    unsubscribeSaves?.();
+  };
+
+  void triggerManualSync();
+  return stopSyncLifecycle;
 }
 
 export function stopSyncLifecycle() {
-  notifyListeners('idle');
+  stopCurrentLifecycle?.();
+  stopCurrentLifecycle = null;
 }

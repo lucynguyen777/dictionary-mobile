@@ -3,12 +3,14 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, AppState, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { recordAppOpen } from '@/data/activityStore';
 import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
+import { startSyncLifecycle } from '@/data/supabaseSyncLifecycle';
+import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToken } from '@/hooks/use-token';
 
@@ -69,6 +71,16 @@ export default function RootLayout() {
       // Activity tracking should never block app entry.
     });
 
+    // Auto sync runs only for users who turned Cloud Sync on; otherwise each trigger just reports idle.
+    return startSyncLifecycle({
+      subscribeToForeground: (onForeground) => {
+        const subscription = AppState.addEventListener('change', (state) => {
+          if (state === 'active') onForeground();
+        });
+        return () => subscription.remove();
+      },
+      subscribeToLocalSaves: addUserDataSavedListener,
+    });
   }, [appLockState]);
 
   return (

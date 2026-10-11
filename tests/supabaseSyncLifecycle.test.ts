@@ -32,16 +32,59 @@ describe('supabase sync lifecycle', () => {
     });
   });
 
-  it('does not auto sync when lifecycle starts', async () => {
-    const { startSyncLifecycle } = await import('../data/supabaseSyncLifecycle');
+  it('syncs once at start, on foreground, and once after a burst of local saves', async () => {
+    vi.useFakeTimers();
+    try {
+      const { startSyncLifecycle, stopSyncLifecycle } = await import('../data/supabaseSyncLifecycle');
+      let onForeground = () => {};
+      let onSave = () => {};
+      const unsubscribeForeground = vi.fn();
+      const unsubscribeSaves = vi.fn();
 
-    startSyncLifecycle();
+      startSyncLifecycle({
+        autoSyncDelayMs: 1_000,
+        subscribeToForeground: (callback) => { onForeground = callback; return unsubscribeForeground; },
+        subscribeToLocalSaves: (callback) => { onSave = callback; return unsubscribeSaves; },
+      });
+      await vi.runAllTimersAsync();
+      expect(runSupabaseCloudSyncOnce).toHaveBeenCalledTimes(1);
 
-    expect(loadUserProfile).not.toHaveBeenCalled();
-    expect(runSupabaseCloudSyncOnce).not.toHaveBeenCalled();
+      onForeground();
+      await vi.runAllTimersAsync();
+      expect(runSupabaseCloudSyncOnce).toHaveBeenCalledTimes(2);
+
+      onSave();
+      onSave();
+      onSave();
+      await vi.advanceTimersByTimeAsync(999);
+      expect(runSupabaseCloudSyncOnce).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(1);
+      await vi.runAllTimersAsync();
+      expect(runSupabaseCloudSyncOnce).toHaveBeenCalledTimes(3);
+
+      stopSyncLifecycle();
+      expect(unsubscribeForeground).toHaveBeenCalled();
+      expect(unsubscribeSaves).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
-  it('runs cloud sync only through manual trigger', async () => {
+  it('shares one running sync between overlapping triggers', async () => {
+    let finish: (value: unknown) => void = () => {};
+    runSupabaseCloudSyncOnce.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const { triggerManualSync } = await import('../data/supabaseSyncLifecycle');
+
+    const first = triggerManualSync();
+    const second = triggerManualSync();
+    await vi.waitFor(() => expect(runSupabaseCloudSyncOnce).toHaveBeenCalledTimes(1));
+    finish({ domains: [], status: 'synced', syncedAt: '2026-06-03T00:00:00.000Z' });
+
+    expect(await first).toEqual(await second);
+    expect(runSupabaseCloudSyncOnce).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs cloud sync through the manual trigger', async () => {
     const { triggerManualSync } = await import('../data/supabaseSyncLifecycle');
 
     const result = await triggerManualSync();

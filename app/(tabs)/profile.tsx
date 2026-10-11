@@ -501,7 +501,7 @@ export default function ProfileScreen() {
     try {
       const nextProfile = await saveUserProfile({ ...profile, cloudSyncEnabled: nextValue });
       setProfile(nextProfile);
-      setSaveMessage(nextValue ? 'Đã bật beta đồng bộ cloud. Bấm Đồng bộ ngay để chạy thủ công.' : 'Đã tắt đồng bộ đám mây.');
+      setSaveMessage(nextValue ? 'Đã bật đồng bộ cloud (beta). Ứng dụng sẽ tự đồng bộ khi mở lại và sau khi bạn chỉnh sửa.' : 'Đã tắt đồng bộ đám mây.');
     } catch {
       Alert.alert('Lỗi đồng bộ', 'Không thể thay đổi thiết lập đồng bộ lúc này.');
     }
@@ -510,9 +510,9 @@ export default function ProfileScreen() {
   const handleManualCloudSync = async () => {
     const result = await triggerManualSync();
     if (result.status === 'synced') {
-      setSaveMessage('Đã đồng bộ cloud thủ công.');
+      setSaveMessage('Đã đồng bộ cloud.');
     } else if (result.status === 'idle') {
-      setSaveMessage('Bật beta đồng bộ cloud trước khi chạy thủ công.');
+      setSaveMessage('Bật đồng bộ cloud (beta) trước khi đồng bộ.');
     } else if (result.status === 'signed-out') {
       Alert.alert('Cần đăng nhập', 'Đăng nhập cloud trước khi đồng bộ dữ liệu.');
     } else if (result.status === 'unconfigured') {
@@ -1022,7 +1022,7 @@ export default function ProfileScreen() {
                 <View style={styles.privacyNote}>
                   <Ionicons name="lock-closed-outline" size={18} color="#0075DE" />
                   <Text style={styles.privacyText}>
-                    Dữ liệu học tập, hồ sơ và file Reader luôn lưu local trước. Cloud chỉ chạy khi bạn đăng nhập, bật beta đồng bộ và bấm Đồng bộ ngay.
+                    Dữ liệu học tập, hồ sơ và file Reader luôn lưu local trước. Cloud chỉ chạy khi bạn đăng nhập và bật đồng bộ (beta); khi đã bật, ứng dụng tự đồng bộ khi mở lại và sau khi bạn chỉnh sửa.
                   </Text>
                 </View>
                 <View style={styles.securityRow}>
@@ -1042,7 +1042,7 @@ export default function ProfileScreen() {
                     <View style={styles.securityRow}>
                       <View style={styles.securityCopy}>
                         <Text style={styles.securityTitle}>Beta đồng bộ đám mây</Text>
-                        <Text style={styles.securityText}>Đồng bộ thủ công dữ liệu học tập lên cloud. Local data luôn được giữ lại.</Text>
+                        <Text style={styles.securityText}>Tự động đồng bộ dữ liệu học tập giữa các thiết bị. Dữ liệu local luôn được giữ lại; bấm Đồng bộ ngay để đồng bộ tức thì.</Text>
                       </View>
                       <Switch
                         onValueChange={handleToggleCloudSync}

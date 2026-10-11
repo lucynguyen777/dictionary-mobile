@@ -79,6 +79,17 @@ const SELECT_READER_SETTINGS_SQL = 'SELECT * FROM reader_settings WHERE id = ? L
 
 let runtimeOptions: UserDatabaseRuntimeOptions = {};
 
+type UserDataSavedListener = () => void;
+const userDataSavedListeners = new Set<UserDataSavedListener>();
+
+// Lets Cloud Sync schedule a push after local edits without the stores knowing about sync.
+export function addUserDataSavedListener(listener: UserDataSavedListener) {
+  userDataSavedListeners.add(listener);
+  return () => {
+    userDataSavedListeners.delete(listener);
+  };
+}
+
 export function configureUserDatabaseRuntime(options: UserDatabaseRuntimeOptions = {}) {
   runtimeOptions = options;
 
@@ -226,6 +237,8 @@ export async function saveUserDataSnapshotToUserDatabase(
   } finally {
     await database.closeAsync?.();
   }
+
+  userDataSavedListeners.forEach((listener) => listener());
 }
 
 // Brings the SQLite database to the app's schema version without ever replacing existing SQLite data.
