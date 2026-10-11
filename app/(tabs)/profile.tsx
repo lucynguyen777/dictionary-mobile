@@ -1752,8 +1752,9 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   heroTopRow: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   heroAvatar: {
@@ -1771,8 +1772,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 60,
   },
+  // On narrow phones the identity keeps a readable width and the actions wrap below it.
   heroIdentity: {
-    flex: 1,
+    flexBasis: 200,
+    flexGrow: 1,
+    flexShrink: 1,
     minWidth: 0,
   },
   heroEyebrow: {
@@ -1799,11 +1803,11 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     backgroundColor: '#F5F3FF',
     borderColor: '#DDD6FE',
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 6,
-    marginTop: 7,
+    marginTop: 8,
     maxWidth: '100%',
     paddingHorizontal: 9,
     paddingVertical: 5,
@@ -1904,6 +1908,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 8,
+    marginLeft: 'auto',
   },
   heroAuthButton: {
     alignItems: 'center',

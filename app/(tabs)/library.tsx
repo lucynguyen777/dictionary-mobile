@@ -635,7 +635,7 @@ export default function LibraryScreen() {
                   {folder.avatarUri ? (
                     <Image source={{ uri: folder.avatarUri }} style={styles.folderAvatarImage} />
                   ) : (
-                    <Ionicons name="folder-open-outline" size={28} color={colors.textPrimary} />
+                    <Ionicons name="folder-open-outline" size={28} color={colors.textOnPastel} />
                   )}
                 </View>
                 <View style={[styles.folderInfo, isList && styles.folderInfoList]}>
