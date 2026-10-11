@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Modal, ScrollView, Text, View } from 'react-native';
+import { Alert, FlatList, Modal, Platform, ScrollView, Text, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import Screen from '@/components/app/Screen';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
@@ -11,7 +11,7 @@ import { loadUserProfile } from '@/data/profileStore';
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
 import { loadAppColorSchemePreference, resolveAppColorScheme } from '@/data/appThemePreference';
 import { type LanguageCode } from '@/data/languages';
-import { buildTokenSentenceMap, groupReaderParagraphs, splitReaderSentences, tokenizeReaderText } from '@/data/readerText';
+import { buildTokenSentenceMap, groupReaderParagraphs, splitReaderSentences, tokenizeReaderText, type ReaderParagraphRange } from '@/data/readerText';
 import { getReaderBackgroundPreset, readerBackgroundPresets, type ReaderBackgroundPresetId } from '@/data/readerTheme';
 
 import { buildReaderTocItems, defaultPrefs, fontOptions, getReaderTextStyle, speedOptions, themeOptions, voiceProfiles, type ReaderPreferences, type ReaderSheet } from '@/components/reader/readerOptions';
@@ -41,9 +41,10 @@ export default function ReaderScreen() {
   const [preferences, setPreferences] = useState<ReaderPreferences>(defaultPrefs);
 
   // Scrubber Progress & Scroll state
-  const scrollViewRef = useRef<ScrollView>(null);
+  // Paragraphs are virtualized: only those near the viewport are rendered, so long books stay fast.
+  const listRef = useRef<FlatList<ReaderParagraphRange>>(null);
+  const scrollToY = useCallback((y: number, animated: boolean) => listRef.current?.scrollToOffset({ animated, offset: y }), []);
   const {
-    contentHeight,
     handleAutoScrollToggle,
     handleNextPage,
     handlePrevPage,
@@ -56,7 +57,7 @@ export default function ReaderScreen() {
     setIsAutoScrolling,
     setScrollViewHeight,
     setScrubberWidth,
-  } = useReaderScroll(scrollViewRef, preferences.ttsSpeed);
+  } = useReaderScroll(scrollToY, preferences.ttsSpeed);
 
   // TTS State
   const [activeSheet, setActiveSheet] = useState<ReaderSheet>(null);
@@ -309,7 +310,7 @@ export default function ReaderScreen() {
   const handleSelectDocumentFromToc = (documentId: string) => {
     handleSelectDocument(documentId);
     setActiveSheet(null);
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    scrollToY(0, true);
   };
 
   // ----------------------------------------------------
@@ -324,124 +325,140 @@ export default function ReaderScreen() {
   const { activeSentenceIndex, handleNextSentence, handlePlayPause, handlePrevSentence, handleStop, isSpeaking } = speech;
 
   function scrollToActiveSentence(index: number) {
-    if (scrollViewRef.current && sentences.length > 0 && contentHeight > 0) {
-      const fraction = index / sentences.length;
-      const targetY = fraction * contentHeight - 140; // Offset to center the highlighted text
-      scrollViewRef.current.scrollTo({ y: Math.max(0, targetY), animated: true });
-    }
+    const paragraphIndex = readerParagraphs.findIndex((paragraph) => paragraph.sentenceIndexes.has(index));
+    if (paragraphIndex >= 0) listRef.current?.scrollToIndex({ animated: true, index: paragraphIndex, viewPosition: 0.3 });
   }
 
+
+  const paragraphRenderState = { activeSentenceIndex, readerPageBackground, readerPageTextColor, readerTextStyle, selectionRange, theme: activeTheme };
+  const renderParagraph = ({ item: paragraph }: { item: ReaderParagraphRange }) => {
+    const touchesSelection = selectionRange !== null && selectionRange.start <= paragraph.end && selectionRange.end >= paragraph.start;
+    return (
+      <View style={[styles.readerPageBody, { backgroundColor: readerPageBackground }]}>
+        <ReaderParagraph
+          activeSentenceIndex={paragraph.sentenceIndexes.has(activeSentenceIndex ?? -1) ? activeSentenceIndex : null}
+          end={paragraph.end}
+          highlightBackground={activeTheme.highlightBg}
+          highlightText={activeTheme.highlightText}
+          isRtl={isRtl}
+          onTokenPress={handleTokenPressStable}
+          selectionEnd={touchesSelection ? selectionRange.end : null}
+          selectionStart={touchesSelection ? selectionRange.start : null}
+          start={paragraph.start}
+          textColor={readerPageTextColor}
+          textStyle={readerTextStyle}
+          tokenToSentenceMap={tokenToSentenceMap}
+          tokens={readerTokens}
+        />
+      </View>
+    );
+  };
 
   return (
     <Screen edges={['top', 'left', 'right', 'bottom']} style={{ backgroundColor: activeTheme.bg }}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
-        ref={scrollViewRef}
+      <FlatList
+        ref={listRef}
         contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
+        data={selectedDocument ? readerParagraphs : []}
+        extraData={paragraphRenderState}
+        initialNumToRender={12}
+        keyExtractor={(paragraph) => String(paragraph.start)}
+        maxToRenderPerBatch={10}
         onContentSizeChange={(_, height) => setContentHeight(height)}
         onLayout={(e) => setScrollViewHeight(e.nativeEvent.layout.height)}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Touchable
-            accessibilityLabel="Quay lại"
-            accessibilityRole="button"
-            activeOpacity={0.82}
-            onPress={() => router.back()}
-            style={[styles.iconButton, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={activeTheme.text} />
-          </Touchable>
-        </View>
-
-        <Text style={[styles.kicker, { color: activeTheme.secondaryText }]}>Trình đọc Novel</Text>
-        <Text style={[styles.title, { color: activeTheme.text }]}>Đọc sách & tra từ AI</Text>
-
-        {/* Selected Documents */}
-        {readerState.documents.length ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.documentRow}>
-            {readerState.documents.map((document) => {
-              const isSelected = document.id === readerState.selectedDocumentId;
-
-              return (
-                <Touchable
-                  key={document.id}
-                  activeOpacity={0.82}
-                  onPress={() => handleSelectDocument(document.id)}
-                  style={[
-                    styles.documentChip,
-                    { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border },
-                    isSelected && { backgroundColor: activeTheme.accent, borderColor: activeTheme.accent },
-                  ]}
-                >
-                  <Text style={[styles.documentChipText, { color: activeTheme.text }, isSelected && styles.activeDocumentChipText]}>
-                    {document.title}
-                  </Text>
-                  <Text style={[styles.documentFormatText, { color: activeTheme.secondaryText }, isSelected && styles.activeDocumentFormatText]}>
-                    {(document.sourceFormat ?? 'txt').toUpperCase()}
-                  </Text>
-                </Touchable>
-              );
-            })}
-          </ScrollView>
-        ) : null}
-
-        {/* Reader Book Content display */}
-        {selectedDocument ? (
-          <View style={[styles.readerPage, { backgroundColor: readerPageBackground }]}>
-            <Text style={[styles.readerTitle, { color: activeTheme.text }, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>
-              {selectedDocument.title}
-            </Text>
-            {selectionRange && selectedHighlightText ? (
-              <ReaderHighlightPanel
-                activeTheme={activeTheme}
-                quickNote={quickNote}
-                readerSaveMessage={readerSaveMessage}
-                selectedHighlightText={selectedHighlightText}
-                sourceLanguageCode={readerSourceLang}
-                targetLanguageCode={readerTargetLang}
-                onClose={handleCloseSelection}
-                onCreateFlashcard={handleCreateFlashcardFromSelection}
-                onLookup={handleOpenLookup}
-                onSave={handleSaveSelection}
-                onSelectLanguage={handleReaderLanguageSelect}
-                onUpdateNote={setQuickNote}
-              />
-            ) : null}
-            <View style={styles.readerTextWrap}>
-              {readerParagraphs.map((paragraph) => (
-                <ReaderParagraph
-                  key={paragraph.start}
-                  activeSentenceIndex={paragraph.sentenceIndexes.has(activeSentenceIndex ?? -1) ? activeSentenceIndex : null}
-                  end={paragraph.end}
-                  highlightBackground={activeTheme.highlightBg}
-                  highlightText={activeTheme.highlightText}
-                  isRtl={isRtl}
-                  onTokenPress={handleTokenPressStable}
-                  selectionEnd={selectionRange && selectionRange.start <= paragraph.end && selectionRange.end >= paragraph.start ? selectionRange.end : null}
-                  selectionStart={selectionRange && selectionRange.start <= paragraph.end && selectionRange.end >= paragraph.start ? selectionRange.start : null}
-                  start={paragraph.start}
-                  textColor={readerPageTextColor}
-                  textStyle={readerTextStyle}
-                  tokenToSentenceMap={tokenToSentenceMap}
-                  tokens={readerTokens}
-                />
-              ))}
+        onScroll={handleScroll}
+        onScrollToIndexFailed={({ averageItemLength, index }) => scrollToY(averageItemLength * index, true)}
+        removeClippedSubviews={Platform.OS !== 'web'}
+        renderItem={renderParagraph}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        windowSize={9}
+        ListHeaderComponent={
+          <>
+            {/* Header */}
+            <View style={styles.header}>
+              <Touchable
+                accessibilityLabel="Quay lại"
+                accessibilityRole="button"
+                activeOpacity={0.82}
+                onPress={() => router.back()}
+                style={[styles.iconButton, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}
+              >
+                <Ionicons name="chevron-back" size={22} color={activeTheme.text} />
+              </Touchable>
             </View>
-          </View>
-        ) : (
-          <View style={[styles.emptyCard, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
-            <Ionicons name="reader-outline" size={28} color={activeTheme.secondaryText} />
-            <Text style={[styles.emptyTitle, { color: activeTheme.text }]}>Chưa có văn bản</Text>
-            <Text style={[styles.emptyText, { color: activeTheme.secondaryText }]}>
-              Vào Luyện tập → Đọc sách kèm tra từ để nhập tài liệu. Sau khi mở file, bấm vào từ hoặc cụm từ để tra nghĩa, lưu từ và tạo flashcard.
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+
+            <Text style={[styles.kicker, { color: activeTheme.secondaryText }]}>Trình đọc Novel</Text>
+            <Text style={[styles.title, { color: activeTheme.text }]}>Đọc sách & tra từ AI</Text>
+
+            {/* Selected Documents */}
+            {readerState.documents.length ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.documentRow}>
+                {readerState.documents.map((document) => {
+                  const isSelected = document.id === readerState.selectedDocumentId;
+
+                  return (
+                    <Touchable
+                      key={document.id}
+                      activeOpacity={0.82}
+                      onPress={() => handleSelectDocument(document.id)}
+                      style={[
+                        styles.documentChip,
+                        { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border },
+                        isSelected && { backgroundColor: activeTheme.accent, borderColor: activeTheme.accent },
+                      ]}
+                    >
+                      <Text style={[styles.documentChipText, { color: activeTheme.text }, isSelected && styles.activeDocumentChipText]}>
+                        {document.title}
+                      </Text>
+                      <Text style={[styles.documentFormatText, { color: activeTheme.secondaryText }, isSelected && styles.activeDocumentFormatText]}>
+                        {(document.sourceFormat ?? 'txt').toUpperCase()}
+                      </Text>
+                    </Touchable>
+                  );
+                })}
+              </ScrollView>
+            ) : null}
+            {selectedDocument ? (
+              <View style={[styles.readerPage, styles.readerPageTop, { backgroundColor: readerPageBackground }]}>
+                <Text style={[styles.readerTitle, { color: activeTheme.text }, isRtl && { textAlign: 'right', writingDirection: 'rtl' }]}>
+                  {selectedDocument.title}
+                </Text>
+                {selectionRange && selectedHighlightText ? (
+                  <ReaderHighlightPanel
+                    activeTheme={activeTheme}
+                    quickNote={quickNote}
+                    readerSaveMessage={readerSaveMessage}
+                    selectedHighlightText={selectedHighlightText}
+                    sourceLanguageCode={readerSourceLang}
+                    targetLanguageCode={readerTargetLang}
+                    onClose={handleCloseSelection}
+                    onCreateFlashcard={handleCreateFlashcardFromSelection}
+                    onLookup={handleOpenLookup}
+                    onSave={handleSaveSelection}
+                    onSelectLanguage={handleReaderLanguageSelect}
+                    onUpdateNote={setQuickNote}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+          </>
+        }
+        ListFooterComponent={
+          selectedDocument ? (
+            <View style={[styles.readerPageBottom, { backgroundColor: readerPageBackground }]} />
+          ) : (
+            <View style={[styles.emptyCard, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
+              <Ionicons name="reader-outline" size={28} color={activeTheme.secondaryText} />
+              <Text style={[styles.emptyTitle, { color: activeTheme.text }]}>Chưa có văn bản</Text>
+              <Text style={[styles.emptyText, { color: activeTheme.secondaryText }]}>
+                Vào Luyện tập → Đọc sách kèm tra từ để nhập tài liệu. Sau khi mở file, bấm vào từ hoặc cụm từ để tra nghĩa, lưu từ và tạo flashcard.
+              </Text>
+            </View>
+          )
+        }
+      />
 
       {/* Novel Reading Progress Scrubber fixed to bottom */}
       {selectedDocument && (

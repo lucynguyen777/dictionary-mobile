@@ -63,3 +63,27 @@ test('Reader audio panel and page buttons respond', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Đọc to' })).toBeVisible();
   await expect(page.getByRole('slider', { name: 'Vị trí đọc to' })).toHaveAttribute('aria-valuetext', /^Câu 1\/\d+$/);
 });
+
+// Plan 3.8: a ~1 MB book must stay usable. Before virtualization this took ~32 s to show, built
+// ~420k DOM nodes and ~22 s per tap; the budgets below leave wide margins for slow CI machines.
+test('Reader stays responsive with a 1 MB document', async ({ page }) => {
+  test.setTimeout(120_000);
+  const bigContent = Array.from({ length: 14_000 }, (_, index) => `${index + 1}. ${paragraph}`).join('\n');
+  await page.addInitScript((content) => {
+    const at = '2026-10-01T00:00:00.000Z';
+    window.localStorage.setItem('dictionary-mobile.reader.v1', JSON.stringify({
+      documents: [{ content, createdAt: at, id: 'doc-big', sourceFormat: 'txt', title: 'Big story', updatedAt: at }],
+      selectedDocumentId: 'doc-big',
+      settings: {},
+    }));
+  }, bigContent);
+
+  await page.goto('/reader');
+  await expect(page.getByText('quick', { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+  expect(await page.evaluate(() => document.querySelectorAll('*').length)).toBeLessThan(20_000);
+
+  const tapStarted = Date.now();
+  await page.getByText('quick', { exact: true }).first().click();
+  await expect(page.getByText('quick', { exact: true }).nth(1)).toBeVisible();
+  expect(Date.now() - tapStarted).toBeLessThan(5_000);
+});

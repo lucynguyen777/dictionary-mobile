@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import type { GestureResponderEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { GestureResponderEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 
 // Reader scroll position: progress scrubber, page up/down and auto-scroll (speed follows the
-// read-aloud speed setting).
-export function useReaderScroll(scrollViewRef: RefObject<ScrollView | null>, autoScrollSpeed: number) {
+// read-aloud speed setting). `scrollToY` moves the list; it should be stable (useCallback).
+export function useReaderScroll(scrollToY: (y: number, animated: boolean) => void, autoScrollSpeed: number) {
   const [contentHeight, setContentHeight] = useState(0);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
@@ -21,12 +21,12 @@ export function useReaderScroll(scrollViewRef: RefObject<ScrollView | null>, aut
     }
 
     autoScrollTimerRef.current = setInterval(() => {
-      if (!scrollViewRef.current || contentHeight <= scrollViewHeight) return;
+      if (contentHeight <= scrollViewHeight) return;
 
       setScrollOffset((currentOffset) => {
         const maxOffset = Math.max(0, contentHeight - scrollViewHeight);
         const nextOffset = Math.min(maxOffset, currentOffset + Math.max(2, autoScrollSpeed * 3));
-        scrollViewRef.current?.scrollTo({ y: nextOffset, animated: false });
+        scrollToY(nextOffset, false);
         if (nextOffset >= maxOffset) setIsAutoScrolling(false);
         return nextOffset;
       });
@@ -38,12 +38,8 @@ export function useReaderScroll(scrollViewRef: RefObject<ScrollView | null>, aut
         autoScrollTimerRef.current = null;
       }
     };
-  }, [autoScrollSpeed, contentHeight, isAutoScrolling, scrollViewHeight, scrollViewRef]);
+  }, [autoScrollSpeed, contentHeight, isAutoScrolling, scrollToY, scrollViewHeight]);
 
-
-  // ----------------------------------------------------
-  // READING PROGRESS SCRUBBER LOGIC
-  // ----------------------------------------------------
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     setScrollOffset(event.nativeEvent.contentOffset.y);
   };
@@ -54,10 +50,7 @@ export function useReaderScroll(scrollViewRef: RefObject<ScrollView | null>, aut
   }, [scrollOffset, contentHeight, scrollViewHeight]);
 
   const handleProgressChange = (pct: number) => {
-    if (scrollViewRef.current && contentHeight > scrollViewHeight) {
-      const targetY = (pct / 100) * (contentHeight - scrollViewHeight);
-      scrollViewRef.current.scrollTo({ y: targetY, animated: false });
-    }
+    if (contentHeight > scrollViewHeight) scrollToY((pct / 100) * (contentHeight - scrollViewHeight), false);
   };
 
   const handleScrubberTouch = (event: GestureResponderEvent) => {
@@ -67,17 +60,13 @@ export function useReaderScroll(scrollViewRef: RefObject<ScrollView | null>, aut
   };
 
   const handleNextPage = () => {
-    if (!scrollViewRef.current) return;
     setIsAutoScrolling(false);
-    const nextOffset = Math.min(Math.max(0, contentHeight - scrollViewHeight), scrollOffset + scrollViewHeight * 0.82);
-    scrollViewRef.current.scrollTo({ y: nextOffset, animated: true });
+    scrollToY(Math.min(Math.max(0, contentHeight - scrollViewHeight), scrollOffset + scrollViewHeight * 0.82), true);
   };
 
   const handlePrevPage = () => {
-    if (!scrollViewRef.current) return;
     setIsAutoScrolling(false);
-    const prevOffset = Math.max(0, scrollOffset - scrollViewHeight * 0.82);
-    scrollViewRef.current.scrollTo({ y: prevOffset, animated: true });
+    scrollToY(Math.max(0, scrollOffset - scrollViewHeight * 0.82), true);
   };
 
   const handleAutoScrollToggle = () => {

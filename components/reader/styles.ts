@@ -141,6 +141,21 @@ export const styles = StyleSheet.create({
     padding: 16,
     boxShadow: '0px 1px 8px rgba(15, 23, 42, 0.05)',
   },
+  // The page is split across the list header, one row per paragraph and the footer.
+  readerPageTop: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    boxShadow: undefined,
+    paddingBottom: 0,
+  },
+  readerPageBody: {
+    paddingHorizontal: 16,
+  },
+  readerPageBottom: {
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    height: 16,
+  },
   readerTitle: {
     fontSize: 20,
     fontWeight: '700',
