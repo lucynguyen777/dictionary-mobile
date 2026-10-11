@@ -199,14 +199,20 @@ Mỗi phase là một hoặc vài module trong `docs/product-progress.md`. Các 
 5. Azure Speech resource (khi bắt đầu Phase 4.6).
 6. Hosting cho Chandra OCR và CDN cho offline pack.
 
-## 7. Next Work Module đề xuất
+## 7. Progress status (updated 2026-10-11)
 
-**Module: v1.4.0 Security And Data Integrity Hardening**
-- [ ] TODO [HARD]: 0.1 Server-only tables RLS migration + Supabase-local RLS tests.
-- [ ] TODO [MEDIUM]: 0.2 Google OAuth state binding + open-redirect fix + Google revoke.
-- [ ] TODO [MEDIUM]: 0.3 AI proxy system-role, error redaction, CORS, DeepL header.
-- [ ] TODO [HARD]: 0.6 SQLite incremental schema migration without legacy re-migration.
-- [ ] TODO [EASY]: 1.6 Correct Cloud Sync/AI/OCR status in progress docs.
+Branches stack in order: `claude/v1.4.1-product-truth` → `claude/v1.5.0-cloud-sync` → `claude/v1.6.0-design-system` → `claude/v1.7.0-account-features` (PR #3 merged v1.4.0). Details per task live in `docs/product-progress.md`.
+
+| Phase | Done | Open (and why) |
+| --- | --- | --- |
+| 0 Stability/security | 0.1, 0.2, 0.3, 0.4 durable quota (migration 011), 0.5 Chandra hardening, 0.6 | Migrations 009–011 not applied (D2) |
+| 1 Product truth | 1.1–1.6 | — |
+| 2 Cloud Sync | 2.0–2.5 (two-device test on Postgres + RLS) | 2.6 account deletion (D3); production smoke (D2) |
+| 3 Design system/UI | 3.1–3.4, 3.6–3.9 | Library/Training/Profile stylesheet palette → tokens (D7) |
+| 4 Providers | 4.1 AI streaming, 4.3 feedback form, 4.4 password change/reset, 4.5 specialized translation (device glossary, CSV/TSV import), Sheets export fake-API tests | 4.1/4.2 production smoke (keys); 4.3 legal/help + Resend (D5); 4.5 cloud glossaries + context agents; 4.6 Azure scoring (D6) |
+| 5 Native recognition | — | Needs EAS account and devices |
+| 6 Languages/offline | 6.1 declarative local-pack registry | 6.2–6.6 data pipeline and source gates |
+| 7 Release v2.0 | — | 7.1 crash reporting provider (D8); 7.2–7.3 need EAS/store accounts, D3, D5 |
 
 ## 8. Pending owner decisions
 
@@ -219,3 +225,6 @@ Work that needs one of these decisions is paused; other work continues. Updated 
 | D3 | Account deletion: delete immediately, or soft-delete with a recovery window (e.g. 30 days)? After deletion, keep or wipe the data on the device? | Determines backend design (immediate admin delete vs scheduled purge) and UI copy. Store review requires in-app deletion. | Paused (plan 2.6). Suggested: immediate server deletion, keep local data with an explicit "also erase this device" option. |
 | D4 | Set `BACKEND_PROXY_ALLOWED_ORIGINS` on Vercel if the web app runs on domains other than production. | Other web origins are blocked by CORS. | Production + localhost only. |
 | D5 | Legal and support content: who writes the Privacy Policy, Terms and help-center text, where they are hosted, and which support inbox/Resend domain receives feedback notifications? | Store submission requires a Privacy Policy and Terms; the Help center row still shows a placeholder; feedback is stored but nobody is notified. | Paused (plan 4.3 legal/help part). Feedback is saved to the `feedback` table only. |
+| D6 | Pronunciation scoring (Azure): how long may raw audio be kept (suggested: not stored; streamed to Azure and discarded), and is a per-user daily scoring cap acceptable? | `.ai/context/blocked-decisions.md` gates scoring code on a retention policy and account-deletion behavior. | Paused (plan 4.6). |
+| D7 | Library/Training/Profile still use their own warm-grey/blue palette in light mode. Move them to theme tokens (visible restyle toward the purple accent) or keep the current look? | Converting changes how three tabs look; dark mode already works through themed overlays. | Keep current look; conversion paused. |
+| D8 | Crash/error reporting for v2.0: Sentry or EAS Observe, and opt-in or on by default? | Affects privacy copy, store data-safety labels, and SDK setup. | Paused (plan 7.1). |
