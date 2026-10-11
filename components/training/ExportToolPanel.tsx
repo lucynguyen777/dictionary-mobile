@@ -165,7 +165,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
       try {
         setIsRunningExport(true);
         if (googleSheetsConnected && selectedFolder) {
-          const result = await exportFolderToGoogleSheets(getFolderExportRows(libraryState, selectedFolder.id));
+          const result = await exportFolderToGoogleSheets(getFolderExportRows(libraryState, selectedFolder.id), `Dictionary Mobile - ${selectedFolder.name}`);
           setStatusMessage('Đã xuất bộ từ sang Google Sheets.');
           await Linking.openURL(result.spreadsheetUrl);
           return;

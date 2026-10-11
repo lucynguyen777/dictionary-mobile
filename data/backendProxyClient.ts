@@ -254,9 +254,9 @@ export async function getGoogleSheetsStatus(): Promise<GoogleSheetsStatus> {
   return proxyFetch<GoogleSheetsStatus>('/proxy/google-sheets/status');
 }
 
-export async function exportFolderToGoogleSheets(rows: string[][]) {
+export async function exportFolderToGoogleSheets(rows: string[][], title?: string) {
   return proxyFetch<{ spreadsheetUrl: string }>('/proxy/google-sheets/export-folder', {
-    body: JSON.stringify({ rows }),
+    body: JSON.stringify({ rows, title }),
     method: 'POST',
   });
 }

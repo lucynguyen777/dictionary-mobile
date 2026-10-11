@@ -736,7 +736,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE: Export folder to CSV.
 - [x] DONE [MEDIUM]: Export folder to Excel-compatible `.xls`.
 - [x] DONE [MEDIUM]: Anki text-only export from folder/saved words (commit `72abef2`).
-- [ ] TODO [HARD]: Google Sheets export is accepted/staged through backend-mediated Google OAuth; implementation needs Google Cloud OAuth setup, server-side token storage, row mapping, fake Google client tests, and production smoke.
+- [~] IN PROGRESS [HARD]: Google Sheets export is implemented through backend-mediated Google OAuth (state bound to the user, encrypted server-side refresh token, 7-column row mapping written with `valueInputOption=RAW`, revoke) with fake-Google tests for connect/complete/export/revoke (`tests/googleSheetsOAuth*.test.ts`); sheets are named after the folder. Remaining: Google Cloud OAuth client + Vercel secrets and a production smoke.
 
 ### Library Folder UI/UX
 - [x] DONE [EASY]: Replace visible per-folder export tags (`CSV`, `XLS`, `Anki`) with a kebab menu button on each folder card.
@@ -1014,7 +1014,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 ### Translation
 - [x] DONE [MEDIUM]: Language selector and bilingual dictionary flow; supported/blocked pair rules are centralized, unsupported pair routing is guarded, and API/UI coming-soon behavior is covered by tests.
 - [~] IN PROGRESS [HARD]: Production multilingual translation is implemented through the Vercel/Supabase backend proxy and remains gated by provider env vars, authenticated smoke, quota checks, and privacy copy.
-- [ ] TODO [HARD]: Specialized translation with user glossary/database is accepted/staged after DeepL glossary support, backend persistence, parser validation, RLS, quota checks, and fake-provider tests.
+- [~] IN PROGRESS [HARD]: Specialized translation with a device glossary is implemented (v1.7.0: validated `/proxy/translate/specialized`, quota, fake-provider tests); account persistence for glossaries/datasets with RLS, file import, and DeepL glossary support remain.
 
 ### Etymology And Conjugation
 - [x] DONE [HARD]: Draft etymology/conjugation source decision brief with legal structured source candidates and keep production integration blocked while decision remains Proposed.
