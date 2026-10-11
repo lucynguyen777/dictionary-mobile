@@ -209,7 +209,12 @@ export default function HomeScreen() {
                 value={lookupQuery}
               />
               {lookupQuery ? (
-                <TouchableOpacity activeOpacity={0.75} onPress={() => setLookupQuery('')}>
+                <TouchableOpacity
+                  accessibilityLabel="Xóa nội dung tìm kiếm"
+                  accessibilityRole="button"
+                  activeOpacity={0.75}
+                  hitSlop={10}
+                  onPress={() => setLookupQuery('')}>
                   <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
                 </TouchableOpacity>
               ) : null}

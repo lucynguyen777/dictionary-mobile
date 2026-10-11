@@ -282,10 +282,20 @@ export default function WordHeader({
           {entry.word}
         </Text>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={onToggleFavorite}>
-            <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={30} color="#EF476F" />
+          <TouchableOpacity
+            accessibilityLabel={isFavorite ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isFavorite }}
+            hitSlop={6}
+            onPress={onToggleFavorite}>
+            <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={30} color={colors.accentError} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setFolderPickerOpen((value) => !value)}>
+          <TouchableOpacity
+            accessibilityLabel="Lưu vào bộ từ"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: folderPickerOpen }}
+            hitSlop={6}
+            onPress={() => setFolderPickerOpen((value) => !value)}>
             <Ionicons name="add-circle-outline" size={30} color={colors.accentPrimary} />
           </TouchableOpacity>
         </View>
@@ -293,7 +303,13 @@ export default function WordHeader({
 
       <View style={styles.ipaRow}>
         <Text style={styles.ipa}>{entry.ipa}</Text>
-        <TouchableOpacity disabled={!entry.audio} onPress={playAudio} style={[styles.audioButton, !entry.audio && styles.audioButtonDisabled]}>
+        <TouchableOpacity
+          accessibilityLabel="Nghe phát âm"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !entry.audio }}
+          disabled={!entry.audio}
+          onPress={playAudio}
+          style={[styles.audioButton, !entry.audio && styles.audioButtonDisabled]}>
           <Ionicons name="volume-medium-outline" size={18} color={entry.audio ? colors.accentPrimary : colors.textTertiary} />
         </TouchableOpacity>
         <Text style={styles.translation}>{entry.vietnamese}</Text>
@@ -324,7 +340,12 @@ export default function WordHeader({
               value={folderQuery}
             />
             {folderQuery ? (
-              <TouchableOpacity activeOpacity={0.75} onPress={() => setFolderQuery('')}>
+              <TouchableOpacity
+                accessibilityLabel="Xóa tìm kiếm bộ từ"
+                accessibilityRole="button"
+                activeOpacity={0.75}
+                hitSlop={10}
+                onPress={() => setFolderQuery('')}>
                 <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
               </TouchableOpacity>
             ) : null}

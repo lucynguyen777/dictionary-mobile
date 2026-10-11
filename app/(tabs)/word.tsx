@@ -3,13 +3,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
-  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -56,8 +56,6 @@ import {
 import { getMorphologyCandidates } from '@/data/morphology';
 import { useToken } from '@/hooks/use-token';
 
-const { width } = Dimensions.get('window');
-
 const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
 type LookupStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -65,6 +63,8 @@ type LanguageField = 'source' | 'target';
 
 export default function WordScreen() {
   const insets = useSafeAreaInsets();
+  // Must match TabPager's page width, which follows rotation and web resizes.
+  const { width } = useWindowDimensions();
   const token = useToken();
   const styles = useMemo(() => createWordStyles(token), [token]);
   const { colors } = token;
@@ -171,12 +171,14 @@ export default function WordScreen() {
   useEffect(() => {
     let isMounted = true;
 
-    loadLibraryState().then((state) => {
-      if (!isMounted) return;
-
-      setLibraryState(state);
-      setLibraryLoaded(true);
-    });
+    loadLibraryState()
+      .then((state) => {
+        if (isMounted) setLibraryState(state);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (isMounted) setLibraryLoaded(true);
+      });
 
     return () => {
       isMounted = false;
@@ -342,11 +344,15 @@ export default function WordScreen() {
   };
 
   const handleToggleFavorite = () => {
-    toggleFavoriteWord(libraryState, selectedEntry).then(setLibraryState);
+    toggleFavoriteWord(libraryState, selectedEntry)
+      .then(setLibraryState)
+      .catch(() => Alert.alert('Chưa lưu được', 'Không thể cập nhật mục yêu thích lúc này. Thử lại sau.'));
   };
 
   const handleSaveToFolder = (folderId: string, note: string) => {
-    saveWordToFolder(libraryState, selectedEntry, folderId, note).then(setLibraryState);
+    saveWordToFolder(libraryState, selectedEntry, folderId, note)
+      .then(setLibraryState)
+      .catch(() => Alert.alert('Chưa lưu được', 'Không thể lưu từ vào bộ từ lúc này. Thử lại sau.'));
   };
 
   const handleTabPress = (index: number) => {
@@ -399,7 +405,11 @@ export default function WordScreen() {
               ]}
             />
             {query ? (
-              <TouchableOpacity onPress={() => setQuery('')}>
+              <TouchableOpacity
+                accessibilityLabel="Xóa nội dung tìm kiếm"
+                accessibilityRole="button"
+                hitSlop={10}
+                onPress={() => setQuery('')}>
                 <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
               </TouchableOpacity>
             ) : null}
