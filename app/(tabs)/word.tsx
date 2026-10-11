@@ -54,6 +54,7 @@ import { NATIVE_RECOGNITION_ENABLED } from '@/constants/featureFlags';
 import LookupSuggestions from '@/components/word/LookupSuggestions';
 import { createWordStyles } from '@/components/word/wordStyles';
 import { getBilingualDictionaryUnavailableMessage, getRouteParam, mergeLookupEntry } from '@/data/wordLookupEntry';
+import AppButton from '@/components/app/AppButton';
 
 const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
@@ -434,7 +435,9 @@ export default function WordScreen() {
                 Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
               </Text>
               <Touchable
+                accessibilityLabel="Hoàn tác ngôn ngữ đã nhận diện"
                 activeOpacity={0.75}
+                hitSlop={12}
                 onPress={() => {
                   setDetectedLanguage(null);
                   router.setParams({ sourceLang: sourceLanguage.code, targetLang: targetLanguage.code });
@@ -445,43 +448,25 @@ export default function WordScreen() {
           ) : null}
           {showLanguageControls && NATIVE_RECOGNITION_ENABLED ? (
             <View style={styles.recognitionActionRow}>
-              <Touchable
-                accessibilityLabel="Tìm bằng giọng nói"
-                accessibilityRole="button"
-                activeOpacity={0.82}
-                onPress={() => setRecognitionMode('voice')}
-                style={styles.recognitionActionButton}>
-                <Ionicons name="mic-outline" size={17} color={colors.accentPrimary} />
-                <Text style={styles.recognitionActionText}>Voice</Text>
-              </Touchable>
-              <Touchable
-                accessibilityLabel="Tra cứu qua ảnh (OCR)"
-                accessibilityRole="button"
-                activeOpacity={0.82}
-                onPress={() => setRecognitionMode('ocr')}
-                style={styles.recognitionActionButton}>
-                <Ionicons name="scan-outline" size={17} color={colors.accentPrimary} />
-                <Text style={styles.recognitionActionText}>OCR</Text>
-              </Touchable>
+              <AppButton accessibilityLabel="Tìm bằng giọng nói" icon="mic-outline" label="Voice" onPress={() => setRecognitionMode('voice')} />
+              <AppButton accessibilityLabel="Tra cứu qua ảnh (OCR)" icon="scan-outline" label="OCR" onPress={() => setRecognitionMode('ocr')} />
             </View>
           ) : showLanguageControls ? (
             <View style={styles.recognitionActionRow}>
-              <Touchable
+              <AppButton
                 accessibilityLabel="Tìm bằng giọng nói: cập nhật trong phiên bản sau"
-                activeOpacity={0.82}
+                icon="time-outline"
+                label="Voice"
                 onPress={() => showFutureFeatureNotice('Voice Search cần dev-client/native STT và kiểm thử quyền microphone trước khi mở production.')}
-                style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
-                <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
-                <Text style={styles.recognitionActionText}>Voice</Text>
-              </Touchable>
-              <Touchable
+                style={styles.futureRecognitionButton}
+              />
+              <AppButton
                 accessibilityLabel="Tra cứu qua ảnh (OCR): cập nhật trong phiên bản sau"
-                activeOpacity={0.82}
+                icon="time-outline"
+                label="OCR"
                 onPress={() => showFutureFeatureNotice('OCR Camera Lookup cần dev-client/native OCR engine và dữ liệu kiểm thử ảnh trước khi mở production.')}
-                style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
-                <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
-                <Text style={styles.recognitionActionText}>OCR</Text>
-              </Touchable>
+                style={styles.futureRecognitionButton}
+              />
             </View>
           ) : null}
           {showLanguageControls ? (

@@ -252,7 +252,9 @@ export default function HomeScreen() {
                   Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
                 </Text>
                 <Touchable
+                  accessibilityLabel="Hoàn tác ngôn ngữ đã nhận diện"
                   activeOpacity={0.75}
+                  hitSlop={12}
                   onPress={() => {
                     setDetectedLanguage(null);
                     setSourceLanguage(languageOptions[0]);

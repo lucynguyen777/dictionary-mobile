@@ -85,26 +85,8 @@ return StyleSheet.create({
     gap: 8,
     marginTop: 10,
   },
-  recognitionActionButton: {
-    alignItems: 'center',
-    backgroundColor: colors.statusSuccess,
-    borderColor: colors.accentSuccess,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 34,
-    paddingHorizontal: 10,
-  },
   futureRecognitionButton: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.focusRing,
     opacity: 0.58,
-  },
-  recognitionActionText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
   },
   futureRecognitionHint: {
     color: colors.textSecondary,
