@@ -1,8 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getRecentErrors, installGlobalErrorHandlers, redactErrorText, reportError, setErrorReporter } from '../data/errorReporting';
+import { getRecentErrors, installGlobalErrorHandlers, redactErrorText, reportError, setErrorReporter, setErrorReportingConsent } from '../data/errorReporting';
 
-afterEach(() => setErrorReporter(null));
+// These tests cover forwarding itself, so the learner has opted in; consent has its own test below.
+beforeEach(() => setErrorReportingConsent(true));
+afterEach(() => {
+  setErrorReporter(null);
+  setErrorReportingConsent(null);
+});
 
 describe('error reporting', () => {
   it('redacts personal data and credentials before reporting', () => {
@@ -58,5 +63,28 @@ describe('error reporting', () => {
     uninstall();
     expect(handler).toBe(previous);
     expect(listeners.size).toBe(0);
+  });
+});
+
+describe('crash report consent (D8)', () => {
+  it('sends nothing until the learner opts in while the build default is opt-in', async () => {
+    const { CRASH_REPORTS_DEFAULT_ON, reportError, setErrorReporter, setErrorReportingConsent } = await import('../data/errorReporting');
+    const captureException = vi.fn();
+    setErrorReporter({ captureException });
+
+    setErrorReportingConsent(null);
+    reportError(new Error('consent default'), { source: 'manual' }, 1_000_000);
+    expect(captureException).toHaveBeenCalledTimes(CRASH_REPORTS_DEFAULT_ON ? 1 : 0);
+
+    setErrorReportingConsent(true);
+    reportError(new Error('consent on'), { source: 'manual' }, 1_000_000);
+    expect(captureException).toHaveBeenCalledTimes(CRASH_REPORTS_DEFAULT_ON ? 2 : 1);
+
+    setErrorReportingConsent(false);
+    reportError(new Error('consent off'), { source: 'manual' }, 1_000_000);
+    expect(captureException).toHaveBeenCalledTimes(CRASH_REPORTS_DEFAULT_ON ? 2 : 1);
+
+    setErrorReporter(null);
+    setErrorReportingConsent(null);
   });
 });

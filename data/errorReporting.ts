@@ -13,12 +13,30 @@ export type RecordedError = { at: string; context: ErrorContext; message: string
 const MAX_RECENT = 20;
 const SAME_ERROR_WINDOW_MS = 10_000;
 
+// Owner decision D8: whether reports are sent before the learner chooses (on by default or opt-in).
+// Until then the build default is opt-in.
+export const CRASH_REPORTS_DEFAULT_ON = false;
+
 let reporter: ErrorReporter | null = null;
+let consent: boolean | null = null;
 const recent: RecordedError[] = [];
 const lastSeen = new Map<string, number>();
 
 export function setErrorReporter(next: ErrorReporter | null) {
   reporter = next;
+}
+
+export function hasErrorReporter() {
+  return reporter !== null;
+}
+
+// The learner's choice from Profile (null = not chosen yet, CRASH_REPORTS_DEFAULT_ON applies).
+export function setErrorReportingConsent(choice: boolean | null) {
+  consent = choice;
+}
+
+export function isErrorReportingEnabled() {
+  return consent ?? CRASH_REPORTS_DEFAULT_ON;
 }
 
 export function getRecentErrors(): readonly RecordedError[] {
@@ -56,7 +74,7 @@ export function reportError(error: unknown, context: ErrorContext = { source: 'm
 
   if (typeof __DEV__ !== 'undefined' && __DEV__) console.warn(`[error:${context.source}]`, normalized.message);
   try {
-    reporter?.captureException(normalized, context);
+    if (isErrorReportingEnabled()) reporter?.captureException(normalized, context);
   } catch {
     // A failing reporter must never crash the app it is reporting on.
   }

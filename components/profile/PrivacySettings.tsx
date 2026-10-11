@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { useEffect, useState } from 'react';
 import { Alert, Switch, Text, TextInput, View } from 'react-native';
 
 import Touchable from '@/components/app/Touchable';
@@ -7,6 +8,8 @@ import { NotificationPreferenceRow } from '@/components/profile/SettingsDrawerPa
 import { styles } from '@/components/profile/styles';
 import { type NotificationPreferences, type UserProfile, saveUserProfile } from '@/data/profileStore';
 import { triggerManualSync } from '@/data/supabaseSyncLifecycle';
+import { loadCrashReportPreference, saveCrashReportPreference } from '@/data/crashReportPreference';
+import { hasErrorReporter, isErrorReportingEnabled } from '@/data/errorReporting';
 
 type Props = {
   isSignedIn: boolean;
@@ -17,6 +20,18 @@ type Props = {
 
 // App lock, cloud sync and local notification settings in the Profile privacy & data drawer.
 export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange, profile }: Props) {
+  // Crash reports (plan 7.1): the switch appears once a reporting provider is plugged in (D8).
+  const [crashReportsOn, setCrashReportsOn] = useState(isErrorReportingEnabled());
+  useEffect(() => {
+    loadCrashReportPreference().then(() => setCrashReportsOn(isErrorReportingEnabled())).catch(() => undefined);
+  }, []);
+  const handleToggleCrashReports = (value: boolean) => {
+    setCrashReportsOn(value);
+    saveCrashReportPreference(value)
+      .then(() => onMessage(value ? 'Đã bật gửi báo cáo lỗi.' : 'Đã tắt gửi báo cáo lỗi.'))
+      .catch(() => undefined);
+  };
+
   const handleToggleAppLock = async (nextValue: boolean) => {
     try {
       if (nextValue) {
@@ -152,6 +167,15 @@ export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange
           ) : null}
         </View>
       )}
+      {hasErrorReporter() ? (
+        <View style={styles.securityRow}>
+          <View style={styles.securityCopy}>
+            <Text style={styles.securityTitle}>Gửi báo cáo lỗi</Text>
+            <Text style={styles.securityText}>Gửi thông tin lỗi ứng dụng (đã xóa email, token) để sửa lỗi nhanh hơn. Không gửi nội dung học tập.</Text>
+          </View>
+          <Switch accessibilityLabel="Gửi báo cáo lỗi" onValueChange={handleToggleCrashReports} value={crashReportsOn} />
+        </View>
+      ) : null}
       <Text style={styles.sidebarGroupLabel}>Thông báo local</Text>
       <View style={styles.notificationPanel}>
         <NotificationPreferenceRow

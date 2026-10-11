@@ -15,6 +15,7 @@ import { startSyncLifecycle } from '@/data/supabaseSyncLifecycle';
 import PdfTextExtractorHost from '@/components/reader/PdfTextExtractorHost';
 import { installGlobalErrorHandlers } from '@/data/errorReporting';
 import { installWebAlert } from '@/data/webAlert';
+import { loadCrashReportPreference } from '@/data/crashReportPreference';
 import { NATIVE_PDF_IMPORT_ENABLED } from '@/constants/featureFlags';
 import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -74,6 +75,9 @@ export default function RootLayout() {
 
   // Errors outside rendering (native global handler, web window errors, unhandled rejections).
   useEffect(() => installGlobalErrorHandlers(), []);
+  useEffect(() => {
+    loadCrashReportPreference().catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     unlockApp();
