@@ -168,16 +168,18 @@ export function ConjugationTab({ entry }: { entry: DictionaryEntry }) {
 
   return (
     <View>
-      <PreviewNotice
-        title="Sắp hỗ trợ"
-        text="Bảng chia động từ sẽ dùng resource production khi chọn được nguồn miễn phí hoặc có license ổn định."
-      />
-      {entry.conjugation.length ? entry.conjugation.map((item) => (
-        <View key={item.tense} style={styles.tenseBlock}>
+      {entry.conjugationAttribution ? null : entry.conjugation.length ? (
+        <PreviewNotice title="Dữ liệu mẫu" text="Bảng dưới đây là dữ liệu mẫu đi kèm ứng dụng, chưa phải bảng chia từ đầy đủ." />
+      ) : (
+        <PreviewNotice title="Chưa có bảng chia từ" text="Bảng chia từ lấy từ bảng biến cách của Wiktionary khi nguồn tra cứu có dữ liệu cho mục này." />
+      )}
+      {entry.conjugation.length ? entry.conjugation.map((item, index) => (
+        <View key={`${item.tense}-${item.form}-${index}`} style={styles.tenseBlock}>
           <Text style={styles.sectionTitle}>{item.tense}</Text>
           <Text style={styles.body}>{item.form}</Text>
         </View>
       )) : <EmptyState text="Chưa có dữ liệu chia động từ cho mục này." />}
+      {entry.conjugationAttribution ? <Text style={styles.body}>{entry.conjugationAttribution}</Text> : null}
     </View>
   );
 }

@@ -1036,10 +1036,11 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [HARD]: Etymology/conjugation source option selection accepted by product owner in `.docs/decisions/etymology-conjugation-source.md`; implementation remains subject to attribution and offline licensing constraints.
 - [x] DONE [HARD]: Etymology source integration slice (Wiktionary-derived attribution): adapter contract, UI attribution behavior, and missing-source fallback coverage are implemented before enabling production data path. Verification: `npm test -- --run tests/etymologyAdapter.test.ts`, `npm test -- --run`, `npx tsc --noEmit`, `npm run lint`, and Expo web HTTP smoke for `/word`.
 - [ ] TODO [HARD]: Production etymology/conjugation expansion can continue only with source metadata and real Wiktionary/UniMorph-backed rows; offline/bulk packaging remains blocked by attribution and ShareAlike pack review.
+  - [x] DONE: The Conjugation tab shows live Wiktionary inflection rows (via wiktapi.dev) without the "coming soon" notice. It drops Wiktextract bookkeeping rows and duplicates and shows the source attribution once under the table. Bundled sample rows are labelled "Dữ liệu mẫu" (`data/conjugationDisplay.ts`, `tests/conjugationDisplay.test.ts`). UniMorph paradigms remain.
 
 ### AI
 - [~] IN PROGRESS [HARD]: Text AI Tutor streams replies (SSE through the backend proxy, stop button, daily quota display) when Supabase auth and OpenAI env vars are configured; durable quota is implemented (migration 011 pending D2); production provider smoke and realtime voice feedback remain.
-- [~] IN PROGRESS [HARD]: Specialized translation with a device glossary works through `/proxy/translate/specialized` (v1.7.0); file import of glossaries, cloud persistence of datasets, and max-3 context agents remain.
+- [~] IN PROGRESS [HARD]: Specialized translation with a device glossary and sentence memory works through `/proxy/translate/specialized` (v1.7.0); file import (CSV/TSV/DOCX/PDF) and cloud sync of glossaries and sentence pairs are done; max-3 context agents remain (D10).
 
 ## Completed Work Modules
 

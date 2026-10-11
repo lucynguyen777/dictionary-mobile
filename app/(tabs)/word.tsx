@@ -19,6 +19,7 @@ import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
 import { lookupMonolingual, lookupRelatedWords } from '@/data/adapterRegistry';
 import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
+import { getLiveConjugation } from '@/data/conjugationDisplay';
 import {
   ApiBilingualMeaningResult,
   ApiMeaningResult,
@@ -649,12 +650,6 @@ function getEtymologyForEntry(
   );
 }
 
-function getLiveConjugationRows(apiMeaning: ApiMeaningResult | null) {
-  return apiMeaning?.forms?.map((row) => ({
-    tense: row.features.length ? row.features.join(' · ') : 'Form',
-    form: `${row.form}\n${row.attribution}`,
-  })) ?? [];
-}
 
 function mergeLookupEntry(
   localEntry: DictionaryEntry | undefined,
@@ -669,6 +664,7 @@ function mergeLookupEntry(
 ): DictionaryEntry {
   const fallbackEntry = localEntry ?? dictionaryEntries[0];
   const hasLocalEntry = Boolean(localEntry);
+  const liveConjugation = getLiveConjugation(apiMeaning?.forms);
   const apiDefinitions = apiMeaning?.definitions.map((definition) => ({
     partOfSpeech: definition.partOfSpeech,
     meaning: definition.meaning,
@@ -753,7 +749,8 @@ function mergeLookupEntry(
       antonyms: [],
       collocations: [],
       idioms: [],
-      conjugation: getLiveConjugationRows(apiMeaning),
+      conjugation: liveConjugation?.rows ?? [],
+      conjugationAttribution: liveConjugation?.attribution,
       etymology: getEtymologyForEntry(
         undefined,
         apiMeaning,
@@ -776,9 +773,8 @@ function mergeLookupEntry(
     vietnamese: fallbackEntry.vietnamese,
     shortDefinition: apiDefinitions?.[0]?.meaning ?? fallbackEntry.shortDefinition,
     definitions: fallbackEntry.definitions,
-    conjugation: getLiveConjugationRows(apiMeaning).length
-      ? getLiveConjugationRows(apiMeaning)
-      : fallbackEntry.conjugation,
+    conjugation: liveConjugation?.rows ?? fallbackEntry.conjugation,
+    conjugationAttribution: liveConjugation?.attribution,
     etymology: getEtymologyForEntry(
       localEntry,
       apiMeaning,
