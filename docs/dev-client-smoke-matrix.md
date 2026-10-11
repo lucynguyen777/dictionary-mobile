@@ -40,6 +40,17 @@ Automated coverage (no device needed):
 | 8 | Airplane mode. | OCR still works (MLKit runs on-device). |
 | 9 | Non-Latin source (Japanese, Korean, Hindi). | Record result: the bundled MLKit model is Latin-script; other scripts may need additional MLKit models before enabling them. |
 
+## Native PDF import (hidden WebView + pdf.js)
+
+Enabled by `EXPO_PUBLIC_READER_ENABLE_NATIVE_PDF=true` (development profiles). The extraction page is covered in Chromium by `e2e/pdf-webview-extraction.spec.ts` and the bridge by `tests/pdfWebViewExtraction.test.ts`.
+
+| Step | Action | Expected result |
+|------|--------|----------------|
+| 1 | Training → Reader library → import `tests/fixtures/reader-pdf/digital-simple.pdf` (copy to the device). | Document opens in Reader with its text. |
+| 2 | Import a 20+ page digital PDF. | Text of all pages, no freeze; under 2 minutes. |
+| 3 | First import with airplane mode on (pdf.js not yet cached). | "Cần kết nối mạng lần đầu để tải bộ đọc PDF…"; app stays usable. |
+| 4 | Import a scanned PDF. | Routed to Chandra OCR when configured, otherwise the scanned-PDF message. |
+
 ## Sign-off
 
 Record device model, OS version, build number and results per step. When every step passes on one iOS and one Android device, turn the flag on for `preview`/`production` in `eas.json` and update `docs/product-progress.md`.

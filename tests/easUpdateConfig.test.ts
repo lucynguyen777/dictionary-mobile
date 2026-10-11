@@ -24,5 +24,7 @@ describe('EAS Update readiness (plan 7.2)', () => {
     expect(eas.build.development.env.EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION).toBe('true');
     expect(eas.build.preview.env.EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION).toBeUndefined();
     expect(eas.build.production.env.EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION).toBeUndefined();
+    expect(eas.build.development.env.EXPO_PUBLIC_READER_ENABLE_NATIVE_PDF).toBe('true');
+    expect(eas.build.production.env.EXPO_PUBLIC_READER_ENABLE_NATIVE_PDF).toBeUndefined();
   });
 });

@@ -7,7 +7,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION": "true"
+        "EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION": "true",
+        "EXPO_PUBLIC_READER_ENABLE_NATIVE_PDF": "true"
       },
       "channel": "development"
     },
@@ -18,7 +19,8 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION": "true"
+        "EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION": "true",
+        "EXPO_PUBLIC_READER_ENABLE_NATIVE_PDF": "true"
       },
       "channel": "development"
     },

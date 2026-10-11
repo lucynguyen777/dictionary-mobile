@@ -11,6 +11,8 @@ import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
 import { addSpecializedGlossaryListener } from '@/data/specializedGlossaryStore';
 import { startSyncLifecycle } from '@/data/supabaseSyncLifecycle';
+import PdfTextExtractorHost from '@/components/reader/PdfTextExtractorHost';
+import { NATIVE_PDF_IMPORT_ENABLED } from '@/constants/featureFlags';
 import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToken } from '@/hooks/use-token';
@@ -94,9 +96,12 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       {appLockState === 'unlocked' ? (
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
+        <>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+          {NATIVE_PDF_IMPORT_ENABLED && Platform.OS !== 'web' ? <PdfTextExtractorHost /> : null}
+        </>
       ) : (
         <AppLockScreen
           onContinue={() => setAppLockState('unlocked')}

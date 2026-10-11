@@ -1,6 +1,8 @@
 import { XMLParser } from 'fast-xml-parser';
 import JSZip from 'jszip';
 import mammoth from 'mammoth';
+import { NATIVE_PDF_IMPORT_ENABLED } from '../constants/featureFlags';
+import { nativePdfExtractionBridge } from './pdfWebViewExtraction';
 
 export type SupportedReaderImportFormat = 'txt' | 'html';
 export type UnsupportedReaderImportFormat = 'pdf' | 'docx' | 'epub';
@@ -206,7 +208,9 @@ export async function extractReaderDocument(
       throw new Error('PDF cần đọc ở dạng ArrayBuffer trước khi chuyển sang Reader text.');
     }
 
-    return extractPdfReaderDocument(fileName, rawContent, extractPdfReaderText, {
+    // Native builds read PDFs through the WebView host; web runs pdf.js directly.
+    const parser = process.env.EXPO_OS === 'web' ? extractPdfReaderText : (buffer: ArrayBuffer) => nativePdfExtractionBridge.extract(buffer);
+    return extractPdfReaderDocument(fileName, rawContent, parser, {
       ocrParser: getConfiguredChandraPdfOcrParser(),
     });
   }
@@ -363,7 +367,8 @@ export function isPdfImportEnabled(): boolean {
   try {
     if (process.env.EXPO_OS === 'web') return process.env.EXPO_PUBLIC_READER_ENABLE_PDF !== 'false';
 
-    return false;
+    // Native: only in builds with the flag (dev-client smoke) and once the WebView host is mounted.
+    return NATIVE_PDF_IMPORT_ENABLED && nativePdfExtractionBridge.isAttached();
   } catch {
     return false;
   }
