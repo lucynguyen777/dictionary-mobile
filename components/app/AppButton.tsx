@@ -85,7 +85,6 @@ export default function AppButton({
                 ? 'transparent'
                 : colors.borderDefault,
           borderRadius: isIcon ? radius.full : radius.md,
-          gap: spacing.sm,
           minHeight: isIcon ? 40 : 40,
           minWidth: isIcon ? 40 : undefined,
           paddingHorizontal: isIcon ? 0 : spacing.md,
@@ -94,7 +93,7 @@ export default function AppButton({
         isPrimary && shadows.sm,
         style,
       ]}>
-      <View style={styles.content}>{content}</View>
+      <View style={[styles.content, { gap: spacing.sm }]}>{content}</View>
     </MotionPressable>
   );
 }

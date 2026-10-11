@@ -1,13 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import { completeAuthCallback, type AuthCallbackParams } from '@/data/authController';
 import { type AuthSessionSnapshot } from '@/data/authSession';
 import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
 import { useToken } from '@/hooks/use-token';
+import AppButton from '@/components/app/AppButton';
 
 const initialAuthCallbackState: AuthSessionSnapshot = {
   status: 'loading',
@@ -104,13 +105,7 @@ export default function AuthCallbackScreen() {
             />
           </View>
         ) : null}
-        <Pressable
-          accessibilityLabel="Về hồ sơ"
-          accessibilityRole="button"
-          onPress={() => router.replace('/profile' as never)}
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
-          <Text style={styles.primaryButtonText}>Về hồ sơ</Text>
-        </Pressable>
+        <AppButton label="Về hồ sơ" onPress={() => router.replace('/profile' as never)} style={styles.primaryButton} variant="primary" />
       </View>
     </Screen>
   );
@@ -156,23 +151,8 @@ function createStyles(colors: ReturnType<typeof useToken>['colors']) {
       width: '100%',
     },
     primaryButton: {
-      alignItems: 'center',
-      backgroundColor: colors.accentPrimary,
-      borderRadius: 8,
-      justifyContent: 'center',
       marginTop: 22,
       minHeight: 44,
-      minWidth: 132,
-      paddingHorizontal: 18,
-    },
-    primaryButtonPressed: {
-      opacity: 0.86,
-      transform: [{ scale: 0.98 }],
-    },
-    primaryButtonText: {
-      color: colors.textOnAccent,
-      fontSize: 14,
-      fontWeight: '700',
     },
   });
 }

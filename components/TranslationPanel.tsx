@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { translateText, type TranslateTextResponse } from '@/data/backendProxyClient';
 import { languageOptions } from '@/data/languages';
 import { useToken } from '@/hooks/use-token';
+import AppButton from '@/components/app/AppButton';
 
 interface TranslationPanelProps {
   sourceText: string;
@@ -82,9 +83,7 @@ export function TranslationPanel({
           <Text style={[styles.errorText, { color: colors.accentError, ...typography.bodySm }]}>
             {error}
           </Text>
-          <Touchable onPress={handleTranslate} style={styles.retryButton}>
-            <Text style={{ color: colors.accentPrimary, ...typography.bodySmBold }}>Thử lại</Text>
-          </Touchable>
+          <AppButton label="Thử lại" onPress={handleTranslate} style={styles.retryButton} textStyle={{ color: colors.accentPrimary }} variant="ghost" />
         </View>
       )}
 

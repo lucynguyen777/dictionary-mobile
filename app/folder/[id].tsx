@@ -20,6 +20,8 @@ import {
   renameFolder,
   updateSavedWordNote,
 } from '@/data/libraryStore';
+import AppButton from '@/components/app/AppButton';
+import Surface from '@/components/app/Surface';
 
 export default function FolderDetailScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -142,17 +144,11 @@ export default function FolderDetailScreen() {
         </View>
 
         {folderMenuOpen && folder ? (
-          <View style={styles.folderMenuPanel}>
+          <Surface padding="md" radius="sm" style={styles.folderMenuPanel}>
             <Text style={styles.folderMenuLabel}>Xuất bộ từ</Text>
             <View style={styles.exportGroup}>
-              <Touchable onPress={() => handleExport('csv')} style={styles.exportButton}>
-                <Ionicons name="download-outline" size={18} color={colors.accentPrimary} />
-                <Text style={styles.exportText}>CSV</Text>
-              </Touchable>
-              <Touchable onPress={() => handleExport('excel')} style={styles.exportButton}>
-                <Ionicons name="grid-outline" size={18} color={colors.accentPrimary} />
-                <Text style={styles.exportText}>XLS</Text>
-              </Touchable>
+              <AppButton accessibilityLabel="Xuất CSV" icon="download-outline" label="CSV" onPress={() => handleExport('csv')} />
+              <AppButton accessibilityLabel="Xuất Excel" icon="grid-outline" label="XLS" onPress={() => handleExport('excel')} />
             </View>
             <View style={styles.manageHeader}>
               <Text style={styles.manageTitle}>Cài đặt bộ từ</Text>
@@ -166,10 +162,7 @@ export default function FolderDetailScreen() {
               style={styles.nameInput}
             />
             <View style={styles.manageActions}>
-              <Touchable activeOpacity={0.82} onPress={handleRenameFolder} style={styles.saveButton}>
-                <Ionicons name="checkmark-circle-outline" size={18} color={colors.accentPrimary} />
-                <Text style={styles.saveButtonText}>Đổi tên</Text>
-              </Touchable>
+              <AppButton icon="checkmark-circle-outline" label="Đổi tên" onPress={handleRenameFolder} />
               {!isFavoriteFolder ? (
                 <Touchable activeOpacity={0.82} onPress={handleDeleteFolder} style={styles.deleteButton}>
                   <Ionicons name="trash-outline" size={18} color={colors.accentError} />
@@ -177,7 +170,7 @@ export default function FolderDetailScreen() {
                 </Touchable>
               ) : null}
             </View>
-          </View>
+          </Surface>
         ) : null}
 
         <View style={styles.hero}>
@@ -279,13 +272,7 @@ function FolderWordCard({
         onChangeText={setNoteDraft}
         style={styles.noteInput}
       />
-      <Touchable
-        activeOpacity={0.82}
-        onPress={() => onSaveNote(word.id, noteDraft)}
-        style={styles.noteButton}>
-        <Ionicons name="checkmark-circle-outline" size={18} color={colors.accentPrimary} />
-        <Text style={styles.noteButtonText}>Lưu ghi chú</Text>
-      </Touchable>
+      <AppButton icon="checkmark-circle-outline" label="Lưu ghi chú" onPress={() => onSaveNote(word.id, noteDraft)} style={styles.noteButton} />
     </View>
   );
 }
