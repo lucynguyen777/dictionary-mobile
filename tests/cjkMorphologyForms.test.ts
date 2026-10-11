@@ -80,3 +80,9 @@ describe('French forms', () => {
     expect(words('fr', form)).toContain(lemma);
   });
 });
+
+describe('English irregular and comparative forms', () => {
+  it.each([['eaten', 'eat'], ['mice', 'mouse'], ['told', 'tell'], ['bigger', 'big'], ['nicer', 'nice'], ['happiest', 'happy'], ['taller', 'tall'], ['went', 'go']])('%s → %s', (form, lemma) => {
+    expect(words('en', form)).toContain(lemma);
+  });
+});

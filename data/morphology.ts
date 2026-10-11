@@ -84,6 +84,28 @@ const irregularEnglishBaseForms: Record<string, string[]> = {
   women: ['woman'],
   wrote: ['write'],
   written: ['write'],
+  eaten: ['eat'],
+  fell: ['fall'],
+  fallen: ['fall'],
+  felt: ['feel'],
+  heard: ['hear'],
+  kept: ['keep'],
+  lost: ['lose'],
+  met: ['meet'],
+  mice: ['mouse'],
+  paid: ['pay'],
+  people: ['person'],
+  said: ['say'],
+  sat: ['sit'],
+  slept: ['sleep'],
+  sold: ['sell'],
+  stood: ['stand'],
+  teeth: ['tooth'],
+  told: ['tell'],
+  understood: ['understand'],
+  won: ['win'],
+  worse: ['bad', 'badly'],
+  worst: ['bad', 'badly'],
 };
 
 export function getMorphologyCandidates(languageCode: string, input: string): MorphologyCandidate[] {
@@ -167,6 +189,18 @@ function getEnglishMorphologyCandidates(input: string): MorphologyCandidate[] {
     if (undoubled !== stem) {
       candidates.push(createCandidate(undoubled, 'quá khứ/phân từ'));
     }
+  }
+
+  // Comparative and superlative: bigger → big, nicer → nice, happiest → happy.
+  for (const suffix of ['est', 'er']) {
+    if (!word.endsWith(suffix) || word.length <= suffix.length + 2) continue;
+    const stem = word.slice(0, -suffix.length);
+    if (stem.endsWith('i')) candidates.push(createCandidate(`${stem.slice(0, -1)}y`, 'so sánh'));
+    const undoubled = removeDoubledFinalConsonant(stem);
+    if (undoubled !== stem) candidates.push(createCandidate(undoubled, 'so sánh'));
+    candidates.push(createCandidate(stem, 'so sánh'));
+    candidates.push(createCandidate(`${stem}e`, 'so sánh'));
+    break;
   }
 
   if (word.endsWith('es') && word.length > 4) {
