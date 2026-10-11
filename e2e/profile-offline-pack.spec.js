@@ -18,3 +18,32 @@ test('Profile offline pack status renders and captures UI artifacts', async ({ p
 
   await captureUiArtifacts(page, testInfo, 'profile-offline-pack');
 });
+
+test('Profile edits are saved locally and survive a reload', async ({ page }) => {
+  await page.goto('/profile');
+  await page.getByLabel('Mở cài đặt').click();
+  await page.getByLabel('Mở Tài khoản').click();
+  await page.getByPlaceholder('Tên hiển thị').fill('Lan Anh');
+  await page.getByPlaceholder('username').fill('lananh');
+  await page.getByText('Lưu thay đổi', { exact: true }).click();
+
+  await page.reload();
+  await expect(page.getByText('Lan Anh', { exact: true }).first()).toBeVisible();
+});
+
+test('Profile notification preferences are stored on the device', async ({ page }) => {
+  await page.goto('/profile');
+  await page.getByLabel('Mở cài đặt').click();
+  await page.getByLabel('Mở Riêng tư').click();
+  await expect(page.getByText('Nhắc học mỗi ngày', { exact: true })).toBeVisible();
+
+  const reminderTime = page.getByPlaceholder('20:00');
+  await reminderTime.fill('07:30');
+  await reminderTime.blur();
+  await expect(page.getByText('Đã lưu tùy chọn thông báo local.').first()).toBeVisible();
+
+  await page.reload();
+  await page.getByLabel('Mở cài đặt').click();
+  await page.getByLabel('Mở Riêng tư').click();
+  await expect(page.getByPlaceholder('20:00')).toHaveValue('07:30');
+});
