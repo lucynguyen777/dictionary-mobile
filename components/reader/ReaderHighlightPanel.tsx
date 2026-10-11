@@ -50,7 +50,7 @@ export function ReaderHighlightPanel({
           <Text style={[styles.readerActionKicker, { color: activeTheme.secondaryText }]}>Highlight</Text>
           <Text style={[styles.readerActionWord, { color: activeTheme.text }]}>{selectedHighlightText}</Text>
         </View>
-        <Touchable activeOpacity={0.75} onPress={onClose} style={[styles.readerActionClose, { backgroundColor: activeTheme.bg }]}>
+        <Touchable accessibilityLabel="Bỏ chọn cụm từ" activeOpacity={0.75} onPress={onClose} style={[styles.readerActionClose, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="close" size={18} color={activeTheme.secondaryText} />
         </Touchable>
       </View>

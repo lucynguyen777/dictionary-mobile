@@ -33,6 +33,8 @@ export function FolderMetadataEditor({
         {folderColorOptions.map((option) => (
           <Touchable
             key={option}
+            accessibilityLabel={`Màu ${option}`}
+            accessibilityState={{ selected: color === option }}
             activeOpacity={0.85}
             onPress={() => onColorChange(option)}
             style={[styles.colorSwatch, { backgroundColor: option }, color === option && styles.colorSwatchSelected]}

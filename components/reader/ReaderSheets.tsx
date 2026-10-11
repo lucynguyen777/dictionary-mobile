@@ -51,6 +51,7 @@ export function ReaderSettingsSheet({
         <Text style={[styles.sheetRowText, { color: activeTheme.text }]}>Kích thước</Text>
         <View style={styles.stepper}>
           <Touchable
+            accessibilityLabel="Giảm cỡ chữ"
             activeOpacity={0.82}
             onPress={() => handleUpdateSettings({ fontSize: Math.max(14, readerState.settings.fontSize - 1) })}
             style={[styles.stepButton, { backgroundColor: activeTheme.bg }]}>
@@ -58,6 +59,7 @@ export function ReaderSettingsSheet({
           </Touchable>
           <Text style={[styles.stepValue, { color: activeTheme.text }]}>{readerState.settings.fontSize}</Text>
           <Touchable
+            accessibilityLabel="Tăng cỡ chữ"
             activeOpacity={0.82}
             onPress={() => handleUpdateSettings({ fontSize: Math.min(32, readerState.settings.fontSize + 1) })}
             style={[styles.stepButton, { backgroundColor: activeTheme.bg }]}>
@@ -136,16 +138,16 @@ export function ReaderSettingsSheet({
 
       <Text style={[styles.sheetSectionLabel, { color: activeTheme.secondaryText }]}>Thiết lập audio</Text>
       <View style={styles.ttsControlBar}>
-        <Touchable activeOpacity={0.8} onPress={handlePrevSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
+        <Touchable accessibilityLabel="Câu trước" activeOpacity={0.8} onPress={handlePrevSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="play-skip-back" size={20} color={activeTheme.accent} />
         </Touchable>
-        <Touchable activeOpacity={0.8} onPress={handlePlayPause} style={[styles.ttsPlayButton, { backgroundColor: activeTheme.accent }]}>
+        <Touchable accessibilityLabel={isSpeaking ? 'Tạm dừng đọc to' : 'Đọc to'} activeOpacity={0.8} onPress={handlePlayPause} style={[styles.ttsPlayButton, { backgroundColor: activeTheme.accent }]}>
           <Ionicons name={isSpeaking ? 'pause' : 'play'} size={24} color={READER_FIXED_COLORS.onAccent} />
         </Touchable>
-        <Touchable activeOpacity={0.8} onPress={handleStop} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
+        <Touchable accessibilityLabel="Dừng đọc to" activeOpacity={0.8} onPress={handleStop} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="stop" size={20} color={READER_FIXED_COLORS.danger} />
         </Touchable>
-        <Touchable activeOpacity={0.8} onPress={handleNextSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
+        <Touchable accessibilityLabel="Câu sau" activeOpacity={0.8} onPress={handleNextSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="play-skip-forward" size={20} color={activeTheme.accent} />
         </Touchable>
       </View>

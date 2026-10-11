@@ -94,7 +94,7 @@ export function TranslationPanel({
             <Text style={[styles.providerText, { color: colors.textTertiary, ...typography.captionSmall }]}>
               Dịch bởi DeepL • Nhận diện: {getLanguageLabel(result.detectedSourceLanguage)}
             </Text>
-            <Touchable onPress={() => setResult(null)} style={styles.closeButton}>
+            <Touchable accessibilityLabel="Đóng bản dịch" onPress={() => setResult(null)} style={styles.closeButton}>
               <Ionicons name="close-outline" size={16} color={colors.textTertiary} />
             </Touchable>
           </View>

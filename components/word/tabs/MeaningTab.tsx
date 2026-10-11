@@ -141,6 +141,7 @@ export function MeaningTab({
                     <View key={i} style={styles.exampleBlock}>
                       <View style={styles.exampleRow}>
                         <Touchable
+                          accessibilityLabel="Nghe câu ví dụ"
                           activeOpacity={0.7}
                           onPress={() => speakExample(example.source)}
                           style={styles.exampleAudioButton}>

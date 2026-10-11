@@ -471,6 +471,7 @@ export default function ReaderScreen() {
           <View style={[styles.readerSheet, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
             <View style={styles.sheetHeader}>
               <Touchable
+                accessibilityLabel="Đóng"
                 activeOpacity={0.82}
                 onPress={() => setActiveSheet(null)}
                 style={[styles.sheetCloseButton, { backgroundColor: activeTheme.bg }]}>

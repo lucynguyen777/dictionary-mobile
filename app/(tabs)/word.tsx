@@ -414,6 +414,8 @@ export default function WordScreen() {
               </Touchable>
             ) : null}
             <Touchable
+              accessibilityLabel="Chọn ngôn ngữ tra cứu"
+              accessibilityState={{ expanded: showLanguageControls }}
               activeOpacity={0.78}
               onPress={() => setShowLanguageControls((value) => !value)}
               style={styles.languageToggle}>
