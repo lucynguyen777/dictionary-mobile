@@ -33,3 +33,7 @@ node scripts/measure-kaikki-dump.mjs --lang ko --probes data/headword-lists/kore
   --candidates tmp/language-measurements/ko-candidates.json \
   --url 'https://kaikki.org/kowiktionary/%ED%95%9C%EA%B5%AD%EC%96%B4/kaikki.org-dictionary-%ED%95%9C%EA%B5%AD%EC%96%B4.jsonl'
 ```
+
+## Languages without a native-edition extraction
+
+Kaikki publishes Wiktextract extractions for about 20 Wiktionary editions (cs, de, el, en, es, fr, id, it, ja, ko, ku, ms, nl, pl, pt, ru, simple, th, tr, vi, zh as of 2026-10). The remaining preview languages (Finnish, Estonian, Hungarian, Uzbek, Kazakh, Hindi, Arabic, Hebrew, Tagalog, Swahili, Javanese, Tamil, Telugu, Kannada, Malayalam, Burmese, Tibetan, Amharic and the source-gated set) have no native-edition extraction to measure: their own Wiktionaries are either not supported by Wiktextract's edition parsers or too small. They stay on their current source plans in `data/languageProductionRoadmap.ts` until an extractor or another licensed native-definition source exists.
