@@ -53,3 +53,10 @@ describe('OCR engine boundary', () => {
     );
   });
 });
+
+describe('performOCR', () => {
+  it('never returns fixture text when no OCR engine is available', async () => {
+    const { OcrEngineUnavailableError, performOCR } = await import('../data/ocr');
+    await expect(performOCR('file://photo.jpg', 'en')).rejects.toBeInstanceOf(OcrEngineUnavailableError);
+  });
+});

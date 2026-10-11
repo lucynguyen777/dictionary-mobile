@@ -1,7 +1,6 @@
 import {
   OcrEngine,
   OcrEngineResult,
-  createDeterministicOcrResult,
   createUnavailableNativeOcrEngine,
   extractOcrLookupCandidates,
   normalizeOcrText,
@@ -18,10 +17,16 @@ export {
   runOcrEngine,
 } from './ocrEngine';
 
-export async function performOCR(imageUri: string, languageCode: string, engine?: OcrEngine): Promise<OcrEngineResult> {
-  if (engine) return runOcrEngine(engine, { imageUri, languageCode });
+export const unavailableNativeOcrEngine = createUnavailableNativeOcrEngine();
 
-  return createDeterministicOcrResult({ imageUri, languageCode });
+// Without a real engine this throws OcrEngineUnavailableError; fixture text is for tests only
+// (pass createDeterministicOcrResult through an explicit engine there).
+export async function performOCR(
+  imageUri: string,
+  languageCode: string,
+  engine: OcrEngine = unavailableNativeOcrEngine
+): Promise<OcrEngineResult> {
+  return runOcrEngine(engine, { imageUri, languageCode });
 }
 
 export function createOcrLookupSuggestions(result: OcrEngineResult) {
@@ -30,8 +35,6 @@ export function createOcrLookupSuggestions(result: OcrEngineResult) {
     text: normalizeOcrText(result.text),
   });
 }
-
-export const unavailableNativeOcrEngine = createUnavailableNativeOcrEngine();
 
 export type { OcrProviderId, OcrProviderRegistry, OcrProviderRegistryOptions } from './ocrProviderRegistry';
 export { createOcrProviderRegistry, createRegistryFromProviders } from './ocrProviderRegistry';
