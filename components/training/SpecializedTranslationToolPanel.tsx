@@ -8,7 +8,7 @@ import Touchable from '@/components/app/Touchable';
 import { FilterChip } from '@/components/training/shared';
 import { styles } from '@/components/training/styles';
 import { translateSpecialized, type SpecializedTranslateRequest, type SpecializedTranslateResponse } from '@/data/backendProxyClient';
-import { glossaryLinesFromDelimitedText, mergeGlossaryText } from '@/data/glossaryImport';
+import { glossaryLinesFromFile, mergeGlossaryText } from '@/data/glossaryImport';
 import { findGlossaryMatches, parseGlossaryText } from '@/data/glossaryMatching';
 import {
   addSpecializedGlossaryListener,
@@ -106,12 +106,18 @@ export function SpecializedTranslationToolPanel() {
       const picked = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
         multiple: false,
-        type: ['text/csv', 'text/tab-separated-values', 'text/plain', 'application/vnd.ms-excel'],
+        type: [
+          'text/csv',
+          'text/tab-separated-values',
+          'text/plain',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/pdf',
+        ],
       });
       if (picked.canceled || !picked.assets?.length) return;
       const asset = picked.assets[0];
-      const fileText = await (asset.file ?? new File(asset.uri)).text();
-      const { lines, skippedRows } = glossaryLinesFromDelimitedText(fileText);
+      const { lines, skippedRows } = await glossaryLinesFromFile(asset.file ?? new File(asset.uri), asset.name, asset.mimeType ?? '');
       const merged = mergeGlossaryText(glossaryText, lines);
       handleGlossaryChange(merged.text);
       const domainLabel = translationDomains.find((domain) => domain.id === domainId)?.label ?? '';
@@ -122,7 +128,7 @@ export function SpecializedTranslationToolPanel() {
           + (skippedRows ? ` Bỏ qua ${skippedRows} dòng thiếu cột.` : '')
       );
     } catch {
-      Alert.alert('Không thể nhập glossary', 'Chọn file CSV hoặc TSV có 2 cột: thuật ngữ, bản dịch.');
+      Alert.alert('Không thể nhập glossary', 'Chọn file CSV/TSV, DOCX (bảng 2 cột) hoặc PDF có dòng “thuật ngữ -> bản dịch”.');
     }
   };
 
@@ -192,7 +198,7 @@ export function SpecializedTranslationToolPanel() {
         onPress={handleImportGlossary}
         style={[localStyles.importButton, { borderColor: colors.accentPrimary }]}>
         <Ionicons name="document-attach-outline" size={16} color={colors.accentPrimary} />
-        <Text style={[localStyles.importButtonText, { color: colors.accentPrimary }]}>Nhập CSV/TSV (2 cột)</Text>
+        <Text style={[localStyles.importButtonText, { color: colors.accentPrimary }]}>Nhập CSV/TSV/DOCX/PDF</Text>
       </Touchable>
       <TextInput
         accessibilityLabel="Glossary"

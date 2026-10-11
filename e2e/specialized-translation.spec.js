@@ -68,7 +68,7 @@ test('Specialized translation imports a two-column CSV glossary', async ({ page 
   await page.getByLabel('Glossary').fill('tort → sai phạm dân sự');
 
   const fileChooserPromise = page.waitForEvent('filechooser');
-  await page.getByRole('button', { name: 'Nhập CSV/TSV (2 cột)' }).click();
+  await page.getByRole('button', { name: 'Nhập CSV/TSV/DOCX/PDF' }).click();
   const fileChooser = await fileChooserPromise;
   await fileChooser.setFiles({
     buffer: Buffer.from('term,translation\nplaintiff,nguyên đơn\n"tort","trùng"\ndefendant,bị đơn\n', 'utf8'),
@@ -78,4 +78,16 @@ test('Specialized translation imports a two-column CSV glossary', async ({ page 
 
   await expect(page.getByLabel('Glossary')).toHaveValue('tort → sai phạm dân sự\nplaintiff → nguyên đơn\ndefendant → bị đơn');
   await expect(page.getByText('Glossary Pháp lý (3 thuật ngữ)', { exact: false })).toBeVisible();
+});
+
+test('Specialized translation imports glossary lines from a PDF', async ({ page }) => {
+  await page.goto('/advanced');
+  await page.getByText('Dịch chuyên ngành', { exact: true }).first().click();
+  await page.getByText('CNTT', { exact: true }).click();
+
+  const fileChooserPromise = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Nhập CSV/TSV/DOCX/PDF' }).click();
+  await (await fileChooserPromise).setFiles('tests/fixtures/reader-pdf/glossary-arrows.pdf');
+
+  await expect(page.getByLabel('Glossary')).toHaveValue('MRI → chup cong huong tu\nECG → dien tam do', { timeout: 30_000 });
 });

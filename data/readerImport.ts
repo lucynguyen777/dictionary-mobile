@@ -2,7 +2,7 @@ import { XMLParser } from 'fast-xml-parser';
 import JSZip from 'jszip';
 import mammoth from 'mammoth';
 import { NATIVE_PDF_IMPORT_ENABLED } from '../constants/featureFlags';
-import { nativePdfExtractionBridge } from './pdfWebViewExtraction';
+import { PDFJS_CDN_BASE_URL, nativePdfExtractionBridge } from './pdfWebViewExtraction';
 
 export type SupportedReaderImportFormat = 'txt' | 'html';
 export type UnsupportedReaderImportFormat = 'pdf' | 'docx' | 'epub';
@@ -244,8 +244,10 @@ export async function extractDocxReaderText(
   arrayBuffer: ArrayBuffer,
   convertToHtml: MammothConvertToHtml = mammoth.convertToHtml
 ) {
+  // Browser/React Native builds read `arrayBuffer`; Mammoth's Node build (scripts, tests) needs `buffer`.
+  const nodeBuffer = (globalThis as { Buffer?: { from: (data: ArrayBuffer) => unknown } }).Buffer;
   const result = await convertToHtml(
-    { arrayBuffer },
+    { arrayBuffer, ...(nodeBuffer ? { buffer: nodeBuffer.from(arrayBuffer) } : {}) } as Parameters<MammothConvertToHtml>[0],
     {
       includeDefaultStyleMap: true,
       includeEmbeddedStyleMap: true,
@@ -536,6 +538,16 @@ function markdownToReaderText(text: string) {
 }
 
 async function loadPdfJsParser(): Promise<PdfJsModule> {
+  if (typeof window !== 'undefined' && process.env.EXPO_OS === 'web') {
+    // Metro cannot bundle pdf.js's ES module (it uses import.meta), so the browser loads the same
+    // pinned build the native WebView uses as a real ES module, outside the bundle.
+    const importModule = new Function('url', 'return import(url)') as (url: string) => Promise<PdfJsModule & {
+      GlobalWorkerOptions?: { workerSrc: string };
+    }>;
+    const pdfjs = await importModule(`${PDFJS_CDN_BASE_URL}/pdf.min.mjs`);
+    if (pdfjs.GlobalWorkerOptions) pdfjs.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN_BASE_URL}/pdf.worker.min.mjs`;
+    return pdfjs;
+  }
   return import('pdfjs-dist/legacy/build/pdf.mjs') as Promise<PdfJsModule>;
 }
 
@@ -649,6 +661,9 @@ function normalizeZipPath(path: string) {
 function htmlToPlainText(html: string) {
   return decodeHtmlEntities(
     html
+      // Paragraphs inside table cells (Mammoth wraps every DOCX cell in <p>) must not break the row.
+      .replace(/<t([hd])([^>]*)>([\s\S]*?)<\/t\1>/gi, (_match, tag: string, attributes: string, inner: string) =>
+        `<t${tag}${attributes}>${inner.replace(/<\/?p[^>]*>/gi, ' ')}</t${tag}>`)
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
       .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')

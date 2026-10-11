@@ -70,3 +70,13 @@ describe('PDF WebView extraction bridge', () => {
     expect(buildPdfExtractionHtml()).toContain('https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/legacy/build/pdf.min.mjs');
   });
 });
+
+describe('pinned pdf.js version', () => {
+  it('matches the installed pdfjs-dist so web, native and tests run the same build', async () => {
+    const { readFileSync } = await import('node:fs');
+    const installed = JSON.parse(readFileSync('node_modules/pdfjs-dist/package.json', 'utf8')).version;
+    const { PDFJS_CDN_BASE_URL } = await import('../data/pdfWebViewExtraction');
+    expect(PDFJS_CDN_BASE_URL).toContain(`pdfjs-dist@${installed}/`);
+    expect(readFileSync('data/readerImport.ts', 'utf8')).toContain(`const PDFJS_DIST_VERSION = '${installed}'`);
+  });
+});
