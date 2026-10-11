@@ -191,15 +191,23 @@ function getEnglishMorphologyCandidates(input: string): MorphologyCandidate[] {
     }
   }
 
-  // Comparative and superlative: bigger → big, nicer → nice, happiest → happy.
+  // Comparative and superlative: bigger → big, happier → happy, nicest → nice. A plain "-er" is
+  // too common in base words (water, paper) to strip without a doubled consonant or -ier.
   for (const suffix of ['est', 'er']) {
     if (!word.endsWith(suffix) || word.length <= suffix.length + 2) continue;
     const stem = word.slice(0, -suffix.length);
-    if (stem.endsWith('i')) candidates.push(createCandidate(`${stem.slice(0, -1)}y`, 'so sánh'));
     const undoubled = removeDoubledFinalConsonant(stem);
-    if (undoubled !== stem) candidates.push(createCandidate(undoubled, 'so sánh'));
-    candidates.push(createCandidate(stem, 'so sánh'));
-    candidates.push(createCandidate(`${stem}e`, 'so sánh'));
+    if (stem.endsWith('i')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}y`, 'so sánh'));
+    } else {
+      // bigger → big, but smaller → small: "ll"/"ss" usually belong to the base word.
+      if (/(ll|ss)$/.test(stem)) candidates.push(createCandidate(stem, 'so sánh'));
+      else if (undoubled !== stem) candidates.push(createCandidate(undoubled, 'so sánh'));
+      if (suffix === 'est') {
+        candidates.push(createCandidate(stem, 'so sánh nhất'));
+        candidates.push(createCandidate(`${stem}e`, 'so sánh nhất'));
+      }
+    }
     break;
   }
 

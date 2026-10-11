@@ -82,7 +82,12 @@ describe('French forms', () => {
 });
 
 describe('English irregular and comparative forms', () => {
-  it.each([['eaten', 'eat'], ['mice', 'mouse'], ['told', 'tell'], ['bigger', 'big'], ['nicer', 'nice'], ['happiest', 'happy'], ['taller', 'tall'], ['went', 'go']])('%s → %s', (form, lemma) => {
+  it.each([['eaten', 'eat'], ['mice', 'mouse'], ['told', 'tell'], ['bigger', 'big'], ['happier', 'happy'], ['happiest', 'happy'], ['nicest', 'nice'], ['tallest', 'tall'], ['smaller', 'small'], ['went', 'go']])('%s → %s', (form, lemma) => {
     expect(words('en', form)).toContain(lemma);
+  });
+
+  it('does not strip -er from ordinary base words', () => {
+    expect(words('en', 'water')).toEqual([]);
+    expect(words('en', 'paper')).toEqual([]);
   });
 });
