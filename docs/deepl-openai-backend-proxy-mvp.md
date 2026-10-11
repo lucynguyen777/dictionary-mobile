@@ -37,6 +37,9 @@ Optional backend env vars:
 - `PROXY_MAX_TEXT_INPUT_CHARS`
 - `PROXY_MAX_GLOSSARY_ENTRIES`
 - `PROXY_LOG_RETENTION_DAYS`
+- `BACKEND_PROXY_ALLOWED_ORIGINS`: comma-separated web origins allowed by CORS (default: production Vercel host and `http://localhost:8081`). Native apps send no `Origin` and are unaffected.
+
+Hardening (v1.4.0): DeepL is called with the `Authorization: DeepL-Auth-Key` header; AI chat accepts only `user`/`assistant` turns (the system prompt is server-built); provider failures return a generic `provider_error` without upstream bodies; quota rejects any request that would exceed a daily/monthly limit. Quota is still in-memory per instance until durable storage lands (plan task 0.4).
 
 Rules:
 

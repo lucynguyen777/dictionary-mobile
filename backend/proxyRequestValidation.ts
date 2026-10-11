@@ -102,7 +102,7 @@ export type ValidatedAiChatRequest = {
   learningLanguage: string;
   messages: Array<{
     content: string;
-    role: 'assistant' | 'system' | 'user';
+    role: 'assistant' | 'user';
   }>;
   nativeLanguage?: string;
   stream: boolean;
@@ -372,8 +372,9 @@ function countCodePoints(value: string) {
   return Array.from(value).length;
 }
 
+// The system prompt is built server-side from the goal; clients may only send conversation turns.
 function normalizeAiRole(value: unknown) {
-  return value === 'assistant' || value === 'system' || value === 'user' ? value : undefined;
+  return value === 'assistant' || value === 'user' ? value : undefined;
 }
 
 function normalizeAiGoal(value: unknown): ValidatedAiChatRequest['goal'] {

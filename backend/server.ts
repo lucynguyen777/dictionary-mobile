@@ -36,8 +36,9 @@ export function createServer(deps: ServerDependencies) {
   const app = express();
   const port = deps.port ?? DEFAULT_PORT;
 
-  app.use(cors());
-  app.use(express.json({ limit: '50kb' }));
+  app.use(cors({ origin: readAllowedOrigins(deps.env) }));
+  // Sized for the largest valid AI chat payload (20 messages x 4,000 code points of up to 4 UTF-8 bytes).
+  app.use(express.json({ limit: '384kb' }));
 
   // Read config once
   let config: BackendProxyConfig = readBackendProxyConfig(deps.env);
@@ -253,9 +254,9 @@ export function createServer(deps: ServerDependencies) {
         glossaryApplied: !!glossaryId,
         warnings: deeplResponse.warnings ?? [],
       });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown provider error';
-      res.status(502).json({ error: { code: 'provider_error', message } });
+    } catch {
+      // Upstream error bodies can echo request text or account details, so clients get a generic message.
+      res.status(502).json({ error: { code: 'provider_error', message: 'Translation provider is unavailable. Try again later.' } });
     }
   });
 
@@ -286,9 +287,8 @@ export function createServer(deps: ServerDependencies) {
     try {
       const aiResponse = await callOpenAIChat(config.openaiApiKey, config.openaiTextModel, validation.data);
       res.json(aiResponse);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown AI provider error';
-      res.status(502).json({ error: { code: 'provider_error', message } });
+    } catch {
+      res.status(502).json({ error: { code: 'provider_error', message: 'AI provider is unavailable. Try again later.' } });
     }
   });
 
@@ -318,6 +318,14 @@ export function startServer(deps: ServerDependencies) {
       resolve();
     });
   });
+}
+
+const DEFAULT_ALLOWED_ORIGINS = ['https://dictionaire-mobile.vercel.app', 'http://localhost:8081'];
+
+// Native apps send no Origin header and are unaffected; this only limits which websites can call the proxy.
+function readAllowedOrigins(env: BackendProxyEnv) {
+  const configured = env.BACKEND_PROXY_ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean);
+  return configured?.length ? configured : DEFAULT_ALLOWED_ORIGINS;
 }
 
 const GOOGLE_SHEETS_ERROR_CODES = new Set([
@@ -354,7 +362,6 @@ async function callDeepLTranslate(
   opts?: { sourceLang?: string; glossaryId?: string; formality?: string }
 ) {
   const params = new URLSearchParams({
-    auth_key: apiKey,
     target_lang: targetLang.toUpperCase(),
     text,
   });
@@ -365,7 +372,10 @@ async function callDeepLTranslate(
 
   const response = await fetch(`${baseUrl}/v2/translate`, {
     body: params,
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      Authorization: `DeepL-Auth-Key ${apiKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     method: 'POST',
   });
 
