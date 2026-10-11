@@ -10,7 +10,7 @@ Gates (from `data/languageProductionRoadmap.ts`): corpus ≥5,000, headword exac
 | Spanish | eswiktionary 2026-10-02 | 136,522 | 100% | — | 56% | 74% | Pass |
 | Russian | ruwiktionary 2026-10 | 445,824 | 100% (80/80) | 100% (20/20) | 91% | 86% | Pass |
 | Korean | kowiktionary 2026-10 | 34,902 | 100% (76/76) | 100% (20/20) | 100% | 76% | Pass (after morphology fix below) |
-| Turkish | trwiktionary 2026-10 | 188,736 | 100% | 100% | 74.5% | 27.6% | Fails related words only |
+| Turkish | trwiktionary 2026-10 (+ enwiktionary relations as helper) | 188,736 | 100% | 100% | 74.5% | 27.6% native; 63% with helper (76% in the merged pack) | Pass with helper relations |
 | Japanese | jawiktionary 2026-10 | 112,940 | 97.5% | 100% | 36.7% | 7.6% | Fails examples and related words |
 | Chinese | zhwiktionary 2026-10 (漢語) | 68,917 | 64.4% | — | 62% | 53% | Fails exact lookup |
 | Malay | mswiktionary 2026-10-03 | 10,427 | 73% | — | 20.5% | 34% | Fails (see `docs/malay-100-headword-measurement.md`, D11) |
@@ -19,9 +19,9 @@ Notes:
 
 - **Morphology fixes found by this measurement** (`tests/cjkMorphologyForms.test.ts`): Korean contracted stems (갔다→가다, 했다→하다, 봐요→보다, 마셔요→마시다, 갑니다→가다, ㅂ-irregular 추워요→춥다) and Japanese godan/adjective forms (飲んだ→飲む, 話した→話す, 行きます→行く, 大きかった→大きい). The Japanese `-んだ`/`-いだ` rules were previously unreachable (nested under a `-た` check). Korean inflected coverage went 40% → 100%, Japanese 50% → 100%.
 - **Russian**: adjective case forms (`хорошего` → `хороший`, `новые` → `новый`) were added to the morphology after the first run (95% → 100%).
-- **Turkish**: 27.6% related words is just under the gate; the English-edition Turkish data could supply synonyms as a helper, which is an attribution/source decision rather than a code change.
+- **Turkish**: native related words are 27.6%. The roadmap already allows English-edition data as a helper; English Wiktionary's Turkish entries list Turkish synonyms, so `build-offline-pack.mjs --helper-input … --helper-source enwiktionary` merges only those relations (never definitions) and credits the helper in each enriched entry's attribution and in the manifest (`helperSources`). With it, 63% of probes have related words (76% in the merged probe pack).
 - **Chinese**: many common simplified headwords (`学校`, `老师`, `时间`) have no usable definition rows in the extraction; a simplified/traditional mapping or another source is needed before promotion.
-- **Pack smoke**: probe-scoped Russian (108 entries) and Korean (98 entries) packs from these dumps pass validation → SQLite import → probe lookup (headwords ≥95%, inflected ≥85% through the app's offline lookup) → delete in `tests/offlinePackProbeSmoke.test.ts`, alongside French and Spanish.
+- **Pack smoke**: probe-scoped Russian (108 entries), Korean (98 entries) and Turkish (121 entries, helper relations) packs from these dumps pass validation → SQLite import → probe lookup (headwords ≥95%, inflected ≥85% through the app's offline lookup) → delete in `tests/offlinePackProbeSmoke.test.ts`, alongside French and Spanish.
 - Passing the source gates is not promotion: each language still needs a pack (scope and host, D9) and the pack/UI smoke, as done for French and Spanish (`tests/offlinePackProbeSmoke.test.ts`).
 
 Reproduce one language:

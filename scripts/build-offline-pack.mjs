@@ -13,6 +13,7 @@ if (!args.input || !args.lang || !args.source || !args.out) {
     'Usage: node scripts/build-offline-pack.mjs --input <jsonl> --lang <code> --source <name> --out <dir>'
       + ' [--source-url <url>] [--source-revision <dump date or id>] [--generated-at <ISO time>] [--limit <entries>]'
       + ' [--public-base-url <url prefix where the pack is hosted>]'
+      + ' [--helper-input <jsonl> --helper-source <name>]  (related words only, e.g. from another Wiktionary edition)'
   );
   process.exit(1);
 }
@@ -57,6 +58,30 @@ for await (const line of reader) {
   }
 }
 
+// Helper source: only synonyms/antonyms of headwords already in the pack are taken, never definitions,
+// and the helper is credited in each enriched entry's attribution.
+if (args.helperInput && args.helperSource) {
+  stats.helperEnrichedEntries = 0;
+  const helperReader = createInterface({ crlfDelay: Infinity, input: createReadStream(args.helperInput, { encoding: 'utf8' }) });
+  for await (const line of helperReader) {
+    if (!line.trim()) continue;
+    const helperEntry = JSON.parse(line);
+    if (typeof helperEntry.lang_code === 'string' && helperEntry.lang_code !== args.lang) continue;
+    const target = entriesByKey.get(`${args.lang}:${normalizeLookupKey(getString(helperEntry.word))}`);
+    if (!target) continue;
+    const relations = normalizeRelations(helperEntry);
+    const before = target.relations.synonyms.length + target.relations.antonyms.length;
+    target.relations = {
+      antonyms: unique([...target.relations.antonyms, ...relations.antonyms]),
+      synonyms: unique([...target.relations.synonyms, ...relations.synonyms]),
+    };
+    if (target.relations.synonyms.length + target.relations.antonyms.length > before && !target.attribution.includes(args.helperSource)) {
+      target.attribution = `${target.attribution}; related words also from ${args.helperSource} (CC-BY-SA-4.0/GFDL)`;
+      stats.helperEnrichedEntries += 1;
+    }
+  }
+}
+
 const entries = [...entriesByKey.values()]
   .map(capEntry)
   .sort((a, b) => (a.normalizedWord < b.normalizedWord ? -1 : a.normalizedWord > b.normalizedWord ? 1 : 0));
@@ -74,6 +99,7 @@ const manifest = {
   sourceName: args.source,
   sourceUrl: args.sourceUrl ?? '',
   sourceRevision: args.sourceRevision ?? '',
+  ...(args.helperSource ? { helperSources: [{ name: args.helperSource, use: 'related-words' }] } : {}),
 };
 
 const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);

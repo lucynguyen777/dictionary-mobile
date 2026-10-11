@@ -186,6 +186,26 @@ describe('build-offline-pack pipeline guarantees', () => {
     expect(hello.ipa).toBe('/a.lo/');
   });
 
+  it('takes only related words from a helper source and credits it', () => {
+    writeDump();
+    const helper = `${dir}/helper.jsonl`;
+    writeFileSync(helper, [
+      { lang_code: 'en', senses: [{ glosses: ['HELPER DEFINITION MUST NOT APPEAR'] }], synonyms: [{ word: 'mallet' }], word: 'hammer' },
+      { lang_code: 'en', senses: [{ glosses: ['x'] }], synonyms: [{ word: 'zzz' }], word: 'not-in-pack' },
+      { lang_code: 'fr', senses: [{ glosses: ['x'] }], synonyms: [{ word: 'baguette' }], word: 'pain' },
+    ].map((line) => JSON.stringify(line)).join('\n'));
+
+    const { entries, manifest, report } = build(`${dir}/out-helper`, ['--helper-input', helper, '--helper-source', 'helperwiktionary']);
+    const hammer = entries.find((entry) => entry.word === 'hammer')!;
+    expect(hammer.relations.synonyms).toEqual(['pound', 'mallet']);
+    expect(hammer.attribution).toContain('related words also from helperwiktionary');
+    expect(JSON.stringify(entries)).not.toContain('HELPER DEFINITION');
+    expect(entries.find((entry) => entry.word === 'pain')!.relations.synonyms).toEqual([]);
+    expect(entries.map((entry) => entry.word)).not.toContain('not-in-pack');
+    expect(manifest.helperSources).toEqual([{ name: 'helperwiktionary', use: 'related-words' }]);
+    expect(report.helperEnrichedEntries).toBe(1);
+  });
+
   it('honours an entry limit', () => {
     writeDump();
     expect(build(`${dir}/out-c`, ['--limit', '2']).entries.map((entry) => entry.word)).toEqual(['hammer', 'pain']);
