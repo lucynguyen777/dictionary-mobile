@@ -127,7 +127,7 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
   - accepted source-gate path: Basque Wiktionary / Kaikki extraction;
   - deferred authority fallback: national Basque resources if license/API allows app use;
   - deferred production fallback: commercial/open lexicon with full definitions.
-- First safe task: create `docs/basque-source-gate.md` with license/API smoke.
+- Probed in `docs/basque-source-gate.md` (2026-10-11): the Basque Wiktionary has pages for only 57% of common words (43% with definitions); English Wiktionary covers them with English definitions but fails examples. Stays source-gated; licensing a national resource is owner decision D14.
 
 ### Ainu
 

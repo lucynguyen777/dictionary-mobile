@@ -1022,6 +1022,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
   - Do not treat Amerind as a production taxonomy; choose each language only after source/license research.
 - [!] BLOCKED [HARD]: Cập nhật trong phiên bản sau - isolate-language candidates: Basque, Ainu, Korean if modeled as isolate.
   - Basque can be researched after Indo-European Latin-script pipeline; Ainu is blocked until source availability is proven.
+  - Basque source probe done (`docs/basque-source-gate.md`): no open source passes; licensing is owner decision D14.
 
 ### Translation
 - [x] DONE [MEDIUM]: Language selector and bilingual dictionary flow; supported/blocked pair rules are centralized, unsupported pair routing is guarded, and API/UI coming-soon behavior is covered by tests.
