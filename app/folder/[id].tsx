@@ -130,7 +130,7 @@ export default function FolderDetailScreen() {
   };
 
   return (
-    <Screen>
+    <Screen edges={['top', 'left', 'right', 'bottom']}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.screenBody}>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

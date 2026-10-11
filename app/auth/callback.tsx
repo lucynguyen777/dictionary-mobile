@@ -86,7 +86,7 @@ export default function AuthCallbackScreen() {
   const copy = getCallbackCopy(authSession);
 
   return (
-    <Screen>
+    <Screen edges={['left', 'right', 'bottom']}>
       <Stack.Screen options={{ title: 'Đăng nhập cloud' }} />
       <View style={styles.container}>
         <View style={styles.statusCircle}>

@@ -586,7 +586,7 @@ export default function ReaderScreen() {
   };
 
   return (
-    <Screen style={{ backgroundColor: activeTheme.bg }}>
+    <Screen edges={['top', 'left', 'right', 'bottom']} style={{ backgroundColor: activeTheme.bg }}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
         ref={scrollViewRef}
