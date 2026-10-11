@@ -18,6 +18,7 @@ export type ProxyValidationErrorCode =
   | 'sentence_example_invalid'
   | 'text_too_large'
   | 'unsupported_language_pair'
+  | 'unsupported_tone'
   | 'voice_feedback_audio_not_supported';
 
 export type ProxyValidationError = {
@@ -91,6 +92,7 @@ export type SpecializedTranslateRequest = {
   domainId?: unknown;
   examples?: unknown;
   glossary?: unknown;
+  tone?: unknown;
   sourceLang?: unknown;
   sourceText?: unknown;
   targetLang?: unknown;
@@ -104,7 +106,11 @@ export type ValidatedSpecializedTranslateRequest = {
   sourceLang: string;
   sourceText: string;
   targetLang: string;
+  tone: SpecializedTranslationTone;
 };
+
+export const SPECIALIZED_TRANSLATION_TONES = ['neutral', 'formal', 'plain'] as const;
+export type SpecializedTranslationTone = (typeof SPECIALIZED_TRANSLATION_TONES)[number];
 
 export type AiChatMessageRequest = {
   content?: unknown;
@@ -258,8 +264,14 @@ export function validateSpecializedTranslateRequest(
     examples.push({ source, target });
   }
 
+  // Tone comes from a fixed list (agent presets); free-text instructions are never accepted.
+  if (request.tone !== undefined && !SPECIALIZED_TRANSLATION_TONES.includes(request.tone as SpecializedTranslationTone)) {
+    return invalid('unsupported_tone', 'tone', 'Tone must be one of neutral, formal or plain.');
+  }
+  const tone = (request.tone as SpecializedTranslationTone | undefined) ?? 'neutral';
+
   const domainId = SPECIALIZED_TRANSLATION_DOMAINS.find((domain) => domain === request.domainId) ?? 'general';
-  return { data: { characterCount, domainId, examples, glossary: entries, sourceLang, sourceText, targetLang }, ok: true };
+  return { data: { characterCount, domainId, examples, glossary: entries, sourceLang, sourceText, targetLang, tone }, ok: true };
 }
 
 export function validateGlossaryRequest(

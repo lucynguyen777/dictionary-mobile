@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 
@@ -13,6 +13,17 @@ import { findGlossaryMatches, parseGlossaryText } from '@/data/glossaryMatching'
 import { parseSentenceMemoryText, selectSimilarSentencePairs } from '@/data/sentenceMemory';
 import { specializedGlossaryStore } from '@/data/specializedGlossaryStore';
 import { specializedSentenceStore } from '@/data/specializedSentenceStore';
+import {
+  MAX_TRANSLATION_AGENTS,
+  TranslationAgentError,
+  addTranslationAgentListener,
+  deleteTranslationAgent,
+  loadTranslationAgents,
+  saveTranslationAgent,
+  type TranslationAgentPair,
+  type TranslationAgentPreset,
+  type TranslationTone,
+} from '@/data/translationAgentPresets';
 import { useDomainText } from '@/hooks/use-domain-text';
 import { useToken } from '@/hooks/use-token';
 
@@ -24,9 +35,15 @@ const translationDomains: { id: SpecializedTranslateRequest['domainId']; label: 
   { id: 'academic', label: 'Học thuật' },
 ];
 
-const languagePairs = [
+const languagePairs: { id: TranslationAgentPair; label: string; sourceLang: string; targetLang: string }[] = [
   { id: 'en-vi', label: 'Anh → Việt', sourceLang: 'en', targetLang: 'vi' },
   { id: 'vi-en', label: 'Việt → Anh', sourceLang: 'vi', targetLang: 'en' },
+];
+
+const translationTones: { id: TranslationTone; label: string }[] = [
+  { id: 'neutral', label: 'Trung lập' },
+  { id: 'formal', label: 'Trang trọng' },
+  { id: 'plain', label: 'Dễ hiểu' },
 ];
 
 const MAX_SOURCE_CHARS = 5_000;
@@ -46,13 +63,64 @@ export function describeSpecializedTranslationError(error: unknown) {
 export function SpecializedTranslationToolPanel() {
   const { colors } = useToken();
   const [domainId, setDomainId] = useState<SpecializedTranslateRequest['domainId']>('general');
-  const [pairId, setPairId] = useState(languagePairs[0].id);
+  const [pairId, setPairId] = useState<TranslationAgentPair>(languagePairs[0].id);
+  const [tone, setTone] = useState<TranslationTone>('neutral');
+  const [agents, setAgents] = useState<TranslationAgentPreset[]>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [agentName, setAgentName] = useState('');
+  const [agentMessage, setAgentMessage] = useState('');
   const [glossaries, setGlossaryText] = useDomainText(specializedGlossaryStore);
   const [sentenceMemories, setSentenceText] = useDomainText(specializedSentenceStore);
   const [sourceText, setSourceText] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [result, setResult] = useState<SpecializedTranslateResponse | null>(null);
   const [translationError, setTranslationError] = useState('');
+
+  useEffect(() => {
+    const reload = () => {
+      loadTranslationAgents().then((next) => {
+        setAgents(next);
+        setSelectedAgentId((current) => (current && next.some((agent) => agent.id === current) ? current : null));
+      }).catch(() => undefined);
+    };
+    reload();
+    return addTranslationAgentListener(reload);
+  }, []);
+
+  const selectedAgent = agents.find((agent) => agent.id === selectedAgentId) ?? null;
+
+  const applyAgent = (agent: TranslationAgentPreset) => {
+    setSelectedAgentId(agent.id);
+    setAgentName(agent.name);
+    setPairId(agent.pairId);
+    setDomainId(agent.domainId);
+    setTone(agent.tone);
+    setAgentMessage('');
+    resetResult();
+  };
+
+  const handleSaveAgent = async () => {
+    try {
+      const saved = await saveTranslationAgent({ domainId, id: selectedAgent?.id, name: agentName, pairId, tone });
+      setSelectedAgentId(saved.id);
+      setAgentMessage(selectedAgent ? `Đã cập nhật agent “${saved.name}”.` : `Đã lưu agent “${saved.name}”.`);
+    } catch (error) {
+      const code = error instanceof TranslationAgentError ? error.code : '';
+      setAgentMessage(
+        code === 'agent_limit_reached' ? `Tối đa ${MAX_TRANSLATION_AGENTS} agent. Xoá một agent để tạo agent mới.`
+          : code === 'agent_name_invalid' ? 'Đặt tên agent (tối đa 40 ký tự).'
+            : 'Không lưu được agent. Thử lại.'
+      );
+    }
+  };
+
+  const handleDeleteAgent = async () => {
+    if (!selectedAgent) return;
+    await deleteTranslationAgent(selectedAgent.id).catch(() => undefined);
+    setSelectedAgentId(null);
+    setAgentName('');
+    setAgentMessage(`Đã xoá agent “${selectedAgent.name}”.`);
+  };
 
   const glossaryText = glossaries[domainId] ?? '';
   const pair = languagePairs.find((item) => item.id === pairId) ?? languagePairs[0];
@@ -133,6 +201,7 @@ export function SpecializedTranslationToolPanel() {
         sourceLang: pair.sourceLang,
         sourceText: sourceText.trim(),
         targetLang: pair.targetLang,
+        tone,
       }));
     } catch (error) {
       setTranslationError(describeSpecializedTranslationError(error));
@@ -155,6 +224,46 @@ export function SpecializedTranslationToolPanel() {
         </View>
       </View>
 
+      <Text style={styles.toolSectionLabel}>Agent dịch ({agents.length}/{MAX_TRANSLATION_AGENTS})</Text>
+      {agents.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          {agents.map((agent) => (
+            <FilterChip key={agent.id} isSelected={selectedAgentId === agent.id} label={agent.name} onPress={() => applyAgent(agent)} />
+          ))}
+        </ScrollView>
+      ) : (
+        <Text style={styles.toolStateText}>Lưu chiều dịch, chuyên ngành và văn phong thành agent để dùng lại (tối đa {MAX_TRANSLATION_AGENTS}).</Text>
+      )}
+      <TextInput
+        accessibilityLabel="Tên agent"
+        maxLength={40}
+        onChangeText={(value) => { setAgentName(value); setAgentMessage(''); }}
+        placeholder="Tên agent, ví dụ: Hồ sơ bệnh án"
+        placeholderTextColor={colors.textTertiary}
+        style={[styles.toolTextArea, localStyles.agentNameInput]}
+        value={agentName}
+      />
+      <View style={localStyles.agentRow}>
+        <Touchable
+          accessibilityRole="button"
+          activeOpacity={0.85}
+          onPress={handleSaveAgent}
+          style={[localStyles.importButton, localStyles.agentButton, { borderColor: colors.accentPrimary }]}>
+          <Text style={[localStyles.importButtonText, { color: colors.accentPrimary }]}>{selectedAgent ? 'Lưu thay đổi' : 'Lưu thành agent'}</Text>
+        </Touchable>
+        {selectedAgent ? (
+          <Touchable
+            accessibilityLabel={`Xoá agent ${selectedAgent.name}`}
+            accessibilityRole="button"
+            activeOpacity={0.85}
+            onPress={handleDeleteAgent}
+            style={[localStyles.importButton, localStyles.agentButton, { borderColor: colors.accentError }]}>
+            <Text style={[localStyles.importButtonText, { color: colors.accentError }]}>Xoá</Text>
+          </Touchable>
+        ) : null}
+      </View>
+      {agentMessage ? <Text accessibilityLiveRegion="polite" style={styles.toolStateText}>{agentMessage}</Text> : null}
+
       <Text style={styles.toolSectionLabel}>Chiều dịch</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
         {languagePairs.map((item) => (
@@ -171,6 +280,13 @@ export function SpecializedTranslationToolPanel() {
             label={domain.label}
             onPress={() => { setDomainId(domain.id); resetResult(); }}
           />
+        ))}
+      </ScrollView>
+
+      <Text style={styles.toolSectionLabel}>Văn phong</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+        {translationTones.map((item) => (
+          <FilterChip key={item.id} isSelected={tone === item.id} label={item.label} onPress={() => { setTone(item.id); resetResult(); }} />
         ))}
       </ScrollView>
 
@@ -321,6 +437,20 @@ const localStyles = StyleSheet.create({
     marginBottom: 8,
     minHeight: 40,
     paddingHorizontal: 12,
+  },
+  agentButton: {
+    marginBottom: 0,
+  },
+  agentNameInput: {
+    minHeight: 40,
+    paddingVertical: 8,
+  },
+  agentRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+    marginTop: 8,
   },
   importButtonText: {
     fontSize: 13,

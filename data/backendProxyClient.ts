@@ -284,6 +284,8 @@ export interface SpecializedTranslateRequest {
   sourceLang: string;
   sourceText: string;
   targetLang: string;
+  // Fixed tone from an agent preset; the server rejects anything else.
+  tone?: 'neutral' | 'formal' | 'plain';
 }
 
 export interface SpecializedTranslateResponse {

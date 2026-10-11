@@ -38,6 +38,7 @@ test('Specialized translation applies the device glossary and keeps it after rel
     sourceLang: 'en',
     sourceText: 'The patient underwent an MRI scan.',
     targetLang: 'vi',
+    tone: 'neutral',
   });
 
   await page.waitForTimeout(600);
@@ -81,6 +82,41 @@ test('Specialized translation sends the most similar sentence pairs from the sen
   await page.getByRole('button', { name: 'Dịch theo glossary' }).click();
   await expect.poll(() => requestBody.sourceLang).toBe('vi');
   expect(requestBody.examples).toEqual([{ source: 'Hợp đồng bị chấm dứt.', target: 'The contract is terminated.' }]);
+});
+
+test('Specialized translation agents save pair, domain and tone presets', async ({ page }) => {
+  let requestBody = null;
+  await page.route('**/backend-proxy/proxy/translate/specialized', (route) => {
+    requestBody = route.request().postDataJSON();
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ appliedTerms: [], characterCount: 5, examplesUsed: 0, provider: 'openai', translatedText: 'Hello' }),
+    });
+  });
+
+  await page.goto('/advanced');
+  await page.getByText('Dịch chuyên ngành', { exact: true }).first().click();
+  await expect(page.getByText('Agent dịch (0/3)')).toBeVisible();
+
+  await page.getByText('Việt → Anh', { exact: true }).click();
+  await page.getByText('Pháp lý', { exact: true }).click();
+  await page.getByText('Trang trọng', { exact: true }).click();
+  await page.getByLabel('Tên agent').fill('Hợp đồng');
+  await page.getByRole('button', { name: 'Lưu thành agent' }).click();
+  await expect(page.getByText('Đã lưu agent “Hợp đồng”.')).toBeVisible();
+  await expect(page.getByText('Agent dịch (1/3)')).toBeVisible();
+
+  // Back to defaults, then the agent restores its preset.
+  await page.reload();
+  await page.getByText('Dịch chuyên ngành', { exact: true }).first().click();
+  await page.getByText('Hợp đồng', { exact: true }).click();
+  await page.getByLabel('Văn bản nguồn').fill('Xin chào');
+  await page.getByRole('button', { name: 'Dịch theo glossary' }).click();
+  await expect.poll(() => requestBody?.tone).toBe('formal');
+  expect(requestBody).toMatchObject({ domainId: 'legal', sourceLang: 'vi', targetLang: 'en', tone: 'formal' });
+
+  await page.getByRole('button', { name: 'Xoá agent Hợp đồng' }).click();
+  await expect(page.getByText('Agent dịch (0/3)')).toBeVisible();
 });
 
 test('Specialized translation explains a missing sign-in', async ({ page }) => {

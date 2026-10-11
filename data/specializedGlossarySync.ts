@@ -270,8 +270,8 @@ export function createSupabaseSentenceRemote(client: GlossarySupabaseClient): Sp
   };
 }
 
-// Runs glossary and sentence-memory sync with the app's signed-in Supabase client; skipped when
-// auth is not configured.
+// Runs glossary, sentence-memory and agent-preset sync with the app's signed-in Supabase client;
+// skipped when auth is not configured.
 export async function syncSpecializedGlossariesWithSharedClient() {
   const { getSharedSupabaseAuthClient } = await import('./supabaseAuthClient');
   const auth = getSharedSupabaseAuthClient();
@@ -279,5 +279,7 @@ export async function syncSpecializedGlossariesWithSharedClient() {
   const client = auth.client as unknown as GlossarySupabaseClient;
   const glossaries = await syncSpecializedGlossaries(createSupabaseGlossaryRemote(client));
   const sentences = await syncSpecializedGlossaries(createSupabaseSentenceRemote(client), specializedSentenceStore);
-  return { glossaries, sentences };
+  const { createSupabaseAgentRemote, syncTranslationAgents } = await import('./translationAgentSync');
+  const agents = await syncTranslationAgents(createSupabaseAgentRemote(client));
+  return { agents, glossaries, sentences };
 }
