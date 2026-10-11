@@ -95,6 +95,17 @@ The script writes:
 - `download-source.json`: URLs, entry count and MD5s to paste into `downloadSource` in `data/offlineDictionaryPacks.ts` (the app verifies downloads against them).
 - `build-report.json`: scanned/merged/skipped counts for review.
 
+## Hosting Packs (plan 6.3)
+
+Once a host is chosen (owner decision D9), publishing is:
+
+```bash
+node scripts/build-pack-catalog.mjs --out tmp/offline-packs/catalog.json tmp/offline-packs/en-v1 tmp/offline-packs/fr-v1
+# upload catalog.json and the pack folders, keeping their relative paths
+```
+
+Then set `EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL` (absolute HTTPS URL of `catalog.json`) in the EAS build env. Profile refreshes the catalog (`data/offlinePackCatalog.ts`), caches the last valid copy for offline use, drops packs with a bad checksum, non-HTTPS URL, unknown language, other licence or missing attribution, and lets a hosted pack replace the bundled sample of the same language. Lookups use the cached catalog only (no network).
+
 On import the app re-validates every entry (`sanitizeOfflinePackEntry` in `data/offlineDictionaryPackActions.ts`): entries from another language or without definitions, licence or attribution are dropped, and a pack with no valid entries is rejected.
 
 Generated pack output belongs in `tmp/offline-packs/` and must not be committed. Durable parser fixtures, if needed, belong under `tests/fixtures/`.

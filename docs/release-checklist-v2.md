@@ -27,7 +27,7 @@ Plan task 7.5. One place to see what must be true before a store release. Owner 
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_STATE_SECRET` | Google Sheets export |
 | `BACKEND_PROXY_ALLOWED_ORIGINS` | extra web origins (D4) |
 
-- [ ] App build env (public only): `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_BACKEND_PROXY_URL` (set in `eas.json`), optional `EXPO_PUBLIC_CHANDRA_OCR_URL`, `EXPO_PUBLIC_READER_ENABLE_PDF`.
+- [ ] App build env (public only): `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_BACKEND_PROXY_URL` (set in `eas.json`), optional `EXPO_PUBLIC_CHANDRA_OCR_URL`, `EXPO_PUBLIC_READER_ENABLE_PDF`, `EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL` (hosted packs, D9). `EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION` stays off in preview/production until the dev-client smoke passes.
 - [ ] Provider spend limits set at OpenAI and DeepL dashboards, independent of app quotas.
 
 ## 3. Provider smoke (signed-in user, web and native)

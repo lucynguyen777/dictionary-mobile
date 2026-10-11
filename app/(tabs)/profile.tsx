@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, AppState, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
@@ -18,7 +18,8 @@ import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import { deleteInstalledOfflineDictionaryPack, installOfflineDictionaryPackFromSource } from '@/data/offlineDictionaryPackActions';
 import { OfflinePackInstallState, clearOfflinePackInstallState, formatOfflinePackInstallStatus, formatOfflinePackProgress, getDefaultOfflinePackInstallState, getOfflinePackInstallRecord, getOfflinePackInstallSummary, loadOfflinePackInstallState } from '@/data/offlineDictionaryPackStore';
-import { formatPackSizeRange, formatPackStatus, formatPackTitle, getOfflinePackRuntimeGate, getOfflinePackSummary, offlineDictionaryPacks } from '@/data/offlineDictionaryPacks';
+import { formatPackSizeRange, formatPackStatus, formatPackTitle, getOfflinePackRuntimeGate, getOfflinePackSummary, offlineDictionaryPacks, type OfflineDictionaryPack } from '@/data/offlineDictionaryPacks';
+import { refreshOfflinePacks } from '@/data/offlinePackCatalog';
 import { NotificationPreferences, UserProfile, clearUserProfile, getDefaultProfile, loadUserProfile, saveUserProfile } from '@/data/profileStore';
 import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 import { useToken } from '@/hooks/use-token';
@@ -118,6 +119,18 @@ export default function ProfileScreen() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [offlinePacks, setOfflinePacks] = useState<OfflineDictionaryPack[]>(offlineDictionaryPacks);
+
+  useEffect(() => {
+    let active = true;
+    // Hosted packs (EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL) join the bundled list; offline, the cached catalog is used.
+    refreshOfflinePacks().then((packs) => {
+      if (active) setOfflinePacks(packs);
+    }).catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
   const [authModalMode, setAuthModalMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
   const [selectedStreakYear, setSelectedStreakYear] = useState(new Date().getFullYear());
@@ -351,7 +364,7 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleInstallOfflinePack = async (pack: (typeof offlineDictionaryPacks)[number]) => {
+  const handleInstallOfflinePack = async (pack: OfflineDictionaryPack) => {
     const runtimeGate = getOfflinePackRuntimeGate(pack);
 
     if (!runtimeGate.canDownload || !pack.downloadSource) {
@@ -377,7 +390,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleDeleteOfflinePack = (pack: (typeof offlineDictionaryPacks)[number]) => {
+  const handleDeleteOfflinePack = (pack: OfflineDictionaryPack) => {
     Alert.alert('Xóa pack offline', 'Xóa SQLite pack và trạng thái cài đặt local trên thiết bị này?', [
       { text: 'Hủy', style: 'cancel' },
       {
@@ -495,7 +508,7 @@ export default function ProfileScreen() {
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
   const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
   const offlinePackRuntimeOptions = { supportsSqliteRuntime: Platform.OS !== 'web' };
-  const offlinePackSummary = getOfflinePackSummary(offlineDictionaryPacks, offlinePackRuntimeOptions);
+  const offlinePackSummary = getOfflinePackSummary(offlinePacks, offlinePackRuntimeOptions);
   const offlinePackInstallSummary = getOfflinePackInstallSummary(offlinePackInstallState);
   const isSignedIn = authSession.status === 'authenticated' || authSession.status === 'needs_verification';
   const isDefaultGuestProfile =
@@ -1068,7 +1081,7 @@ export default function ProfileScreen() {
                   <DataStat label="Gói" value={offlinePackSummary.packCount} />
                   <DataStat label="Đã cài" value={offlinePackInstallSummary.readyCount} />
                 </View>
-                {offlineDictionaryPacks.map((pack) => {
+                {offlinePacks.map((pack) => {
                   const language = languageOptions.find((item) => item.code === pack.languageCode);
                   const runtimeGate = getOfflinePackRuntimeGate(pack, offlinePackRuntimeOptions);
                   const installRecord = getOfflinePackInstallRecord(offlinePackInstallState, pack);
