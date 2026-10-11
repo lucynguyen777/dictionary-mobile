@@ -55,6 +55,7 @@ import LookupSuggestions from '@/components/word/LookupSuggestions';
 import { createWordStyles } from '@/components/word/wordStyles';
 import { getBilingualDictionaryUnavailableMessage, getRouteParam, mergeLookupEntry } from '@/data/wordLookupEntry';
 import AppButton from '@/components/app/AppButton';
+import { describeLookupError } from '@/data/lookupErrors';
 
 const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
@@ -272,7 +273,7 @@ export default function WordScreen() {
         (bilingualMeaningResult.status === 'rejected' && bilingualMeaningResult.reason) ||
         (relatedWordsResult.status === 'rejected' && relatedWordsResult.reason);
       setLookupStatus('error');
-      setLookupError(error instanceof Error ? error.message : 'Chưa thể tải dữ liệu từ điển.');
+      setLookupError(describeLookupError(error, selectedWord, sourceLanguage.label));
     }
 
     lookupWord();
@@ -288,6 +289,7 @@ export default function WordScreen() {
     selectedWord,
     shouldUseBilingualDictionary,
     sourceLanguage.code,
+    sourceLanguage.label,
     targetLanguage.code,
   ]);
 
