@@ -35,6 +35,8 @@ const headwords = new Set();
 const withExamples = new Set();
 const withRelations = new Set();
 const foundCandidateKeys = new Set();
+const redirects = new Map();
+const glossedHeadwords = new Set();
 const lemmas = new Set();
 const lemmaExamples = new Set();
 const lemmaRelations = new Set();
@@ -64,7 +66,12 @@ for await (const line of reader) {
     otherLanguages += 1;
     continue;
   }
+  // Soft redirects (e.g. simplified Chinese → traditional page) are followed after the scan.
+  if (Array.isArray(entry.redirects) && entry.redirects.length) {
+    redirects.set(normalize(entry.word), entry.redirects.map((target) => normalize(String(target).split('#')[0])));
+  }
   if (!(entry.senses ?? []).some((sense) => (sense.glosses ?? []).some((gloss) => typeof gloss === 'string' && gloss.trim()))) continue;
+  glossedHeadwords.add(normalize(entry.word));
   const key = normalize(entry.word);
   headwords.add(key);
   if ((entry.senses ?? []).some((sense) => Array.isArray(sense.examples) && sense.examples.length)) withExamples.add(key);
@@ -91,9 +98,10 @@ for await (const line of reader) {
 const percent = (part, whole) => (whole ? Math.round((part / whole) * 1000) / 10 : 0);
 // Gate view: headword probes must exist as headwords; inflected probes count when the app's
 // morphology leads to an existing headword (or the source lists the form).
+const viaRedirect = (key) => (redirects.get(key) ?? []).some((target) => glossedHeadwords.has(target));
 const resolves = (row) => {
   const key = normalize(row.word);
-  if (exactHits.has(key)) return true;
+  if (exactHits.has(key) || viaRedirect(key)) return true;
   if (row.kind !== 'headword' && formHits.has(key)) return true;
   return row.kind !== 'headword' && (candidatesByProbe[row.word] ?? []).some((candidate) => foundCandidateKeys.has(normalize(candidate)));
 };
@@ -103,6 +111,7 @@ const summary = {
   gateHeadwordExactPercent: percent(headwordRows.filter(resolves).length, headwordRows.length),
   gateInflectedViaMorphologyPercent: args.candidates ? percent(inflectedRows.filter(resolves).length, inflectedRows.length) : null,
   gateMissing: probeRows.filter((row) => !resolves(row)).map((row) => `${row.word} (${row.kind})`),
+  probesResolvedViaRedirect: probeRows.filter((row) => !exactHits.has(normalize(row.word)) && viaRedirect(normalize(row.word))).map((row) => row.word),
   examplesPercent: percent(withExamples.size, headwords.size),
   headwords: headwords.size,
   lemmaExamplesPercent: percent(lemmaExamples.size, lemmas.size),
