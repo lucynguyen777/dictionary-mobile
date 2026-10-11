@@ -87,6 +87,7 @@
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.7",
     "@playwright/test": "^1.60.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
