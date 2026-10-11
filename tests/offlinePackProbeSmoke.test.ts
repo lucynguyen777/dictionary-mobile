@@ -23,11 +23,13 @@ import { createExpoSqliteOfflineDictionaryStorage, type OfflineSqliteDatabase } 
 
 const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite');
 
-// Packs built from the real French/Spanish Wiktionary dumps, scoped to the 100 promotion probes
+// Packs built from the real French/Spanish/Russian/Korean Wiktionary dumps, scoped to the 100 promotion probes
 // (scripts/extract-kaikki-candidate.mjs --headwords …, then scripts/build-offline-pack.mjs).
 const PACKS = [
   { dir: 'tests/fixtures/offline-packs/fr-probe-smoke', lang: 'fr', probes: 'data/headword-lists/french-promotion-100.txt' },
   { dir: 'tests/fixtures/offline-packs/es-probe-smoke', lang: 'es', probes: 'data/headword-lists/spanish-promotion-100.txt' },
+  { dir: 'tests/fixtures/offline-packs/ru-probe-smoke', lang: 'ru', probes: 'data/headword-lists/russian-promotion-100.txt' },
+  { dir: 'tests/fixtures/offline-packs/ko-probe-smoke', lang: 'ko', probes: 'data/headword-lists/korean-promotion-100.txt' },
 ] as const;
 
 // The expo-sqlite subset the offline storage uses, on Node's built-in SQLite (FTS5 included).

@@ -21,6 +21,7 @@ Notes:
 - **Russian**: adjective case forms (`хорошего` → `хороший`, `новые` → `новый`) were added to the morphology after the first run (95% → 100%).
 - **Turkish**: 27.6% related words is just under the gate; the English-edition Turkish data could supply synonyms as a helper, which is an attribution/source decision rather than a code change.
 - **Chinese**: many common simplified headwords (`学校`, `老师`, `时间`) have no usable definition rows in the extraction; a simplified/traditional mapping or another source is needed before promotion.
+- **Pack smoke**: probe-scoped Russian (108 entries) and Korean (98 entries) packs from these dumps pass validation → SQLite import → probe lookup (headwords ≥95%, inflected ≥85% through the app's offline lookup) → delete in `tests/offlinePackProbeSmoke.test.ts`, alongside French and Spanish.
 - Passing the source gates is not promotion: each language still needs a pack (scope and host, D9) and the pack/UI smoke, as done for French and Spanish (`tests/offlinePackProbeSmoke.test.ts`).
 
 Reproduce one language:
