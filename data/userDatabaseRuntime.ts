@@ -25,8 +25,12 @@ import {
 import {
   ensureUserDatabaseSchema,
   openExpoUserDatabase,
+  planUserDatabaseMigration,
+  upgradeUserDatabaseSchema,
   USER_DATABASE_NAME,
   USER_DATABASE_SCHEMA_VERSION,
+  USER_DATABASE_UPGRADES,
+  type UserDatabaseUpgrades,
   type OpenUserSqliteDatabase,
   type UserSqliteBindParams,
   type UserSqliteDatabase,
@@ -36,6 +40,8 @@ export type UserDatabaseRuntimeOptions = {
   databaseName?: string;
   now?: () => string;
   openDatabase?: OpenUserSqliteDatabase;
+  schemaVersion?: number;
+  upgrades?: UserDatabaseUpgrades;
 };
 
 type UserDataSnapshot = {
@@ -115,7 +121,7 @@ export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabase
     openDatabase = openExpoUserDatabase,
   } = resolveRuntimeOptions(options);
 
-  await ensureUserDatabaseMigrated({ databaseName, openDatabase });
+  await ensureUserDatabaseMigrated(options);
 
   const database = await openDatabase(databaseName);
   try {
@@ -177,15 +183,16 @@ export async function saveUserDataSnapshotToUserDatabase(
     databaseName = USER_DATABASE_NAME,
     now = () => new Date().toISOString(),
     openDatabase = openExpoUserDatabase,
+    schemaVersion = USER_DATABASE_SCHEMA_VERSION,
   } = resolveRuntimeOptions(options);
 
-  await ensureUserDatabaseMigrated({ databaseName, openDatabase });
+  await ensureUserDatabaseMigrated(options);
 
   const database = await openDatabase(databaseName);
   try {
     const rows = serializeUserDataForSqlite(snapshot, {
       migratedAt: now(),
-      schemaVersion: USER_DATABASE_SCHEMA_VERSION,
+      schemaVersion,
     });
 
     await ensureUserDatabaseSchema(database);
@@ -197,25 +204,38 @@ export async function saveUserDataSnapshotToUserDatabase(
   }
 }
 
-async function ensureUserDatabaseMigrated({
-  databaseName,
-  openDatabase,
-}: Pick<UserDatabaseRuntimeOptions, 'databaseName' | 'openDatabase'> = {}) {
-  ({
+// Brings the SQLite database to the app's schema version without ever replacing existing SQLite data.
+// Only a database that predates SQLite-only storage is (re)imported from AsyncStorage.
+async function ensureUserDatabaseMigrated(options: UserDatabaseRuntimeOptions = {}) {
+  const {
     databaseName = USER_DATABASE_NAME,
     openDatabase = openExpoUserDatabase,
-  } = resolveRuntimeOptions({ databaseName, openDatabase }));
+    schemaVersion = USER_DATABASE_SCHEMA_VERSION,
+    upgrades = USER_DATABASE_UPGRADES,
+  } = resolveRuntimeOptions(options);
 
   const database = await openDatabase(databaseName);
+  let plan: ReturnType<typeof planUserDatabaseMigration>;
   try {
     await ensureUserDatabaseSchema(database);
     const meta = await getFirstRequired<{ value: string }>(database, SELECT_META_SQL, 'schema_version');
-    if (meta?.value === String(USER_DATABASE_SCHEMA_VERSION)) return;
+    plan = planUserDatabaseMigration(meta?.value, schemaVersion);
+    if (plan.kind === 'upgrade') {
+      await upgradeUserDatabaseSchema(database, plan.fromVersion, { targetVersion: schemaVersion, upgrades });
+      return;
+    }
   } finally {
     await database.closeAsync?.();
   }
 
-  await migrateAsyncStorageToUserDatabase({ databaseName, openDatabase });
+  if (plan.kind === 'newer-than-app') {
+    throw new Error(
+      `User database schema ${plan.storedVersion} is newer than this app (${schemaVersion}); update the app to open it.`
+    );
+  }
+  if (plan.kind === 'import-legacy') {
+    await migrateAsyncStorageToUserDatabase({ databaseName, openDatabase });
+  }
 }
 
 function resolveRuntimeOptions(options: UserDatabaseRuntimeOptions): UserDatabaseRuntimeOptions {
