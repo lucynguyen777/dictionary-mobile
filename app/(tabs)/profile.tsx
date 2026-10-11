@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { FutureFeatureNotice } from '@/components/app/FutureFeature';
 import Screen from '@/components/app/Screen';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { APP_RELEASE, getAppReleaseSummary } from '@/constants/appRelease';
@@ -1456,18 +1457,6 @@ function AuthModal({
   );
 }
 
-function FutureFeatureNotice({ reason }: { reason: string }) {
-  return (
-    <View style={styles.futureFeatureNotice}>
-      <Ionicons name="time-outline" size={15} color="#92400E" />
-      <View style={styles.futureFeatureNoticeCopy}>
-        <Text style={styles.futureFeatureNoticeTitle}>Cập nhật trong phiên bản sau</Text>
-        <Text style={styles.futureFeatureNoticeText}>{reason}</Text>
-      </View>
-    </View>
-  );
-}
-
 function SidebarActionRow({
   badge,
   destructive,
@@ -2899,33 +2888,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
     marginTop: 12,
-  },
-  futureFeatureNotice: {
-    alignItems: 'flex-start',
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-    borderRadius: 10,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 9,
-    marginTop: 10,
-    opacity: 0.62,
-    padding: 10,
-  },
-  futureFeatureNoticeCopy: {
-    flex: 1,
-  },
-  futureFeatureNoticeTitle: {
-    color: '#78350F',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  futureFeatureNoticeText: {
-    color: '#92400E',
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 17,
-    marginTop: 2,
   },
   offlinePackSummaryRow: {
     flexDirection: 'row',

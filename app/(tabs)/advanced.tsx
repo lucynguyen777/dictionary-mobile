@@ -6,6 +6,7 @@ import { ComponentProps, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
+import { FutureFeatureBadge, FutureFeatureNotice } from '@/components/app/FutureFeature';
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
 import {
@@ -744,31 +745,6 @@ function ToolTab({
       </View>
       <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
     </TouchableOpacity>
-  );
-}
-
-function FutureFeatureBadge() {
-  const { colors } = useToken();
-
-  return (
-    <View style={[styles.futureFeatureBadge, { backgroundColor: colors.statusWarning, borderColor: colors.accentWarning }]}>
-      <Ionicons name="time-outline" size={12} color={colors.accentWarning} />
-      <Text style={[styles.futureFeatureBadgeText, { color: colors.accentWarning }]}>Cập nhật trong phiên bản sau</Text>
-    </View>
-  );
-}
-
-function FutureFeatureNotice({ reason }: { reason: string }) {
-  const { colors } = useToken();
-
-  return (
-    <View style={[styles.futureFeatureNotice, { backgroundColor: colors.statusWarning, borderColor: colors.accentWarning }]}>
-      <Ionicons name="lock-closed-outline" size={16} color={colors.accentWarning} />
-      <View style={styles.futureFeatureNoticeCopy}>
-        <Text style={[styles.futureFeatureNoticeTitle, { color: colors.accentWarning }]}>Cập nhật trong phiên bản sau</Text>
-        <Text style={[styles.futureFeatureNoticeText, { color: colors.textSecondary }]}>{reason}</Text>
-      </View>
-    </View>
   );
 }
 
@@ -2365,49 +2341,6 @@ const styles = StyleSheet.create({
   },
   futureFeatureMuted: {
     opacity: 0.56,
-  },
-  futureFeatureBadge: {
-    alignItems: 'center',
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-    borderRadius: 999,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  futureFeatureBadgeText: {
-    color: '#92400E',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  futureFeatureNotice: {
-    alignItems: 'flex-start',
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 9,
-    marginTop: 12,
-    padding: 10,
-  },
-  futureFeatureNoticeCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  futureFeatureNoticeTitle: {
-    color: '#92400E',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  futureFeatureNoticeText: {
-    color: '#92400E',
-    fontSize: 12,
-    fontWeight: '600',
-    lineHeight: 17,
-    marginTop: 2,
   },
   toolRoadmap: {
     backgroundColor: '#F8FAFC',
