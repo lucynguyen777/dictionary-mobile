@@ -35,3 +35,11 @@ describe('Japanese godan and adjective forms', () => {
     expect(words('ja', '見ます')).toContain('見る');
   });
 });
+
+describe('Russian adjective case forms', () => {
+  it.each([
+    ['хорошего', 'хороший'], ['новые', 'новый'], ['большие', 'большой'], ['красивая', 'красивый'], ['синего', 'синий'], ['русскому', 'русский'],
+  ])('%s → %s', (form, lemma) => {
+    expect(words('ru', form)).toContain(lemma);
+  });
+});

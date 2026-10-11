@@ -8,7 +8,7 @@ Gates (from `data/languageProductionRoadmap.ts`): corpus ≥5,000, headword exac
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | French | frwiktionary 2026-10-01 | 495,763 | 100% | 100% | 100% | 71% | Pass |
 | Spanish | eswiktionary 2026-10-02 | 136,522 | 100% | — | 56% | 74% | Pass |
-| Russian | ruwiktionary 2026-10 | 445,824 | 100% (80/80) | 95% (19/20) | 91% | 86% | Pass |
+| Russian | ruwiktionary 2026-10 | 445,824 | 100% (80/80) | 100% (20/20) | 91% | 86% | Pass |
 | Korean | kowiktionary 2026-10 | 34,902 | 100% (76/76) | 100% (20/20) | 100% | 76% | Pass (after morphology fix below) |
 | Turkish | trwiktionary 2026-10 | 188,736 | 100% | 100% | 74.5% | 27.6% | Fails related words only |
 | Japanese | jawiktionary 2026-10 | 112,940 | 97.5% | 100% | 36.7% | 7.6% | Fails examples and related words |
@@ -18,7 +18,7 @@ Gates (from `data/languageProductionRoadmap.ts`): corpus ≥5,000, headword exac
 Notes:
 
 - **Morphology fixes found by this measurement** (`tests/cjkMorphologyForms.test.ts`): Korean contracted stems (갔다→가다, 했다→하다, 봐요→보다, 마셔요→마시다, 갑니다→가다, ㅂ-irregular 추워요→춥다) and Japanese godan/adjective forms (飲んだ→飲む, 話した→話す, 行きます→行く, 大きかった→大きい). The Japanese `-んだ`/`-いだ` rules were previously unreachable (nested under a `-た` check). Korean inflected coverage went 40% → 100%, Japanese 50% → 100%.
-- **Russian**: the one miss, `хорошего`, is an adjective case form the morphology does not cover yet.
+- **Russian**: adjective case forms (`хорошего` → `хороший`, `новые` → `новый`) were added to the morphology after the first run (95% → 100%).
 - **Turkish**: 27.6% related words is just under the gate; the English-edition Turkish data could supply synonyms as a helper, which is an attribution/source decision rather than a code change.
 - **Chinese**: many common simplified headwords (`学校`, `老师`, `时间`) have no usable definition rows in the extraction; a simplified/traditional mapping or another source is needed before promotion.
 - Passing the source gates is not promotion: each language still needs a pack (scope and host, D9) and the pack/UI smoke, as done for French and Spanish (`tests/offlinePackProbeSmoke.test.ts`).

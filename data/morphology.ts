@@ -1652,6 +1652,19 @@ function getRussianMorphologyCandidates(input: string): MorphologyCandidate[] {
 
   const candidates: MorphologyCandidate[] = [];
 
+  // 0. Long-form adjective cases (хорошего → хороший, новые → новый, синей → синий).
+  // Spelling rule: after г, к, х, ж, ш, щ, ч the masculine ending is -ий; soft stems also take -ий.
+  const adjectiveEndings = ['ого', 'его', 'ому', 'ему', 'ыми', 'ими', 'ых', 'их', 'ую', 'юю', 'ая', 'яя', 'ое', 'ее', 'ые', 'ие'];
+  for (const suffix of adjectiveEndings) {
+    if (!word.endsWith(suffix) || word.length <= suffix.length + 2) continue;
+    const stem = word.slice(0, -suffix.length);
+    const softOrHushing = /[гкхжшщч]$/.test(stem) || /^[еюяи]/.test(suffix);
+    for (const ending of softOrHushing ? ['ий', 'ой'] : ['ый', 'ой']) {
+      candidates.push(createCandidate(stem + ending, `adjective case restored to -${ending} (-${suffix})`));
+    }
+    break;
+  }
+
   // 1. Verb past tense: -л, -ла, -ло, -ли -> replace with infinitive ending -ть
   const pastTenseEndings = ['ла', 'ло', 'ли', 'л'];
   for (const suffix of pastTenseEndings) {
