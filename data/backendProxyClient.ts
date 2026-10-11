@@ -168,6 +168,13 @@ export async function connectGoogleSheets(): Promise<{ authorizationUrl: string 
   return proxyFetch<{ authorizationUrl: string }>('/proxy/google-sheets/connect?returnTo=/advanced');
 }
 
+export async function completeGoogleSheetsConnection(code: string, state: string) {
+  return proxyFetch<{ connected: true }>('/proxy/google-sheets/complete', {
+    body: JSON.stringify({ code, state }),
+    method: 'POST',
+  });
+}
+
 export async function getGoogleSheetsStatus(): Promise<GoogleSheetsStatus> {
   return proxyFetch<GoogleSheetsStatus>('/proxy/google-sheets/status');
 }

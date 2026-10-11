@@ -51,7 +51,8 @@ All routes require a Supabase-authenticated user unless the route is the Google 
 | Route | Purpose |
 | --- | --- |
 | `GET /proxy/google-sheets/connect` | Create Google consent URL with backend state, requested scopes, `access_type=offline`, and optional `prompt=consent` when refresh-token rotation is required. |
-| `GET /proxy/google-sheets/callback` | Validate OAuth state, exchange auth code for tokens, encrypt/store refresh token, and redirect back to app/web status route. |
+| `GET /oauth/google/callback` | Unauthenticated. Validate the signed OAuth state and redirect to the allow-listed app path with `googleSheetsCode` and `googleSheetsState`; never exchanges or stores tokens. |
+| `POST /proxy/google-sheets/complete` | Authenticated. Require `state.userId` to equal the signed-in user, then exchange the code and encrypt/store the refresh token. This prevents linking a victim's Google account to an attacker-created consent URL. |
 | `GET /proxy/google-sheets/status` | Return connection state, granted scopes, masked Google account label if available, and last export metadata. |
 | `POST /proxy/google-sheets/export-folder` | Create or update a spreadsheet from a folder export payload. |
 | `POST /proxy/google-sheets/revoke` | Revoke provider token when possible, delete stored token metadata, and mark export connection disconnected. |

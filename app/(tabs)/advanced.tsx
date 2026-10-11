@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
-import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
-import { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useFocusEffect, useLocalSearchParams, useRouter, type Href } from 'expo-router';
+import { ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
@@ -27,7 +27,7 @@ import {
   saveLibraryState,
 } from '@/data/libraryStore';
 
-import { BackendProxyError, aiChat, connectGoogleSheets, exportFolderToGoogleSheets, getGoogleSheetsStatus, translateText } from '@/data/backendProxyClient';
+import { BackendProxyError, aiChat, completeGoogleSheetsConnection, connectGoogleSheets, exportFolderToGoogleSheets, getGoogleSheetsStatus, translateText } from '@/data/backendProxyClient';
 import {
   extractReaderDocument,
   getReaderImportFormat,
@@ -263,8 +263,13 @@ export default function AdvancedScreen() {
   const [folderFilterId, setFolderFilterId] = useState('all');
   const [typeFilter, setTypeFilter] = useState<FlashcardType | 'all'>('all');
   const [reviewFilter, setReviewFilter] = useState<FlashcardReviewState | 'all'>('all');
-  const [activeToolId, setActiveToolId] = useState<LearningToolId | null>(null);
+  const googleSheetsReturn = useGoogleSheetsReturnParams();
+  const [activeToolId, setActiveToolId] = useState<LearningToolId | null>(googleSheetsReturn ? 'export' : null);
   const [flashcardMode, setFlashcardMode] = useState<FlashcardMode>('dashboard');
+
+  useEffect(() => {
+    if (googleSheetsReturn) setActiveToolId('export');
+  }, [googleSheetsReturn]);
 
   useFocusEffect(
     useCallback(() => {
@@ -1334,8 +1339,31 @@ const exportActions: {
   },
 ];
 
+type GoogleSheetsReturn =
+  | { code: string; kind: 'authorized'; state: string }
+  | { kind: 'denied' | 'failed' };
+
+// Google OAuth returns to /advanced with either an authorization code to complete or an outcome flag.
+function useGoogleSheetsReturnParams(): GoogleSheetsReturn | null {
+  const { googleSheets, googleSheetsCode, googleSheetsState } = useLocalSearchParams<{
+    googleSheets?: string;
+    googleSheetsCode?: string;
+    googleSheetsState?: string;
+  }>();
+  return useMemo(() => {
+    if (googleSheetsCode && googleSheetsState) {
+      return { code: googleSheetsCode, kind: 'authorized', state: googleSheetsState };
+    }
+    if (googleSheets === 'denied' || googleSheets === 'failed') return { kind: googleSheets };
+    return null;
+  }, [googleSheets, googleSheetsCode, googleSheetsState]);
+}
+
 function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
   const libraryHref = '/library' as Href;
+  const router = useRouter();
+  const googleSheetsReturn = useGoogleSheetsReturnParams();
+  const handledGoogleSheetsCode = useRef<string | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [activeActionId, setActiveActionId] = useState<ExportActionId>('csv');
   const [isRunningExport, setIsRunningExport] = useState(false);
@@ -1370,6 +1398,38 @@ function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
   useEffect(() => {
     getGoogleSheetsStatus().then((status) => setGoogleSheetsConnected(status.connected)).catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (!googleSheetsReturn) return;
+    if (googleSheetsReturn.kind === 'authorized') {
+      if (handledGoogleSheetsCode.current === googleSheetsReturn.code) return;
+      handledGoogleSheetsCode.current = googleSheetsReturn.code;
+    }
+    // Clear the one-time code from the URL before using it so a reload cannot replay it.
+    router.setParams({ googleSheets: undefined, googleSheetsCode: undefined, googleSheetsState: undefined });
+
+    if (googleSheetsReturn.kind !== 'authorized') {
+      setStatusMessage(googleSheetsReturn.kind === 'denied'
+        ? 'Bạn đã huỷ kết nối Google Sheets.'
+        : 'Không thể kết nối Google Sheets. Vui lòng thử lại.');
+      return;
+    }
+
+    setIsRunningExport(true);
+    setStatusMessage('Đang hoàn tất kết nối Google Sheets...');
+    completeGoogleSheetsConnection(googleSheetsReturn.code, googleSheetsReturn.state)
+      .then(() => {
+        setGoogleSheetsConnected(true);
+        setStatusMessage('Đã kết nối Google Sheets. Chọn bộ từ để xuất.');
+      })
+      .catch((error) => {
+        const message = error instanceof BackendProxyError && error.status === 401
+          ? 'Phiên đăng nhập đã hết hạn. Đăng nhập lại ở tab Hồ sơ rồi kết nối Google Sheets lần nữa.'
+          : 'Không thể hoàn tất kết nối Google Sheets. Hãy dùng đúng tài khoản đã bắt đầu kết nối và thử lại.';
+        setStatusMessage(message);
+      })
+      .finally(() => setIsRunningExport(false));
+  }, [googleSheetsReturn, router]);
 
   const addHistoryItem = (item: Omit<ExportHistoryItem, 'id' | 'createdAt'>) => {
     setHistory((current) => [
