@@ -12,7 +12,6 @@
     "test:native:maestro": "$HOME/.maestro/bin/maestro test .maestro/word-detail.yml",
     "test:native:maestro:expo-go:ios": "MAESTRO_APP_ID=host.exp.Exponent $HOME/.maestro/bin/maestro test .maestro/expo-go-word-detail.yml",
     "test:native:maestro:expo-go:android": "MAESTRO_APP_ID=host.exp.exponent $HOME/.maestro/bin/maestro test .maestro/expo-go-word-detail.yml",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

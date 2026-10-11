@@ -88,7 +88,6 @@ export default function RootLayout() {
       {appLockState === 'unlocked' ? (
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
       ) : (
         <AppLockScreen
