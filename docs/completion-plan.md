@@ -211,7 +211,7 @@ Branches stack in order: `claude/v1.4.1-product-truth` → `claude/v1.5.0-cloud-
 | 3 Design system/UI | 3.1–3.4, 3.6–3.9 | Library/Training/Profile stylesheet palette → tokens (D7) |
 | 4 Providers | 4.1 AI streaming, 4.3 feedback form, 4.4 password change/reset, 4.5 specialized translation (glossary per domain, CSV/TSV import, account sync), Sheets export fake-API tests | 4.1/4.2 production smoke (keys); 4.3 legal/help + Resend (D5); 4.5 sentence datasets + context agents; 4.6 Azure scoring (D6) |
 | 5 Native recognition | — | Needs EAS account and devices |
-| 6 Languages/offline | 6.1 declarative local-pack registry, 6.2 pack pipeline + import validation | 6.3/6.5 need CDN hosting; 6.4/6.6 language source gates |
+| 6 Languages/offline | 6.1 declarative local-pack registry, 6.2 pack pipeline + import validation | 6.3/6.5 need CDN hosting; 6.4 French source gates pass, pack scope/host (D9); 6.6 other language source gates |
 | 7 Release v2.0 | 7.5 release checklist (`docs/release-checklist-v2.md`) | 7.1 crash reporting provider (D8); 7.2–7.3 need EAS/store accounts, D3, D5 |
 
 ## 8. Pending owner decisions
@@ -228,3 +228,4 @@ Work that needs one of these decisions is paused; other work continues. Updated 
 | D6 | Pronunciation scoring (Azure): how long may raw audio be kept (suggested: not stored; streamed to Azure and discarded), and is a per-user daily scoring cap acceptable? | `.ai/context/blocked-decisions.md` gates scoring code on a retention policy and account-deletion behavior. | Paused (plan 4.6). |
 | D7 | Library/Training/Profile still use their own warm-grey/blue palette in light mode. Move them to theme tokens (visible restyle toward the purple accent) or keep the current look? | Converting changes how three tabs look; dark mode already works through themed overlays. | Keep current look; conversion paused. |
 | D8 | Crash/error reporting for v2.0: Sentry or EAS Observe, and opt-in or on by default? | Affects privacy copy, store data-safety labels, and SDK setup. | Paused (plan 7.1). |
+| D9 | Offline packs: where to host them (CDN/bucket) and how big the first packs should be? French Wiktionary has ~496k lemmas; options: full lemma pack (large download), or top-N by a frequency list (needs a licensed list). | French passes every source gate; only the pack smoke and UI smoke remain. English needs the same choice to replace the 2-entry sample pack. | Paused (plan 6.3/6.4/6.5). Suggested: a lemma-only pack capped at ~50k headwords per language on a static bucket. |

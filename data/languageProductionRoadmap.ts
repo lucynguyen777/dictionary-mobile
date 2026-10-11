@@ -28,7 +28,7 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
   { batch: 0, code: 'vi->en', difficulty: 'easy', sourcePlan: 'Maintain approved bilingual lexical source.', specialWork: 'Coverage measurement and offline packaging.', state: 'production-maintenance' },
   { batch: 0, code: 'fr->vi', difficulty: 'easy', sourcePlan: 'Maintain approved MinhQnd lexical source.', specialWork: 'Measure broader headword coverage and define offline packaging.', state: 'production-maintenance' },
 
-  { batch: 1, code: 'fr', difficulty: 'easy', sourcePlan: 'French Wiktionary/Wiktextract corpus with revision metadata.', specialWork: 'Fix measured exact coverage and related-word gap before pack smoke.', state: 'preview-promotion' },
+  { batch: 1, code: 'fr', difficulty: 'easy', sourcePlan: 'French Wiktionary (frwiktionary) Wiktextract extraction, dump 2026-10-01; source gates measured as passing.', specialWork: 'Choose pack scope and host (decision D9), then offline pack import and UI smoke.', state: 'preview-promotion' },
   { batch: 1, code: 'ms', difficulty: 'easy', sourcePlan: 'Malay Wiktionary/Wiktextract corpus.', specialWork: 'Validate meN-/peN- allomorphs, reduplication, and affixed forms.', state: 'preview-promotion' },
   { batch: 1, code: 'es', difficulty: 'easy', sourcePlan: 'Spanish Wiktionary/Wiktextract corpus.', specialWork: 'Accent handling, adjective forms, and irregular verbs.', state: 'preview-promotion' },
 
