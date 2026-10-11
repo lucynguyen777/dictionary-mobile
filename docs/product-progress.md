@@ -916,7 +916,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [MEDIUM]: VI-VI dictionary via MinhQnd API with suggestions and relations (commit `3ec1975`).
 - [x] DONE [MEDIUM]: FR-FR dictionary via hybrid local/Wiktapi source (commit `3ec1975`).
 - [x] DONE [MEDIUM]: FR→VI bilingual dictionary lookup via MinhQnd lexical data (commit `8b2770d`).
-- [!] BLOCKED [HARD]: VI→FR bilingual dictionary source selection; do not use machine translation as dictionary data.
+- [!] BLOCKED [HARD]: VI→FR bilingual dictionary source selection; do not use machine translation as dictionary data. Source probe done (`docs/vi-fr-source-gate.md`: French Wiktionary's Vietnamese section passes the gates, related words via English-Wiktionary helper relations); waiting for owner approval D13.
 
 ### Language Family Roadmap
 - [x] DONE [MEDIUM]: Austroasiatic baseline: Vietnamese (VI-VI) with dictionary API, suggestions, relations, tone/diacritic-sensitive display.
