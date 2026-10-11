@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 
@@ -27,6 +28,7 @@ import { readSseStream } from '../data/sseParser';
 import { validateSpecializedTranslateRequest } from './proxyRequestValidation';
 import { buildSpecializedTranslationMessages } from './specializedTranslation';
 import { submitFeedback, type FeedbackStore } from './feedback';
+import { readAccountDeletionConfig, requestAccountDeletion, type AccountDeletionStore } from './accountDeletion';
 
 const DEFAULT_PORT = 3001;
 
@@ -35,6 +37,7 @@ export type ServerDependencies = {
   port?: number;
   googleSheetsStore?: GoogleSheetsStore;
   feedbackStore?: FeedbackStore;
+  accountDeletionStore?: AccountDeletionStore;
   // Durable quota storage; defaults to the in-memory tracker (fine for local dev, not for serverless).
   createQuotaStore?: (limits: BackendProxyLimits) => QuotaStore;
   verifyAuth: (token: string) => Promise<{ userId: string } | null>;
@@ -85,6 +88,30 @@ export function createServer(deps: ServerDependencies) {
       googleSheetsCode: req.query.code,
       googleSheetsState: String(req.query.state),
     }));
+  });
+
+  const accountDeletionConfig = readAccountDeletionConfig(deps.env);
+
+  // Purges scheduled account deletions whose grace period ended. Called by a scheduler (e.g. a Vercel
+  // cron) with CRON_SECRET; never by the app.
+  app.post('/admin/purge-account-deletions', async (req: Request, res: Response) => {
+    const secret = deps.env.CRON_SECRET?.trim();
+    const provided = (req.headers.authorization ?? '').replace(/^Bearer /, '');
+    const expected = Buffer.from(secret ?? '');
+    const received = Buffer.from(provided);
+    if (!secret || expected.length !== received.length || !timingSafeEqual(expected, received)) {
+      res.status(401).json({ error: { code: 'unauthorized' } });
+      return;
+    }
+    if (accountDeletionConfig.mode !== 'scheduled' || !deps.accountDeletionStore) {
+      res.status(503).json({ error: { code: 'account_deletion_unconfigured' } });
+      return;
+    }
+    try {
+      res.json({ purged: await deps.accountDeletionStore.purgeDue() });
+    } catch {
+      res.status(500).json({ error: { code: 'account_deletion_failed' } });
+    }
   });
 
   app.use('/proxy', async (req: Request, res: Response, next: NextFunction) => {
@@ -194,6 +221,46 @@ export function createServer(deps: ServerDependencies) {
       res.json({ connected: false });
     } catch (error) {
       res.status(500).json({ error: { code: toGoogleSheetsErrorCode(error, 'google_revoke_failed') } });
+    }
+  });
+
+  // Account deletion status for the signed-in user; the mode tells the app what to offer.
+  app.get('/proxy/account/deletion', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    if (!accountDeletionConfig.mode || !deps.accountDeletionStore) {
+      res.json({ graceDays: accountDeletionConfig.graceDays, mode: null, scheduled: null });
+      return;
+    }
+    try {
+      const scheduled = accountDeletionConfig.mode === 'scheduled' ? await deps.accountDeletionStore.getScheduled(userId) : null;
+      res.json({ graceDays: accountDeletionConfig.graceDays, mode: accountDeletionConfig.mode, scheduled });
+    } catch {
+      res.status(500).json({ error: { code: 'account_deletion_failed' } });
+    }
+  });
+
+  app.post('/proxy/account/deletion', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    try {
+      res.json(await requestAccountDeletion(accountDeletionConfig, deps.accountDeletionStore, userId, req.body));
+    } catch (error) {
+      const code = error instanceof Error ? error.message : 'account_deletion_failed';
+      const status = code === 'account_deletion_unconfigured' ? 503 : code === 'account_deletion_unconfirmed' ? 400 : 500;
+      res.status(status).json({ error: { code: status === 500 ? 'account_deletion_failed' : code } });
+    }
+  });
+
+  app.delete('/proxy/account/deletion', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    if (accountDeletionConfig.mode !== 'scheduled' || !deps.accountDeletionStore) {
+      res.status(409).json({ error: { code: 'account_deletion_not_scheduled' } });
+      return;
+    }
+    try {
+      await deps.accountDeletionStore.cancelScheduled(userId);
+      res.json({ scheduled: null });
+    } catch {
+      res.status(500).json({ error: { code: 'account_deletion_failed' } });
     }
   });
 

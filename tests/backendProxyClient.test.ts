@@ -190,3 +190,25 @@ describe('getQuota', () => {
     }
   });
 });
+
+describe('account deletion client', () => {
+  it('reads status, requests deletion with the explicit confirmation, and cancels', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ graceDays: 30, mode: 'scheduled', scheduled: null }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ purgeAfter: '2026-11-10T00:00:00.000Z', status: 'scheduled' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ scheduled: null }), { status: 200 }));
+    const { cancelAccountDeletion, getAccountDeletionStatus, requestAccountDeletion } = await import('../data/backendProxyClient');
+
+    await expect(getAccountDeletionStatus()).resolves.toMatchObject({ mode: 'scheduled' });
+    await expect(requestAccountDeletion()).resolves.toMatchObject({ status: 'scheduled' });
+    await expect(cancelAccountDeletion()).resolves.toEqual({ scheduled: null });
+
+    const calls = fetchSpy.mock.calls.map(([url, init]) => [url, init?.method, init?.body ? JSON.parse(String(init.body)) : undefined]);
+    expect(calls).toEqual([
+      ['https://api.example/backend-proxy/proxy/account/deletion', 'GET', undefined],
+      ['https://api.example/backend-proxy/proxy/account/deletion', 'POST', { confirm: 'DELETE' }],
+      ['https://api.example/backend-proxy/proxy/account/deletion', 'DELETE', undefined],
+    ]);
+  });
+});

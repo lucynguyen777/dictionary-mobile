@@ -14,12 +14,12 @@ import { loadCurrentAuthSession, subscribeToAuthSessionChanges, syncAuthAutoRefr
 import { type AuthSessionSnapshot } from '@/data/authSession';
 import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
-import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
-import { OfflinePackInstallState, clearOfflinePackInstallState, getDefaultOfflinePackInstallState, loadOfflinePackInstallState } from '@/data/offlineDictionaryPackStore';
+import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
+import { OfflinePackInstallState, getDefaultOfflinePackInstallState, loadOfflinePackInstallState } from '@/data/offlineDictionaryPackStore';
 import { offlineDictionaryPacks, type OfflineDictionaryPack } from '@/data/offlineDictionaryPacks';
 import { refreshOfflinePacks } from '@/data/offlinePackCatalog';
 import { UserProfile, clearUserProfile, getDefaultProfile, loadUserProfile, saveUserProfile } from '@/data/profileStore';
-import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
+import { ReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 import { useToken } from '@/hooks/use-token';
 
 import { SidebarActionRow, SidebarSection, sidebarNavItems, type SidebarSectionKey } from '@/components/profile/SettingsDrawerParts';
@@ -31,6 +31,8 @@ import ProfileFields from '@/components/profile/ProfileFields';
 import PrivacySettings from '@/components/profile/PrivacySettings';
 import { DataStat, ProfileMetric } from '@/components/profile/Metrics';
 import { styles } from '@/components/profile/styles';
+import { clearAllLocalData } from '@/data/clearLocalData';
+import DeleteAccountForm from '@/components/profile/DeleteAccountForm';
 
 
 const legalLinks = [
@@ -118,6 +120,7 @@ export default function ProfileScreen() {
     setAuthSession,
   });
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [offlinePacks, setOfflinePacks] = useState<OfflineDictionaryPack[]>(offlineDictionaryPacks);
 
@@ -212,10 +215,7 @@ export default function ProfileScreen() {
           text: 'Xóa tất cả',
           style: 'destructive',
           onPress: async () => {
-            await clearLibraryState();
-            await clearUserProfile();
-            await clearReaderState();
-            await clearOfflinePackInstallState();
+            await clearAllLocalData();
             setLibraryState(getDefaultLibraryState());
             setOfflinePackInstallState(getDefaultOfflinePackInstallState());
             setProfile(getDefaultProfile());
@@ -369,6 +369,28 @@ export default function ProfileScreen() {
         <Pressable accessibilityLabel="Đóng" onPress={() => setChangePasswordOpen(false)} style={styles.authModalBackdrop}>
           <Pressable onPress={(event) => event.stopPropagation()} style={[styles.authModalCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
             <ChangePasswordForm onDone={() => setChangePasswordOpen(false)} />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal animationType="fade" onRequestClose={() => setDeleteAccountOpen(false)} transparent visible={deleteAccountOpen}>
+        <Pressable accessibilityLabel="Đóng" onPress={() => setDeleteAccountOpen(false)} style={styles.authModalBackdrop}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={[styles.authModalCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
+            <DeleteAccountForm
+              onDone={({ localDataErased, signedOut }) => {
+                setDeleteAccountOpen(false);
+                if (localDataErased) {
+                  setLibraryState(getDefaultLibraryState());
+                  setOfflinePackInstallState(getDefaultOfflinePackInstallState());
+                  setProfile(getDefaultProfile());
+                  setReaderState(getDefaultReaderState());
+                }
+                if (signedOut) {
+                  handleRefreshAuthSession();
+                  Alert.alert('Đã xóa tài khoản', localDataErased ? 'Tài khoản cloud và dữ liệu trên thiết bị đã được xóa.' : 'Tài khoản cloud đã được xóa. Dữ liệu trên thiết bị vẫn được giữ.');
+                }
+              }}
+            />
           </Pressable>
         </Pressable>
       </Modal>
@@ -543,7 +565,6 @@ export default function ProfileScreen() {
               {sidebarSection === 'account' ? (
               <SidebarSection title="Bảo mật & dữ liệu">
                 <SidebarActionRow
-                  badge="Phiên bản sau"
                   icon="key-outline"
                   label="Thay đổi mật khẩu"
                   onPress={() => {
@@ -559,6 +580,19 @@ export default function ProfileScreen() {
                   icon="trash-outline"
                   label="Xóa hồ sơ local"
                   onPress={handleDeleteLocalProfile}
+                />
+                <SidebarActionRow
+                  badge={authSession.status === 'authenticated' ? 'Cloud' : undefined}
+                  destructive
+                  icon="person-remove-outline"
+                  label="Xóa tài khoản cloud"
+                  onPress={() => {
+                    if (authSession.status === 'authenticated') {
+                      setDeleteAccountOpen(true);
+                      return;
+                    }
+                    Alert.alert('Cần đăng nhập', 'Đăng nhập tài khoản cloud cần xóa. Dữ liệu chỉ có trên thiết bị có thể xóa trong Riêng tư & dữ liệu.');
+                  }}
                 />
               </SidebarSection>
               ) : null}

@@ -3,7 +3,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, Platform, StyleSheet, Text, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import 'react-native-reanimated';
 
@@ -14,10 +14,14 @@ import { addSpecializedGlossaryListener } from '@/data/specializedGlossaryStore'
 import { startSyncLifecycle } from '@/data/supabaseSyncLifecycle';
 import PdfTextExtractorHost from '@/components/reader/PdfTextExtractorHost';
 import { installGlobalErrorHandlers } from '@/data/errorReporting';
+import { installWebAlert } from '@/data/webAlert';
 import { NATIVE_PDF_IMPORT_ENABLED } from '@/constants/featureFlags';
 import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToken } from '@/hooks/use-token';
+
+// React Native Web's Alert.alert does nothing; route it to the browser's dialogs.
+if (Platform.OS === 'web' && typeof window !== 'undefined') installWebAlert(Alert, window);
 
 installDevelopmentWarningFilter();
 

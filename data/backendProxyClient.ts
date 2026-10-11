@@ -307,3 +307,26 @@ export async function translateSpecialized(req: SpecializedTranslateRequest): Pr
     method: 'POST',
   });
 }
+
+// --- Account deletion (plan 2.6; mode chosen by owner decision D3 on the server) ---
+
+export type AccountDeletionStatus = {
+  graceDays: number;
+  mode: 'immediate' | 'scheduled' | null;
+  scheduled: { purgeAfter: string } | null;
+};
+
+export function getAccountDeletionStatus() {
+  return proxyFetch<AccountDeletionStatus>('/proxy/account/deletion', { method: 'GET' });
+}
+
+export function requestAccountDeletion() {
+  return proxyFetch<{ status: 'deleted' } | { purgeAfter: string; status: 'scheduled' }>('/proxy/account/deletion', {
+    body: JSON.stringify({ confirm: 'DELETE' }),
+    method: 'POST',
+  });
+}
+
+export function cancelAccountDeletion() {
+  return proxyFetch<{ scheduled: null }>('/proxy/account/deletion', { method: 'DELETE' });
+}

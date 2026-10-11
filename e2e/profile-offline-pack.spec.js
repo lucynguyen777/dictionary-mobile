@@ -47,3 +47,17 @@ test('Profile notification preferences are stored on the device', async ({ page 
   await page.getByLabel('Mở Riêng tư').click();
   await expect(page.getByPlaceholder('20:00')).toHaveValue('07:30');
 });
+
+test('Deleting the cloud account asks for sign-in first', async ({ page }) => {
+  await page.goto('/profile');
+  await page.getByLabel('Mở cài đặt').click();
+  await page.getByLabel('Mở Tài khoản').click();
+  // A dialog opened by a click blocks that click until it is handled, so handle it first.
+  let message = '';
+  page.once('dialog', async (dialog) => {
+    message = dialog.message();
+    await dialog.accept();
+  });
+  await page.getByText('Xóa tài khoản cloud', { exact: true }).click();
+  await expect.poll(() => message).toContain('Đăng nhập tài khoản cloud cần xóa');
+});
