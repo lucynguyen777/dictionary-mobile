@@ -240,6 +240,8 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [MEDIUM]: Change password from Profile (account section) and after a recovery link (`auth/callback?flow=recovery` shows the new-password form); validation 8-72 chars with confirmation and Vietnamese error mapping in `data/authController.ts` (`tests/authPasswordUpdate.test.ts`).
 - [x] DONE [MEDIUM]: Feedback form in Profile → Hỗ trợ (`components/profile/FeedbackForm.tsx`) posting to `/proxy/feedback` with category, message and app version/platform context only; 503/429/401 mapped to clear messages (`data/feedback.ts`, `tests/feedbackClient.test.ts`); row requires sign-in and is disabled when auth is unconfigured.
 - [x] DONE [EASY]: Profile modals use theme surface tokens so dark mode is readable; release summary reads "Auto cloud sync (beta)".
+- [x] DONE [HARD]: AI Tutor streaming: `/proxy/ai/chat` with `stream: true` relays OpenAI deltas as SSE (JSON 502 before the first byte, error event after; upstream aborted when the client leaves); the app reads it with `expo/fetch` (`aiChatStream`), shows text as it arrives, can stop a reply, and still accepts a JSON reply. Shared parser `data/sseParser.ts`; tests in `tests/sseParser.test.ts`, `tests/backendServer.test.ts`, `tests/backendProxyClient.test.ts`, `e2e/ai-tutor-stream.spec.js`.
+- [x] DONE [EASY]: AI Tutor quota header reads the shape the proxy returns (`daily/dailyLimit`, previously showed "undefined/undefined"); long bubbles wrap; 40px targets and theme tokens.
 - [!] BLOCKED [MEDIUM]: Privacy Policy, Terms, help-center content and Resend feedback notification wait on owner decision D5.
 - [!] BLOCKED [HARD]: Account deletion waits on owner decision D3.
 
@@ -1018,7 +1020,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [ ] TODO [HARD]: Production etymology/conjugation expansion can continue only with source metadata and real Wiktionary/UniMorph-backed rows; offline/bulk packaging remains blocked by attribution and ShareAlike pack review.
 
 ### AI
-- [~] IN PROGRESS [HARD]: Text AI Tutor is implemented through the backend proxy when Supabase auth and OpenAI env vars are configured; realtime voice feedback/streaming remains staged behind quota, privacy, and provider smoke.
+- [~] IN PROGRESS [HARD]: Text AI Tutor streams replies (SSE through the backend proxy, stop button, daily quota display) when Supabase auth and OpenAI env vars are configured; production provider smoke, durable cross-instance quota, and realtime voice feedback remain.
 - [ ] TODO [HARD]: Specialized document translation with imported glossary is accepted/staged after DeepL/OpenAI proxy boundaries, dataset persistence, parser validation, no-key-leak tests, and max-3-agent enforcement.
 
 ## Completed Work Modules

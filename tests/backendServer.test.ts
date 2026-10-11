@@ -405,3 +405,100 @@ describe('backend server', () => {
     });
   });
 });
+async function fetchRaw(urlStr: string, options: RequestInit = {}) {
+  const http = await import('http');
+  return new Promise<{ contentType: string; status: number; text: string }>((resolve, reject) => {
+    const req = http.request(urlStr, { headers: options.headers as any, method: options.method || 'GET' }, (res) => {
+      let text = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+        text += chunk;
+      });
+      res.on('end', () => resolve({ contentType: String(res.headers['content-type'] ?? ''), status: res.statusCode || 200, text }));
+    });
+    req.on('error', reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+}
+
+function openAiStreamResponse(chunks: string[]) {
+  const encoder = new TextEncoder();
+  return new Response(new ReadableStream<Uint8Array>({
+    start(controller) {
+      chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)));
+      controller.close();
+    },
+  }), { headers: { 'content-type': 'text/event-stream' }, status: 200 });
+}
+
+function parseProxyEvents(text: string) {
+  return text.split('\n\n').filter(Boolean).map((block) => JSON.parse(block.replace(/^data: /, '')));
+}
+
+const streamRequest = {
+  body: JSON.stringify({ goal: 'conversation', learningLanguage: 'ES', messages: [{ content: 'Hola', role: 'user' }], stream: true }),
+  headers: { Authorization: 'Bearer valid-token', 'Content-Type': 'application/json' },
+  method: 'POST',
+};
+
+describe('POST /proxy/ai/chat with stream: true', () => {
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await stopServer();
+  });
+
+  it('relays OpenAI deltas as SSE and finishes with token usage', async () => {
+    let upstreamBody: any = null;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init) => {
+      upstreamBody = JSON.parse(String(init?.body));
+      return openAiStreamResponse([
+        'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"¡Ho"}}]}\n\ndata: {"choi',
+        'ces":[{"delta":{"content":"la!"}}]}\n\n',
+        'data: {"choices":[],"usage":{"total_tokens":31}}\n\n',
+        'data: [DONE]\n\n',
+      ]);
+    });
+
+    baseUrl = await startTestServer(buildEnv());
+    const { contentType, status, text } = await fetchRaw(`${baseUrl}/proxy/ai/chat`, streamRequest);
+
+    expect(status).toBe(200);
+    expect(contentType).toContain('text/event-stream');
+    expect(upstreamBody).toMatchObject({ stream: true, stream_options: { include_usage: true } });
+    expect(upstreamBody.messages[0].role).toBe('system');
+    expect(parseProxyEvents(text)).toEqual([
+      { delta: '¡Ho' },
+      { delta: 'la!' },
+      { done: true, provider: 'openai', totalTokens: 31 },
+    ]);
+  });
+
+  it('returns a JSON 502 without leaking upstream text when OpenAI rejects the request', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('invalid key sk-leaked', { status: 401 }));
+
+    baseUrl = await startTestServer(buildEnv());
+    const { contentType, status, text } = await fetchRaw(`${baseUrl}/proxy/ai/chat`, streamRequest);
+
+    expect(status).toBe(502);
+    expect(contentType).toContain('application/json');
+    expect(JSON.parse(text).error.code).toBe('provider_error');
+    expect(text).not.toContain('sk-leaked');
+  });
+
+  it('ends with an error event when the upstream stream breaks off', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      openAiStreamResponse(['data: {"choices":[{"delta":{"content":"Partial"}}]}\n\n'])
+    );
+
+    baseUrl = await startTestServer(buildEnv());
+    const { status, text } = await fetchRaw(`${baseUrl}/proxy/ai/chat`, streamRequest);
+
+    expect(status).toBe(200);
+    expect(parseProxyEvents(text)).toEqual([
+      { delta: 'Partial' },
+      { error: { code: 'provider_error', message: 'AI provider is unavailable. Try again later.' } },
+    ]);
+  });
+});

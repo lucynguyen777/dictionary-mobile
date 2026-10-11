@@ -6,7 +6,10 @@
  */
 
 import { Platform } from 'react-native';
+import { fetch as streamingFetch } from 'expo/fetch';
+
 import type { FeedbackCategory } from './feedback';
+import { readSseStream } from './sseParser';
 import { getSharedSupabaseAuthClient } from './supabaseAuthClient';
 
 export type AiChatGoal = 'conversation' | 'correction' | 'explanation' | 'roleplay';
@@ -48,9 +51,17 @@ export interface TranslateTextResponse {
   warnings: string[];
 }
 
+// Mirrors `QuotaTracker.getState` in backend/quotaTracker.ts (UTC day and month windows).
+export interface QuotaUsage {
+  daily: number;
+  dailyLimit: number;
+  monthly: number;
+  monthlyLimit: number;
+}
+
 export interface QuotaState {
-  translation: { used: number; limit: number } | null;
-  aiChat: { used: number; limit: number } | null;
+  translation: QuotaUsage | null;
+  aiChat: QuotaUsage | null;
 }
 
 export interface GoogleSheetsStatus {
@@ -77,10 +88,7 @@ const PROXY_PREFIX = '/backend-proxy';
 
 // --- Helpers ---
 
-async function proxyFetch<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function buildProxyRequest(path: string, options: RequestInit) {
   if (BASE === null) {
     throw new BackendProxyError(
       503,
@@ -106,24 +114,34 @@ async function proxyFetch<T>(
     // Signed-out requests still go out; the proxy answers 401 for routes that need a session.
   }
 
+  return { headers, url };
+}
+
+async function toBackendProxyError(res: { json: () => Promise<unknown>; status: number; text: () => Promise<string> }) {
+  let errorBody: unknown;
+  try {
+    errorBody = await res.json();
+  } catch {
+    errorBody = await res.text().catch(() => 'Unknown error');
+  }
+  return new BackendProxyError(
+    res.status,
+    (errorBody as { error?: { code?: string; message?: string } })?.error?.message ?? String(errorBody),
+    (errorBody as { error?: { code?: string } })?.error?.code,
+  );
+}
+
+async function proxyFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const { headers, url } = await buildProxyRequest(path, options);
   const res = await fetch(url, {
     ...options,
     headers,
   });
 
-  if (!res.ok) {
-    let errorBody: unknown;
-    try {
-      errorBody = await res.json();
-    } catch {
-      errorBody = await res.text().catch(() => 'Unknown error');
-    }
-    throw new BackendProxyError(
-      res.status,
-      (errorBody as { error?: { code?: string; message?: string } })?.error?.message ?? String(errorBody),
-      (errorBody as { error?: { code?: string } })?.error?.code,
-    );
-  }
+  if (!res.ok) throw await toBackendProxyError(res);
 
   return res.json() as Promise<T>;
 }
@@ -161,6 +179,58 @@ export async function aiChat(req: AiChatRequest): Promise<AiChatResponse> {
     }),
     method: 'POST',
   });
+}
+
+export type AiChatStreamHandlers = {
+  onDelta: (text: string) => void;
+  signal?: AbortSignal;
+};
+
+// Streams an AI Tutor reply: `onDelta` receives text as it arrives and the promise resolves with the
+// full reply. Uses expo/fetch because React Native's built-in fetch cannot read response bodies
+// incrementally; on web it is the browser fetch. A proxy that answers with plain JSON still works.
+export async function aiChatStream(req: AiChatRequest, { onDelta, signal }: AiChatStreamHandlers): Promise<AiChatResponse> {
+  const { headers, url } = await buildProxyRequest('/proxy/ai/chat', {});
+  const res = await streamingFetch(url, {
+    body: JSON.stringify({ ...req, stream: true }),
+    headers: { ...headers, Accept: 'text/event-stream' },
+    method: 'POST',
+    signal,
+  });
+
+  if (!res.ok) throw await toBackendProxyError(res);
+
+  if (!res.headers.get('content-type')?.includes('text/event-stream') || !res.body) {
+    const reply = await res.json() as AiChatResponse;
+    if (reply.content) onDelta(reply.content);
+    return reply;
+  }
+
+  let content = '';
+  let finished: AiChatResponse | null = null;
+  let streamError: BackendProxyError | null = null;
+  await readSseStream(res.body, (data) => {
+    if (finished || streamError) return;
+    const event = JSON.parse(data) as {
+      delta?: string;
+      done?: boolean;
+      error?: { code?: string; message?: string };
+      provider?: 'openai';
+      totalTokens?: number;
+    };
+    if (event.error) {
+      streamError = new BackendProxyError(502, event.error.message ?? 'AI provider is unavailable.', event.error.code);
+    } else if (event.done) {
+      finished = { content, provider: event.provider ?? 'openai', totalTokens: event.totalTokens ?? 0 };
+    } else if (event.delta) {
+      content += event.delta;
+      onDelta(event.delta);
+    }
+  });
+
+  if (streamError) throw streamError;
+  if (!finished) throw new BackendProxyError(502, 'Kết nối AI bị ngắt giữa chừng.', 'ai_stream_interrupted');
+  return finished;
 }
 
 // --- Quota API ---

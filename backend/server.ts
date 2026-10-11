@@ -20,6 +20,7 @@ import {
   verifyGoogleOAuthState,
 } from './googleSheetsOAuth';
 import type { GoogleSheetsStore } from './googleSheetsStore';
+import { readSseStream } from '../data/sseParser';
 import { submitFeedback, type FeedbackStore } from './feedback';
 
 const DEFAULT_PORT = 3001;
@@ -260,7 +261,7 @@ export function createServer(deps: ServerDependencies) {
     }
   });
 
-  // POST /proxy/ai/chat - OpenAI AI chat (non-streaming MVP, streaming TBD)
+  // POST /proxy/ai/chat - OpenAI AI chat; `stream: true` answers with Server-Sent Events
   app.post('/proxy/ai/chat', async (req: Request, res: Response) => {
     const userId = (req as Request & { userId: string }).userId;
     if (config.status !== 'configured') {
@@ -284,11 +285,16 @@ export function createServer(deps: ServerDependencies) {
       }
     }
 
+    if (validation.data.stream) {
+      await streamOpenAIChat(res, config.openaiApiKey, config.openaiTextModel, validation.data);
+      return;
+    }
+
     try {
       const aiResponse = await callOpenAIChat(config.openaiApiKey, config.openaiTextModel, validation.data);
       res.json(aiResponse);
     } catch {
-      res.status(502).json({ error: { code: 'provider_error', message: 'AI provider is unavailable. Try again later.' } });
+      res.status(502).json({ error: AI_PROVIDER_ERROR });
     }
   });
 
@@ -451,6 +457,84 @@ async function callOpenAIChat(
     provider: 'openai' as const,
     totalTokens: data.usage?.total_tokens ?? 0,
   };
+}
+
+const AI_PROVIDER_ERROR = { code: 'provider_error', message: 'AI provider is unavailable. Try again later.' };
+
+type AiChatParams = Parameters<typeof callOpenAIChat>[2];
+
+// Streams OpenAI deltas to the client as SSE events:
+//   data: {"delta":"..."}  ...  data: {"done":true,"provider":"openai","totalTokens":N}
+// Failures before the first byte are plain JSON errors; later ones end the stream with data: {"error":{...}}.
+async function streamOpenAIChat(res: Response, apiKey: string, model: string, params: AiChatParams) {
+  const upstreamAbort = new AbortController();
+  const onClientGone = () => upstreamAbort.abort();
+  res.on('close', onClientGone);
+
+  try {
+    const systemMessage = buildAiSystemMessage(params.goal, params.learningLanguage, params.nativeLanguage);
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      body: JSON.stringify({
+        messages: systemMessage ? [{ content: systemMessage, role: 'system' }, ...params.messages] : params.messages,
+        model,
+        stream: true,
+        stream_options: { include_usage: true },
+      }),
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      signal: upstreamAbort.signal,
+    });
+
+    if (!response.ok || !response.body) {
+      await response.body?.cancel().catch(() => undefined);
+      res.status(502).json({ error: AI_PROVIDER_ERROR });
+      return;
+    }
+
+    res.status(200);
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    const send = (payload: unknown) => res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    let totalTokens = 0;
+    let finished = false;
+
+    try {
+      await readSseStream(response.body, (data) => {
+        if (finished) return;
+        if (data === '[DONE]') {
+          finished = true;
+          return;
+        }
+        const chunk = JSON.parse(data) as {
+          choices?: Array<{ delta?: { content?: string } }>;
+          usage?: { total_tokens?: number } | null;
+        };
+        const delta = chunk.choices?.[0]?.delta?.content;
+        if (delta) send({ delta });
+        if (chunk.usage?.total_tokens) totalTokens = chunk.usage.total_tokens;
+      });
+      if (!finished) throw new Error('openai_stream_incomplete');
+      send({ done: true, provider: 'openai', totalTokens });
+    } catch {
+      if (!upstreamAbort.signal.aborted) send({ error: AI_PROVIDER_ERROR });
+    }
+    res.end();
+  } catch {
+    if (upstreamAbort.signal.aborted) return;
+    if (res.headersSent) {
+      res.end();
+    } else {
+      res.status(502).json({ error: AI_PROVIDER_ERROR });
+    }
+  } finally {
+    res.off('close', onClientGone);
+  }
 }
 
 function buildAiSystemMessage(goal: string, learningLanguage: string, nativeLanguage?: string): string {
