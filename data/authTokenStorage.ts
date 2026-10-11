@@ -1,5 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
+import { createChunkedSecureStorage } from './chunkedSecureStorage';
+
 export const AUTH_TOKEN_STORAGE_KIND = 'secure-store-native';
 
 export type AuthTokenStorage = {
@@ -8,15 +10,5 @@ export type AuthTokenStorage = {
   removeItem: (key: string) => Promise<void>;
 };
 
-export const authTokenStorage: AuthTokenStorage = {
-  getItem(key) {
-    return SecureStore.getItemAsync(key);
-  },
-  async setItem(key, value) {
-    await SecureStore.setItemAsync(key, value);
-  },
-  async removeItem(key) {
-    await SecureStore.deleteItemAsync(key);
-  },
-};
-
+// Sessions are larger than one SecureStore entry allows, so they are stored in chunks (plan 0.8).
+export const authTokenStorage: AuthTokenStorage = createChunkedSecureStorage(SecureStore);

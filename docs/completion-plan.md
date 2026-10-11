@@ -205,7 +205,7 @@ Branches stack in order: `claude/v1.4.1-product-truth` → `claude/v1.5.0-cloud-
 
 | Phase | Done | Open (and why) |
 | --- | --- | --- |
-| 0 Stability/security | 0.1, 0.2, 0.3, 0.4 durable quota (migration 011), 0.5 Chandra hardening, 0.6, 0.7 fetch timeouts (`data/http.ts`) | Migrations 009–011 not applied (D2) |
+| 0 Stability/security | 0.1, 0.2, 0.3, 0.4 durable quota (migration 011), 0.5 Chandra hardening, 0.6, 0.7 fetch timeouts (`data/http.ts`), 0.8 session in chunked SecureStore entries (`data/chunkedSecureStorage.ts`) | Migrations 009–011 not applied (D2) |
 | 1 Product truth | 1.1–1.6 | — |
 | 2 Cloud Sync | 2.0–2.5 (two-device test on Postgres + RLS) | 2.6 account deletion (D3); production smoke (D2) |
 | 3 Design system/UI | 3.1–3.9 (3.5 shared Touchable primitive + lint guard) | Library/Training/Profile stylesheet palette → tokens (D7) |
