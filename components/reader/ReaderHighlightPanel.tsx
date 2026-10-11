@@ -8,6 +8,7 @@ import { getLanguageByCode, languageOptions, type LanguageCode } from '@/data/la
 
 import { type ReaderThemeColors } from '@/components/reader/readerOptions';
 import { styles } from '@/components/reader/styles';
+import { READER_FIXED_COLORS } from '@/constants/readerThemes';
 
 export function ReaderHighlightPanel({
   activeTheme,
@@ -104,11 +105,11 @@ export function ReaderHighlightPanel({
           <Text style={[styles.lookupActionText, { color: activeTheme.accent }]}>Tra nghĩa</Text>
         </Touchable>
         <Touchable activeOpacity={0.82} onPress={onSave} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
-          <Ionicons name="bookmark-outline" size={17} color="#FFFFFF" />
+          <Ionicons name="bookmark-outline" size={17} color={READER_FIXED_COLORS.onAccent} />
           <Text style={styles.saveActionText}>Lưu</Text>
         </Touchable>
         <Touchable activeOpacity={0.82} onPress={onCreateFlashcard} style={[styles.saveActionButton, { backgroundColor: activeTheme.accent }]}>
-          <Ionicons name="albums-outline" size={17} color="#FFFFFF" />
+          <Ionicons name="albums-outline" size={17} color={READER_FIXED_COLORS.onAccent} />
           <Text style={styles.saveActionText}>Tạo thẻ</Text>
         </Touchable>
       </View>

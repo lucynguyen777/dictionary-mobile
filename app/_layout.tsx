@@ -152,7 +152,7 @@ function AppLockScreen({
           onPress={isUnsupported ? onContinue : onRetry}
           style={[styles.lockButton, { backgroundColor: colors.accentPrimary }, isChecking && styles.lockButtonDisabled]}
         >
-          <Text style={styles.lockButtonText}>{isUnsupported ? 'Tiếp tục' : 'Mở khóa'}</Text>
+          <Text style={[styles.lockButtonText, { color: colors.textOnAccent }]}>{isUnsupported ? 'Tiếp tục' : 'Mở khóa'}</Text>
         </Touchable>
       </View>
     </View>
@@ -204,7 +204,6 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   lockButtonText: {
-    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
   },

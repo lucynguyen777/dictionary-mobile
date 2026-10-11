@@ -141,7 +141,7 @@ export default function TabPager({
       activeOpacity={0.84}
       onPress={handleScrollActivePageToTop}
       style={styles.scrollTopButton}>
-      <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
+      <Ionicons name="arrow-up" size={20} color={token.colors.textOnAccent} />
     </Touchable>
     </View>
     </TabPagerTokenContext.Provider>

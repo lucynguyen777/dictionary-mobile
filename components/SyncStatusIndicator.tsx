@@ -29,14 +29,14 @@ export function SyncStatusIndicator() {
         return {
           icon: 'cloud-done-outline' as const,
           text: 'Đã đồng bộ',
-          color: '#16A34A', // green
+          color: colors.accentSuccess,
           spinner: false,
         };
       case 'offline':
         return {
           icon: 'cloud-offline-outline' as const,
           text: 'Ngoại tuyến',
-          color: '#D97706', // amber
+          color: colors.accentWarning,
           spinner: false,
         };
       case 'signed-out':
@@ -57,7 +57,7 @@ export function SyncStatusIndicator() {
         return {
           icon: 'alert-circle-outline' as const,
           text: 'Lỗi đồng bộ',
-          color: '#DC2626', // red
+          color: colors.accentError,
           spinner: false,
         };
       default:

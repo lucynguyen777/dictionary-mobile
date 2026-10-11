@@ -7,6 +7,7 @@ import { readerBackgroundPresets, type ReaderBackgroundPresetId, type ReaderThem
 
 import { type ReaderPreferences, type ReaderThemeColors, type ReaderTocItem, type VoiceProfile } from '@/components/reader/readerOptions';
 import { styles } from '@/components/reader/styles';
+import { READER_FIXED_COLORS } from '@/constants/readerThemes';
 
 export function ReaderSettingsSheet({
   activeTheme,
@@ -139,10 +140,10 @@ export function ReaderSettingsSheet({
           <Ionicons name="play-skip-back" size={20} color={activeTheme.accent} />
         </Touchable>
         <Touchable activeOpacity={0.8} onPress={handlePlayPause} style={[styles.ttsPlayButton, { backgroundColor: activeTheme.accent }]}>
-          <Ionicons name={isSpeaking ? 'pause' : 'play'} size={24} color="#FFFFFF" />
+          <Ionicons name={isSpeaking ? 'pause' : 'play'} size={24} color={READER_FIXED_COLORS.onAccent} />
         </Touchable>
         <Touchable activeOpacity={0.8} onPress={handleStop} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
-          <Ionicons name="stop" size={20} color="#DC2626" />
+          <Ionicons name="stop" size={20} color={READER_FIXED_COLORS.danger} />
         </Touchable>
         <Touchable activeOpacity={0.8} onPress={handleNextSentence} style={[styles.ttsIconButton, { backgroundColor: activeTheme.bg }]}>
           <Ionicons name="play-skip-forward" size={20} color={activeTheme.accent} />
@@ -184,7 +185,7 @@ export function ReaderSettingsSheet({
                 { backgroundColor: activeTheme.bg, borderColor: activeTheme.border },
                 isSelected && { backgroundColor: activeTheme.accent, borderColor: activeTheme.accent },
               ]}>
-              <Text style={[styles.speedButtonText, { color: activeTheme.text }, isSelected && { color: '#FFFFFF' }]}>
+              <Text style={[styles.speedButtonText, { color: activeTheme.text }, isSelected && { color: READER_FIXED_COLORS.onAccent }]}>
                 {speed}x
               </Text>
             </Touchable>

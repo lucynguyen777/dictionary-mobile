@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native';
 
+import { READER_FIXED_COLORS } from '@/constants/readerThemes';
+
 export const styles = StyleSheet.create({
   content: {
     paddingBottom: 190,
@@ -44,7 +46,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   activeDocumentChipText: {
-    color: '#FFFFFF',
+    color: READER_FIXED_COLORS.onAccent,
   },
   documentChipText: {
     fontSize: 13,
@@ -55,7 +57,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
   },
   activeDocumentFormatText: {
-    color: '#E2E8F0',
+    color: READER_FIXED_COLORS.onAccentMuted,
   },
   settingsPanel: {
     borderRadius: 12,
@@ -165,8 +167,8 @@ export const styles = StyleSheet.create({
     gap: 0,
   },
   selectedRangeWord: {
-    backgroundColor: '#FEF3C7',
-    color: '#1F2937',
+    backgroundColor: READER_FIXED_COLORS.selectionBg,
+    color: READER_FIXED_COLORS.selectionText,
   },
   readerActionPanel: {
     borderRadius: 12,
@@ -261,7 +263,7 @@ export const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   readerSaveMessage: {
-    color: '#166534',
+    color: READER_FIXED_COLORS.savedText,
     fontSize: 12,
     fontWeight: '800',
     marginTop: 9,
@@ -294,7 +296,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   saveActionText: {
-    color: '#FFFFFF',
+    color: READER_FIXED_COLORS.onAccent,
     fontSize: 13,
     fontWeight: '700',
   },
