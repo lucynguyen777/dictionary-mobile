@@ -169,3 +169,46 @@ def test_cors_only_allows_app_origins(monkeypatch, origin, allowed):
     )
 
     assert (response.headers.get("access-control-allow-origin") == origin) is allowed
+
+
+def test_ready_requires_auth_config_and_model_server(monkeypatch):
+    main = load_service(monkeypatch, CHANDRA_SUPABASE_URL=None)
+    assert TestClient(main.app).get("/ready").status_code == 503
+
+    main = load_service(monkeypatch)
+    monkeypatch.setattr(main, "model_server_ready", lambda: False)
+    assert TestClient(main.app).get("/ready").status_code == 503
+
+    monkeypatch.setattr(main, "model_server_ready", lambda: True)
+    response = TestClient(main.app).get("/ready")
+    assert response.status_code == 200
+    assert TestClient(main.app).get("/health").json() == {"status": "ok"}
+
+
+def test_model_server_check_targets_vllm_models_endpoint(monkeypatch):
+    main = load_service(monkeypatch)
+    monkeypatch.setattr(main, "VLLM_API_BASE", "http://vllm:8000/v1")
+    seen = []
+
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def fake_urlopen(url, timeout):
+        seen.append(url)
+        return Response()
+
+    monkeypatch.setattr(main.urllib.request, "urlopen", fake_urlopen)
+    assert main.model_server_ready() is True
+    assert seen == ["http://vllm:8000/v1/models"]
+
+    def failing(url, timeout):
+        raise OSError("connection refused")
+
+    monkeypatch.setattr(main.urllib.request, "urlopen", failing)
+    assert main.model_server_ready() is False

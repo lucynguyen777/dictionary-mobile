@@ -119,6 +119,31 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+VLLM_API_BASE = os.getenv("VLLM_API_BASE", "").strip().rstrip("/")
+
+
+def model_server_ready() -> bool:
+    """True when the vLLM server behind the Chandra CLI answers (or none is configured, e.g. method hf)."""
+    if CHANDRA_METHOD != "vllm":
+        return True
+    base = VLLM_API_BASE or "http://localhost:8000/v1"
+    try:
+        with urllib.request.urlopen(f"{base}/models", timeout=5) as response:
+            return 200 <= response.status < 300
+    except Exception:  # noqa: BLE001 - any failure means not ready
+        return False
+
+
+@app.get("/ready")
+def ready() -> dict[str, str]:
+    # Load balancers should route OCR traffic only once the model server is up and auth is configured.
+    if not ALLOW_UNAUTHENTICATED and (not SUPABASE_URL or not SUPABASE_PUBLISHABLE_KEY):
+        raise HTTPException(status_code=503, detail="OCR authentication is not configured.")
+    if not model_server_ready():
+        raise HTTPException(status_code=503, detail="OCR model server is not ready.")
+    return {"status": "ready"}
+
+
 @app.post("/ocr/image")
 def ocr_image(request: OcrRequest, _user_id: str = Depends(require_user)) -> dict[str, Any]:
     return run_chandra_request(request, default_suffix=".png")

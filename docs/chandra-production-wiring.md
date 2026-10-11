@@ -42,6 +42,18 @@ The backend service in `backend/chandra-service/` expects this JSON shape throug
 - Container runs as a non-root user.
 - Tests: `backend/chandra-service/tests/test_main.py` (pytest, run in CI without the OCR model).
 
+## Hosting (plan 5.5)
+
+`backend/chandra-service/deploy/docker-compose.gpu.yml` runs the whole OCR stack on any Docker host with one NVIDIA GPU (24 GB+ VRAM recommended for `datalab-to/chandra-ocr-2`): a pinned `vllm/vllm-openai:v0.17.0` model server and this service, which only talks to vLLM on the private network.
+
+1. On the GPU host: copy `deploy/chandra.env.example` to `deploy/chandra.env` and fill in the public Supabase URL and publishable key.
+2. `docker compose -f deploy/docker-compose.gpu.yml up -d`. The first start downloads the model (cached in a volume).
+3. Put HTTPS in front of port 8080 (host load balancer or reverse proxy). Use `GET /ready` as the health check: it returns 503 until vLLM answers and auth is configured; `GET /health` is liveness only.
+4. Set `EXPO_PUBLIC_CHANDRA_OCR_URL` to the HTTPS URL in the EAS build env.
+5. Review the model weights licence before commercial use.
+
+The host itself (which GPU provider) is part of owner decision D9; nothing in the stack is provider-specific.
+
 ## Size And Failure Behavior
 
 - Reader keeps the app-level 50MB import limit before OCR.
