@@ -25,11 +25,13 @@ import { useReaderScroll } from '@/components/reader/useReaderScroll';
 import { saveReaderSelection } from '@/data/readerSave';
 import { useReaderSpeech } from '@/components/reader/useReaderSpeech';
 import { ReaderAudioPanel } from '@/components/reader/ReaderAudioPanel';
+import SkeletonBlock from '@/components/app/SkeletonBlock';
 
 const PREFS_STORAGE_KEY = 'dictionary-mobile.reader-prefs.v1';
 
 export default function ReaderScreen() {
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
+  const [isLoaded, setIsLoaded] = useState(false);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [quickNote, setQuickNote] = useState('');
   const [readerSaveMessage, setReaderSaveMessage] = useState('');
@@ -107,6 +109,10 @@ export default function ReaderScreen() {
             theme: nextReaderState.settings.themeMode,
           });
         }
+        setIsLoaded(true);
+      }).catch(() => {
+        // Defaults keep the Reader usable; the empty-library copy still waits for an answer.
+        if (isMounted) setIsLoaded(true);
       });
 
       return () => {
@@ -404,6 +410,12 @@ export default function ReaderScreen() {
         ListFooterComponent={
           selectedDocument ? (
             <View style={[styles.readerPageBottom, { backgroundColor: readerPageBackground }]} />
+          ) : !isLoaded ? (
+            <View accessibilityLabel="Đang tải tài liệu" style={styles.readerPage}>
+              <SkeletonBlock height={18} width="60%" />
+              <SkeletonBlock height={14} style={{ marginTop: 12 }} />
+              <SkeletonBlock height={14} style={{ marginTop: 8 }} />
+            </View>
           ) : (
             <View style={[styles.emptyCard, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}>
               <Ionicons name="reader-outline" size={28} color={activeTheme.secondaryText} />

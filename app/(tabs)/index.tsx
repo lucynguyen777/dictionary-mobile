@@ -30,6 +30,7 @@ export default function HomeScreen() {
   const lookupInputRef = useRef<TextInput | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [isLoaded, setIsLoaded] = useState(false);
   const [activityState, setActivityState] = useState<ActivityState>(getDefaultActivityState());
   const [todayKey, setTodayKey] = useState(() => getLocalDateKey(new Date()));
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
@@ -52,8 +53,12 @@ export default function HomeScreen() {
           setLibraryState(state);
           setActivityState(activity);
           setThemePreference(preference);
+          setIsLoaded(true);
         })
-        .catch(() => undefined);
+        // Home still works with defaults; only the "no history yet" copy waits for an answer.
+        .catch(() => {
+          if (isMounted) setIsLoaded(true);
+        });
 
       return () => {
         isMounted = false;
@@ -335,7 +340,7 @@ export default function HomeScreen() {
             </Touchable>
           </Link>
         ))}
-        {!recentSearches.length ? (
+        {isLoaded && !recentSearches.length ? (
           <Link href="/word" asChild>
             <Touchable activeOpacity={0.82} style={styles.emptyHistoryCard}>
               <Ionicons name="time-outline" size={24} color={colors.textTertiary} />

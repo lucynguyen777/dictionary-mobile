@@ -20,6 +20,8 @@ import { SpecializedTranslationToolPanel } from '@/components/training/Specializ
 import { ReaderLibraryToolPanel } from '@/components/training/ReaderLibraryToolPanel';
 import { AnalyticsStat, FlashcardStatusDonut, getFlashcardAnalytics } from '@/components/training/FlashcardAnalytics';
 import { styles } from '@/components/training/styles';
+import LoadErrorNotice from '@/components/app/LoadErrorNotice';
+import SkeletonBlock from '@/components/app/SkeletonBlock';
 
 export default function AdvancedScreen() {
   const router = useRouter();
@@ -76,6 +78,8 @@ export default function AdvancedScreen() {
     [colors, radius.md, shadows.glow, shadows.md, shadows.sm]
   );
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  // Until the first load finishes, "no flashcards yet" would be wrong (plan 3.6).
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [isImportingReaderDocument, setIsImportingReaderDocument] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Record<FlashcardType, boolean>>({
@@ -98,21 +102,32 @@ export default function AdvancedScreen() {
     if (googleSheetsReturn) setActiveToolId('export');
   }, [googleSheetsReturn]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
+  // Returns a cleanup so a load that finishes after the screen loses focus is ignored.
+  const loadTrainingData = useCallback(() => {
+    let isMounted = true;
 
-      Promise.all([loadLibraryState(), loadReaderState()]).then(([nextLibraryState, nextReaderState]) => {
+    Promise.all([loadLibraryState(), loadReaderState()])
+      .then(([nextLibraryState, nextReaderState]) => {
         if (!isMounted) return;
         setLibraryState(nextLibraryState);
         setReaderState(nextReaderState);
+        setLoadStatus('ready');
+      })
+      .catch(() => {
+        if (isMounted) setLoadStatus((current) => (current === 'ready' ? current : 'error'));
       });
 
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useFocusEffect(loadTrainingData);
+
+  const reloadTrainingData = () => {
+    setLoadStatus('loading');
+    loadTrainingData();
+  };
 
   const selectedFlashcardTypes = useMemo(() => {
     return flashcardOptions.filter((option) => selectedTypes[option.type]).map((option) => option.type);
@@ -508,6 +523,10 @@ export default function AdvancedScreen() {
                 </Touchable>
               </View>
             </View>
+          ) : loadStatus === 'loading' ? (
+            <SkeletonBlock height={120} />
+          ) : loadStatus === 'error' ? (
+            <LoadErrorNotice message="Không đọc được flashcard trên thiết bị." onRetry={reloadTrainingData} />
           ) : (
             <View style={[styles.emptyFlashcard, themed.mutedPanel]}>
               <Ionicons name="albums-outline" size={23} color={colors.textTertiary} />
