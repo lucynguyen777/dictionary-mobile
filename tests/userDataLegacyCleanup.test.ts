@@ -33,7 +33,11 @@ import {
   LEGACY_USER_DATA_CLEANUP_BACKUP_MARKER_KEY,
   LEGACY_USER_DATA_KEYS,
 } from '../data/userDataLegacyCleanup';
-import type { UserSqliteBindParams, UserSqliteDatabase } from '../data/userDatabaseSchema';
+import {
+  USER_DATABASE_SCHEMA_VERSION,
+  type UserSqliteBindParams,
+  type UserSqliteDatabase,
+} from '../data/userDatabaseSchema';
 
 const cleanupAt = '2026-05-26T10:00:00.000Z';
 
@@ -69,7 +73,7 @@ describe('legacy user-data AsyncStorage cleanup', () => {
     expect(marker).toMatchObject({
       backupUri: 'file://backup.json',
       createdAt: cleanupAt,
-      schemaVersion: 2,
+      schemaVersion: USER_DATABASE_SCHEMA_VERSION,
     });
     expect(marker.legacyKeys).toEqual(LEGACY_USER_DATA_KEYS);
   });
@@ -179,7 +183,7 @@ function createCleanupSource(storage: Map<string, string>) {
 function createEligibleDatabase({
   hasProfile = true,
   hasReaderSettings = true,
-  schemaVersion = '2',
+  schemaVersion = String(USER_DATABASE_SCHEMA_VERSION),
 }: {
   hasProfile?: boolean;
   hasReaderSettings?: boolean;
