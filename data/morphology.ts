@@ -908,6 +908,48 @@ function getUzbekMorphologyCandidates(input: string): MorphologyCandidate[] {
   return uniqueCandidates(candidates, word).slice(0, 5);
 }
 
+// i-row kana before ます → dictionary-form u-row kana (行きます → 行く, 話します → 話す).
+const JAPANESE_I_TO_U_ROW: Record<string, string> = {
+  い: 'う', き: 'く', ぎ: 'ぐ', し: 'す', ち: 'つ', に: 'ぬ', び: 'ぶ', み: 'む', り: 'る',
+};
+
+// Godan verbs and i-adjectives whose past/polite forms the generic る-rules below cannot reach.
+function getJapaneseGodanAndAdjectiveCandidates(word: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const stemOf = (suffixLength: number) => word.slice(0, -suffixLength);
+
+  // 行く is the one irregular godan past: 行った / 行って.
+  if ((word.endsWith('行った') || word.endsWith('行って')) && word.length > 2) {
+    candidates.push(createCandidate(`${stemOf(2)}く`, '行く (past/te)'));
+  }
+  // 飲んだ / 読んだ → む, ぶ, ぬ; 泳いだ → ぐ (these end in だ, not た).
+  if (word.endsWith('んだ') && word.length > 2) {
+    for (const ending of ['む', 'ぶ', 'ぬ']) candidates.push(createCandidate(`${stemOf(2)}${ending}`, `${ending}-動詞 (past)`));
+  }
+  if (word.endsWith('いだ') && word.length > 2) {
+    candidates.push(createCandidate(`${stemOf(2)}ぐ`, 'ぐ-動詞 (past)'));
+  }
+  // 話した → 話す (す-verbs keep し in the past).
+  if (word.endsWith('した') && word.length > 2) {
+    candidates.push(createCandidate(`${stemOf(2)}す`, 'す-動詞 (past)'));
+  }
+  // i-adjectives: 大きかった → 大きい, 寒くない → 寒い.
+  if (word.endsWith('かった') && word.length > 3) {
+    candidates.push(createCandidate(`${stemOf(3)}い`, '形容詞 (past)'));
+  }
+  if (word.endsWith('くない') && word.length > 3) {
+    candidates.push(createCandidate(`${stemOf(3)}い`, '形容詞 (negative)'));
+  }
+  // Polite forms of godan verbs: 行きます → 行く, 読みます → 読む, 話しました → 話す.
+  for (const suffix of ['ました', 'ません', 'ます']) {
+    if (!word.endsWith(suffix) || word.length <= suffix.length + 1) continue;
+    const stem = stemOf(suffix.length);
+    const uRow = JAPANESE_I_TO_U_ROW[stem.slice(-1)];
+    if (uRow) candidates.push(createCandidate(`${stem.slice(0, -1)}${uRow}`, '五段動詞 (polite)'));
+  }
+  return candidates;
+}
+
 function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
   const word = input.trim().normalize('NFC');
   if (word.length < 2) return [];
@@ -926,6 +968,8 @@ function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (verifiedLemma) {
     candidates.push(createCandidate(verifiedLemma, 'verified 一段動詞 form'));
   }
+
+  candidates.push(...getJapaneseGodanAndAdjectiveCandidates(word));
 
   // Group 2 (Ichidan) verb inflections (e.g. 食べた, 食べない, 食べます, 食べて)
   // These end in -た, -ない, -ます, -て, -る
@@ -985,6 +1029,66 @@ function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
   return uniqueCandidates(candidates, word).slice(0, 5);
 }
 
+const HANGUL_BASE = 0xac00;
+const HANGUL_LAST = 0xd7a3;
+const KO_FINAL_B = 17;
+const KO_FINAL_SS = 20;
+// Contracted vowel (stem vowel + 아/어) → possible stem vowels, by medial index.
+// ㅏ→ㅏ (가+아), ㅓ→ㅓ|ㅡ (서+어, 쓰+어), ㅕ→ㅣ (마시+어), ㅘ→ㅗ (오+아), ㅝ→ㅜ (주+어), ㅙ→ㅚ (되+어), ㅐ→ㅐ (보내+어).
+const KO_CONTRACTED_TO_STEM_VOWELS: Record<number, number[]> = { 0: [0], 1: [1], 4: [4, 18], 6: [20], 9: [8], 10: [11], 14: [13] };
+
+function splitHangul(syllable: string) {
+  const code = syllable.charCodeAt(0) - HANGUL_BASE;
+  if (code < 0 || code > HANGUL_LAST - HANGUL_BASE) return null;
+  return { final: code % 28, initial: Math.floor(code / 588), medial: Math.floor((code % 588) / 28) };
+}
+
+function joinHangul(initial: number, medial: number, final = 0) {
+  return String.fromCharCode(HANGUL_BASE + initial * 588 + medial * 28 + final);
+}
+
+// Undoes the vowel contraction in one syllable: 갔→가, 왔→오, 했→하, 봐→보, 셔→시, 써→쓰.
+function uncontractKoreanSyllable(syllable: string, dropFinal: number | null) {
+  const parts = splitHangul(syllable);
+  if (!parts || (dropFinal !== null && parts.final !== dropFinal) || (dropFinal === null && parts.final !== 0)) return [];
+  // 하다 verbs: 해/했 come from 하 + 여.
+  if (parts.initial === 18 && parts.medial === 1) return [joinHangul(18, 0)];
+  return (KO_CONTRACTED_TO_STEM_VOWELS[parts.medial] ?? []).map((medial) => joinHangul(parts.initial, medial));
+}
+
+// Past (-ㅆ다/-ㅆ어요), polite present (-요 on a contracted syllable), formal (-ㅂ니다) and the
+// ㅂ-irregular -워요/-웠다 forms, which plain suffix stripping cannot reach.
+function getKoreanContractedCandidates(word: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const add = (prefix: string, stems: string[], reason: string) => {
+    for (const stem of stems) candidates.push(createCandidate(`${prefix}${stem}다`, reason));
+  };
+  const chars = Array.from(word);
+  const tail = (count: number) => chars.slice(-count).join('');
+  const prefixBefore = (count: number) => chars.slice(0, -count).join('');
+
+  for (const ending of ['다', '어요', '어', '습니다']) {
+    const endingLength = Array.from(ending).length;
+    if (chars.length <= endingLength || tail(endingLength) !== ending) continue;
+    const syllable = chars[chars.length - endingLength - 1];
+    add(prefixBefore(endingLength + 1), uncontractKoreanSyllable(syllable, KO_FINAL_SS), '동사/형용사 (past, contracted)');
+  }
+  if (chars.length >= 2 && tail(1) === '요') {
+    add(prefixBefore(2), uncontractKoreanSyllable(chars[chars.length - 2], null), '동사/형용사 (polite, contracted)');
+  }
+  if (chars.length >= 3 && tail(2) === '니다') {
+    const parts = splitHangul(chars[chars.length - 3]);
+    if (parts?.final === KO_FINAL_B) add(prefixBefore(3), [joinHangul(parts.initial, parts.medial)], '동사/형용사 (formal)');
+  }
+  // ㅂ-irregular: 추워요/추웠다 → 춥다, 더워요 → 덥다.
+  const irregular = word.match(/^(.*)(.)(워요|웠다|웠어요|워)$/u);
+  if (irregular) {
+    const parts = splitHangul(irregular[2]);
+    if (parts && parts.final === 0) candidates.push(createCandidate(`${irregular[1]}${joinHangul(parts.initial, parts.medial, KO_FINAL_B)}다`, 'ㅂ 불규칙 (polite/past)'));
+  }
+  return candidates;
+}
+
 function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
   const word = input.trim().normalize('NFC');
   if (word.length < 2) return [];
@@ -999,6 +1103,8 @@ function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (verifiedLemma) {
     candidates.push(createCandidate(verifiedLemma, 'verified fixture-backed form'));
   }
+
+  candidates.push(...getKoreanContractedCandidates(word));
 
   // 1. Particle stripping for nouns (은/는, 이/가, 을/를, 에, 에서, 의, 에게, 한테)
   const particles = ['은', '는', '이', '가', '을', '를', '에', '에서', '의', '에게', '한테', '으로', '로'];

@@ -16,17 +16,25 @@ if (!args.url || !args.lang || !args.probes) {
 }
 
 const normalize = (word) => word.trim().normalize('NFC').toLocaleLowerCase();
-// Probe lists use "word|pos|kind" lines (see data/headword-lists/); only the word is matched.
-const probes = readFileSync(args.probes, 'utf8')
+// Probe lists use "word|pos|kind" lines (see data/headword-lists/).
+const probeRows = readFileSync(args.probes, 'utf8')
   .split(/\r?\n/)
-  .map((line) => line.split('|')[0].trim())
-  .filter((word) => word && !word.startsWith('#'));
+  .filter((line) => line.trim() && !line.startsWith('#'))
+  .map((line) => {
+    const [word, , kind] = line.split('|');
+    return { kind: (kind ?? 'headword').trim(), word: word.trim() };
+  });
+const probes = probeRows.map((row) => row.word);
+// Optional: lookup keys per probe from the app's morphology (scripts/export-morphology-candidates.ts).
+const candidatesByProbe = args.candidates ? JSON.parse(readFileSync(args.candidates, 'utf8')) : {};
+const candidateKeys = new Set(Object.values(candidatesByProbe).flat().map((word) => word.trim().normalize('NFC').toLocaleLowerCase()));
 const probeKeys = new Set(probes.map(normalize));
 const exactHits = new Set();
 const formHits = new Set();
 const headwords = new Set();
 const withExamples = new Set();
 const withRelations = new Set();
+const foundCandidateKeys = new Set();
 const lemmas = new Set();
 const lemmaExamples = new Set();
 const lemmaRelations = new Set();
@@ -69,6 +77,7 @@ for await (const line of reader) {
     if (hasExamples) lemmaExamples.add(key);
     if (hasRelations(entry)) lemmaRelations.add(key);
   }
+  if (candidateKeys.has(key)) foundCandidateKeys.add(key);
   if (probeKeys.has(key)) {
     exactHits.add(key);
     if (hasExamples) probeExamples.add(key);
@@ -80,7 +89,20 @@ for await (const line of reader) {
 }
 
 const percent = (part, whole) => (whole ? Math.round((part / whole) * 1000) / 10 : 0);
+// Gate view: headword probes must exist as headwords; inflected probes count when the app's
+// morphology leads to an existing headword (or the source lists the form).
+const resolves = (row) => {
+  const key = normalize(row.word);
+  if (exactHits.has(key)) return true;
+  if (row.kind !== 'headword' && formHits.has(key)) return true;
+  return row.kind !== 'headword' && (candidatesByProbe[row.word] ?? []).some((candidate) => foundCandidateKeys.has(normalize(candidate)));
+};
+const headwordRows = probeRows.filter((row) => row.kind === 'headword');
+const inflectedRows = probeRows.filter((row) => row.kind !== 'headword');
 const summary = {
+  gateHeadwordExactPercent: percent(headwordRows.filter(resolves).length, headwordRows.length),
+  gateInflectedViaMorphologyPercent: args.candidates ? percent(inflectedRows.filter(resolves).length, inflectedRows.length) : null,
+  gateMissing: probeRows.filter((row) => !resolves(row)).map((row) => `${row.word} (${row.kind})`),
   examplesPercent: percent(withExamples.size, headwords.size),
   headwords: headwords.size,
   lemmaExamplesPercent: percent(lemmaExamples.size, lemmas.size),
