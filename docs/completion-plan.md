@@ -211,7 +211,7 @@ Branches stack in order: `claude/v1.4.1-product-truth` → `claude/v1.5.0-cloud-
 | 3 Design system/UI | 3.1–3.4, 3.6–3.9 | Library/Training/Profile stylesheet palette → tokens (D7) |
 | 4 Providers | 4.1 AI streaming, 4.3 feedback form, 4.4 password change/reset, 4.5 specialized translation (glossary per domain, CSV/TSV import, account sync), Sheets export fake-API tests | 4.1/4.2 production smoke (keys); 4.3 legal/help + Resend (D5); 4.5 sentence datasets + context agents; 4.6 Azure scoring (D6) |
 | 5 Native recognition | — | Needs EAS account and devices |
-| 6 Languages/offline | 6.1 declarative local-pack registry, 6.2 pack pipeline + import validation | 6.3/6.5 need CDN hosting; 6.4 French source gates pass, pack scope/host (D9); 6.6 other language source gates |
+| 6 Languages/offline | 6.1 declarative local-pack registry, 6.2 pack pipeline + import validation | 6.3/6.5 need CDN hosting; 6.4 French and Spanish source gates pass, pack scope/host (D9); Malay source too thin; 6.6 other language source gates |
 | 7 Release v2.0 | 7.5 release checklist (`docs/release-checklist-v2.md`) | 7.1 crash reporting provider (D8); 7.2–7.3 need EAS/store accounts, D3, D5 |
 
 ## 8. Pending owner decisions
