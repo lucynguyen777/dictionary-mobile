@@ -10,6 +10,7 @@ test('Profile offline pack status renders and captures UI artifacts', async ({ p
 
   await expect(page.getByText('Gói từ điển offline', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Builder sẵn sàng', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('English · pack mẫu (2 mục từ)', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Chưa tải', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Chờ native runtime', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Pack URL/checksum đã sẵn sàng, nhưng SQLite import chỉ bật trên native runtime.').first()).toBeVisible();

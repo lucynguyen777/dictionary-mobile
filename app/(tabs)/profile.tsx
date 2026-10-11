@@ -18,7 +18,7 @@ import { languageOptions } from '@/data/languages';
 import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import { deleteInstalledOfflineDictionaryPack, installOfflineDictionaryPackFromSource } from '@/data/offlineDictionaryPackActions';
 import { OfflinePackInstallState, clearOfflinePackInstallState, formatOfflinePackInstallStatus, formatOfflinePackProgress, getDefaultOfflinePackInstallState, getOfflinePackInstallRecord, getOfflinePackInstallSummary, loadOfflinePackInstallState } from '@/data/offlineDictionaryPackStore';
-import { formatPackSizeRange, formatPackStatus, getOfflinePackRuntimeGate, getOfflinePackSummary, offlineDictionaryPacks } from '@/data/offlineDictionaryPacks';
+import { formatPackSizeRange, formatPackStatus, formatPackTitle, getOfflinePackRuntimeGate, getOfflinePackSummary, offlineDictionaryPacks } from '@/data/offlineDictionaryPacks';
 import { NotificationPreferences, UserProfile, clearUserProfile, getDefaultProfile, loadUserProfile, saveUserProfile } from '@/data/profileStore';
 import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 import { useToken } from '@/hooks/use-token';
@@ -1082,7 +1082,7 @@ export default function ProfileScreen() {
                   return (
                     <View key={pack.id} style={styles.offlinePackRow}>
                       <View style={styles.securityCopy}>
-                        <Text style={styles.securityTitle}>{language?.label ?? pack.languageCode}</Text>
+                        <Text style={styles.securityTitle}>{formatPackTitle(pack, language?.label ?? pack.languageCode)}</Text>
                         <Text style={styles.securityText}>
                           {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
                         </Text>
