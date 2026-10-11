@@ -38,3 +38,14 @@ Missing common words include `buku`, `bas`, `kapal`, `kawan`, `guru`, `masa`, `l
 node scripts/measure-kaikki-dump.mjs --lang ms --probes data/headword-lists/malay-promotion-100.txt \\
   --url 'https://kaikki.org/mswiktionary/Bahasa%20Melayu/kaikki.org-dictionary-BahasaMelayu.jsonl'
 ```
+
+## Source search 2026-10-11
+
+| Source | Definitions in | Licence | Probe exact | Probes found incl. forms | Examples | Related | Size | Eligible |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Malay Wiktionary (mswiktionary, Kaikki) | Malay | CC BY-SA/GFDL | 73% | 75% | 20.5% | 34% | 10,427 lemmas | Too thin |
+| English Wiktionary Malay entries (Kaikki) | English | CC BY-SA/GFDL | 90% | 93% | 50% | 60% | 15,088 lemmas | Only as bilingual (Malay → English) definitions |
+| Kamus Dewan / PRPM (Dewan Bahasa dan Pustaka) | Malay | Proprietary | — | — | — | — | Large | Needs a licence |
+| Open Multilingual Wordnet (Malay) | Synonym sets, no Malay glosses | MIT | — | — | — | — | — | Relations only |
+
+Only 7 probes are missing from both Wiktionary sources, and all are affixed forms or phrases (`mengambil`, `menulis`, `ditutup`, `terbuka`, `pencari`, `di sini`, `di sana`) that the app's Malay morphology maps to base words. No open corpus with Malay-language definitions is large enough, so Malay promotion depends on owner decision D11: show English definitions for Malay (with mswiktionary where it has a Malay definition), or license a Malay dictionary.
