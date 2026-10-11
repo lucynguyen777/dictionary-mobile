@@ -69,3 +69,14 @@ describe('Russian irregular forms', () => {
     expect(words('ru', form)).toContain(lemma);
   });
 });
+
+describe('French forms', () => {
+  it.each([
+    ['livres', 'livre'], ['chats', 'chat'], ['écoles', 'école'], ['enfants', 'enfant'], ['femmes', 'femme'], ['parle', 'parler'],
+    ['mange', 'manger'], ['mangeons', 'manger'], ['boit', 'boire'], ['voit', 'voir'], ['vient', 'venir'], ['prend', 'prendre'],
+    ['heureuse', 'heureux'], ['chevaux', 'cheval'], ['gâteaux', 'gâteau'], ['parlé', 'parler'], ['finissons', 'finir'],
+    ['grande', 'grand'], ['vives', 'vif'], ['bonne', 'bon'], ['est', 'être'], ["l'école", 'école'], ['attend', 'attendre'],
+  ])('%s → %s', (form, lemma) => {
+    expect(words('fr', form)).toContain(lemma);
+  });
+});

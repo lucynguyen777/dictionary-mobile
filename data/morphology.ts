@@ -7,6 +7,7 @@ export type MorphologyCandidate = {
 export const morphologySupportedLanguageCodes = [
   'en',
   'es',
+  'fr',
   'ms',
   'fi',
   'et',
@@ -88,6 +89,7 @@ const irregularEnglishBaseForms: Record<string, string[]> = {
 export function getMorphologyCandidates(languageCode: string, input: string): MorphologyCandidate[] {
   if (languageCode === 'en') return getEnglishMorphologyCandidates(input);
   if (languageCode === 'es') return getSpanishMorphologyCandidates(input);
+  if (languageCode === 'fr') return getFrenchMorphologyCandidates(input);
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
   if (languageCode === 'et') return getEstonianMorphologyCandidates(input);
@@ -213,6 +215,81 @@ function uniqueCandidates(candidates: MorphologyCandidate[], originalWord: strin
 
 function normalizeMorphologyInput(input: string) {
   return input.trim().toLocaleLowerCase();
+}
+
+// Present-tense and other forms of very common irregular French verbs.
+const FRENCH_IRREGULAR_FORMS: Record<string, string[]> = {
+  suis: ['être'], es: ['être'], est: ['être'], sommes: ['être'], êtes: ['être'], sont: ['être'], était: ['être'], été: ['être'],
+  ai: ['avoir'], as: ['avoir'], a: ['avoir'], avons: ['avoir'], avez: ['avoir'], ont: ['avoir'], avait: ['avoir'], eu: ['avoir'],
+  vais: ['aller'], vas: ['aller'], va: ['aller'], allons: ['aller'], allez: ['aller'], vont: ['aller'],
+  fais: ['faire'], fait: ['faire'], faisons: ['faire'], faites: ['faire'], font: ['faire'],
+  dis: ['dire'], dit: ['dire'], disons: ['dire'], dites: ['dire'], disent: ['dire'],
+  peux: ['pouvoir'], peut: ['pouvoir'], pouvons: ['pouvoir'], pouvez: ['pouvoir'], peuvent: ['pouvoir'], pu: ['pouvoir'],
+  veux: ['vouloir'], veut: ['vouloir'], voulons: ['vouloir'], voulez: ['vouloir'], veulent: ['vouloir'], voulu: ['vouloir'],
+  sais: ['savoir'], sait: ['savoir'], savons: ['savoir'], savez: ['savoir'], savent: ['savoir'], su: ['savoir'],
+  dois: ['devoir'], doit: ['devoir'], devons: ['devoir'], devez: ['devoir'], doivent: ['devoir'], dû: ['devoir'],
+  vois: ['voir'], voit: ['voir'], voyons: ['voir'], voyez: ['voir'], voient: ['voir'], vu: ['voir'],
+  viens: ['venir'], vient: ['venir'], venons: ['venir'], venez: ['venir'], viennent: ['venir'], venu: ['venir'],
+  tiens: ['tenir'], tient: ['tenir'], tiennent: ['tenir'],
+  prends: ['prendre'], prend: ['prendre'], prenons: ['prendre'], prenez: ['prendre'], prennent: ['prendre'], pris: ['prendre'],
+  bois: ['boire'], boit: ['boire'], buvons: ['boire'], buvez: ['boire'], boivent: ['boire'], bu: ['boire'],
+  mets: ['mettre'], met: ['mettre'], mis: ['mettre'],
+  écris: ['écrire'], écrit: ['écrire'], écrivent: ['écrire'],
+  lis: ['lire'], lit: ['lire'], lisent: ['lire'], lu: ['lire'],
+  connais: ['connaître'], connaît: ['connaître'], connu: ['connaître'],
+  dors: ['dormir'], dort: ['dormir'], pars: ['partir'], part: ['partir'], sors: ['sortir'], sort: ['sortir'],
+  yeux: ['œil'], œufs: ['œuf'], bœufs: ['bœuf'],
+};
+
+function getFrenchMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const original = normalizeMorphologyInput(input);
+  // Elided articles and pronouns: l'école → école, j'aime → aime (then aimer).
+  const word = original.replace(/^(?:l|d|j|m|t|s|n|qu)['’]/, '');
+  const candidates: MorphologyCandidate[] = [];
+  if (word !== original) candidates.push(createCandidate(word, 'élision'));
+  for (const base of FRENCH_IRREGULAR_FORMS[word] ?? []) candidates.push(createCandidate(base, 'verbe ou nom irrégulier'));
+  if (word.length < 3) return uniqueCandidates(candidates, word).slice(0, 5);
+
+  const add = (base: string, reason: string) => {
+    if (base.length >= 2) candidates.push(createCandidate(base, reason));
+  };
+
+  // Nouns and adjectives: plural and feminine.
+  if (word.endsWith('aux')) add(`${word.slice(0, -3)}al`, 'pluriel (-aux → -al)');
+  if (word.endsWith('eaux') || word.endsWith('eux') || word.endsWith('oux')) add(word.slice(0, -1), 'pluriel (-x)');
+  if (word.endsWith('euses')) add(`${word.slice(0, -5)}eux`, 'féminin pluriel (-euses → -eux)');
+  if (word.endsWith('euse')) add(`${word.slice(0, -4)}eux`, 'féminin (-euse → -eux)');
+  if (word.endsWith('ives')) add(`${word.slice(0, -4)}if`, 'féminin pluriel (-ives → -if)');
+  if (word.endsWith('ive')) add(`${word.slice(0, -3)}if`, 'féminin (-ive → -if)');
+  // Doubled consonant in the feminine: bonne → bon, nette → net, cruelle → cruel, ancienne → ancien.
+  if (/(nn|ll|tt|ss)es$/.test(word)) add(word.slice(0, -3), 'féminin pluriel (consonne doublée)');
+  if (/(nn|ll|tt|ss)e$/.test(word)) add(word.slice(0, -2), 'féminin (consonne doublée)');
+  if (word.endsWith('es')) add(word.slice(0, -2), 'féminin pluriel (-es)');
+  if (word.endsWith('s') && !word.endsWith('ss')) add(word.slice(0, -1), 'pluriel (-s)');
+  if (word.endsWith('e') && !word.endsWith('ée')) add(word.slice(0, -1), 'féminin (-e)');
+
+  // Verbs (-er, the regular majority; then -ir/-re): present, imperfect, future, participles.
+  const erEndings = ['erions', 'eriez', 'eront', 'erons', 'erais', 'erait', 'erez', 'erai', 'era', 'ions', 'iez', 'aient', 'ais', 'ait', 'ent', 'ons', 'ez', 'es', 'ées', 'és', 'ée', 'é', 'e'];
+  for (const ending of erEndings) {
+    if (word.endsWith(ending) && word.length > ending.length + 1) {
+      const stem = word.slice(0, -ending.length);
+      add(`${stem}er`, `verbe en -er (-${ending})`);
+      // Spelling changes kept in some forms: mangeons → manger, commençons → commencer.
+      if (stem.endsWith('ge')) add(`${stem.slice(0, -1)}er`, 'verbe en -ger');
+      if (stem.endsWith('ç')) add(`${stem.slice(0, -1)}cer`, 'verbe en -cer');
+      break;
+    }
+  }
+  const irEndings = ['issons', 'issez', 'issent', 'issais', 'issait', 'is', 'it', 'ie', 'ies', 'i'];
+  for (const ending of irEndings) {
+    if (word.endsWith(ending) && word.length > ending.length + 1) {
+      add(`${word.slice(0, -ending.length)}ir`, `verbe en -ir (-${ending})`);
+      break;
+    }
+  }
+  if (/[^aeiouy]ds?$/.test(word)) add(`${word.replace(/s$/, '')}re`, 'verbe en -re (-ds)');
+
+  return uniqueCandidates(candidates, original).slice(0, 6);
 }
 
 function getSpanishMorphologyCandidates(input: string): MorphologyCandidate[] {
