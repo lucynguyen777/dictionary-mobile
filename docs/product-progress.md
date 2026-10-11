@@ -893,6 +893,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [~] IN PROGRESS [HARD]: Email login/auth is implemented and production-gated by `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, redirect allow-list, and manual smoke.
 - [~] IN PROGRESS [HARD]: Cloud Sync (automatic when enabled, plus manual sync) is implemented and production-gated by Supabase env, RLS probes, two-device smoke, and opt-in Profile/Settings behavior; encrypted backup/restore remains deferred.
 - [ ] TODO [HARD]: Account deletion backend workflow is accepted/staged after Supabase admin/backend route, local-data deletion contract, remote failure recovery, and no-local-data-loss tests.
+  - [x] DONE: The groundwork both D3 options need is covered by `tests/accountDeletionCascade.test.ts`, which runs the real migrations. Every public table with a `user_id` cascades from `auth.users`, so deleting the auth user leaves no rows behind for that user and keeps other users' rows. The route, timing (immediate or delayed) and local-data choice wait for D3.
 
 ## Advanced Features
 
