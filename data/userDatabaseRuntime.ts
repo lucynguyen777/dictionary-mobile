@@ -233,6 +233,7 @@ export async function saveUserDataSnapshotToUserDatabase(
 async function ensureUserDatabaseMigrated(options: UserDatabaseRuntimeOptions = {}) {
   const {
     databaseName = USER_DATABASE_NAME,
+    now,
     openDatabase = openExpoUserDatabase,
     schemaVersion = USER_DATABASE_SCHEMA_VERSION,
     upgrades = USER_DATABASE_UPGRADES,
@@ -258,7 +259,7 @@ async function ensureUserDatabaseMigrated(options: UserDatabaseRuntimeOptions = 
     );
   }
   if (plan.kind === 'import-legacy') {
-    await migrateAsyncStorageToUserDatabase({ databaseName, openDatabase });
+    await migrateAsyncStorageToUserDatabase({ databaseName, now, openDatabase });
   }
 }
 

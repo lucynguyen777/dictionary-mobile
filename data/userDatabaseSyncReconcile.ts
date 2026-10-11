@@ -23,6 +23,8 @@ export type SyncedTableName =
 export type SnapshotSection = 'library' | 'profile' | 'reader';
 
 type SyncedTableSpec = {
+  // Settings that belong to this device only: saved locally, never synced, and never make a row dirty.
+  deviceOnlyColumns?: readonly string[];
   keyColumns: readonly string[];
   // How a row missing from a new snapshot is handled: soft-delete it so the deletion can sync,
   // or keep it as-is (tombstones and singletons are never removed by a snapshot).
@@ -33,7 +35,12 @@ type SyncedTableSpec = {
 };
 
 export const SYNCED_TABLE_SPECS: Record<SyncedTableName, SyncedTableSpec> = {
-  user_profile: { keyColumns: ['id'], missing: 'keep', section: 'profile' },
+  user_profile: {
+    deviceOnlyColumns: ['app_lock_enabled', 'cloud_sync_enabled', 'login_method'],
+    keyColumns: ['id'],
+    missing: 'keep',
+    section: 'profile',
+  },
   folders: { keyColumns: ['id'], missing: 'soft-delete', section: 'library' },
   saved_words: { keyColumns: ['id'], missing: 'soft-delete', section: 'library' },
   saved_word_folders: { keyColumns: ['word_id', 'folder_id'], missing: 'soft-delete', section: 'library' },
@@ -88,7 +95,7 @@ export function reconcileSyncedRows(
 
     if (previous && wasPulledAfter(previous, loadedAt)) {
       result.push(previous);
-    } else if (previous && hasSameContent(row, previous)) {
+    } else if (previous && hasSameContent(row, previous, spec.deviceOnlyColumns)) {
       result.push({ ...previous, ...row, ...pickSyncColumns(previous) });
     } else {
       result.push({
@@ -147,9 +154,9 @@ function wasPulledAfter(row: SqliteRow, loadedAt: string | null) {
   );
 }
 
-export function hasSameContent(snapshotRow: SqliteRow, previous: SqliteRow) {
+export function hasSameContent(snapshotRow: SqliteRow, previous: SqliteRow, ignoredColumns: readonly string[] = []) {
   return Object.keys(snapshotRow).every((column) => {
-    if ((LOCAL_SYNC_COLUMNS as readonly string[]).includes(column)) return true;
+    if ((LOCAL_SYNC_COLUMNS as readonly string[]).includes(column) || ignoredColumns.includes(column)) return true;
     return normalizeValue(snapshotRow[column]) === normalizeValue(previous[column]);
   });
 }

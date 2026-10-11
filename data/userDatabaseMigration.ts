@@ -115,7 +115,7 @@ export async function migrateAsyncStorageToUserDatabase({
   try {
     await ensureUserDatabaseSchema(database);
     await database.withTransactionAsync(async () => {
-      await replaceUserDatabaseRows(database, rows);
+      await replaceUserDatabaseRows(database, rows, { now: migratedAt });
     });
 
     return {

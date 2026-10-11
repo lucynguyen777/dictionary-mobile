@@ -207,7 +207,25 @@ class SupabaseSyncUnavailableError extends Error {
   }
 }
 
-function mapRemoteChange(domain: SupabaseSyncDomain, row: Record<string, unknown>): SupabaseSyncRemoteChange {
+// Postgres returns timestamptz as e.g. "2026-10-01T10:00:00+00:00" while the app writes toISOString()
+// ("...00.000Z"). Normalizing lets conflict checks and unchanged-row checks compare like with like.
+const TIMESTAMP_COLUMNS = ['completed_at', 'created_at', 'deleted_at', 'due_date', 'looked_up_at', 'synced_at', 'updated_at'];
+
+function normalizeRemoteTimestamps(row: Record<string, unknown>) {
+  const normalized = { ...row };
+  for (const column of TIMESTAMP_COLUMNS) {
+    const value = normalized[column];
+    if (value instanceof Date) normalized[column] = value.toISOString();
+    else if (typeof value === 'string' && value) {
+      const time = Date.parse(value);
+      if (Number.isFinite(time)) normalized[column] = new Date(time).toISOString();
+    }
+  }
+  return normalized;
+}
+
+function mapRemoteChange(domain: SupabaseSyncDomain, rawRow: Record<string, unknown>): SupabaseSyncRemoteChange {
+  const row = normalizeRemoteTimestamps(rawRow);
   return {
     deletedAt: typeof row.deleted_at === 'string' ? row.deleted_at : null,
     id: getRemoteRowKey(domain, row),

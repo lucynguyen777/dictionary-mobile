@@ -78,9 +78,6 @@ const DOMAIN_CODECS: Record<SupabaseSyncDomain, DomainCodec> = {
   tombstones: codec('deleted_entities', 'deleted_entities', mapDeletedEntityToRemote, mapDeletedEntityFromRemote),
 };
 
-// Device-only profile settings that must survive a pulled profile.
-const DEVICE_ONLY_PROFILE_COLUMNS = ['app_lock_enabled', 'cloud_sync_enabled', 'login_method'] as const;
-
 const DIRTY_SYNC_STATUSES = ['dirty', 'deleting', 'conflicted', 'pending_create', 'pending_update', 'pending_delete'];
 
 export type CreateUserDatabaseSyncLocalPortOptions = {
@@ -128,8 +125,9 @@ export function createUserDatabaseSyncLocalPort({
             }
 
             const merged: SqliteRow = { ...existing, ...incoming };
-            if (localTable === 'user_profile' && existing) {
-              for (const column of DEVICE_ONLY_PROFILE_COLUMNS) merged[column] = existing[column];
+            // Device-only settings (e.g. app lock) stay as this device set them.
+            for (const column of SYNCED_TABLE_SPECS[localTable].deviceOnlyColumns ?? []) {
+              if (existing) merged[column] = existing[column];
             }
 
             // Re-pulling our own push (or an unchanged row) must not touch the row: rewriting it would
