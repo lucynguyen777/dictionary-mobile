@@ -234,6 +234,15 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [MEDIUM]: E2E grew from 3 to 12 specs (Library folder flow, favorite→Library/Home, Reader long-document selection and slider, dark mode for every tab); vitest resolves `@/`.
 - [ ] TODO [MEDIUM]: Convert remaining hex literals in `components/library|training|profile/styles.ts` to theme tokens (dark mode already uses themed overlays; light/dark screenshots are acceptable).
 
+**Module: v1.7.0 Account Features** - IN PROGRESS
+- Module Completion Plan: plan Phase 4.3/4.4 in `docs/completion-plan.md`.
+- Acceptance criteria: signed-in users can change their password and finish a reset link inside the app; signed-in users can send feedback from Profile with clear errors for unconfigured backend, rate limit and expired session; features stay hidden or marked when no backend is configured.
+- [x] DONE [MEDIUM]: Change password from Profile (account section) and after a recovery link (`auth/callback?flow=recovery` shows the new-password form); validation 8-72 chars with confirmation and Vietnamese error mapping in `data/authController.ts` (`tests/authPasswordUpdate.test.ts`).
+- [x] DONE [MEDIUM]: Feedback form in Profile → Hỗ trợ (`components/profile/FeedbackForm.tsx`) posting to `/proxy/feedback` with category, message and app version/platform context only; 503/429/401 mapped to clear messages (`data/feedback.ts`, `tests/feedbackClient.test.ts`); row requires sign-in and is disabled when auth is unconfigured.
+- [x] DONE [EASY]: Profile modals use theme surface tokens so dark mode is readable; release summary reads "Auto cloud sync (beta)".
+- [!] BLOCKED [MEDIUM]: Privacy Policy, Terms, help-center content and Resend feedback notification wait on owner decision D5.
+- [!] BLOCKED [HARD]: Account deletion waits on owner decision D3.
+
 **Module: Kannada Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
 - Module Completion Plan: validate Kannada Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix fallback for related words without broad glide/sandhi guessing.
 - Acceptance criteria: Kannada-section filtering risk is recorded; exact lookup stays first; NFC-safe inflected relations resolve for verified fixtures; production promotion waits for measured corpus/suffix/tokenization/offline gates.
@@ -835,7 +844,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [MEDIUM]: Persist notification preferences locally until cloud sync/auth is selected.
 - [x] DONE [EASY]: Add Privacy settings sidebar item that links to local-first privacy copy, app lock, data export, and local data reset.
 - [x] DONE [EASY]: Add Support settings items: Help center and Feedback.
-- [~] IN PROGRESS [HARD]: Feedback table-only backend is implemented with authenticated RLS, validation, and rolling submission limits; production submission UI/migration smoke and optional Resend notification still need setup.
+- [~] IN PROGRESS [HARD]: Feedback backend (validation, rolling limit, server-only insert) and the Profile submission form are implemented; migration smoke on Supabase (D2) and Resend notification (D5) remain.
 - [x] DONE [EASY]: Add Sign out action with disabled/coming-soon state when there is no authenticated session.
 - [x] DONE [EASY]: Add bottom legal links: Terms, Privacy Policy, Acknowledgements.
 - [x] DONE [MEDIUM]: Polish sidebar UI/UX for mobile and web: compact rows, icons, section headers, destructive action styling, no text overflow.
@@ -859,7 +868,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [EASY]: Privacy copy explaining local-first storage and what leaves the device.
 - [x] DONE [MEDIUM]: App lock or biometric lock option if native support is added (commit `1a07198`).
 - [~] IN PROGRESS [HARD]: Email login/auth is implemented and production-gated by `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, redirect allow-list, and manual smoke.
-- [~] IN PROGRESS [HARD]: Manual beta Cloud Sync is implemented and production-gated by Supabase env, RLS probes, two-device smoke, and opt-in Profile/Settings behavior; encrypted backup/restore remains deferred.
+- [~] IN PROGRESS [HARD]: Cloud Sync (automatic when enabled, plus manual sync) is implemented and production-gated by Supabase env, RLS probes, two-device smoke, and opt-in Profile/Settings behavior; encrypted backup/restore remains deferred.
 - [ ] TODO [HARD]: Account deletion backend workflow is accepted/staged after Supabase admin/backend route, local-data deletion contract, remote failure recovery, and no-local-data-loss tests.
 
 ## Advanced Features

@@ -214,7 +214,8 @@ Work that needs one of these decisions is paused; other work continues. Updated 
 
 | # | Decision | Why it matters | Default if no answer |
 | --- | --- | --- | --- |
-| D1 | Create PRs for the stacked branches `claude/v1.4.1-product-truth` and `claude/v1.5.0-cloud-sync`? | Code is pushed but not under review. | Keep stacking branches; open PRs when asked. |
+| D1 | Create PRs for the stacked branches `claude/v1.4.1-product-truth`, `claude/v1.5.0-cloud-sync`, `claude/v1.6.0-design-system` and `claude/v1.7.0-account-features`? | Code is pushed but not under review. | Keep stacking branches; open PRs when asked. |
 | D2 | Restore the paused Supabase project and apply migrations 009 and 010? | Security hardening and sync cursor only take effect once applied; production smoke needs it. | Not applied. |
 | D3 | Account deletion: delete immediately, or soft-delete with a recovery window (e.g. 30 days)? After deletion, keep or wipe the data on the device? | Determines backend design (immediate admin delete vs scheduled purge) and UI copy. Store review requires in-app deletion. | Paused (plan 2.6). Suggested: immediate server deletion, keep local data with an explicit "also erase this device" option. |
 | D4 | Set `BACKEND_PROXY_ALLOWED_ORIGINS` on Vercel if the web app runs on domains other than production. | Other web origins are blocked by CORS. | Production + localhost only. |
+| D5 | Legal and support content: who writes the Privacy Policy, Terms and help-center text, where they are hosted, and which support inbox/Resend domain receives feedback notifications? | Store submission requires a Privacy Policy and Terms; the Help center row still shows a placeholder; feedback is stored but nobody is notified. | Paused (plan 4.3 legal/help part). Feedback is saved to the `feedback` table only. |

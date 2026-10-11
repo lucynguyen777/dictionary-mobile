@@ -6,6 +6,7 @@ import { Alert, AppState, Image, Modal, Platform, Pressable, ScrollView, StyleSh
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
 import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
+import FeedbackForm from '@/components/profile/FeedbackForm';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { APP_RELEASE, getAppReleaseSummary } from '@/constants/appRelease';
 import { triggerManualSync } from '@/data/supabaseSyncLifecycle';
@@ -116,6 +117,7 @@ export default function ProfileScreen() {
   const [authBusyAction, setAuthBusyAction] = useState<'sign-in' | 'sign-up' | 'recovery' | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
   const [selectedStreakYear, setSelectedStreakYear] = useState(new Date().getFullYear());
@@ -811,8 +813,16 @@ export default function ProfileScreen() {
 
       <Modal animationType="fade" onRequestClose={() => setChangePasswordOpen(false)} transparent visible={changePasswordOpen}>
         <Pressable accessibilityLabel="Đóng" onPress={() => setChangePasswordOpen(false)} style={styles.authModalBackdrop}>
-          <Pressable onPress={(event) => event.stopPropagation()} style={styles.authModalCard}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={[styles.authModalCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
             <ChangePasswordForm onDone={() => setChangePasswordOpen(false)} />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal animationType="fade" onRequestClose={() => setFeedbackOpen(false)} transparent visible={feedbackOpen}>
+        <Pressable accessibilityLabel="Đóng" onPress={() => setFeedbackOpen(false)} style={styles.authModalBackdrop}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={[styles.authModalCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
+            <FeedbackForm onDone={() => setFeedbackOpen(false)} />
           </Pressable>
         </Pressable>
       </Modal>
@@ -1125,11 +1135,17 @@ export default function ProfileScreen() {
                   onPress={() => Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp sẽ mở khi chọn kênh hỗ trợ chính thức.', [{ text: 'OK' }])}
                 />
                 <SidebarActionRow
-                  badge="Phiên bản sau"
-                  disabled
+                  badge={authSession.status === 'authenticated' ? undefined : authSession.status === 'unconfigured' ? 'Chưa cấu hình' : 'Cần đăng nhập'}
+                  disabled={authSession.status === 'loading' || authSession.status === 'unconfigured'}
                   icon="chatbox-ellipses-outline"
                   label="Gửi phản hồi"
-                  onPress={() => Alert.alert('Gửi phản hồi', 'Kênh phản hồi cloud đã được chọn. Biểu mẫu gửi phản hồi sẽ khả dụng sau khi bật máy chủ hỗ trợ.', [{ text: 'OK' }])}
+                  onPress={() => {
+                    if (authSession.status === 'authenticated') {
+                      setFeedbackOpen(true);
+                      return;
+                    }
+                    Alert.alert('Cần đăng nhập', 'Đăng nhập cloud để gửi phản hồi. Mỗi tài khoản gửi tối đa 5 phản hồi mỗi ngày.');
+                  }}
                 />
                 <SidebarActionRow
                   badge={authSession.status === 'authenticated' || authSession.status === 'needs_verification' ? 'Cloud' : 'Local'}

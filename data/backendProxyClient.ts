@@ -6,6 +6,7 @@
  */
 
 import { Platform } from 'react-native';
+import type { FeedbackCategory } from './feedback';
 import { getSharedSupabaseAuthClient } from './supabaseAuthClient';
 
 export type AiChatGoal = 'conversation' | 'correction' | 'explanation' | 'roleplay';
@@ -192,4 +193,13 @@ export async function exportFolderToGoogleSheets(rows: string[][]) {
 
 export async function revokeGoogleSheets() {
   return proxyFetch<{ connected: false }>('/proxy/google-sheets/revoke', { method: 'POST' });
+}
+
+// --- Feedback API ---
+
+export async function submitFeedback(input: { category: FeedbackCategory; context: string; message: string }) {
+  return proxyFetch<{ id: string; status: 'received' }>('/proxy/feedback', {
+    body: JSON.stringify({ category: input.category, context: input.context, message: input.message.trim() }),
+    method: 'POST',
+  });
 }

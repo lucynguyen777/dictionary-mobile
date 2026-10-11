@@ -48,3 +48,31 @@ describe('proxy requests on native', () => {
     expect(fetchSpy).toHaveBeenCalledWith('https://api.example/backend-proxy/proxy/quota', expect.anything());
   });
 });
+
+describe('submitFeedback', () => {
+  it('posts the trimmed message to the feedback route', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 'f1', status: 'received' }), { status: 201 })
+    );
+    const { submitFeedback } = await import('../data/backendProxyClient');
+
+    await expect(submitFeedback({ category: 'bug', context: 'app 1.7.0 · ios', message: '  Nút lưu không phản hồi  ' }))
+      .resolves.toEqual({ id: 'f1', status: 'received' });
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe('https://api.example/backend-proxy/proxy/feedback');
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(String(init?.body))).toEqual({ category: 'bug', context: 'app 1.7.0 · ios', message: 'Nút lưu không phản hồi' });
+  });
+
+  it('surfaces the rate-limit code from the proxy', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'feedback_rate_limited' } }), { status: 429 })
+    );
+    const { submitFeedback } = await import('../data/backendProxyClient');
+
+    await expect(submitFeedback({ category: 'other', context: '', message: 'Một phản hồi đủ dài' }))
+      .rejects.toMatchObject({ code: 'feedback_rate_limited', status: 429 });
+  });
+});
