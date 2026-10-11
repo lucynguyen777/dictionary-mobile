@@ -6,6 +6,7 @@ Input for owner decision D9 (pack hosting and size). Packs were built from the w
 
 | Pack | Entries | Download (gzip) | On device (SQLite + FTS) | Import (Node, laptop-class CPU) | Lookup (avg, with morphology) | Probes found |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Vietnamese, full (viwiktionary) | 40,781 | 3.3 MB | 21 MB | 1 s | 9 ms | 99% |
 | Korean, full | 68,290 | 3.7 MB | 29 MB | 2 s | 27 ms | 100% |
 | Turkish, full | 300,743 | 10.3 MB | 131 MB | 8 s | 56 ms | 99% |
 | Turkish, lemma-only | 188,736 | 8.1 MB | 83 MB | 6 s | 44 ms | 100% (after the Turkish verb rules below) |

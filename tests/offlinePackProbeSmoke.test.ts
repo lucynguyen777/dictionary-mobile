@@ -23,7 +23,7 @@ import { createExpoSqliteOfflineDictionaryStorage, type OfflineSqliteDatabase } 
 
 const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as typeof import('node:sqlite');
 
-// Packs built from the real French/Spanish/Russian/Korean/Turkish Wiktionary dumps, scoped to the 100 promotion probes
+// Packs built from the real French/Spanish/Russian/Korean/Turkish/Vietnamese Wiktionary dumps, scoped to the 100 promotion probes
 // (scripts/extract-kaikki-candidate.mjs --headwords …, then scripts/build-offline-pack.mjs).
 const PACKS = [
   { dir: 'tests/fixtures/offline-packs/fr-probe-smoke', lang: 'fr', probes: 'data/headword-lists/french-promotion-100.txt' },
@@ -32,6 +32,8 @@ const PACKS = [
   { dir: 'tests/fixtures/offline-packs/ko-probe-smoke', lang: 'ko', probes: 'data/headword-lists/korean-promotion-100.txt' },
   // Turkish takes related words from English Wiktionary as a helper source (relations only).
   { dir: 'tests/fixtures/offline-packs/tr-probe-smoke', lang: 'tr', probes: 'data/headword-lists/turkish-promotion-100.txt' },
+  // Vietnamese Wiktionary for the VI-VI offline pack (plan 6.5).
+  { dir: 'tests/fixtures/offline-packs/vi-probe-smoke', lang: 'vi', probes: 'data/headword-lists/vietnamese-promotion-100.txt' },
 ] as const;
 
 // The expo-sqlite subset the offline storage uses, on Node's built-in SQLite (FTS5 included).

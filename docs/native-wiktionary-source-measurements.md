@@ -13,6 +13,7 @@ Gates (from `data/languageProductionRoadmap.ts`): corpus ≥5,000, headword exac
 | Turkish | trwiktionary 2026-10 (+ enwiktionary relations as helper) | 188,736 | 100% | 100% | 74.5% | 27.6% native; 63% with helper (76% in the merged pack) | Pass with helper relations |
 | Japanese | jawiktionary 2026-10 (+ enwiktionary relations as helper) | 112,940 | 97.5% | 100% | 36.7% native (86% with enwiktionary examples) | 7.6% native, 64.6% with helper | Fails examples unless D12 allows helper examples |
 | Chinese | zhwiktionary 2026-10 (漢語) | 68,917 | 70% (following soft redirects) | — | 62% | 53% | Fails exact lookup (source content gap) |
+| Vietnamese | viwiktionary 2026-10-03 | 40,781 | 99% | — (no inflection) | 89.9% | 37.4% | Pass (VI-VI offline pack, plan 6.5) |
 | Malay | mswiktionary 2026-10-03 | 10,427 | 81% (headword probes) | 85% | 20.5% | 34% | Fails (see `docs/malay-100-headword-measurement.md`, D11) |
 
 Notes:
