@@ -150,6 +150,8 @@ export const DesignSystem = {
       textOnAccent: '#ffffff',
       textOnHero: '#ffffff',
       textOnHeroMuted: '#d7e3f1',
+      // Ink for content placed on user-chosen pastel colors (folder colors), which stay light in both themes.
+      textOnPastel: '#0f172a',
 
       // Accent colors (minimalist + futuristic)
       accentPrimary: '#7c3aed', // Electric purple for primary actions
@@ -251,6 +253,7 @@ export const DesignSystem = {
       textOnAccent: '#ffffff',
       textOnHero: '#f8fafc',
       textOnHeroMuted: '#c7c7d1',
+      textOnPastel: '#0f172a',
 
       // Accent colors
       accentPrimary: '#a78bfa',

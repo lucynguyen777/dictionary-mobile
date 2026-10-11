@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import Screen from '@/components/app/Screen';
 import { completeAuthCallback, type AuthCallbackParams } from '@/data/authController';
 import { type AuthSessionSnapshot } from '@/data/authSession';
+import { useToken } from '@/hooks/use-token';
 
 const initialAuthCallbackState: AuthSessionSnapshot = {
   status: 'loading',
@@ -62,15 +63,20 @@ function getCallbackCopy(authSession: AuthSessionSnapshot) {
 export default function AuthCallbackScreen() {
   const params = useLocalSearchParams<AuthCallbackParams>();
   const [authSession, setAuthSession] = useState<AuthSessionSnapshot>(initialAuthCallbackState);
+  const { colors } = useToken();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     let isMounted = true;
 
-    completeAuthCallback(params).then((nextAuthSession) => {
-      if (!isMounted) return;
-
-      setAuthSession(nextAuthSession);
-    });
+    completeAuthCallback(params)
+      .then((nextAuthSession) => {
+        if (isMounted) setAuthSession(nextAuthSession);
+      })
+      .catch(() => {
+        // Never leave the screen spinning; show a recoverable error instead.
+        if (isMounted) setAuthSession({ ...initialAuthCallbackState, status: 'error' });
+      });
 
     return () => {
       isMounted = false;
@@ -81,13 +87,15 @@ export default function AuthCallbackScreen() {
 
   return (
     <Screen>
+      <Stack.Screen options={{ title: 'Đăng nhập cloud' }} />
       <View style={styles.container}>
         <View style={styles.statusCircle}>
-          <Ionicons name={copy.icon} size={34} color="#7C3AED" />
+          <Ionicons name={copy.icon} size={34} color={colors.accentPrimary} />
         </View>
         <Text style={styles.title}>{copy.title}</Text>
         <Text style={styles.message}>{copy.message}</Text>
         <Pressable
+          accessibilityLabel="Về hồ sơ"
           accessibilityRole="button"
           onPress={() => router.replace('/profile' as never)}
           style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
@@ -98,56 +106,58 @@ export default function AuthCallbackScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  statusCircle: {
-    alignItems: 'center',
-    backgroundColor: '#F5F3FF',
-    borderColor: '#C4B5FD',
-    borderRadius: 999,
-    borderWidth: 1,
-    height: 72,
-    justifyContent: 'center',
-    marginBottom: 18,
-    width: 72,
-  },
-  title: {
-    color: '#0F172A',
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  message: {
-    color: '#64748B',
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 21,
-    marginTop: 8,
-    maxWidth: 320,
-    textAlign: 'center',
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#7C3AED',
-    borderRadius: 8,
-    justifyContent: 'center',
-    marginTop: 22,
-    minHeight: 44,
-    minWidth: 132,
-    paddingHorizontal: 18,
-  },
-  primaryButtonPressed: {
-    opacity: 0.86,
-    transform: [{ scale: 0.98 }],
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});
+function createStyles(colors: ReturnType<typeof useToken>['colors']) {
+  return StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+    },
+    statusCircle: {
+      alignItems: 'center',
+      backgroundColor: colors.accentSoft,
+      borderColor: colors.focusRing,
+      borderRadius: 999,
+      borderWidth: 1,
+      height: 72,
+      justifyContent: 'center',
+      marginBottom: 18,
+      width: 72,
+    },
+    title: {
+      color: colors.textPrimary,
+      fontSize: 22,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    message: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      fontWeight: '700',
+      lineHeight: 21,
+      marginTop: 8,
+      maxWidth: 320,
+      textAlign: 'center',
+    },
+    primaryButton: {
+      alignItems: 'center',
+      backgroundColor: colors.accentPrimary,
+      borderRadius: 8,
+      justifyContent: 'center',
+      marginTop: 22,
+      minHeight: 44,
+      minWidth: 132,
+      paddingHorizontal: 18,
+    },
+    primaryButtonPressed: {
+      opacity: 0.86,
+      transform: [{ scale: 0.98 }],
+    },
+    primaryButtonText: {
+      color: colors.textOnAccent,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+  });
+}
