@@ -190,9 +190,6 @@ const MINH_QND_DICTIONARY_API_BASE = 'https://dict.minhqnd.com/api/v1/lookup';
 const MINH_QND_SUGGEST_API_BASE = 'https://dict.minhqnd.com/api/v1/suggest';
 const WIKTAPI_BASE = 'https://api.wiktapi.dev/v1';
 
-export function canUseMonolingualDictionaryApi(languageCode: string) {
-  return ['en', 'vi', 'fr', 'es', 'ms', 'et', 'hi', 'kk', 'uz'].includes(languageCode);
-}
 
 export function canUseBilingualDictionaryApi(sourceLang: string, targetLang: string) {
   return isSupportedBilingualDictionaryPair(sourceLang, targetLang);
@@ -217,6 +214,13 @@ const REMOTE_MONOLINGUAL_SOURCES: Record<string, {
 
 export function hasMonolingualDictionarySource(languageCode: string) {
   return Boolean(REMOTE_MONOLINGUAL_SOURCES[languageCode] || getLocalPackSource(languageCode));
+}
+
+// Whether the Word screen should run a same-language lookup. Derived from the source registry (plan
+// 6.1) instead of a separate list, so every language with a remote source or a local pack is looked
+// up, and installed offline packs (checked first by lookupMonolingual) are reached.
+export function canUseMonolingualDictionaryApi(languageCode: string) {
+  return hasMonolingualDictionarySource(languageCode);
 }
 
 export async function fetchMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
