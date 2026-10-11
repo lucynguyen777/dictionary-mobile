@@ -6,8 +6,9 @@ import {
   readBackendProxyConfig,
   type BackendProxyConfig,
   type BackendProxyEnv,
+  type BackendProxyLimits,
 } from './proxyConfig';
-import { QuotaTracker } from './quotaTracker';
+import { QuotaTracker, type QuotaFeature, type QuotaStore } from './quotaTracker';
 import {
   createGoogleConsentUrl,
   createGoogleSpreadsheet,
@@ -30,6 +31,8 @@ export type ServerDependencies = {
   port?: number;
   googleSheetsStore?: GoogleSheetsStore;
   feedbackStore?: FeedbackStore;
+  // Durable quota storage; defaults to the in-memory tracker (fine for local dev, not for serverless).
+  createQuotaStore?: (limits: BackendProxyLimits) => QuotaStore;
   verifyAuth: (token: string) => Promise<{ userId: string } | null>;
 };
 
@@ -45,10 +48,10 @@ export function createServer(deps: ServerDependencies) {
   let config: BackendProxyConfig = readBackendProxyConfig(deps.env);
   const googleSheetsConfig = readGoogleSheetsConfig(deps.env);
 
-  // Build quota tracker only when configured
-  const quotaTracker =
+  // Build quota tracking only when configured
+  const quotaTracker: QuotaStore | null =
     config.status === 'configured'
-      ? new QuotaTracker(config.limits)
+      ? deps.createQuotaStore?.(config.limits) ?? new QuotaTracker(config.limits)
       : null;
 
   // --- Middleware ---
@@ -230,7 +233,7 @@ export function createServer(deps: ServerDependencies) {
 
     // Check quota
     if (quotaTracker) {
-      const quotaCheck = quotaTracker.checkQuota(userId, 'translation', validation.data.characterCount);
+      const quotaCheck = await checkQuotaOrFailClosed(quotaTracker, userId, 'translation', validation.data.characterCount);
       if (quotaCheck.ok === false) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
@@ -278,7 +281,7 @@ export function createServer(deps: ServerDependencies) {
 
     // Check quota (counts as 1 request)
     if (quotaTracker) {
-      const quotaCheck = quotaTracker.checkQuota(userId, 'ai-chat', 1);
+      const quotaCheck = await checkQuotaOrFailClosed(quotaTracker, userId, 'ai-chat', 1);
       if (quotaCheck.ok === false) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
@@ -299,17 +302,22 @@ export function createServer(deps: ServerDependencies) {
   });
 
   // GET /proxy/quota - current user quota state
-  app.get('/proxy/quota', (req: Request, res: Response) => {
+  app.get('/proxy/quota', async (req: Request, res: Response) => {
     const userId = (req as Request & { userId: string }).userId;
     if (!quotaTracker) {
       res.status(503).json({ error: { code: 'provider_unconfigured', message: 'Quota not available.' } });
       return;
     }
 
-    res.json({
-      translation: quotaTracker.getState(userId, 'translation'),
-      aiChat: quotaTracker.getState(userId, 'ai-chat'),
-    });
+    try {
+      const [translation, aiChat] = await Promise.all([
+        quotaTracker.getState(userId, 'translation'),
+        quotaTracker.getState(userId, 'ai-chat'),
+      ]);
+      res.json({ translation, aiChat });
+    } catch {
+      res.status(503).json({ error: QUOTA_UNAVAILABLE_ERROR });
+    }
   });
 
   return { app, port };
@@ -324,6 +332,17 @@ export function startServer(deps: ServerDependencies) {
       resolve();
     });
   });
+}
+
+const QUOTA_UNAVAILABLE_ERROR = { code: 'quota_unavailable', message: 'Usage limits cannot be checked right now. Try again later.' };
+
+// Provider calls cost money, so a quota store that cannot answer blocks the request instead of allowing it.
+async function checkQuotaOrFailClosed(store: QuotaStore, userId: string, feature: QuotaFeature, amount: number) {
+  try {
+    return await store.checkQuota(userId, feature, amount);
+  } catch {
+    return { error: QUOTA_UNAVAILABLE_ERROR, ok: false as const, status: 503 };
+  }
 }
 
 const DEFAULT_ALLOWED_ORIGINS = ['https://dictionaire-mobile.vercel.app', 'http://localhost:8081'];

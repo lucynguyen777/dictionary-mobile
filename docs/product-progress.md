@@ -35,7 +35,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Multilingual Architecture | 88% | Adapter architecture ready with v1.3.6 source smoke | Most languages remain fixture/Wiktionary preview | Language corpus expansion |
 | Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
 | Cloud Sync | 80% | Two-way sync implemented and proven against Postgres+RLS in tests; automatic when enabled | Migrations 009/010 unapplied, real two-device smoke, account deletion decision | Supabase production smoke |
-| AI Infrastructure | 70% | Backend proxy hardened (v1.4.0); native URL wired (v1.4.1) | Provider env, durable quota, authenticated smoke | AI/provider production gates |
+| AI Infrastructure | 70% | Backend proxy hardened (v1.4.0); native URL wired (v1.4.1); SSE streaming and durable quota code (v1.7.0) | Provider env, migration 011 applied (D2), authenticated smoke | AI/provider production gates |
 | OCR Infrastructure | 70% | Contracts/preview/provider registry plus Chandra request boundary | Native/dev-client and live Chandra service smoke | OCR backend/native smoke |
 | Real OCR Engine | 30% | Scanned PDF request path exists but live endpoint/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
 | Pronunciation Assessment | 10% | Decision accepted only | Azure backend upload/proxy/privacy/quota | Speech scoring MVP |
@@ -58,7 +58,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Language Production Parity | 35% | Limited production parity | English, Vietnamese, supported `en->vi`, `vi->en`, `fr->vi`; 34-language inventory exists | Corpus size/source/offline/UI smoke for preview languages | Language Source And Corpus Smoke |
 | Supabase Auth | 75% | Implemented and env-gated | SecureStore/web token storage, sign-in/up/recovery/callback/session lifecycle UI | Redirect allow-list and production auth smoke | Supabase Auth And Cloud Sync Production Smoke |
 | Cloud Sync | 80% | Two-way sync implemented; automatic when enabled | Dirty tracking, full-row push, LWW pull, server cursor, two-device PGlite+RLS integration test, auto-sync lifecycle | Migrations 009/010 unapplied, real two-device smoke | Supabase production smoke |
-| AI/Translation | 70% | Backend-proxy gated | Vercel proxy, DeepL text translation with pair-aware targets, AI Tutor, v1.4.0 hardening, native proxy URL | Provider env, durable quota, authenticated smoke | Provider Feature Gates |
+| AI/Translation | 70% | Backend-proxy gated | Vercel proxy, DeepL text translation with pair-aware targets, AI Tutor with streaming, v1.4.0 hardening, native proxy URL, durable quota code | Provider env, migration 011 applied (D2), authenticated smoke | Provider Feature Gates |
 | OCR | 70% | Architecture ready; engines gated | OCR contracts, capture previews, provider registry, Chandra service, scanned-PDF hook, JSON/base64 request boundary | Live Chandra endpoint config and MLKit dev-client smoke | Reader OCR endpoint smoke |
 | Pronunciation | 10% | Decision accepted only | Recording playback and Azure decision prep | Azure upload/proxy/privacy/quota/fake-provider tests | Provider Feature Gates |
 | Google Sheets | 15% | Accepted/staged | Backend-mediated OAuth decision and export contract plan | Google Cloud OAuth, token storage, fake client tests | Provider Feature Gates |
@@ -242,6 +242,8 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [EASY]: Profile modals use theme surface tokens so dark mode is readable; release summary reads "Auto cloud sync (beta)".
 - [x] DONE [HARD]: AI Tutor streaming: `/proxy/ai/chat` with `stream: true` relays OpenAI deltas as SSE (JSON 502 before the first byte, error event after; upstream aborted when the client leaves); the app reads it with `expo/fetch` (`aiChatStream`), shows text as it arrives, can stop a reply, and still accepts a JSON reply. Shared parser `data/sseParser.ts`; tests in `tests/sseParser.test.ts`, `tests/backendServer.test.ts`, `tests/backendProxyClient.test.ts`, `e2e/ai-tutor-stream.spec.js`.
 - [x] DONE [EASY]: AI Tutor quota header reads the shape the proxy returns (`daily/dailyLimit`, previously showed "undefined/undefined"); long bubbles wrap; 40px targets and theme tokens.
+- [x] DONE [MEDIUM]: Durable proxy quota (plan 0.4): migration `011_proxy_quota_counters.sql` adds server-only counters and an atomic `consume_proxy_quota` function (service role only); `backend/supabaseQuotaStore.ts` is used on Vercel whenever the service role is set, the in-memory tracker remains for local dev and as the fallback while migration 011 is missing; other quota storage errors block provider calls with 503 `quota_unavailable` (`tests/proxyQuotaStore.test.ts` on PGlite: cross-instance counting, no overshoot under concurrency, day/month rollover, client cannot call or write).
+- [!] BLOCKED [MEDIUM]: Apply migration 011 with 009/010 (owner decision D2).
 - [!] BLOCKED [MEDIUM]: Privacy Policy, Terms, help-center content and Resend feedback notification wait on owner decision D5.
 - [!] BLOCKED [HARD]: Account deletion waits on owner decision D3.
 
@@ -1020,7 +1022,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [ ] TODO [HARD]: Production etymology/conjugation expansion can continue only with source metadata and real Wiktionary/UniMorph-backed rows; offline/bulk packaging remains blocked by attribution and ShareAlike pack review.
 
 ### AI
-- [~] IN PROGRESS [HARD]: Text AI Tutor streams replies (SSE through the backend proxy, stop button, daily quota display) when Supabase auth and OpenAI env vars are configured; production provider smoke, durable cross-instance quota, and realtime voice feedback remain.
+- [~] IN PROGRESS [HARD]: Text AI Tutor streams replies (SSE through the backend proxy, stop button, daily quota display) when Supabase auth and OpenAI env vars are configured; durable quota is implemented (migration 011 pending D2); production provider smoke and realtime voice feedback remain.
 - [ ] TODO [HARD]: Specialized document translation with imported glossary is accepted/staged after DeepL/OpenAI proxy boundaries, dataset persistence, parser validation, no-key-leak tests, and max-3-agent enforcement.
 
 ## Completed Work Modules

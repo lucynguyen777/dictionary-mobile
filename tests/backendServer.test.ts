@@ -502,3 +502,36 @@ describe('POST /proxy/ai/chat with stream: true', () => {
     ]);
   });
 });
+
+describe('quota storage failures', () => {
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await stopServer();
+  });
+
+  it('blocks paid provider calls with 503 when the quota store cannot answer', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const { createServer } = await import('../backend/server');
+    const failing = () => Promise.reject(new Error('quota_storage_failed'));
+    const { app } = createServer({
+      createQuotaStore: () => ({ checkQuota: failing, getState: failing }),
+      env: buildEnv(),
+      verifyAuth: fakeVerifyAuth,
+    });
+    baseUrl = await new Promise<string>((resolve) => {
+      server = app.listen(0, () => resolve(`http://localhost:${(server?.address() as AddressInfo).port}`));
+    });
+
+    const chat = await fetchJson(`${baseUrl}/proxy/ai/chat`, {
+      body: JSON.stringify({ learningLanguage: 'ES', messages: [{ content: 'Hola', role: 'user' }] }),
+      headers: { Authorization: 'Bearer valid-token', 'Content-Type': 'application/json' },
+      method: 'POST',
+    });
+    const quota = await fetchJson(`${baseUrl}/proxy/quota`, { headers: { Authorization: 'Bearer valid-token' } });
+
+    expect(chat.status).toBe(503);
+    expect(chat.body.error.code).toBe('quota_unavailable');
+    expect(quota.status).toBe(503);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});

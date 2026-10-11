@@ -5,6 +5,8 @@ import { createClient } from '@supabase/supabase-js';
 import { createServer } from '../backend/server';
 import { createSupabaseFeedbackStore, type FeedbackStore } from '../backend/feedback';
 import { createGoogleSheetsStore } from '../backend/googleSheetsStore';
+import { QuotaTracker } from '../backend/quotaTracker';
+import { createSupabaseQuotaStore } from '../backend/supabaseQuotaStore';
 
 type BackendProxyRequest = IncomingMessage & {
   query?: Record<string, string | string[] | undefined>;
@@ -48,6 +50,10 @@ export function createBackendProxyHandler({
     ? createSupabaseFeedbackStore(serviceClient)
     : undefined);
   const { app } = createServer({
+    // Serverless instances do not share memory, so quota lives in Postgres whenever the service role is set.
+    createQuotaStore: serviceClient
+      ? (limits) => createSupabaseQuotaStore(serviceClient, limits, new QuotaTracker(limits))
+      : undefined,
     env,
     feedbackStore,
     googleSheetsStore,
