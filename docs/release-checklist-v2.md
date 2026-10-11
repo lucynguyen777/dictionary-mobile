@@ -51,7 +51,7 @@ Plan task 7.5. One place to see what must be true before a store release. Owner 
 
 ## 5. Build and rollout
 
-- [ ] EAS project linked (`eas init`), `runtimeVersion` policy and update channels configured if OTA updates are used (plan 7.2, needs EAS account).
+- [ ] OTA updates (plan 7.2): `expo-updates`, `runtimeVersion: { policy: 'appVersion' }` and per-profile channels (`development`, `preview`, `production`) are already configured. With the Expo account: `npx eas-cli init` (adds `extra.eas.projectId`), `npx eas-cli update:configure` (adds `updates.url`), rebuild, then publish with `npx eas-cli update --channel preview --message "…"`. Bump `version` for any native change so old builds never receive incompatible JS.
 - [ ] `npx eas-cli build --profile production` for iOS and Android; install on real devices.
 - [ ] Native smoke on devices: `.maestro/` flows, app lock, offline lookup in airplane mode, dark mode, reduced motion.
 - [ ] Staged rollout; watch crash reports and provider spend for the first 48 hours.
