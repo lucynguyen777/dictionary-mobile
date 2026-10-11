@@ -2,9 +2,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, AppState, Image, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, AppState, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
+import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { APP_RELEASE, getAppReleaseSummary } from '@/constants/appRelease';
 import { triggerManualSync } from '@/data/supabaseSyncLifecycle';
@@ -114,6 +115,7 @@ export default function ProfileScreen() {
   const [authPassword, setAuthPassword] = useState('');
   const [authBusyAction, setAuthBusyAction] = useState<'sign-in' | 'sign-up' | 'recovery' | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
   const [selectedStreakYear, setSelectedStreakYear] = useState(new Date().getFullYear());
@@ -807,6 +809,14 @@ export default function ProfileScreen() {
         visible={authModalOpen}
       />
 
+      <Modal animationType="fade" onRequestClose={() => setChangePasswordOpen(false)} transparent visible={changePasswordOpen}>
+        <Pressable accessibilityLabel="Đóng" onPress={() => setChangePasswordOpen(false)} style={styles.authModalBackdrop}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={styles.authModalCard}>
+            <ChangePasswordForm onDone={() => setChangePasswordOpen(false)} />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {sidebarOpen ? (
         <View style={styles.sidebarOverlay}>
           <TouchableOpacity
@@ -1135,10 +1145,15 @@ export default function ProfileScreen() {
               <SidebarSection title="Bảo mật & dữ liệu">
                 <SidebarActionRow
                   badge="Phiên bản sau"
-                  disabled
                   icon="key-outline"
                   label="Thay đổi mật khẩu"
-                  onPress={() => Alert.alert('Thay đổi mật khẩu', 'Khôi phục mật khẩu qua email sẽ khả dụng khi biểu mẫu đăng nhập cloud được bật.', [{ text: 'OK' }])}
+                  onPress={() => {
+                    if (authSession.status === 'authenticated') {
+                      setChangePasswordOpen(true);
+                      return;
+                    }
+                    Alert.alert('Cần đăng nhập', 'Đăng nhập cloud để đổi mật khẩu. Nếu quên mật khẩu, dùng "Quên mật khẩu" trong màn đăng nhập.');
+                  }}
                 />
                 <SidebarActionRow
                   destructive

@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Screen from '@/components/app/Screen';
 import { completeAuthCallback, type AuthCallbackParams } from '@/data/authController';
 import { type AuthSessionSnapshot } from '@/data/authSession';
+import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
 import { useToken } from '@/hooks/use-token';
 
 const initialAuthCallbackState: AuthSessionSnapshot = {
@@ -84,6 +85,7 @@ export default function AuthCallbackScreen() {
   }, [params]);
 
   const copy = getCallbackCopy(authSession);
+  const needsNewPassword = authSession.status === 'authenticated' && authSession.lastAuthEvent === 'password-recovery';
 
   return (
     <Screen edges={['left', 'right', 'bottom']}>
@@ -94,6 +96,14 @@ export default function AuthCallbackScreen() {
         </View>
         <Text style={styles.title}>{copy.title}</Text>
         <Text style={styles.message}>{copy.message}</Text>
+        {needsNewPassword ? (
+          <View style={styles.passwordForm}>
+            <ChangePasswordForm
+              description="Bạn vừa mở liên kết đặt lại mật khẩu. Chọn mật khẩu mới cho tài khoản."
+              onDone={() => router.replace('/profile' as never)}
+            />
+          </View>
+        ) : null}
         <Pressable
           accessibilityLabel="Về hồ sơ"
           accessibilityRole="button"
@@ -139,6 +149,11 @@ function createStyles(colors: ReturnType<typeof useToken>['colors']) {
       marginTop: 8,
       maxWidth: 320,
       textAlign: 'center',
+    },
+    passwordForm: {
+      marginTop: 20,
+      maxWidth: 360,
+      width: '100%',
     },
     primaryButton: {
       alignItems: 'center',
