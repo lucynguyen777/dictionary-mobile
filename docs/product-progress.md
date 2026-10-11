@@ -710,13 +710,13 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [x] DONE [MEDIUM]: Spelling suggestions / "Did you mean?" (Gợi ý lỗi chính tả) (commit `56dd113`).
 - [x] DONE [HARD]: Word variations/morphology search for English inflections and common irregular forms (VD: "went" -> "go") (commit `3706441`).
 - [x] DONE [HARD]: Offline dictionary database bundle planning and decision accepted in `.docs/decisions/offline-dictionary-bundle.md` (Option 1: Wiktionary/Kaikki bundles with staged implementation).
-- [ ] TODO [HARD]: Voice Search / OCR Camera Lookup thật (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh) - accepted native/dev-client path; UI entry point stays muted until MLKit OCR and OS/native STT pass dev-client smoke.
+- [~] IN PROGRESS [HARD]: Voice Search / OCR Camera Lookup thật (Tìm kiếm bằng giọng nói / Dịch qua hình ảnh) - integrated (v1.7.0) and enabled only in builds with `EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION=true` (EAS development profiles); production keeps the muted entry point until the device smoke in `docs/dev-client-smoke-matrix.md` passes.
   - [x] DONE [HARD]: Architecture/library evaluation and staged implementation plan: `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Implementation Phase 1: Word screen Voice/OCR entry points, microphone/photo-library permission flow, local audio/image capture hooks, deterministic STT/OCR prototype results, and lookup routing covered by `tests/recognition.test.ts`.
   - [x] DONE [HARD]: Implementation Phase 2: capture previews for local audio/image inputs, OCR camera preview entry, manual dev-client smoke matrix, and on-device OCR/STT engine shortlist documented in `docs/voice-ocr-plan.md`.
   - [x] DONE [HARD]: Stage 3 readiness: package-agnostic OCR engine contract, deterministic block/line parser, selectable OCR candidates, dev-client-gated native OCR state, and `tests/ocrEngine.test.ts` coverage.
-  - [ ] TODO [HARD]: Real on-device OCR integration uses the accepted `@infinitered/react-native-mlkit-text-recognition` dev-client spike behind the existing OCR engine contract.
-  - [ ] TODO [HARD]: Real on-device STT integration uses the accepted `expo-speech-recognition` dev-client spike with permission, privacy, offline behavior, and unavailable-engine fallbacks.
+  - [x] DONE [HARD]: Real on-device OCR integration: `data/cameraOcrRuntime.ts` (expo-image-picker with crop + lazily loaded MLKit) behind the OCR engine contract; `data/cameraOcrLookup.ts` handles unavailable engine, cancel, denied permission, blank image and failures (`tests/cameraOcrLookup.test.ts`); Word → OCR sheet → word chips → lookup. Device smoke pending.
+  - [x] DONE [HARD]: Real on-device STT integration: `data/voiceSearchEngine.ts` (lazily loaded expo-speech-recognition) behind `data/voiceSearch.ts` with permission (incl. denied-forever), silence, cancel, offline on-device request and offline errors (`tests/voiceSearch.test.ts`); Word → Voice sheet → transcript chips → lookup, E2E on web with a scripted recognizer (`e2e/native-recognition-flag.spec.js`). Device smoke pending.
 
 ### Context & Examples
 - [x] DONE [MEDIUM]: Rich example sentences for definitions (Câu ví dụ chi tiết cho từng nghĩa, có dịch song ngữ) (commit `d1f96b5`).

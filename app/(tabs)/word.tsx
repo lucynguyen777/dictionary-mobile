@@ -55,6 +55,8 @@ import {
 } from '@/data/localLexicon';
 import { getMorphologyCandidates } from '@/data/morphology';
 import { useToken } from '@/hooks/use-token';
+import RecognitionLookupSheet, { type RecognitionMode } from '@/components/word/RecognitionLookupSheet';
+import { NATIVE_RECOGNITION_ENABLED } from '@/constants/featureFlags';
 
 const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
@@ -72,6 +74,7 @@ export default function WordScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState('');
   const [selectedWord, setSelectedWord] = useState(dictionaryEntries[0].word);
+  const [recognitionMode, setRecognitionMode] = useState<RecognitionMode | null>(null);
   const [lookupStatus, setLookupStatus] = useState<LookupStatus>('idle');
   const [lookupError, setLookupError] = useState('');
   const [bilingualLookupError, setBilingualLookupError] = useState('');
@@ -441,7 +444,28 @@ export default function WordScreen() {
               </TouchableOpacity>
             </View>
           ) : null}
-          {showLanguageControls ? (
+          {showLanguageControls && NATIVE_RECOGNITION_ENABLED ? (
+            <View style={styles.recognitionActionRow}>
+              <TouchableOpacity
+                accessibilityLabel="Tìm bằng giọng nói"
+                accessibilityRole="button"
+                activeOpacity={0.82}
+                onPress={() => setRecognitionMode('voice')}
+                style={styles.recognitionActionButton}>
+                <Ionicons name="mic-outline" size={17} color={colors.accentPrimary} />
+                <Text style={styles.recognitionActionText}>Voice</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityLabel="Tra cứu qua ảnh (OCR)"
+                accessibilityRole="button"
+                activeOpacity={0.82}
+                onPress={() => setRecognitionMode('ocr')}
+                style={styles.recognitionActionButton}>
+                <Ionicons name="scan-outline" size={17} color={colors.accentPrimary} />
+                <Text style={styles.recognitionActionText}>OCR</Text>
+              </TouchableOpacity>
+            </View>
+          ) : showLanguageControls ? (
             <View style={styles.recognitionActionRow}>
               <TouchableOpacity
                 accessibilityLabel="Tìm bằng giọng nói: cập nhật trong phiên bản sau"
@@ -462,7 +486,9 @@ export default function WordScreen() {
             </View>
           ) : null}
           {showLanguageControls ? (
-            <Text style={styles.futureRecognitionHint}>Voice/OCR: Cập nhật trong phiên bản sau · Cần dev-client</Text>
+            <Text style={styles.futureRecognitionHint}>
+              {NATIVE_RECOGNITION_ENABLED ? 'Voice/OCR: bản thử nghiệm dev-client, nhận dạng trên thiết bị' : 'Voice/OCR: Cập nhật trong phiên bản sau · Cần dev-client'}
+            </Text>
           ) : null}
           {showLanguageControls ? (
             <View style={styles.languageControls}>
@@ -584,6 +610,17 @@ export default function WordScreen() {
         scrollRef={scrollRef}
         onIndexChange={setActiveIndex}
       />
+      {NATIVE_RECOGNITION_ENABLED ? (
+        <RecognitionLookupSheet
+          languageCode={sourceLanguage.code}
+          mode={recognitionMode}
+          onClose={() => setRecognitionMode(null)}
+          onSelectWord={(word) => {
+            setRecognitionMode(null);
+            selectWord(word);
+          }}
+        />
+      ) : null}
     </View>
   );
 }
