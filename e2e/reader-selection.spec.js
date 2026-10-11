@@ -33,3 +33,10 @@ test('Reader renders a long document and builds a phrase selection from taps', a
 
   await captureUiArtifacts(page, testInfo, 'reader-selection');
 });
+
+test('Reader progress is an adjustable slider for assistive technology', async ({ page }) => {
+  await page.goto('/reader');
+  const slider = page.getByRole('slider', { name: 'Tiến trình đọc' });
+  await expect(slider).toHaveAttribute('aria-valuenow', '0');
+  await expect(slider).toHaveAttribute('aria-valuetext', '0%');
+});

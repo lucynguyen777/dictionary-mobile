@@ -515,6 +515,8 @@ export default function ReaderScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
+            accessibilityLabel="Quay lại"
+            accessibilityRole="button"
             activeOpacity={0.82}
             onPress={() => router.back()}
             style={[styles.iconButton, { backgroundColor: activeTheme.cardBg, borderColor: activeTheme.border }]}
@@ -618,6 +620,19 @@ export default function ReaderScreen() {
           </View>
           
           <View
+            accessible
+            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+            accessibilityLabel="Tiến trình đọc"
+            accessibilityRole="adjustable"
+            aria-valuemax={100}
+            aria-valuemin={0}
+            aria-valuenow={Math.round(progress)}
+            aria-valuetext={`${Math.round(progress)}%`}
+            // Screen readers adjust in 10% steps instead of dragging.
+            onAccessibilityAction={(event) => {
+              const step = event.nativeEvent.actionName === 'increment' ? 10 : -10;
+              handleProgressChange(Math.min(100, Math.max(0, progress + step)));
+            }}
             style={styles.scrubberTouchArea}
             onTouchStart={handleScrubberTouch}
             onTouchMove={handleScrubberTouch}
@@ -630,10 +645,22 @@ export default function ReaderScreen() {
           </View>
           {showAudioProgress ? (
             <View style={[styles.audioProgressPanel, { backgroundColor: activeTheme.bg, borderColor: activeTheme.border }]}>
-              <TouchableOpacity activeOpacity={0.82} onPress={handlePrevSentence} style={styles.audioSeekButton}>
+              <TouchableOpacity accessibilityLabel="Câu trước" accessibilityRole="button" activeOpacity={0.82} onPress={handlePrevSentence} style={styles.audioSeekButton}>
                 <Ionicons name="play-skip-back" size={18} color={activeTheme.accent} />
               </TouchableOpacity>
               <View
+                accessible
+                accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+                accessibilityLabel="Vị trí đọc to"
+                accessibilityRole="adjustable"
+                aria-valuemax={sentences.length}
+                aria-valuemin={1}
+                aria-valuenow={(activeSentenceIndex ?? 0) + 1}
+                aria-valuetext={`Câu ${(activeSentenceIndex ?? 0) + 1}/${sentences.length}`}
+                onAccessibilityAction={(event) => {
+                  if (event.nativeEvent.actionName === 'increment') handleNextSentence();
+                  else handlePrevSentence();
+                }}
                 style={styles.audioScrubberTouchArea}
                 onLayout={(e) => setAudioScrubberWidth(e.nativeEvent.layout.width)}
                 onTouchMove={handleAudioScrubberTouch}
@@ -648,7 +675,7 @@ export default function ReaderScreen() {
               <TouchableOpacity activeOpacity={0.82} onPress={handlePlayPause} style={styles.audioSeekButton}>
                 <Ionicons name={isSpeaking ? 'pause' : 'play'} size={18} color={activeTheme.accent} />
               </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleNextSentence} style={styles.audioSeekButton}>
+              <TouchableOpacity accessibilityLabel="Câu sau" accessibilityRole="button" activeOpacity={0.82} onPress={handleNextSentence} style={styles.audioSeekButton}>
                 <Ionicons name="play-skip-forward" size={18} color={activeTheme.accent} />
               </TouchableOpacity>
             </View>
