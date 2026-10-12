@@ -19,6 +19,7 @@ if (!args.input || !args.lang || !args.source || !args.out) {
       + ' [--gloss-lang <code>]  (pair pack: --lang headwords defined in another language, e.g. --lang vi --gloss-lang fr)'
       + ' [--lemmas-only]  (skip inflected-form entries; the app resolves inflections with its morphology)'
       + ' [--rank-by richness]  (with --limit: keep the best-documented entries instead of the first ones in the dump)'
+      + ' [--index-kanji-forms]  (Japanese: also index entries under the kanji spellings Wiktionary lists in `forms`)'
   );
   process.exit(1);
 }
@@ -39,6 +40,8 @@ if (args.glossLang === true) {
   process.exit(1);
 }
 const helperExamples = args.helperExamples === true;
+const indexKanjiForms = args.indexKanjiForms === true;
+const kanjiFormsById = new Map();
 if (helperExamples && !(args.helperInput && args.helperSource)) {
   console.error('--helper-examples needs --helper-input and --helper-source.');
   process.exit(1);
@@ -79,6 +82,18 @@ for await (const line of reader) {
     stats.otherLanguageSections += 1;
     continue;
   }
+  // Japanese Wiktionary also writes kanji spellings as their own form-of entries (飲む → のむ). Those
+  // become kanji aliases of the kana lemma instead of separate entries.
+  if (indexKanjiForms) {
+    const spelling = getString(rawEntry.word);
+    const lemmas = (rawEntry.senses ?? []).flatMap((sense) => (Array.isArray(sense.form_of) ? sense.form_of : [])).map((item) => getString(item?.word)).filter(Boolean);
+    if (spelling && lemmas.length && !isLemmaEntry(rawEntry)) {
+      for (const lemma of lemmas) {
+        const lemmaId = `${args.lang}:${normalizeLookupKey(lemma)}`;
+        kanjiFormsById.set(lemmaId, unique([...(kanjiFormsById.get(lemmaId) ?? []), spelling]));
+      }
+    }
+  }
   if (lemmasOnly && !isLemmaEntry(rawEntry)) {
     stats.formOfEntriesSkipped += 1;
     continue;
@@ -87,6 +102,13 @@ for await (const line of reader) {
   if (!normalizedEntry) {
     stats.withoutDefinitions += 1;
     continue;
+  }
+  if (indexKanjiForms) {
+    const kanji = (Array.isArray(rawEntry.forms) ? rawEntry.forms : [])
+      .filter((form) => Array.isArray(form?.tags) && form.tags.includes('kanji'))
+      .map((form) => getString(form.form))
+      .filter((form) => form && form !== normalizedEntry.word);
+    if (kanji.length) kanjiFormsById.set(normalizedEntry.id, unique([...(kanjiFormsById.get(normalizedEntry.id) ?? []), ...kanji]));
   }
   const existing = entriesByKey.get(normalizedEntry.id);
   if (existing) {
@@ -161,6 +183,24 @@ if (rankByRichness && selected.length > limit) {
     .sort((a, b) => b.score - a.score || (a.entry.normalizedWord < b.entry.normalizedWord ? -1 : 1))
     .slice(0, limit)
     .map(({ entry }) => entry);
+}
+
+// Japanese Wiktionary keys many words by their kana reading and lists the kanji spelling in `forms`
+// (みず → 水). Learners look words up in kanji, so each selected entry is also stored under its kanji
+// spellings, unless the pack already has an entry for that spelling. The alias keeps the kana
+// headword in `word`, so the result still shows the reading.
+if (indexKanjiForms) {
+  stats.kanjiAliasEntries = 0;
+  const taken = new Set(selected.map((entry) => entry.id));
+  for (const entry of [...selected]) {
+    for (const form of kanjiFormsById.get(entry.id) ?? []) {
+      const id = `${args.lang}:${normalizeLookupKey(form)}`;
+      if (taken.has(id)) continue;
+      taken.add(id);
+      selected.push({ ...entry, id, normalizedWord: normalizeLookupKey(form) });
+      stats.kanjiAliasEntries += 1;
+    }
+  }
 }
 
 const entries = selected

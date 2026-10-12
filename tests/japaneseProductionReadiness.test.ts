@@ -44,12 +44,12 @@ describe('Japanese source gates with D12 helper examples', () => {
     expect(getHelperSourceGate('ja', 'related-words')).toMatchObject({ passesNatively: false, passesWithHelper: true });
   });
 
-  it('clears the source gates but keeps pack and UI smoke pending, so Japanese is not promoted', () => {
+  it('clears the source and pack gates but keeps the UI smoke pending, so Japanese is not promoted', () => {
     const { blockers, canPromote } = evaluateLanguagePromotion(japanesePromotionMeasurement);
     expect(blockers).not.toContain('examples');
     expect(blockers).not.toContain('related-words');
     expect(blockers).not.toContain('exact-lookup');
-    expect(blockers).toEqual(['offline-pack-size', 'offline-pack-smoke', 'ui-smoke']);
+    expect(blockers).toEqual(['ui-smoke']);
     expect(canPromote).toBe(false);
     expect(languageProductionRoadmap.find((target) => target.code === 'ja')).toMatchObject({ state: 'preview-promotion' });
     expect(languageProductionRoadmap.find((target) => target.code === 'ja')?.sourcePlan).toContain('D12, approved 2026-10-12');
