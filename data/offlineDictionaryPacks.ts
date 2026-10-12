@@ -24,6 +24,8 @@ export type OfflineDictionaryPack = {
     min: number;
   };
   id: string;
+  // A tiny development pack used for smoke tests; shown as a sample, never as a full dictionary.
+  isSample?: boolean;
   languageCode: LanguageCode;
   license: 'CC-BY-SA-4.0/GFDL';
   sourceName: string;
@@ -47,6 +49,7 @@ export const offlineDictionaryPacks: OfflineDictionaryPack[] = [
       min: 1,
     },
     id: 'enwiktionary-en-offline-pack-v1',
+    isSample: true,
     languageCode: 'en',
     license: 'CC-BY-SA-4.0/GFDL',
     sourceName: 'enwiktionary',
@@ -70,6 +73,12 @@ export function getOfflinePackSummary(
     runtimeBlockedCount,
     runtimePendingCount,
   };
+}
+
+export function formatPackTitle(pack: OfflineDictionaryPack, languageLabel: string) {
+  return pack.isSample
+    ? `${languageLabel} · pack mẫu (${pack.downloadSource?.entryCount ?? 0} mục từ)`
+    : languageLabel;
 }
 
 export function formatPackSizeRange(pack: OfflineDictionaryPack) {

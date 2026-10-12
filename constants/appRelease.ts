@@ -1,5 +1,5 @@
 export const APP_RELEASE = {
-  cloudSyncMode: 'Manual beta sync',
+  cloudSyncMode: 'Auto cloud sync (beta)',
   deployScope: 'Local-first + backend-gated AI/translation',
   label: 'Dictionary Mobile',
   version: '1.3.8',

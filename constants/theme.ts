@@ -1,36 +1,11 @@
 /**
  * Design system & tokens: Minimalism + Futuristic style
  * Organized by category: Colors (theme-aware), Typography, Spacing, Radius, Motion, Shadows
- * Usage: import { DesignSystem, Colors, Fonts } from '@/constants/theme'
+ * Usage: import { DesignSystem, Fonts } from '@/constants/theme'
  *        const token = DesignSystem.light.colors.accentNeo
  */
 
 import { Platform } from 'react-native';
-
-// ============================================================================
-// LEGACY COLORS (backward compatibility; prefer DesignSystem.colors)
-// ============================================================================
-const tintColorLight = '#7c3aed';
-const tintColorDark = '#a78bfa';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#ffffff',
-    tint: tintColorLight,
-    icon: '#6b7280',
-    tabIconDefault: '#6b7280',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#101114',
-    tint: tintColorDark,
-    icon: '#a1a1aa',
-    tabIconDefault: '#a1a1aa',
-    tabIconSelected: tintColorDark,
-  },
-};
 
 // ============================================================================
 // FONTS (unchanged)
@@ -175,6 +150,8 @@ export const DesignSystem = {
       textOnAccent: '#ffffff',
       textOnHero: '#ffffff',
       textOnHeroMuted: '#d7e3f1',
+      // Ink for content placed on user-chosen pastel colors (folder colors), which stay light in both themes.
+      textOnPastel: '#0f172a',
 
       // Accent colors (minimalist + futuristic)
       accentPrimary: '#7c3aed', // Electric purple for primary actions
@@ -276,6 +253,7 @@ export const DesignSystem = {
       textOnAccent: '#ffffff',
       textOnHero: '#f8fafc',
       textOnHeroMuted: '#c7c7d1',
+      textOnPastel: '#0f172a',
 
       // Accent colors
       accentPrimary: '#a78bfa',

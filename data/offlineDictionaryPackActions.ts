@@ -87,7 +87,7 @@ export async function installOfflineDictionaryPackFromSource({
     const manifest = downloadResult.manifest
       ? await readOfflinePackManifest(packFileReader, downloadResult.manifest.uri)
       : getManifestFromDownloadSource(pack, source);
-    const entries = await readOfflinePackEntries(packFileReader, downloadResult.entries.uri);
+    const entries = await readOfflinePackEntries(packFileReader, downloadResult.entries.uri, pack.languageCode);
     const importedState = await importOfflineDictionaryPack({
       clock,
       entries,
@@ -142,13 +142,70 @@ export async function readOfflinePackManifest(fileReader: OfflinePackFileReader,
   return JSON.parse(await fileReader.readText(uri)) as OfflinePackManifest;
 }
 
-export async function readOfflinePackEntries(fileReader: OfflinePackFileReader, uri: string): Promise<OfflineDictionaryEntry[]> {
+export async function readOfflinePackEntries(
+  fileReader: OfflinePackFileReader,
+  uri: string,
+  expectedLangCode?: string
+): Promise<OfflineDictionaryEntry[]> {
   const rawEntries = uri.toLocaleLowerCase().endsWith('.gz')
     ? ungzip(await fileReader.readBytes(uri), { to: 'string' })
     : await fileReader.readText(uri);
 
-  const entries = JSON.parse(rawEntries) as unknown;
-  return Array.isArray(entries) ? entries as OfflineDictionaryEntry[] : [];
+  const parsed = JSON.parse(rawEntries) as unknown;
+  if (!Array.isArray(parsed)) throw new Error('Offline pack entries are not a list.');
+  const entries = parsed.map((value) => sanitizeOfflinePackEntry(value, expectedLangCode)).filter((entry): entry is OfflineDictionaryEntry => Boolean(entry));
+  if (parsed.length && !entries.length) throw new Error('Offline pack has no valid entries for this language.');
+  return entries;
+}
+
+const strings = (value: unknown) => (Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())) : []);
+const text = (value: unknown) => (typeof value === 'string' ? value : '');
+
+// Packs come from the network: entries without a headword, definitions, licence or attribution, or
+// from another language, are dropped instead of being written into the dictionary database.
+export function sanitizeOfflinePackEntry(value: unknown, expectedLangCode?: string): OfflineDictionaryEntry | null {
+  if (!value || typeof value !== 'object') return null;
+  const raw = value as Record<string, unknown>;
+  const word = text(raw.word).trim();
+  const langCode = text(raw.langCode);
+  const attribution = text(raw.attribution).trim();
+  if (!word || !langCode || (expectedLangCode && langCode !== expectedLangCode)) return null;
+  if (raw.license !== 'CC-BY-SA-4.0/GFDL' || !attribution) return null;
+
+  const definitions = (Array.isArray(raw.definitions) ? raw.definitions : [])
+    .map((definition) => {
+      const item = (definition ?? {}) as Record<string, unknown>;
+      return { gloss: text(item.gloss).trim(), tags: strings(item.tags), topics: strings(item.topics) };
+    })
+    .filter((definition) => definition.gloss);
+  if (!definitions.length) return null;
+
+  const relations = (raw.relations ?? {}) as Record<string, unknown>;
+  const normalizedWord = text(raw.normalizedWord).trim() || word.toLocaleLowerCase();
+  return {
+    attribution,
+    audio: strings(raw.audio),
+    definitions,
+    etymology: text(raw.etymology),
+    examples: (Array.isArray(raw.examples) ? raw.examples : [])
+      .map((example) => {
+        const item = (example ?? {}) as Record<string, unknown>;
+        const translation = text(item.translation).trim();
+        return translation ? { source: text(item.source).trim(), translation } : { source: text(item.source).trim() };
+      })
+      .filter((example) => example.source),
+    id: text(raw.id).trim() || `${langCode}:${normalizedWord}`,
+    ipa: text(raw.ipa),
+    langCode: langCode as OfflineDictionaryEntry['langCode'],
+    license: 'CC-BY-SA-4.0/GFDL',
+    normalizedWord,
+    partOfSpeech: text(raw.partOfSpeech),
+    relations: { antonyms: strings(relations.antonyms), synonyms: strings(relations.synonyms) },
+    sourceName: text(raw.sourceName).trim() || 'unknown',
+    sourceUrl: text(raw.sourceUrl),
+    updatedAt: text(raw.updatedAt),
+    word,
+  };
 }
 
 async function createExpoOfflinePackFileReader(): Promise<OfflinePackFileReader> {

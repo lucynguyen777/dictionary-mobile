@@ -116,3 +116,12 @@ describe('offlineDictionaryPacks', () => {
     ).toBe('25MB');
   });
 });
+
+describe('sample packs', () => {
+  it('labels the development pack as a sample with its real entry count', async () => {
+    const { formatPackTitle, offlineDictionaryPacks } = await import('../data/offlineDictionaryPacks');
+    const english = offlineDictionaryPacks.find((pack) => pack.languageCode === 'en')!;
+    expect(formatPackTitle(english, 'English')).toBe('English · pack mẫu (2 mục từ)');
+    expect(formatPackTitle({ ...english, isSample: false }, 'English')).toBe('English');
+  });
+});

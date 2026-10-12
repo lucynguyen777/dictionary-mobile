@@ -1,0 +1,18 @@
+{
+  "entryCount": 121,
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "input": "tr-probes.jsonl",
+  "langCode": "tr",
+  "license": "CC-BY-SA-4.0/GFDL",
+  "packId": "trwiktionary-tr-offline-pack-v1",
+  "schemaVersion": 1,
+  "sourceName": "trwiktionary",
+  "sourceUrl": "https://kaikki.org/trwiktionary/T%C3%BCrk%C3%A7e/kaikki.org-dictionary-T%C3%BCrk%C3%A7e.jsonl",
+  "sourceRevision": "2026-10",
+  "helperSources": [
+    {
+      "name": "enwiktionary",
+      "use": "related-words"
+    }
+  ]
+}

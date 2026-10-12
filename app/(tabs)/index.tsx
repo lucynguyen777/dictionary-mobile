@@ -1,10 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
+import LanguageSelect, { getUnavailableLanguageMessage } from '@/components/app/LanguageSelect';
 import MotionPressable from '@/components/app/MotionPressable';
 import Screen from '@/components/app/Screen';
+import { createHomeStyles } from '@/components/home/homeStyles';
 import { loadAppColorSchemePreference, saveAppColorSchemePreference, type AppColorSchemePreference } from '@/data/appThemePreference';
 import { getDefaultActivityState, getLocalDateKey, loadActivityState, type ActivityState } from '@/data/activityStore';
 import { dictionaryEntries, getWordOfDay } from '@/data/dictionary';
@@ -27,6 +30,7 @@ export default function HomeScreen() {
   const lookupInputRef = useRef<TextInput | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [isLoaded, setIsLoaded] = useState(false);
   const [activityState, setActivityState] = useState<ActivityState>(getDefaultActivityState());
   const [todayKey, setTodayKey] = useState(() => getLocalDateKey(new Date()));
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
@@ -49,8 +53,12 @@ export default function HomeScreen() {
           setLibraryState(state);
           setActivityState(activity);
           setThemePreference(preference);
+          setIsLoaded(true);
         })
-        .catch(() => undefined);
+        // Home still works with defaults; only the "no history yet" copy waits for an answer.
+        .catch(() => {
+          if (isMounted) setIsLoaded(true);
+        });
 
       return () => {
         isMounted = false;
@@ -131,6 +139,12 @@ export default function HomeScreen() {
   };
 
   const handleSelectLanguage = (field: LanguageField, language: LanguageOption) => {
+    // Same rule as the Word screen: languages without an approved dictionary source cannot be looked up yet.
+    if (language.dictionaryStatus === 'unavailable') {
+      Alert.alert('Cập nhật trong phiên bản sau', getUnavailableLanguageMessage(language));
+      return;
+    }
+
     if (field === 'source') {
       setSourceLanguage(language);
     } else {
@@ -202,34 +216,33 @@ export default function HomeScreen() {
                 value={lookupQuery}
               />
               {lookupQuery ? (
-                <TouchableOpacity activeOpacity={0.75} onPress={() => setLookupQuery('')}>
+                <Touchable
+                  accessibilityLabel="Xóa nội dung tìm kiếm"
+                  accessibilityRole="button"
+                  activeOpacity={0.75}
+                  hitSlop={10}
+                  onPress={() => setLookupQuery('')}>
                   <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
-                </TouchableOpacity>
+                </Touchable>
               ) : null}
             </View>
             <View style={styles.languageRow}>
               <LanguageSelect
                 active={activeLanguageField === 'source'}
-                field="source"
                 label="Ngôn ngữ gốc"
                 selectedLanguage={sourceLanguage}
-                styles={styles}
-                colors={colors}
-                onPress={handleLanguagePress}
-                onSelect={handleSelectLanguage}
+                onToggle={() => handleLanguagePress('source')}
+                onSelect={(language) => handleSelectLanguage('source', language)}
               />
               <View style={styles.languageSwap}>
                 <Ionicons name="swap-horizontal" size={18} color={colors.textSecondary} />
               </View>
               <LanguageSelect
                 active={activeLanguageField === 'target'}
-                field="target"
                 label="Tra / dịch sang"
                 selectedLanguage={targetLanguage}
-                styles={styles}
-                colors={colors}
-                onPress={handleLanguagePress}
-                onSelect={handleSelectLanguage}
+                onToggle={() => handleLanguagePress('target')}
+                onSelect={(language) => handleSelectLanguage('target', language)}
               />
             </View>
             {detectedLanguage ? (
@@ -238,14 +251,16 @@ export default function HomeScreen() {
                 <Text style={styles.detectedLanguageText}>
                   Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
                 </Text>
-                <TouchableOpacity
+                <Touchable
+                  accessibilityLabel="Hoàn tác ngôn ngữ đã nhận diện"
                   activeOpacity={0.75}
+                  hitSlop={12}
                   onPress={() => {
                     setDetectedLanguage(null);
                     setSourceLanguage(languageOptions[0]);
                   }}>
                   <Text style={styles.detectedLanguageUndo}>Hoàn tác</Text>
-                </TouchableOpacity>
+                </Touchable>
               </View>
             ) : null}
             <MotionPressable
@@ -271,14 +286,14 @@ export default function HomeScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Từ vựng hôm nay</Text>
           <Link href={{ pathname: '/word', params: { word: wordOfDay.word } }} asChild>
-            <TouchableOpacity>
+            <Touchable>
               <Text style={styles.sectionAction}>Tra cứu</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         </View>
 
         <Link href={{ pathname: '/word', params: { word: wordOfDay.word } }} asChild>
-          <TouchableOpacity activeOpacity={0.85} style={styles.wotdCard}>
+          <Touchable activeOpacity={0.85} style={styles.wotdCard}>
             <View style={styles.wotdTopRow}>
               <View style={styles.wotdBadge}>
                 <Ionicons name="star" size={12} color={colors.textOnAccent} />
@@ -298,21 +313,21 @@ export default function HomeScreen() {
                 <Text style={styles.wotdExampleText}>“{wordOfDay.definitions[0].examples[0].source}”</Text>
               </View>
             ) : null}
-          </TouchableOpacity>
+          </Touchable>
         </Link>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Lịch sử tra cứu</Text>
           <Link href="/word" asChild>
-            <TouchableOpacity>
+            <Touchable>
               <Text style={styles.sectionAction}>Tra cứu</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         </View>
 
         {recentSearches.map((item) => (
           <Link key={item.word} href={{ pathname: '/word', params: { word: item.word } }} asChild>
-            <TouchableOpacity activeOpacity={0.82} style={styles.wordCard}>
+            <Touchable activeOpacity={0.82} style={styles.wordCard}>
               <View style={styles.wordTop}>
                 <View style={{ flex: 1, marginRight: 12 }}>
                   <Text style={[styles.word, /[\u0600-\u06FF\u0590-\u05FF]/.test(item.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{item.word}</Text>
@@ -324,16 +339,16 @@ export default function HomeScreen() {
               </View>
               <Text style={styles.definition}>{item.definition}</Text>
               <Text style={styles.translation}>{formatLookedUpAt(item.lookedUpAt)}</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         ))}
-        {!recentSearches.length ? (
+        {isLoaded && !recentSearches.length ? (
           <Link href="/word" asChild>
-            <TouchableOpacity activeOpacity={0.82} style={styles.emptyHistoryCard}>
+            <Touchable activeOpacity={0.82} style={styles.emptyHistoryCard}>
               <Ionicons name="time-outline" size={24} color={colors.textTertiary} />
               <Text style={styles.emptyHistoryTitle}>Chưa có lịch sử tra cứu</Text>
               <Text style={styles.emptyHistoryText}>Tra một từ tiếng Anh để lịch sử xuất hiện ở đây.</Text>
-            </TouchableOpacity>
+            </Touchable>
           </Link>
         ) : null}
       </ScrollView>
@@ -353,550 +368,6 @@ export default function HomeScreen() {
     </Screen>
   );
 }
-
-function LanguageSelect({
-  active,
-  field,
-  label,
-  selectedLanguage,
-  styles,
-  colors,
-  onPress,
-  onSelect,
-}: {
-  active: boolean;
-  field: LanguageField;
-  label: string;
-  selectedLanguage: LanguageOption;
-  styles: ReturnType<typeof createHomeStyles>;
-  colors: ReturnType<typeof useToken>['colors'];
-  onPress: (field: LanguageField) => void;
-  onSelect: (field: LanguageField, language: LanguageOption) => void;
-}) {
-  return (
-    <View style={styles.languageSelectWrap}>
-      <TouchableOpacity
-        activeOpacity={0.82}
-        onPress={() => onPress(field)}
-        style={[styles.languageSelect, active && styles.activeLanguageSelect]}>
-          <Text style={styles.languageSelectLabel}>{label}</Text>
-        <View style={styles.languageSelectValueRow}>
-          <Text style={styles.languageSelectValue}>{selectedLanguage.label}</Text>
-          <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
-        </View>
-      </TouchableOpacity>
-      {active ? (
-        <View style={styles.languageMenu}>
-          {languageOptions.map((language) => {
-            const isSelected = language.code === selectedLanguage.code;
-
-            return (
-              <TouchableOpacity
-                key={`${field}-${language.code}`}
-                activeOpacity={0.82}
-                onPress={() => onSelect(field, language)}
-                style={[styles.languageOption, isSelected && styles.activeLanguageOption]}>
-                <View style={styles.languageOptionCopy}>
-                  <Text style={[styles.languageOptionText, isSelected && styles.activeLanguageOptionText]}>
-                    {language.label}
-                  </Text>
-                  <Text style={styles.languageOptionHint}>{language.hint}</Text>
-                </View>
-                {isSelected ? <Ionicons name="checkmark" size={16} color={colors.accentPrimary} /> : null}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-function createHomeStyles({
-  colors,
-  radius,
-  shadows,
-  spacing,
-  theme,
-}: Pick<ReturnType<typeof useToken>, 'colors' | 'radius' | 'shadows' | 'spacing' | 'theme'>) {
-return StyleSheet.create({
-  screenBody: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: 96,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-  },
-  scrollTopButton: {
-    alignItems: 'center',
-    backgroundColor: colors.accentPrimary,
-    borderRadius: radius.full,
-    bottom: 18,
-    height: 44,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: 18,
-    width: 44,
-    zIndex: 30,
-    ...shadows.md,
-  },
-  quickAiButton: {
-    alignItems: 'center',
-    backgroundColor: colors.accentNeo,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    bottom: 72,
-    height: 44,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: 18,
-    width: 44,
-    zIndex: 30,
-    ...shadows.md,
-  },
-  topBar: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  topBarActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  greeting: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: 30,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  iconButton: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    height: 42,
-    justifyContent: 'center',
-    width: 42,
-    ...shadows.sm,
-  },
-  detectedLanguageChip: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.focusRing,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 7,
-    marginTop: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  detectedLanguageText: {
-    color: colors.accentPrimary,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  detectedLanguageUndo: {
-    color: colors.accentPrimary,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  hero: {
-    backgroundColor: colors.surfaceHero,
-    borderColor: theme === 'dark' ? colors.borderDefault : 'transparent',
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    marginTop: 22,
-    minHeight: 170,
-    overflow: 'hidden',
-    padding: 20,
-    ...shadows.glow,
-  },
-  heroCopy: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  heroKicker: {
-    color: colors.accentPrimary,
-    fontSize: 12,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  heroTitle: {
-    color: colors.textOnHero,
-    fontSize: 27,
-    fontWeight: '700',
-    lineHeight: 33,
-    marginTop: 12,
-  },
-  heroText: {
-    color: colors.textOnHeroMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 12,
-  },
-  heroBadge: {
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    backgroundColor: colors.surfaceGlass,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  heroBadgeNumber: {
-    color: colors.accentPrimary,
-    fontSize: 25,
-    fontWeight: '700',
-  },
-  heroBadgeLabel: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  searchBox: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-    padding: 14,
-    ...shadows.sm,
-  },
-  searchCopy: {
-    flex: 1,
-  },
-  searchLabel: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  searchHint: {
-    color: colors.textTertiary,
-    fontSize: 12,
-    marginTop: 4,
-  },
-  languagePanel: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    marginTop: 10,
-    padding: 12,
-  },
-  homeLookupInputBox: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.focusRing,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-    minHeight: 50,
-    paddingHorizontal: 12,
-  },
-  homeLookupInput: {
-    color: colors.textPrimary,
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '800',
-    paddingVertical: 10,
-  },
-  languageRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  languageSelectWrap: {
-    flex: 1,
-  },
-  languageSelect: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    minHeight: 72,
-    padding: 12,
-  },
-  activeLanguageSelect: {
-    borderColor: colors.accentPrimary,
-  },
-  languageSelectLabel: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  languageSelectValueRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  languageSelectValue: {
-    color: colors.textPrimary,
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  languageSwap: {
-    alignItems: 'center',
-    backgroundColor: colors.accentSoft,
-    borderRadius: radius.md,
-    height: 36,
-    justifyContent: 'center',
-    marginTop: 18,
-    width: 36,
-  },
-  languageMenu: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    marginTop: 8,
-    overflow: 'hidden',
-  },
-  languageOption: {
-    alignItems: 'center',
-    borderBottomColor: colors.borderDefault,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-  },
-  activeLanguageOption: {
-    backgroundColor: colors.accentSoft,
-  },
-  languageOptionCopy: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  languageOptionText: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  activeLanguageOptionText: {
-    color: colors.accentPrimary,
-  },
-  languageOptionHint: {
-    color: colors.textTertiary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  startLookupButton: {
-    alignItems: 'center',
-    backgroundColor: colors.accentPrimary,
-    borderRadius: radius.md,
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    marginTop: 12,
-    paddingVertical: 13,
-  },
-  disabledLookupButton: {
-    backgroundColor: colors.disabledBg,
-  },
-  startLookupText: {
-    color: colors.textOnAccent,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-  },
-  statCard: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flex: 1,
-    paddingVertical: 14,
-  },
-  statValue: {
-    color: colors.textPrimary,
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 8,
-  },
-  statLabel: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 3,
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    marginTop: 24,
-  },
-  sectionTitle: {
-    color: colors.textPrimary,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  sectionAction: {
-    color: colors.accentPrimary,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  wordCard: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    marginBottom: 12,
-    padding: 16,
-  },
-  wordTop: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  word: {
-    color: colors.textPrimary,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  ipa: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    marginTop: 4,
-  },
-  topicPill: {
-    backgroundColor: colors.accentSoft,
-    borderRadius: radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  topicText: {
-    color: colors.accentPrimary,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  definition: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 14,
-  },
-  translation: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '700',
-    marginTop: 8,
-  },
-  emptyHistoryCard: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    padding: 18,
-  },
-  emptyHistoryTitle: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 10,
-  },
-  emptyHistoryText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 19,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  wotdCard: {
-    backgroundColor: colors.surfaceHeroAlt,
-    borderRadius: 12,
-    marginBottom: 4,
-    padding: 18,
-  },
-  wotdTopRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
-  },
-  wotdBadge: {
-    alignItems: 'center',
-    backgroundColor: colors.accentPrimary,
-    borderRadius: radius.full,
-    flexDirection: 'row',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  wotdBadgeText: {
-    color: colors.textOnAccent,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  wotdWord: {
-    color: colors.textOnHero,
-    fontSize: 30,
-    fontWeight: '700',
-  },
-  wotdIpa: {
-    color: colors.accentPrimary,
-    fontSize: 15,
-    marginTop: 4,
-  },
-  wotdVietnamese: {
-    color: colors.accentNeo,
-    fontSize: 14,
-    fontWeight: '700',
-    marginTop: 6,
-  },
-  wotdDefinition: {
-    color: colors.textOnHeroMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 8,
-  },
-  wotdExample: {
-    alignItems: 'flex-start',
-    backgroundColor: colors.canvasOverlay,
-    borderRadius: radius.md,
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-    padding: 10,
-  },
-  wotdExampleText: {
-    color: colors.textOnHero,
-    flex: 1,
-    fontSize: 13,
-    fontStyle: 'italic',
-    lineHeight: 19,
-  },
-});
-}
-
 
 function formatLookedUpAt(value: string) {
   const date = new Date(value);

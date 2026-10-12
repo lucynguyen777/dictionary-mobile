@@ -1,6 +1,7 @@
 import { loadUserProfile } from './profileStore';
 import { loadCurrentAuthSession } from './authController';
 import { getSharedSupabaseAuthClient, type SupabaseAuthClientResult } from './supabaseAuthClient';
+import { syncSpecializedGlossariesWithSharedClient } from './specializedGlossarySync';
 import { runSupabaseCloudSyncOnce } from './supabaseSyncRunner';
 import type { SupabaseSyncRuntimeClient } from './supabaseSyncRuntimeAdapter';
 
@@ -63,6 +64,8 @@ async function runSyncOnce() {
     notifyListeners('syncing');
     const result = await runSupabaseCloudSyncOnce({ createClient: createSharedRuntimeClient });
     if (result.status === 'synced') {
+      // Glossaries for Specialized Translation live outside the SQLite user database and sync after it.
+      await syncSpecializedGlossariesWithSharedClient();
       notifyListeners('synced');
     } else if (result.status === 'offline') {
       notifyListeners('offline');

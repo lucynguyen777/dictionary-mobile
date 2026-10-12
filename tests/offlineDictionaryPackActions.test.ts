@@ -237,6 +237,36 @@ describe('offlineDictionaryPackActions', () => {
   });
 });
 
+describe('offline pack entry validation', () => {
+  it('drops entries from other languages or without definitions, licence or attribution', async () => {
+    const fileReader = createFakeFileReader({
+      bytesByUri: {},
+      textByUri: {
+        'file:///offline/entries.json': JSON.stringify([
+          entry,
+          { ...entry, id: 'fr:pain', langCode: 'fr', normalizedWord: 'pain', word: 'pain' },
+          { ...entry, definitions: [{ gloss: '  ' }], id: 'en:empty', word: 'empty' },
+          { ...entry, attribution: '', id: 'en:noattr', word: 'noattr' },
+          { ...entry, id: 'en:other-licence', license: 'proprietary', word: 'other' },
+          'not an entry',
+        ]),
+      },
+    });
+
+    const entries = await readOfflinePackEntries(fileReader, 'file:///offline/entries.json', 'en');
+    expect(entries.map((item) => item.word)).toEqual([entry.word]);
+  });
+
+  it('rejects a pack with no usable entries instead of importing an empty dictionary', async () => {
+    const fileReader = createFakeFileReader({
+      bytesByUri: {},
+      textByUri: { 'file:///offline/entries.json': JSON.stringify([{ ...entry, langCode: 'fr' }]) },
+    });
+
+    await expect(readOfflinePackEntries(fileReader, 'file:///offline/entries.json', 'en')).rejects.toThrow('no valid entries');
+  });
+});
+
 function createFakeActionFileSystem() {
   const downloads: Array<[string, string]> = [];
   const deletedUris: string[] = [];

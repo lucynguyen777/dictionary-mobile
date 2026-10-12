@@ -7,14 +7,14 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
 import {
-  aiChat,
+  aiChatStream,
   getQuota,
   type AiChatGoal,
   type AiChatMessage,
@@ -79,6 +79,9 @@ export default function AiAssistantScreen() {
   const [loading, setLoading] = useState(false);
   const [quota, setQuota] = useState<QuotaState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Reply text received so far, kept with the goal it belongs to in case the user switches tabs.
+  const [streamingReply, setStreamingReply] = useState<{ goal: AiChatGoal; text: string } | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const scrollViewRef = useRef<ScrollView | null>(null);
 
@@ -96,6 +99,7 @@ export default function AiAssistantScreen() {
 
   useEffect(() => {
     fetchQuotaState();
+    return () => abortRef.current?.abort();
   }, []);
 
   // Scroll to bottom on messages update
@@ -103,7 +107,7 @@ export default function AiAssistantScreen() {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  }, [chatMessages, loading]);
+  }, [chatMessages, loading, streamingReply?.text]);
 
   const handleGoalChange = (goalId: AiChatGoal) => {
     setSelectedGoal(goalId);
@@ -130,38 +134,48 @@ export default function AiAssistantScreen() {
     }));
 
     setLoading(true);
+    const goal = selectedGoal;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let received = '';
+    setStreamingReply({ goal, text: '' });
 
-    try {
-      // Call AI Chat API
-      const response = await aiChat({
-        goal: selectedGoal,
-        learningLanguage: 'EN',
-        messages: updatedMessages,
-      });
-
-      const assistantMessage: AiChatMessage = {
-        role: 'assistant',
-        content: response.content,
-      };
-
+    const appendAssistantMessage = (content: string) => {
       setMessagesByGoal((prev) => ({
         ...prev,
-        [selectedGoal]: [...updatedMessages, assistantMessage],
+        [goal]: [...updatedMessages, { role: 'assistant', content }],
       }));
+    };
 
-      // Refresh quota after a successful response
+    try {
+      const response = await aiChatStream(
+        { goal, learningLanguage: 'EN', messages: updatedMessages },
+        {
+          onDelta: (text) => {
+            received += text;
+            setStreamingReply({ goal, text: received });
+          },
+          signal: controller.signal,
+        },
+      );
+      appendAssistantMessage(response.content);
       fetchQuotaState();
     } catch (err: any) {
-      if (err?.status === 429) {
-        setError('Bạn đã dùng hết lượt hội thoại miễn phí của gói này.');
+      if (controller.signal.aborted) {
+        // Stopped by the user: keep what already arrived so the conversation reads naturally.
+        if (received.trim()) appendAssistantMessage(received);
       } else {
-        setError(err?.message || 'Không thể kết nối đến máy chủ AI.');
+        setError(describeAiChatError(err));
       }
-      
-      // Rollback last message or keep it and show error? We keep it but show an error banner.
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
+      setStreamingReply(null);
       setLoading(false);
     }
+  };
+
+  const handleStopReply = () => {
+    abortRef.current?.abort();
   };
 
   const handleResetChat = () => {
@@ -187,7 +201,7 @@ export default function AiAssistantScreen() {
             </Text>
             {quota?.aiChat ? (
               <Text style={[styles.quotaText, { color: colors.textTertiary, ...typography.captionSmall }]}>
-                Đã dùng {quota.aiChat.used}/{quota.aiChat.limit} tin nhắn tháng này
+                Hôm nay đã dùng {quota.aiChat.daily}/{quota.aiChat.dailyLimit} tin nhắn
               </Text>
             ) : (
               <Text style={[styles.quotaText, { color: colors.textTertiary, ...typography.captionSmall }]}>
@@ -195,17 +209,20 @@ export default function AiAssistantScreen() {
               </Text>
             )}
           </View>
-          <TouchableOpacity
+          <Touchable
+            accessibilityLabel="Bắt đầu lại hội thoại"
+            accessibilityRole="button"
             activeOpacity={0.7}
+            disabled={loading}
             onPress={handleResetChat}
             style={[styles.resetButton, { backgroundColor: colors.canvasAlt, borderRadius: radius.full }]}
           >
             <Ionicons name="refresh-outline" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
+          </Touchable>
         </View>
 
         {/* Goal Selector */}
-        <View style={styles.goalSelectorContainer}>
+        <View style={[styles.goalSelectorContainer, { borderColor: colors.borderDefault }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -214,7 +231,7 @@ export default function AiAssistantScreen() {
             {GOALS.map((goal) => {
               const isSelected = selectedGoal === goal.id;
               return (
-                <TouchableOpacity
+                <Touchable
                   key={goal.id}
                   activeOpacity={0.8}
                   onPress={() => handleGoalChange(goal.id)}
@@ -244,7 +261,7 @@ export default function AiAssistantScreen() {
                   >
                     {goal.label}
                   </Text>
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
           </ScrollView>
@@ -276,7 +293,7 @@ export default function AiAssistantScreen() {
               >
                 {!isUser && (
                   <View style={[styles.avatar, { backgroundColor: colors.accentPrimary }]}>
-                    <Ionicons name="sparkles" size={14} color="#FFFFFF" />
+                    <Ionicons name="sparkles" size={14} color={colors.textOnAccent} />
                   </View>
                 )}
                 <View
@@ -292,7 +309,7 @@ export default function AiAssistantScreen() {
                     style={[
                       styles.messageText,
                       {
-                        color: isUser ? '#FFFFFF' : colors.textPrimary,
+                        color: isUser ? colors.textOnAccent : colors.textPrimary,
                         ...typography.bodySm,
                       },
                     ]}
@@ -304,10 +321,10 @@ export default function AiAssistantScreen() {
             );
           })}
 
-          {loading && (
+          {loading && streamingReply?.goal === selectedGoal && (
             <View style={[styles.messageRow, styles.assistantRow]}>
               <View style={[styles.avatar, { backgroundColor: colors.accentPrimary }]}>
-                <Ionicons name="sparkles" size={14} color="#FFFFFF" />
+                <Ionicons name="sparkles" size={14} color={colors.textOnAccent} />
               </View>
               <View
                 style={[
@@ -321,7 +338,15 @@ export default function AiAssistantScreen() {
                   },
                 ]}
               >
-                <ActivityIndicator size="small" color={colors.accentPrimary} />
+                {streamingReply.text ? (
+                  <Text
+                    accessibilityLiveRegion="polite"
+                    style={[styles.messageText, { color: colors.textPrimary, ...typography.bodySm }]}>
+                    {streamingReply.text}
+                  </Text>
+                ) : (
+                  <ActivityIndicator accessibilityLabel="AI đang trả lời" size="small" color={colors.accentPrimary} />
+                )}
               </View>
             </View>
           )}
@@ -356,24 +381,39 @@ export default function AiAssistantScreen() {
             value={inputText}
             onChangeText={setInputText}
           />
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={handleSendMessage}
-            disabled={!inputText.trim() || loading}
-            style={[
-              styles.sendButton,
-              {
-                backgroundColor: inputText.trim() && !loading ? colors.accentPrimary : colors.disabledBg,
-                borderRadius: radius.full,
-              },
-            ]}
-          >
-            <Ionicons
-              name="send"
-              size={16}
-              color={inputText.trim() && !loading ? '#FFFFFF' : colors.disabledText}
-            />
-          </TouchableOpacity>
+          {loading ? (
+            <Touchable
+              accessibilityLabel="Dừng trả lời"
+              accessibilityRole="button"
+              activeOpacity={0.8}
+              onPress={handleStopReply}
+              style={[styles.sendButton, { backgroundColor: colors.accentPrimary, borderRadius: radius.full }]}
+            >
+              <Ionicons name="stop" size={16} color={colors.textOnAccent} />
+            </Touchable>
+          ) : (
+            <Touchable
+              accessibilityLabel="Gửi tin nhắn"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !inputText.trim() }}
+              activeOpacity={0.8}
+              onPress={handleSendMessage}
+              disabled={!inputText.trim()}
+              style={[
+                styles.sendButton,
+                {
+                  backgroundColor: inputText.trim() ? colors.accentPrimary : colors.disabledBg,
+                  borderRadius: radius.full,
+                },
+              ]}
+            >
+              <Ionicons
+                name="send"
+                size={16}
+                color={inputText.trim() ? colors.textOnAccent : colors.disabledText}
+              />
+            </Touchable>
+          )}
         </View>
       </KeyboardAvoidingView>
     </Screen>
@@ -399,15 +439,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   resetButton: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   goalSelectorContainer: {
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e5e7eb',
   },
   goalSelectorScroll: {
     paddingHorizontal: 16,
@@ -463,6 +502,8 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   bubble: {
+    // Lets long replies wrap inside the row's 85% width instead of running off-screen.
+    flexShrink: 1,
     paddingHorizontal: 14,
     paddingVertical: 10,
     shadowColor: 'rgba(0, 0, 0, 0.02)',
@@ -504,12 +545,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     fontSize: 14,
-    minHeight: 38,
+    minHeight: 40,
   },
   sendButton: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
 });
+
+function describeAiChatError(error: any) {
+  if (error?.code === 'backend_proxy_unconfigured' || error?.code === 'provider_unconfigured') {
+    return 'AI Tutor chưa được bật trên bản cài đặt này.';
+  }
+  if (error?.status === 401) return 'Đăng nhập cloud để dùng AI Tutor.';
+  if (error?.status === 429) return 'Bạn đã dùng hết lượt hội thoại AI hôm nay. Thử lại vào ngày mai.';
+  if (error?.code === 'ai_stream_interrupted') return 'Kết nối AI bị ngắt giữa chừng. Gửi lại tin nhắn để thử lại.';
+  if (error?.status >= 400 && error?.status < 500 && error?.message) return error.message;
+  return 'AI Tutor tạm thời không phản hồi. Kiểm tra kết nối và thử lại.';
+}

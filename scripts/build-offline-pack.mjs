@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { createReadStream, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -8,12 +9,36 @@ import { gzipSync } from 'node:zlib';
 const args = parseArgs(process.argv.slice(2));
 
 if (!args.input || !args.lang || !args.source || !args.out) {
-  console.error('Usage: node scripts/build-offline-pack.mjs --input <jsonl> --lang <code> --source <name> --out <dir> [--source-url <url>]');
+  console.error(
+    'Usage: node scripts/build-offline-pack.mjs --input <jsonl> --lang <code> --source <name> --out <dir>'
+      + ' [--source-url <url>] [--source-revision <dump date or id>] [--generated-at <ISO time>] [--limit <entries>]'
+      + ' [--public-base-url <url prefix where the pack is hosted>]'
+      + ' [--helper-input <jsonl> --helper-source <name>]  (related words only, e.g. from another Wiktionary edition)'
+      + ' [--lemmas-only]  (skip inflected-form entries; the app resolves inflections with its morphology)'
+      + ' [--rank-by richness]  (with --limit: keep the best-documented entries instead of the first ones in the dump)'
+  );
   process.exit(1);
 }
 
-const generatedAt = new Date().toISOString();
-const entries = [];
+// A fixed --generated-at makes rebuilding the same dump byte-identical (same checksums).
+const generatedAt = args.generatedAt ?? new Date().toISOString();
+const limit = args.limit ? Number(args.limit) : Infinity;
+if (args.rankBy !== undefined && args.rankBy !== 'richness') {
+  console.error('--rank-by only supports "richness".');
+  process.exit(1);
+}
+const rankByRichness = args.rankBy === 'richness';
+const MAX_DEFINITIONS_PER_ENTRY = 16;
+const MAX_EXAMPLES_PER_ENTRY = 8;
+const MAX_RELATIONS = 24;
+const MAX_TEXT_CHARS = 1_000;
+const entriesByKey = new Map();
+const lemmasOnly = args.lemmasOnly === true;
+const stats = { formOfEntriesSkipped: 0, mergedEntries: 0, otherLanguageSections: 0, scannedLines: 0, withoutDefinitions: 0 };
+// As in scripts/measure-kaikki-dump.mjs, an entry is a lemma if any sense is not a form-of sense.
+// Entries without senses are left to the definitions check below.
+const isLemmaEntry = (entry) => !(entry.senses ?? []).length
+  || entry.senses.some((sense) => !sense.form_of && !(sense.tags ?? []).includes('form-of'));
 
 const reader = createInterface({
   crlfDelay: Infinity,
@@ -24,12 +49,79 @@ for await (const line of reader) {
   const trimmed = line.trim();
   if (!trimmed) continue;
 
+  stats.scannedLines += 1;
   const rawEntry = JSON.parse(trimmed);
+  // Wiktextract dumps mix language sections; a French word on English Wiktionary must not enter an English pack.
+  if (typeof rawEntry.lang_code === 'string' && rawEntry.lang_code !== args.lang) {
+    stats.otherLanguageSections += 1;
+    continue;
+  }
+  if (lemmasOnly && !isLemmaEntry(rawEntry)) {
+    stats.formOfEntriesSkipped += 1;
+    continue;
+  }
   const normalizedEntry = normalizeEntry(rawEntry, args.lang, args.source, args.sourceUrl, generatedAt);
-  if (normalizedEntry) {
-    entries.push(normalizedEntry);
+  if (!normalizedEntry) {
+    stats.withoutDefinitions += 1;
+    continue;
+  }
+  const existing = entriesByKey.get(normalizedEntry.id);
+  if (existing) {
+    mergeEntry(existing, normalizedEntry);
+    stats.mergedEntries += 1;
+  } else if (rankByRichness || entriesByKey.size < limit) {
+    entriesByKey.set(normalizedEntry.id, normalizedEntry);
   }
 }
+
+// Helper source: only synonyms/antonyms of headwords already in the pack are taken, never definitions,
+// and the helper is credited in each enriched entry's attribution.
+if (args.helperInput && args.helperSource) {
+  stats.helperEnrichedEntries = 0;
+  const helperReader = createInterface({ crlfDelay: Infinity, input: createReadStream(args.helperInput, { encoding: 'utf8' }) });
+  for await (const line of helperReader) {
+    if (!line.trim()) continue;
+    const helperEntry = JSON.parse(line);
+    if (typeof helperEntry.lang_code === 'string' && helperEntry.lang_code !== args.lang) continue;
+    const target = entriesByKey.get(`${args.lang}:${normalizeLookupKey(getString(helperEntry.word))}`);
+    if (!target) continue;
+    const relations = normalizeRelations(helperEntry);
+    const before = target.relations.synonyms.length + target.relations.antonyms.length;
+    target.relations = {
+      antonyms: unique([...target.relations.antonyms, ...relations.antonyms]),
+      synonyms: unique([...target.relations.synonyms, ...relations.synonyms]),
+    };
+    if (target.relations.synonyms.length + target.relations.antonyms.length > before && !target.attribution.includes(args.helperSource)) {
+      target.attribution = `${target.attribution}; related words also from ${args.helperSource} (CC-BY-SA-4.0/GFDL)`;
+      stats.helperEnrichedEntries += 1;
+    }
+  }
+}
+
+// Without a licensed frequency list, how well Wiktionary documents a word is the available proxy for
+// how common it is: senses, examples, related words, pronunciation and etymology.
+function richness(entry) {
+  return entry.definitions.length * 2
+    + Math.min(entry.examples.length, 8)
+    + Math.min(entry.relations.synonyms.length + entry.relations.antonyms.length, 8)
+    + (entry.ipa ? 2 : 0)
+    + (entry.audio.length ? 2 : 0)
+    + (entry.etymology ? 1 : 0);
+}
+
+let selected = [...entriesByKey.values()];
+if (rankByRichness && selected.length > limit) {
+  stats.droppedByRank = selected.length - limit;
+  selected = selected
+    .map((entry) => ({ entry, score: richness(entry) }))
+    .sort((a, b) => b.score - a.score || (a.entry.normalizedWord < b.entry.normalizedWord ? -1 : 1))
+    .slice(0, limit)
+    .map(({ entry }) => entry);
+}
+
+const entries = selected
+  .map(capEntry)
+  .sort((a, b) => (a.normalizedWord < b.normalizedWord ? -1 : a.normalizedWord > b.normalizedWord ? 1 : 0));
 
 mkdirSync(args.out, { recursive: true });
 
@@ -44,12 +136,74 @@ const manifest = {
   sourceName: args.source,
   sourceUrl: args.sourceUrl ?? '',
   sourceRevision: args.sourceRevision ?? '',
+  ...(args.helperSource ? { helperSources: [{ name: args.helperSource, use: 'related-words' }] } : {}),
 };
 
-writeFileSync(join(args.out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-writeFileSync(join(args.out, 'entries.json.gz'), gzipSync(JSON.stringify(entries)));
+const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
+// mtime 0 in the gzip header keeps the archive reproducible.
+const entriesBytes = gzipSync(JSON.stringify(entries), { level: 9 });
+entriesBytes.writeUInt32LE(0, 4);
+writeFileSync(join(args.out, 'manifest.json'), manifestBytes);
+writeFileSync(join(args.out, 'entries.json.gz'), entriesBytes);
 
-console.log(`Built offline pack ${manifest.packId} with ${entries.length} entries.`);
+// The app verifies downloads against these MD5s (OfflinePackDownloadSource in data/offlineDictionaryPacks.ts).
+const baseUrl = (args.publicBaseUrl ?? '').replace(/\/+$/, '');
+const downloadSource = {
+  entriesMd5: md5(entriesBytes),
+  entriesUrl: `${baseUrl}/entries.json.gz`,
+  entryCount: entries.length,
+  manifestMd5: md5(manifestBytes),
+  manifestUrl: `${baseUrl}/manifest.json`,
+};
+writeFileSync(join(args.out, 'download-source.json'), `${JSON.stringify(downloadSource, null, 2)}\n`);
+writeFileSync(join(args.out, 'build-report.json'), `${JSON.stringify({ ...stats, entryCount: entries.length, packId: manifest.packId }, null, 2)}\n`);
+
+console.log(`Built offline pack ${manifest.packId} with ${entries.length} entries (${stats.mergedEntries} merged, ${stats.otherLanguageSections} other-language sections skipped).`);
+
+function md5(bytes) {
+  return createHash('md5').update(bytes).digest('hex');
+}
+
+// Wiktextract emits one record per part of speech; the app looks words up by headword.
+function mergeEntry(target, extra) {
+  const partsOfSpeech = new Set([target.partOfSpeech, extra.partOfSpeech].flatMap((value) => value.split(', ')).filter(Boolean));
+  target.partOfSpeech = [...partsOfSpeech].join(', ');
+  target.definitions.push(...extra.definitions);
+  target.examples.push(...extra.examples);
+  target.audio = unique([...target.audio, ...extra.audio]);
+  target.ipa = target.ipa || extra.ipa;
+  target.etymology = target.etymology || extra.etymology;
+  target.relations = {
+    antonyms: unique([...target.relations.antonyms, ...extra.relations.antonyms]),
+    synonyms: unique([...target.relations.synonyms, ...extra.relations.synonyms]),
+  };
+}
+
+function capEntry(entry) {
+  const clip = (value) => (value.length > MAX_TEXT_CHARS ? `${value.slice(0, MAX_TEXT_CHARS - 1)}…` : value);
+  const seenGlosses = new Set();
+  return {
+    ...entry,
+    definitions: entry.definitions
+      .filter((definition) => !seenGlosses.has(definition.gloss) && seenGlosses.add(definition.gloss))
+      .slice(0, MAX_DEFINITIONS_PER_ENTRY)
+      .map((definition) => ({ ...definition, gloss: clip(definition.gloss) })),
+    etymology: clip(entry.etymology),
+    examples: entry.examples.slice(0, MAX_EXAMPLES_PER_ENTRY).map((example) => ({
+      ...example,
+      source: clip(example.source),
+      ...(example.translation ? { translation: clip(example.translation) } : {}),
+    })),
+    relations: {
+      antonyms: entry.relations.antonyms.slice(0, MAX_RELATIONS),
+      synonyms: entry.relations.synonyms.slice(0, MAX_RELATIONS),
+    },
+  };
+}
+
+function unique(values) {
+  return [...new Set(values)];
+}
 
 function normalizeEntry(rawEntry, langCode, sourceName, sourceUrl, updatedAt) {
   const word = getString(rawEntry.word);
@@ -62,7 +216,11 @@ function normalizeEntry(rawEntry, langCode, sourceName, sourceUrl, updatedAt) {
     attribution: `Source: ${sourceName} (CC-BY-SA-4.0/GFDL)`,
     audio: normalizeAudio(rawEntry),
     definitions,
-    etymology: getString(rawEntry.etymology_text) || getString(rawEntry.etymology) || '',
+    // English-edition dumps use etymology_text; other editions (e.g. French) use an etymology_texts array.
+    etymology: getString(rawEntry.etymology_text)
+      || (Array.isArray(rawEntry.etymology_texts) ? rawEntry.etymology_texts.map(getString).filter(Boolean).join(' ') : '')
+      || getString(rawEntry.etymology)
+      || '',
     examples: normalizeExamples(rawEntry),
     id: `${langCode}:${normalizeLookupKey(word)}`,
     ipa: normalizeIpa(rawEntry),
@@ -96,9 +254,10 @@ function normalizeDefinitions(rawEntry) {
 function normalizeAudio(rawEntry) {
   const sounds = Array.isArray(rawEntry.sounds) ? rawEntry.sounds : [];
 
-  return sounds
-    .map((sound) => getString(sound.audio) || getString(sound.mp3_url) || getString(sound.ogg_url))
-    .filter(Boolean);
+  // Wiktextract's `audio` is a bare Commons file name; only the URLs are playable. MP3 first: iOS cannot play Ogg.
+  return unique(sounds
+    .map((sound) => [sound.mp3_url, sound.ogg_url, sound.audio].map(getString).find((value) => /^https:\/\//.test(value)) ?? '')
+    .filter(Boolean));
 }
 
 function normalizeExamples(rawEntry) {
@@ -108,10 +267,8 @@ function normalizeExamples(rawEntry) {
     .flatMap((sense) => (Array.isArray(sense.examples) ? sense.examples : []))
     .map((example) => {
       if (typeof example === 'string') return { source: example };
-      return {
-        source: getString(example.text),
-        translation: getString(example.translation) || getString(example.english),
-      };
+      const translation = getString(example.translation) || getString(example.english);
+      return translation ? { source: getString(example.text), translation } : { source: getString(example.text) };
     })
     .filter((example) => example.source);
 }
@@ -119,8 +276,8 @@ function normalizeExamples(rawEntry) {
 function normalizeRelations(rawEntry) {
   const senses = Array.isArray(rawEntry.senses) ? rawEntry.senses : [];
   return {
-    antonyms: normalizeLinkage([...(rawEntry.antonyms ?? []), ...senses.flatMap((sense) => sense.antonyms ?? [])]),
-    synonyms: normalizeLinkage([...(rawEntry.synonyms ?? []), ...senses.flatMap((sense) => sense.synonyms ?? [])]),
+    antonyms: unique(normalizeLinkage([...(rawEntry.antonyms ?? []), ...senses.flatMap((sense) => sense.antonyms ?? [])])),
+    synonyms: unique(normalizeLinkage([...(rawEntry.synonyms ?? []), ...senses.flatMap((sense) => sense.synonyms ?? [])])),
   };
 }
 
@@ -134,9 +291,10 @@ function normalizeLinkage(items) {
 
 function normalizeIpa(rawEntry) {
   const sounds = Array.isArray(rawEntry.sounds) ? rawEntry.sounds : [];
-  const ipa = sounds.map((sound) => getString(sound.ipa)).find(Boolean);
+  const ipa = sounds.map((sound) => getString(sound.ipa)).find(Boolean) ?? '';
 
-  return ipa ?? '';
+  // French Wiktionary writes phonemic transcriptions as \a.kœj\; show them in the usual /a.kœj/ form.
+  return /^\\[^\\]+\\$/.test(ipa) ? `/${ipa.slice(1, -1)}/` : ipa;
 }
 
 function normalizeLookupKey(value) {
@@ -155,7 +313,13 @@ function parseArgs(rawArgs) {
     if (!arg.startsWith('--')) continue;
 
     const key = arg.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-    parsed[key] = rawArgs[index + 1];
+    const value = rawArgs[index + 1];
+    // Flags without a value (e.g. --lemmas-only) do not consume the next option.
+    if (value === undefined || value.startsWith('--')) {
+      parsed[key] = true;
+      continue;
+    }
+    parsed[key] = value;
     index += 1;
   }
 

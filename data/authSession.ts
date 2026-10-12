@@ -15,6 +15,9 @@ export type AuthLastEvent =
   | 'token-refresh'
   | 'sign-out'
   | 'recovery'
+  // Signed in from a password-reset link: the user should now choose a new password.
+  | 'password-recovery'
+  | 'password-updated'
   | 'error';
 
 export type AuthSessionSnapshot = {

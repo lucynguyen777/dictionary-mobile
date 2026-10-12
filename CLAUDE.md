@@ -11,7 +11,7 @@ Local-first Expo Router app (iOS/Android/Web) for dictionary lookup, saved vocab
 
 ## Layout
 - `app/`: Expo Router screens. `(tabs)` holds index, word, library, advanced, profile, and the hidden ai-assistant tab; `reader.tsx` and `folder/[id].tsx` sit outside the tabs.
-- `components/`: shared UI (`components/app` primitives, `components/word`).
+- `components/`: shared UI. `components/app` holds primitives (Screen, LanguageSelect, FutureFeature, MotionPressable…); feature folders (`word`, `word/tabs`, `library`, `training`, `profile`, `reader`) hold screen parts split out of the route files.
 - `data/`: stores, the SQLite runtime, dictionary adapters and morphology, sync, OCR, and auth. `.web.ts` and `.native.ts` provide platform splits.
 - `backend/` + `api/backend-proxy.ts`: an Express app served as a Vercel function.
 - `supabase/migrations/`: SQL with RLS. Every new table needs RLS and owner-scoped policies.
