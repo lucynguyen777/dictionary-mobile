@@ -228,11 +228,11 @@ The owner answered every open decision. The table records each answer, what is d
 | D6 | No audio retention; 20 scores/day | `/proxy/pronunciation/assess` (in-memory ffmpeg transcode → Azure), Pronunciation tab UI, migration 013 | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` on Vercel; migration 013; first-language smoke |
 | D7 | Redesign the whole UI with Figma | Library/Training/Profile token conversion in progress | Connect the Figma connector in claude.ai and share the design file |
 | D8 | Sentry, opt-in | `data/sentryReporter.ts`: SDK starts only after opt-in, events scrubbed | Sentry project and `EXPO_PUBLIC_SENTRY_DSN` |
-| D9 | Supabase Storage; ~50k lemma packs | Public read-only bucket `offline-packs` created; packs being built | — (upload status in `docs/product-progress.md`) |
+| D9 | Supabase Storage; ~50k lemma packs | Eight packs hosted in the public bucket `offline-packs` (en, es, fr, ko, ru, tr, vi, vi→fr) with `catalog.json`, MD5-verified | Optionally drop the expired temporary upload policies `offline_packs_temporary_*_20261013` on `storage.objects` |
 | D10 | Presets only, no free-text instructions | Already the shipped behaviour | — |
 | D11 | Malay stays preview | — | — |
-| D12 | Show English-Wiktionary Japanese examples, credited, English translation as an aid | In progress | — |
-| D13 | Approve French Wiktionary's Vietnamese section for VI→FR | In progress | — |
+| D12 | Show English-Wiktionary Japanese examples, credited, English translation as an aid | Builder `--helper-examples`; examples carry their translation language and the Meaning tab labels English aids; Japanese example gate passes with the helper (86%) | — (Japanese pack smoke still blocked: kana-keyed entries need `forms` indexing) |
+| D13 | Approve French Wiktionary's Vietnamese section for VI→FR | VI→FR pair pack (15,336 entries, 1.2 MB) hosted in `offline-packs`; Word uses it for vi→fr without machine translation; 98% of probes | — |
 | D14 | Basque out of scope | Basque stays source-gated | — |
 | D15 | Glossaries for specialized translation only | Already the shipped behaviour | — |
 | D16 | Chinese stays preview | — | — |

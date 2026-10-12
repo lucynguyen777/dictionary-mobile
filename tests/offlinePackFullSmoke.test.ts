@@ -71,6 +71,8 @@ describe.skipIf(!dir || !lang || !probesPath)('full offline pack smoke', () => {
         pack: {
           attribution: `Source: ${manifest.sourceName} via Kaikki/Wiktextract (CC-BY-SA-4.0/GFDL)`,
           estimatedCompressedSizeMb: { max: 1, min: 1 },
+          // Pair packs (e.g. VI→FR) carry their gloss language like the probe-scoped smoke.
+          ...(manifest.glossLangCode ? { glossLanguageCode: manifest.glossLangCode as LanguageCode } : {}),
           id: manifest.packId,
           languageCode: lang,
           license: 'CC-BY-SA-4.0/GFDL',
