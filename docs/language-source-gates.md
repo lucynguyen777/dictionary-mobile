@@ -117,7 +117,7 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
   - accepted source-gate path: Wiktionary/DBnary bilingual extraction if Vietnamese-to-French translations are structured enough and license/attribution are preserved;
   - deferred fallback: commercial bilingual dictionary license;
   - personal-data-only fallback: user-provided import.
-- First safe task: create a dedicated `docs/vi-fr-source-gate.md` after probing structured bilingual extraction candidates.
+- Probed in `docs/vi-fr-source-gate.md` (2026-10-11): the French Wiktionary's Vietnamese section passes the corpus, headword (98%) and example (67.3%) gates, and related words with English-Wiktionary helper relations (65.3%). Waiting for owner approval (completion plan D13).
 
 ### Basque
 
@@ -127,7 +127,7 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
   - accepted source-gate path: Basque Wiktionary / Kaikki extraction;
   - deferred authority fallback: national Basque resources if license/API allows app use;
   - deferred production fallback: commercial/open lexicon with full definitions.
-- First safe task: create `docs/basque-source-gate.md` with license/API smoke.
+- Probed in `docs/basque-source-gate.md` (2026-10-11): the Basque Wiktionary has pages for only 57% of common words (43% with definitions); English Wiktionary covers them with English definitions but fails examples. Stays source-gated; licensing a national resource is owner decision D14.
 
 ### Ainu
 
@@ -145,6 +145,21 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
 - Accepted source-gate path: start with Wiktionary/Kaikki per language for Quechua, Nahuatl, and Guarani.
 - Machine translation, English gloss lists, and generic wordlists are not enough for dictionary definitions.
 - First safe task: create one source gate at a time, starting with the language that has the clearest source/license path.
+
+## English-Wiktionary Snapshot For Remaining Source-Gated Languages (2026-10-11)
+
+Kaikki's English-edition sections (English definitions, so at most a helper or a X→EN pair) are all below the 5,000-entry corpus gate, so none can unblock its language on its own:
+
+| Language | Kaikki section | Lemmas | Lemma entries with examples | With synonyms |
+| --- | --- | ---: | ---: | ---: |
+| Uyghur (`ug`) | Uyghur | 3,738 | 6.0% | 5.7% |
+| Cantonese (`yue`) | Cantonese (most Cantonese readings sit under "Chinese") | 3,780 | 0% | 0% |
+| Classical Nahuatl (`nci`) | Classical Nahuatl | 2,653 | 54.5% | 20.6% |
+| Quechua (`qu`) | Quechua | 1,995 | 4.6% | 3.3% |
+| Ainu (`ain`) | Ainu | 1,932 | 10.4% | 9.9% |
+| Guarani (`gn`) | none published | — | — | — |
+
+The native editions are smaller still (qu.wiktionary has 362 articles). These languages stay on their accepted paths (Words.hk permission, curated `ug.wiktionary.org`, licensed lexicons); no open Wiktionary data passes today.
 
 ## Acceptance Gate
 

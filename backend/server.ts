@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 
@@ -6,8 +7,9 @@ import {
   readBackendProxyConfig,
   type BackendProxyConfig,
   type BackendProxyEnv,
+  type BackendProxyLimits,
 } from './proxyConfig';
-import { QuotaTracker } from './quotaTracker';
+import { QuotaTracker, type QuotaFeature, type QuotaStore } from './quotaTracker';
 import {
   createGoogleConsentUrl,
   createGoogleSpreadsheet,
@@ -20,7 +22,13 @@ import {
   verifyGoogleOAuthState,
 } from './googleSheetsOAuth';
 import type { GoogleSheetsStore } from './googleSheetsStore';
+import { selectAppliedGlossaryTerms } from '../data/glossaryMatching';
+import { fetchWithTimeout } from '../data/http';
+import { readSseStream } from '../data/sseParser';
+import { validateSpecializedTranslateRequest } from './proxyRequestValidation';
+import { buildSpecializedTranslationMessages } from './specializedTranslation';
 import { submitFeedback, type FeedbackStore } from './feedback';
+import { readAccountDeletionConfig, requestAccountDeletion, type AccountDeletionStore } from './accountDeletion';
 
 const DEFAULT_PORT = 3001;
 
@@ -29,6 +37,9 @@ export type ServerDependencies = {
   port?: number;
   googleSheetsStore?: GoogleSheetsStore;
   feedbackStore?: FeedbackStore;
+  accountDeletionStore?: AccountDeletionStore;
+  // Durable quota storage; defaults to the in-memory tracker (fine for local dev, not for serverless).
+  createQuotaStore?: (limits: BackendProxyLimits) => QuotaStore;
   verifyAuth: (token: string) => Promise<{ userId: string } | null>;
 };
 
@@ -44,10 +55,10 @@ export function createServer(deps: ServerDependencies) {
   let config: BackendProxyConfig = readBackendProxyConfig(deps.env);
   const googleSheetsConfig = readGoogleSheetsConfig(deps.env);
 
-  // Build quota tracker only when configured
-  const quotaTracker =
+  // Build quota tracking only when configured
+  const quotaTracker: QuotaStore | null =
     config.status === 'configured'
-      ? new QuotaTracker(config.limits)
+      ? deps.createQuotaStore?.(config.limits) ?? new QuotaTracker(config.limits)
       : null;
 
   // --- Middleware ---
@@ -77,6 +88,30 @@ export function createServer(deps: ServerDependencies) {
       googleSheetsCode: req.query.code,
       googleSheetsState: String(req.query.state),
     }));
+  });
+
+  const accountDeletionConfig = readAccountDeletionConfig(deps.env);
+
+  // Purges scheduled account deletions whose grace period ended. Called by a scheduler (e.g. a Vercel
+  // cron) with CRON_SECRET; never by the app.
+  app.post('/admin/purge-account-deletions', async (req: Request, res: Response) => {
+    const secret = deps.env.CRON_SECRET?.trim();
+    const provided = (req.headers.authorization ?? '').replace(/^Bearer /, '');
+    const expected = Buffer.from(secret ?? '');
+    const received = Buffer.from(provided);
+    if (!secret || expected.length !== received.length || !timingSafeEqual(expected, received)) {
+      res.status(401).json({ error: { code: 'unauthorized' } });
+      return;
+    }
+    if (accountDeletionConfig.mode !== 'scheduled' || !deps.accountDeletionStore) {
+      res.status(503).json({ error: { code: 'account_deletion_unconfigured' } });
+      return;
+    }
+    try {
+      res.json({ purged: await deps.accountDeletionStore.purgeDue() });
+    } catch {
+      res.status(500).json({ error: { code: 'account_deletion_failed' } });
+    }
   });
 
   app.use('/proxy', async (req: Request, res: Response, next: NextFunction) => {
@@ -189,6 +224,46 @@ export function createServer(deps: ServerDependencies) {
     }
   });
 
+  // Account deletion status for the signed-in user; the mode tells the app what to offer.
+  app.get('/proxy/account/deletion', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    if (!accountDeletionConfig.mode || !deps.accountDeletionStore) {
+      res.json({ graceDays: accountDeletionConfig.graceDays, mode: null, scheduled: null });
+      return;
+    }
+    try {
+      const scheduled = accountDeletionConfig.mode === 'scheduled' ? await deps.accountDeletionStore.getScheduled(userId) : null;
+      res.json({ graceDays: accountDeletionConfig.graceDays, mode: accountDeletionConfig.mode, scheduled });
+    } catch {
+      res.status(500).json({ error: { code: 'account_deletion_failed' } });
+    }
+  });
+
+  app.post('/proxy/account/deletion', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    try {
+      res.json(await requestAccountDeletion(accountDeletionConfig, deps.accountDeletionStore, userId, req.body));
+    } catch (error) {
+      const code = error instanceof Error ? error.message : 'account_deletion_failed';
+      const status = code === 'account_deletion_unconfigured' ? 503 : code === 'account_deletion_unconfirmed' ? 400 : 500;
+      res.status(status).json({ error: { code: status === 500 ? 'account_deletion_failed' : code } });
+    }
+  });
+
+  app.delete('/proxy/account/deletion', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    if (accountDeletionConfig.mode !== 'scheduled' || !deps.accountDeletionStore) {
+      res.status(409).json({ error: { code: 'account_deletion_not_scheduled' } });
+      return;
+    }
+    try {
+      await deps.accountDeletionStore.cancelScheduled(userId);
+      res.json({ scheduled: null });
+    } catch {
+      res.status(500).json({ error: { code: 'account_deletion_failed' } });
+    }
+  });
+
   app.post('/proxy/feedback', async (req: Request, res: Response) => {
     try {
       const userId = (req as Request & { userId: string }).userId;
@@ -229,7 +304,7 @@ export function createServer(deps: ServerDependencies) {
 
     // Check quota
     if (quotaTracker) {
-      const quotaCheck = quotaTracker.checkQuota(userId, 'translation', validation.data.characterCount);
+      const quotaCheck = await checkQuotaOrFailClosed(quotaTracker, userId, 'translation', validation.data.characterCount);
       if (quotaCheck.ok === false) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
@@ -260,7 +335,7 @@ export function createServer(deps: ServerDependencies) {
     }
   });
 
-  // POST /proxy/ai/chat - OpenAI AI chat (non-streaming MVP, streaming TBD)
+  // POST /proxy/ai/chat - OpenAI AI chat; `stream: true` answers with Server-Sent Events
   app.post('/proxy/ai/chat', async (req: Request, res: Response) => {
     const userId = (req as Request & { userId: string }).userId;
     if (config.status !== 'configured') {
@@ -277,33 +352,85 @@ export function createServer(deps: ServerDependencies) {
 
     // Check quota (counts as 1 request)
     if (quotaTracker) {
-      const quotaCheck = quotaTracker.checkQuota(userId, 'ai-chat', 1);
+      const quotaCheck = await checkQuotaOrFailClosed(quotaTracker, userId, 'ai-chat', 1);
       if (quotaCheck.ok === false) {
         res.status(quotaCheck.status).json({ error: quotaCheck.error });
         return;
       }
     }
 
+    if (validation.data.stream) {
+      await streamOpenAIChat(res, config.openaiApiKey, config.openaiTextModel, validation.data);
+      return;
+    }
+
     try {
       const aiResponse = await callOpenAIChat(config.openaiApiKey, config.openaiTextModel, validation.data);
       res.json(aiResponse);
     } catch {
-      res.status(502).json({ error: { code: 'provider_error', message: 'AI provider is unavailable. Try again later.' } });
+      res.status(502).json({ error: AI_PROVIDER_ERROR });
+    }
+  });
+
+  // POST /proxy/translate/specialized - domain translation that follows the user's glossary (OpenAI)
+  app.post('/proxy/translate/specialized', async (req: Request, res: Response) => {
+    const userId = (req as Request & { userId: string }).userId;
+    if (config.status !== 'configured') {
+      res.status(503).json(getProviderUnconfiguredResponse(config));
+      return;
+    }
+
+    const validation = validateSpecializedTranslateRequest(req.body ?? {}, config.limits);
+    if (validation.ok === false) {
+      res.status(validation.status).json({ error: validation.error });
+      return;
+    }
+
+    if (quotaTracker) {
+      const quotaCheck = await checkQuotaOrFailClosed(quotaTracker, userId, 'translation', validation.data.characterCount);
+      if (quotaCheck.ok === false) {
+        res.status(quotaCheck.status).json({ error: quotaCheck.error });
+        return;
+      }
+    }
+
+    const appliedTerms = selectAppliedGlossaryTerms(validation.data.sourceText, validation.data.glossary);
+    try {
+      const completion = await callOpenAIMessages(
+        config.openaiApiKey,
+        config.openaiTextModel,
+        buildSpecializedTranslationMessages({ ...validation.data, appliedTerms })
+      );
+      if (!completion.content.trim()) throw new Error('openai_empty_translation');
+      res.json({
+        appliedTerms,
+        characterCount: validation.data.characterCount,
+        examplesUsed: validation.data.examples.length,
+        provider: 'openai',
+        translatedText: completion.content.trim(),
+      });
+    } catch {
+      res.status(502).json({ error: { code: 'provider_error', message: 'Translation provider is unavailable. Try again later.' } });
     }
   });
 
   // GET /proxy/quota - current user quota state
-  app.get('/proxy/quota', (req: Request, res: Response) => {
+  app.get('/proxy/quota', async (req: Request, res: Response) => {
     const userId = (req as Request & { userId: string }).userId;
     if (!quotaTracker) {
       res.status(503).json({ error: { code: 'provider_unconfigured', message: 'Quota not available.' } });
       return;
     }
 
-    res.json({
-      translation: quotaTracker.getState(userId, 'translation'),
-      aiChat: quotaTracker.getState(userId, 'ai-chat'),
-    });
+    try {
+      const [translation, aiChat] = await Promise.all([
+        quotaTracker.getState(userId, 'translation'),
+        quotaTracker.getState(userId, 'ai-chat'),
+      ]);
+      res.json({ translation, aiChat });
+    } catch {
+      res.status(503).json({ error: QUOTA_UNAVAILABLE_ERROR });
+    }
   });
 
   return { app, port };
@@ -318,6 +445,17 @@ export function startServer(deps: ServerDependencies) {
       resolve();
     });
   });
+}
+
+const QUOTA_UNAVAILABLE_ERROR = { code: 'quota_unavailable', message: 'Usage limits cannot be checked right now. Try again later.' };
+
+// Provider calls cost money, so a quota store that cannot answer blocks the request instead of allowing it.
+async function checkQuotaOrFailClosed(store: QuotaStore, userId: string, feature: QuotaFeature, amount: number) {
+  try {
+    return await store.checkQuota(userId, feature, amount);
+  } catch {
+    return { error: QUOTA_UNAVAILABLE_ERROR, ok: false as const, status: 503 };
+  }
 }
 
 const DEFAULT_ALLOWED_ORIGINS = ['https://dictionaire-mobile.vercel.app', 'http://localhost:8081'];
@@ -370,7 +508,8 @@ async function callDeepLTranslate(
   if (opts?.glossaryId) params.append('glossary_id', opts.glossaryId);
   if (opts?.formality) params.append('formality', opts.formality);
 
-  const response = await fetch(`${baseUrl}/v2/translate`, {
+  const response = await fetchWithTimeout(`${baseUrl}/v2/translate`, {
+    timeoutMs: 20_000,
     body: params,
     headers: {
       Authorization: `DeepL-Auth-Key ${apiKey}`,
@@ -418,14 +557,22 @@ async function callOpenAIChat(
   }
 ) {
   const systemMessage = buildAiSystemMessage(params.goal, params.learningLanguage, params.nativeLanguage);
+  return callOpenAIMessages(
+    apiKey,
+    model,
+    systemMessage ? [{ content: systemMessage, role: 'system' }, ...params.messages] : params.messages
+  );
+}
 
+async function callOpenAIMessages(apiKey: string, model: string, messages: Array<{ content: string; role: string }>) {
   const body: Record<string, unknown> = {
     model,
-    messages: systemMessage ? [{ content: systemMessage, role: 'system' }, ...params.messages] : params.messages,
+    messages,
     stream: false,
   };
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    timeoutMs: 60_000,
     body: JSON.stringify(body),
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -451,6 +598,84 @@ async function callOpenAIChat(
     provider: 'openai' as const,
     totalTokens: data.usage?.total_tokens ?? 0,
   };
+}
+
+const AI_PROVIDER_ERROR = { code: 'provider_error', message: 'AI provider is unavailable. Try again later.' };
+
+type AiChatParams = Parameters<typeof callOpenAIChat>[2];
+
+// Streams OpenAI deltas to the client as SSE events:
+//   data: {"delta":"..."}  ...  data: {"done":true,"provider":"openai","totalTokens":N}
+// Failures before the first byte are plain JSON errors; later ones end the stream with data: {"error":{...}}.
+async function streamOpenAIChat(res: Response, apiKey: string, model: string, params: AiChatParams) {
+  const upstreamAbort = new AbortController();
+  const onClientGone = () => upstreamAbort.abort();
+  res.on('close', onClientGone);
+
+  try {
+    const systemMessage = buildAiSystemMessage(params.goal, params.learningLanguage, params.nativeLanguage);
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      body: JSON.stringify({
+        messages: systemMessage ? [{ content: systemMessage, role: 'system' }, ...params.messages] : params.messages,
+        model,
+        stream: true,
+        stream_options: { include_usage: true },
+      }),
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      signal: upstreamAbort.signal,
+    });
+
+    if (!response.ok || !response.body) {
+      await response.body?.cancel().catch(() => undefined);
+      res.status(502).json({ error: AI_PROVIDER_ERROR });
+      return;
+    }
+
+    res.status(200);
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    const send = (payload: unknown) => res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    let totalTokens = 0;
+    let finished = false;
+
+    try {
+      await readSseStream(response.body, (data) => {
+        if (finished) return;
+        if (data === '[DONE]') {
+          finished = true;
+          return;
+        }
+        const chunk = JSON.parse(data) as {
+          choices?: Array<{ delta?: { content?: string } }>;
+          usage?: { total_tokens?: number } | null;
+        };
+        const delta = chunk.choices?.[0]?.delta?.content;
+        if (delta) send({ delta });
+        if (chunk.usage?.total_tokens) totalTokens = chunk.usage.total_tokens;
+      });
+      if (!finished) throw new Error('openai_stream_incomplete');
+      send({ done: true, provider: 'openai', totalTokens });
+    } catch {
+      if (!upstreamAbort.signal.aborted) send({ error: AI_PROVIDER_ERROR });
+    }
+    res.end();
+  } catch {
+    if (upstreamAbort.signal.aborted) return;
+    if (res.headersSent) {
+      res.end();
+    } else {
+      res.status(502).json({ error: AI_PROVIDER_ERROR });
+    }
+  } finally {
+    res.off('close', onClientGone);
+  }
 }
 
 function buildAiSystemMessage(goal: string, learningLanguage: string, nativeLanguage?: string): string {

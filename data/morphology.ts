@@ -7,6 +7,7 @@ export type MorphologyCandidate = {
 export const morphologySupportedLanguageCodes = [
   'en',
   'es',
+  'fr',
   'ms',
   'fi',
   'et',
@@ -83,11 +84,34 @@ const irregularEnglishBaseForms: Record<string, string[]> = {
   women: ['woman'],
   wrote: ['write'],
   written: ['write'],
+  eaten: ['eat'],
+  fell: ['fall'],
+  fallen: ['fall'],
+  felt: ['feel'],
+  heard: ['hear'],
+  kept: ['keep'],
+  lost: ['lose'],
+  met: ['meet'],
+  mice: ['mouse'],
+  paid: ['pay'],
+  people: ['person'],
+  said: ['say'],
+  sat: ['sit'],
+  slept: ['sleep'],
+  sold: ['sell'],
+  stood: ['stand'],
+  teeth: ['tooth'],
+  told: ['tell'],
+  understood: ['understand'],
+  won: ['win'],
+  worse: ['bad', 'badly'],
+  worst: ['bad', 'badly'],
 };
 
 export function getMorphologyCandidates(languageCode: string, input: string): MorphologyCandidate[] {
   if (languageCode === 'en') return getEnglishMorphologyCandidates(input);
   if (languageCode === 'es') return getSpanishMorphologyCandidates(input);
+  if (languageCode === 'fr') return getFrenchMorphologyCandidates(input);
   if (languageCode === 'ms') return getMalayMorphologyCandidates(input);
   if (languageCode === 'fi') return getFinnishMorphologyCandidates(input);
   if (languageCode === 'et') return getEstonianMorphologyCandidates(input);
@@ -167,6 +191,26 @@ function getEnglishMorphologyCandidates(input: string): MorphologyCandidate[] {
     }
   }
 
+  // Comparative and superlative: bigger → big, happier → happy, nicest → nice. A plain "-er" is
+  // too common in base words (water, paper) to strip without a doubled consonant or -ier.
+  for (const suffix of ['est', 'er']) {
+    if (!word.endsWith(suffix) || word.length <= suffix.length + 2) continue;
+    const stem = word.slice(0, -suffix.length);
+    const undoubled = removeDoubledFinalConsonant(stem);
+    if (stem.endsWith('i')) {
+      candidates.push(createCandidate(`${stem.slice(0, -1)}y`, 'so sánh'));
+    } else {
+      // bigger → big, but smaller → small: "ll"/"ss" usually belong to the base word.
+      if (/(ll|ss)$/.test(stem)) candidates.push(createCandidate(stem, 'so sánh'));
+      else if (undoubled !== stem) candidates.push(createCandidate(undoubled, 'so sánh'));
+      if (suffix === 'est') {
+        candidates.push(createCandidate(stem, 'so sánh nhất'));
+        candidates.push(createCandidate(`${stem}e`, 'so sánh nhất'));
+      }
+    }
+    break;
+  }
+
   if (word.endsWith('es') && word.length > 4) {
     candidates.push(createCandidate(word.slice(0, -2), 'dạng số nhiều/ngôi ba'));
   }
@@ -215,35 +259,128 @@ function normalizeMorphologyInput(input: string) {
   return input.trim().toLocaleLowerCase();
 }
 
+// Present-tense and other forms of very common irregular French verbs.
+const FRENCH_IRREGULAR_FORMS: Record<string, string[]> = {
+  suis: ['être'], es: ['être'], est: ['être'], sommes: ['être'], êtes: ['être'], sont: ['être'], était: ['être'], été: ['être'],
+  ai: ['avoir'], as: ['avoir'], a: ['avoir'], avons: ['avoir'], avez: ['avoir'], ont: ['avoir'], avait: ['avoir'], eu: ['avoir'],
+  vais: ['aller'], vas: ['aller'], va: ['aller'], allons: ['aller'], allez: ['aller'], vont: ['aller'],
+  fais: ['faire'], fait: ['faire'], faisons: ['faire'], faites: ['faire'], font: ['faire'],
+  dis: ['dire'], dit: ['dire'], disons: ['dire'], dites: ['dire'], disent: ['dire'],
+  peux: ['pouvoir'], peut: ['pouvoir'], pouvons: ['pouvoir'], pouvez: ['pouvoir'], peuvent: ['pouvoir'], pu: ['pouvoir'],
+  veux: ['vouloir'], veut: ['vouloir'], voulons: ['vouloir'], voulez: ['vouloir'], veulent: ['vouloir'], voulu: ['vouloir'],
+  sais: ['savoir'], sait: ['savoir'], savons: ['savoir'], savez: ['savoir'], savent: ['savoir'], su: ['savoir'],
+  dois: ['devoir'], doit: ['devoir'], devons: ['devoir'], devez: ['devoir'], doivent: ['devoir'], dû: ['devoir'],
+  vois: ['voir'], voit: ['voir'], voyons: ['voir'], voyez: ['voir'], voient: ['voir'], vu: ['voir'],
+  viens: ['venir'], vient: ['venir'], venons: ['venir'], venez: ['venir'], viennent: ['venir'], venu: ['venir'],
+  tiens: ['tenir'], tient: ['tenir'], tiennent: ['tenir'],
+  prends: ['prendre'], prend: ['prendre'], prenons: ['prendre'], prenez: ['prendre'], prennent: ['prendre'], pris: ['prendre'],
+  bois: ['boire'], boit: ['boire'], buvons: ['boire'], buvez: ['boire'], boivent: ['boire'], bu: ['boire'],
+  mets: ['mettre'], met: ['mettre'], mis: ['mettre'],
+  écris: ['écrire'], écrit: ['écrire'], écrivent: ['écrire'],
+  lis: ['lire'], lit: ['lire'], lisent: ['lire'], lu: ['lire'],
+  connais: ['connaître'], connaît: ['connaître'], connu: ['connaître'],
+  dors: ['dormir'], dort: ['dormir'], pars: ['partir'], part: ['partir'], sors: ['sortir'], sort: ['sortir'],
+  yeux: ['œil'], œufs: ['œuf'], bœufs: ['bœuf'],
+};
+
+function getFrenchMorphologyCandidates(input: string): MorphologyCandidate[] {
+  const original = normalizeMorphologyInput(input);
+  // Elided articles and pronouns: l'école → école, j'aime → aime (then aimer).
+  const word = original.replace(/^(?:l|d|j|m|t|s|n|qu)['’]/, '');
+  const candidates: MorphologyCandidate[] = [];
+  if (word !== original) candidates.push(createCandidate(word, 'élision'));
+  for (const base of FRENCH_IRREGULAR_FORMS[word] ?? []) candidates.push(createCandidate(base, 'verbe ou nom irrégulier'));
+  if (word.length < 3) return uniqueCandidates(candidates, word).slice(0, 5);
+
+  const add = (base: string, reason: string) => {
+    if (base.length >= 2) candidates.push(createCandidate(base, reason));
+  };
+
+  // Nouns and adjectives: plural and feminine.
+  if (word.endsWith('aux')) add(`${word.slice(0, -3)}al`, 'pluriel (-aux → -al)');
+  if (word.endsWith('eaux') || word.endsWith('eux') || word.endsWith('oux')) add(word.slice(0, -1), 'pluriel (-x)');
+  if (word.endsWith('euses')) add(`${word.slice(0, -5)}eux`, 'féminin pluriel (-euses → -eux)');
+  if (word.endsWith('euse')) add(`${word.slice(0, -4)}eux`, 'féminin (-euse → -eux)');
+  if (word.endsWith('ives')) add(`${word.slice(0, -4)}if`, 'féminin pluriel (-ives → -if)');
+  if (word.endsWith('ive')) add(`${word.slice(0, -3)}if`, 'féminin (-ive → -if)');
+  // Doubled consonant in the feminine: bonne → bon, nette → net, cruelle → cruel, ancienne → ancien.
+  if (/(nn|ll|tt|ss)es$/.test(word)) add(word.slice(0, -3), 'féminin pluriel (consonne doublée)');
+  if (/(nn|ll|tt|ss)e$/.test(word)) add(word.slice(0, -2), 'féminin (consonne doublée)');
+  if (word.endsWith('es')) add(word.slice(0, -2), 'féminin pluriel (-es)');
+  if (word.endsWith('s') && !word.endsWith('ss')) add(word.slice(0, -1), 'pluriel (-s)');
+  if (word.endsWith('e') && !word.endsWith('ée')) add(word.slice(0, -1), 'féminin (-e)');
+
+  // Verbs (-er, the regular majority; then -ir/-re): present, imperfect, future, participles.
+  const erEndings = ['erions', 'eriez', 'eront', 'erons', 'erais', 'erait', 'erez', 'erai', 'era', 'ions', 'iez', 'aient', 'ais', 'ait', 'ent', 'ons', 'ez', 'es', 'ées', 'és', 'ée', 'é', 'e'];
+  for (const ending of erEndings) {
+    if (word.endsWith(ending) && word.length > ending.length + 1) {
+      const stem = word.slice(0, -ending.length);
+      add(`${stem}er`, `verbe en -er (-${ending})`);
+      // Spelling changes kept in some forms: mangeons → manger, commençons → commencer.
+      if (stem.endsWith('ge')) add(`${stem.slice(0, -1)}er`, 'verbe en -ger');
+      if (stem.endsWith('ç')) add(`${stem.slice(0, -1)}cer`, 'verbe en -cer');
+      break;
+    }
+  }
+  const irEndings = ['issons', 'issez', 'issent', 'issais', 'issait', 'is', 'it', 'ie', 'ies', 'i'];
+  for (const ending of irEndings) {
+    if (word.endsWith(ending) && word.length > ending.length + 1) {
+      add(`${word.slice(0, -ending.length)}ir`, `verbe en -ir (-${ending})`);
+      break;
+    }
+  }
+  if (/[^aeiouy]ds?$/.test(word)) add(`${word.replace(/s$/, '')}re`, 'verbe en -re (-ds)');
+
+  return uniqueCandidates(candidates, original).slice(0, 6);
+}
+
 function getSpanishMorphologyCandidates(input: string): MorphologyCandidate[] {
   const word = normalizeMorphologyInput(input);
-  if (word.length < 3) return [];
-
   const candidates: MorphologyCandidate[] = [];
   const irregularBaseForms: Record<string, string[]> = {
     digo: ['decir'],
     dice: ['decir'],
+    dijo: ['decir'],
+    es: ['ser'],
+    eres: ['ser'],
+    era: ['ser'],
+    estoy: ['estar'],
+    está: ['estar'],
+    están: ['estar'],
     fueron: ['ir', 'ser'],
     fui: ['ir', 'ser'],
     fue: ['ir', 'ser'],
+    ha: ['haber'],
+    han: ['haber'],
+    hay: ['haber'],
+    he: ['haber'],
     hago: ['hacer'],
     hace: ['hacer'],
+    hizo: ['hacer'],
     puedo: ['poder'],
     puede: ['poder'],
     quiero: ['querer'],
     quiere: ['querer'],
     sé: ['saber'],
     sabe: ['saber'],
+    somos: ['ser'],
+    son: ['ser'],
+    soy: ['ser'],
     tengo: ['tener'],
     tiene: ['tener'],
     vengo: ['venir'],
     viene: ['venir'],
     voy: ['ir'],
+    vas: ['ir'],
     va: ['ir'],
+    vamos: ['ir'],
+    van: ['ir'],
   };
+  // Checked before the length guard: the commonest irregular forms are very short (va, es, he).
   for (const base of irregularBaseForms[word] ?? []) {
     candidates.push(createCandidate(base, 'verbo irregular'));
   }
+  if (word.length < 3) return uniqueCandidates(candidates, word);
 
   // Plural → singular: -ces → -z (e.g. lápices → lápiz, voces → voz)
   if (word.endsWith('ces') && word.length > 4) {
@@ -532,6 +669,25 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
 
   const candidates: MorphologyCandidate[] = [];
 
+  // Present continuous: (stem)(-i/-ı/-ü/-u)yor + person (gidiyor, seviyorum, istiyoruz, anlıyorlar).
+  // A stem-final vowel is replaced by the buffer vowel (iste → istiyor), and d alternates with t
+  // (git → gidiyor). Unambiguous, so these candidates come first.
+  const continuous = word.match(/^(.+?)([iıüu])yor(?:um|sun|uz|sunuz|lar)?$/);
+  if (continuous && continuous[1].length >= 2) {
+    const [, base, buffer] = continuous;
+    addTurkishInfinitives(candidates, base, 'şimdiki zaman (-iyor)');
+    // The dropped vowel matches the buffer vowel's harmony: i/ü after e, ı/u after a.
+    addTurkishInfinitives(candidates, `${base}${buffer === 'i' || buffer === 'ü' ? 'e' : 'a'}`, 'şimdiki zaman (ünlü düşmesi)');
+    // Stems ending in a high vowel keep it (oku → okuyor).
+    addTurkishInfinitives(candidates, `${base}${buffer}`, 'şimdiki zaman (ünlü kök)');
+  }
+
+  // Past tense with a person ending: yaptım, anladım, gördük, geldin.
+  const pastPerson = word.match(/^(.+?)[dt][ıiuü](?:m|n|k|nız|niz|nuz|nüz|lar|ler)$/);
+  if (pastPerson && pastPerson[1].length >= 2) {
+    addTurkishInfinitives(candidates, pastPerson[1], 'geçmiş zaman (kişi eki)');
+  }
+
   // Agglutinative plural suffix: -ler, -lar
   if (word.endsWith('ler') && word.length >= 5) {
     candidates.push(createCandidate(word.slice(0, -3), 'çoğul (-ler)'));
@@ -628,6 +784,19 @@ function getTurkishMorphologyCandidates(input: string): MorphologyCandidate[] {
   }
 
   return uniqueCandidates(candidates, word).slice(0, 5);
+}
+
+const TURKISH_FRONT_VOWELS = /[eiöü]/;
+const TURKISH_VOWELS = /[aeıioöuü]/g;
+
+// Dictionary form of a verb stem: -mek after a front vowel, -mak after a back vowel; a stem ending
+// in d may be a t-stem (gid- → gitmek).
+function addTurkishInfinitives(candidates: MorphologyCandidate[], stem: string, description: string) {
+  const vowels = stem.match(TURKISH_VOWELS);
+  if (!vowels) return;
+  const ending = TURKISH_FRONT_VOWELS.test(vowels[vowels.length - 1]) ? 'mek' : 'mak';
+  candidates.push(createCandidate(`${stem}${ending}`, description));
+  if (stem.endsWith('d')) candidates.push(createCandidate(`${stem.slice(0, -1)}t${ending}`, description));
 }
 
 function addTurkishPluralStemCandidate(
@@ -908,6 +1077,48 @@ function getUzbekMorphologyCandidates(input: string): MorphologyCandidate[] {
   return uniqueCandidates(candidates, word).slice(0, 5);
 }
 
+// i-row kana before ます → dictionary-form u-row kana (行きます → 行く, 話します → 話す).
+const JAPANESE_I_TO_U_ROW: Record<string, string> = {
+  い: 'う', き: 'く', ぎ: 'ぐ', し: 'す', ち: 'つ', に: 'ぬ', び: 'ぶ', み: 'む', り: 'る',
+};
+
+// Godan verbs and i-adjectives whose past/polite forms the generic る-rules below cannot reach.
+function getJapaneseGodanAndAdjectiveCandidates(word: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const stemOf = (suffixLength: number) => word.slice(0, -suffixLength);
+
+  // 行く is the one irregular godan past: 行った / 行って.
+  if ((word.endsWith('行った') || word.endsWith('行って')) && word.length > 2) {
+    candidates.push(createCandidate(`${stemOf(2)}く`, '行く (past/te)'));
+  }
+  // 飲んだ / 読んだ → む, ぶ, ぬ; 泳いだ → ぐ (these end in だ, not た).
+  if (word.endsWith('んだ') && word.length > 2) {
+    for (const ending of ['む', 'ぶ', 'ぬ']) candidates.push(createCandidate(`${stemOf(2)}${ending}`, `${ending}-動詞 (past)`));
+  }
+  if (word.endsWith('いだ') && word.length > 2) {
+    candidates.push(createCandidate(`${stemOf(2)}ぐ`, 'ぐ-動詞 (past)'));
+  }
+  // 話した → 話す (す-verbs keep し in the past).
+  if (word.endsWith('した') && word.length > 2) {
+    candidates.push(createCandidate(`${stemOf(2)}す`, 'す-動詞 (past)'));
+  }
+  // i-adjectives: 大きかった → 大きい, 寒くない → 寒い.
+  if (word.endsWith('かった') && word.length > 3) {
+    candidates.push(createCandidate(`${stemOf(3)}い`, '形容詞 (past)'));
+  }
+  if (word.endsWith('くない') && word.length > 3) {
+    candidates.push(createCandidate(`${stemOf(3)}い`, '形容詞 (negative)'));
+  }
+  // Polite forms of godan verbs: 行きます → 行く, 読みます → 読む, 話しました → 話す.
+  for (const suffix of ['ました', 'ません', 'ます']) {
+    if (!word.endsWith(suffix) || word.length <= suffix.length + 1) continue;
+    const stem = stemOf(suffix.length);
+    const uRow = JAPANESE_I_TO_U_ROW[stem.slice(-1)];
+    if (uRow) candidates.push(createCandidate(`${stem.slice(0, -1)}${uRow}`, '五段動詞 (polite)'));
+  }
+  return candidates;
+}
+
 function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
   const word = input.trim().normalize('NFC');
   if (word.length < 2) return [];
@@ -926,6 +1137,8 @@ function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (verifiedLemma) {
     candidates.push(createCandidate(verifiedLemma, 'verified 一段動詞 form'));
   }
+
+  candidates.push(...getJapaneseGodanAndAdjectiveCandidates(word));
 
   // Group 2 (Ichidan) verb inflections (e.g. 食べた, 食べない, 食べます, 食べて)
   // These end in -た, -ない, -ます, -て, -る
@@ -985,6 +1198,66 @@ function getJapaneseMorphologyCandidates(input: string): MorphologyCandidate[] {
   return uniqueCandidates(candidates, word).slice(0, 5);
 }
 
+const HANGUL_BASE = 0xac00;
+const HANGUL_LAST = 0xd7a3;
+const KO_FINAL_B = 17;
+const KO_FINAL_SS = 20;
+// Contracted vowel (stem vowel + 아/어) → possible stem vowels, by medial index.
+// ㅏ→ㅏ (가+아), ㅓ→ㅓ|ㅡ (서+어, 쓰+어), ㅕ→ㅣ (마시+어), ㅘ→ㅗ (오+아), ㅝ→ㅜ (주+어), ㅙ→ㅚ (되+어), ㅐ→ㅐ (보내+어).
+const KO_CONTRACTED_TO_STEM_VOWELS: Record<number, number[]> = { 0: [0], 1: [1], 4: [4, 18], 6: [20], 9: [8], 10: [11], 14: [13] };
+
+function splitHangul(syllable: string) {
+  const code = syllable.charCodeAt(0) - HANGUL_BASE;
+  if (code < 0 || code > HANGUL_LAST - HANGUL_BASE) return null;
+  return { final: code % 28, initial: Math.floor(code / 588), medial: Math.floor((code % 588) / 28) };
+}
+
+function joinHangul(initial: number, medial: number, final = 0) {
+  return String.fromCharCode(HANGUL_BASE + initial * 588 + medial * 28 + final);
+}
+
+// Undoes the vowel contraction in one syllable: 갔→가, 왔→오, 했→하, 봐→보, 셔→시, 써→쓰.
+function uncontractKoreanSyllable(syllable: string, dropFinal: number | null) {
+  const parts = splitHangul(syllable);
+  if (!parts || (dropFinal !== null && parts.final !== dropFinal) || (dropFinal === null && parts.final !== 0)) return [];
+  // 하다 verbs: 해/했 come from 하 + 여.
+  if (parts.initial === 18 && parts.medial === 1) return [joinHangul(18, 0)];
+  return (KO_CONTRACTED_TO_STEM_VOWELS[parts.medial] ?? []).map((medial) => joinHangul(parts.initial, medial));
+}
+
+// Past (-ㅆ다/-ㅆ어요), polite present (-요 on a contracted syllable), formal (-ㅂ니다) and the
+// ㅂ-irregular -워요/-웠다 forms, which plain suffix stripping cannot reach.
+function getKoreanContractedCandidates(word: string): MorphologyCandidate[] {
+  const candidates: MorphologyCandidate[] = [];
+  const add = (prefix: string, stems: string[], reason: string) => {
+    for (const stem of stems) candidates.push(createCandidate(`${prefix}${stem}다`, reason));
+  };
+  const chars = Array.from(word);
+  const tail = (count: number) => chars.slice(-count).join('');
+  const prefixBefore = (count: number) => chars.slice(0, -count).join('');
+
+  for (const ending of ['다', '어요', '어', '습니다']) {
+    const endingLength = Array.from(ending).length;
+    if (chars.length <= endingLength || tail(endingLength) !== ending) continue;
+    const syllable = chars[chars.length - endingLength - 1];
+    add(prefixBefore(endingLength + 1), uncontractKoreanSyllable(syllable, KO_FINAL_SS), '동사/형용사 (past, contracted)');
+  }
+  if (chars.length >= 2 && tail(1) === '요') {
+    add(prefixBefore(2), uncontractKoreanSyllable(chars[chars.length - 2], null), '동사/형용사 (polite, contracted)');
+  }
+  if (chars.length >= 3 && tail(2) === '니다') {
+    const parts = splitHangul(chars[chars.length - 3]);
+    if (parts?.final === KO_FINAL_B) add(prefixBefore(3), [joinHangul(parts.initial, parts.medial)], '동사/형용사 (formal)');
+  }
+  // ㅂ-irregular: 추워요/추웠다 → 춥다, 더워요 → 덥다.
+  const irregular = word.match(/^(.*)(.)(워요|웠다|웠어요|워)$/u);
+  if (irregular) {
+    const parts = splitHangul(irregular[2]);
+    if (parts && parts.final === 0) candidates.push(createCandidate(`${irregular[1]}${joinHangul(parts.initial, parts.medial, KO_FINAL_B)}다`, 'ㅂ 불규칙 (polite/past)'));
+  }
+  return candidates;
+}
+
 function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
   const word = input.trim().normalize('NFC');
   if (word.length < 2) return [];
@@ -999,6 +1272,8 @@ function getKoreanMorphologyCandidates(input: string): MorphologyCandidate[] {
   if (verifiedLemma) {
     candidates.push(createCandidate(verifiedLemma, 'verified fixture-backed form'));
   }
+
+  candidates.push(...getKoreanContractedCandidates(word));
 
   // 1. Particle stripping for nouns (은/는, 이/가, 을/를, 에, 에서, 의, 에게, 한테)
   const particles = ['은', '는', '이', '가', '을', '를', '에', '에서', '의', '에게', '한테', '으로', '로'];
@@ -1539,12 +1814,44 @@ function getAmharicMorphologyCandidates(input: string): MorphologyCandidate[] {
   return uniqueCandidates(candidates, word).slice(0, 5);
 }
 
+// Keys use е for ё, so both spellings match.
+const RUSSIAN_IRREGULAR_FORMS: Record<string, string[]> = {
+  дети: ['ребёнок', 'дети'], детей: ['ребёнок', 'дети'], детям: ['ребёнок', 'дети'], детьми: ['ребёнок', 'дети'],
+  люди: ['человек', 'люди'], людей: ['человек', 'люди'], людям: ['человек', 'люди'],
+  хочу: ['хотеть'], хочешь: ['хотеть'], хочет: ['хотеть'], хотим: ['хотеть'], хотите: ['хотеть'], хотят: ['хотеть'],
+  живу: ['жить'], живешь: ['жить'], живет: ['жить'], живем: ['жить'], живете: ['жить'], живут: ['жить'],
+  иду: ['идти'], идешь: ['идти'], идет: ['идти'], шел: ['идти'], шла: ['идти'], шли: ['идти'],
+  ем: ['есть'], ешь: ['есть'], ест: ['есть'], едят: ['есть'],
+  даю: ['давать'], дает: ['давать'], дам: ['дать'], даст: ['дать'],
+  могу: ['мочь'], может: ['мочь'], могут: ['мочь'], мог: ['мочь'], могла: ['мочь'],
+  пью: ['пить'], пьет: ['пить'], пьют: ['пить'],
+  пишу: ['писать'], пишешь: ['писать'], пишет: ['писать'], пишут: ['писать'],
+  был: ['быть'], была: ['быть'], было: ['быть'], были: ['быть'], будет: ['быть'], буду: ['быть'],
+};
+
 function getRussianMorphologyCandidates(input: string): MorphologyCandidate[] {
   // Strip stress marks (U+0301 combining acute accent)
   const word = input.trim().normalize('NFD').replace(/\u0301/g, '').normalize('NFC').toLocaleLowerCase('ru-RU');
-  if (word.length < 3) return [];
-
   const candidates: MorphologyCandidate[] = [];
+
+  // Irregular and suppletive forms of very common words that no suffix rule reaches.
+  for (const base of RUSSIAN_IRREGULAR_FORMS[word.replace(/ё/g, 'е')] ?? []) {
+    candidates.push(createCandidate(base, 'irregular form'));
+  }
+  if (word.length < 3) return uniqueCandidates(candidates, word);
+
+  // 0. Long-form adjective cases (хорошего → хороший, новые → новый, синей → синий).
+  // Spelling rule: after г, к, х, ж, ш, щ, ч the masculine ending is -ий; soft stems also take -ий.
+  const adjectiveEndings = ['ого', 'его', 'ому', 'ему', 'ыми', 'ими', 'ых', 'их', 'ую', 'юю', 'ая', 'яя', 'ое', 'ее', 'ые', 'ие'];
+  for (const suffix of adjectiveEndings) {
+    if (!word.endsWith(suffix) || word.length <= suffix.length + 2) continue;
+    const stem = word.slice(0, -suffix.length);
+    const softOrHushing = /[гкхжшщч]$/.test(stem) || /^[еюяи]/.test(suffix);
+    for (const ending of softOrHushing ? ['ий', 'ой'] : ['ый', 'ой']) {
+      candidates.push(createCandidate(stem + ending, `adjective case restored to -${ending} (-${suffix})`));
+    }
+    break;
+  }
 
   // 1. Verb past tense: -л, -ла, -ло, -ли -> replace with infinitive ending -ть
   const pastTenseEndings = ['ла', 'ло', 'ли', 'л'];

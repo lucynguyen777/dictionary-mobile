@@ -40,3 +40,50 @@ test('Reader progress is an adjustable slider for assistive technology', async (
   await expect(slider).toHaveAttribute('aria-valuenow', '0');
   await expect(slider).toHaveAttribute('aria-valuetext', '0%');
 });
+
+test('Reader saves a highlighted phrase and makes a flashcard from it', async ({ page }) => {
+  await page.goto('/reader');
+  await page.getByText('lazy', { exact: true }).first().click();
+  await page.getByText('dog', { exact: true }).first().click();
+  await expect(page.getByText('lazy dog', { exact: true })).toBeVisible();
+
+  await page.getByText('Lưu', { exact: true }).click();
+  await expect(page.getByText('Đã lưu cụm từ "lazy dog".')).toBeVisible();
+  await page.getByText('Tạo thẻ', { exact: true }).click();
+  await expect(page.getByText('Đã tạo flashcard cho "lazy dog".')).toBeVisible();
+});
+
+test('Reader audio panel and page buttons respond', async ({ page }) => {
+  await page.goto('/reader');
+  const slider = page.getByRole('slider', { name: 'Tiến trình đọc' });
+  await page.getByRole('button', { name: 'Trang sau' }).click();
+  await expect.poll(async () => Number(await slider.getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+
+  await page.getByRole('button', { name: 'Audio' }).click();
+  await expect(page.getByRole('button', { name: 'Đọc to' })).toBeVisible();
+  await expect(page.getByRole('slider', { name: 'Vị trí đọc to' })).toHaveAttribute('aria-valuetext', /^Câu 1\/\d+$/);
+});
+
+// Plan 3.8: a ~1 MB book must stay usable. Before virtualization this took ~32 s to show, built
+// ~420k DOM nodes and ~22 s per tap; the budgets below leave wide margins for slow CI machines.
+test('Reader stays responsive with a 1 MB document', async ({ page }) => {
+  test.setTimeout(120_000);
+  const bigContent = Array.from({ length: 14_000 }, (_, index) => `${index + 1}. ${paragraph}`).join('\n');
+  await page.addInitScript((content) => {
+    const at = '2026-10-01T00:00:00.000Z';
+    window.localStorage.setItem('dictionary-mobile.reader.v1', JSON.stringify({
+      documents: [{ content, createdAt: at, id: 'doc-big', sourceFormat: 'txt', title: 'Big story', updatedAt: at }],
+      selectedDocumentId: 'doc-big',
+      settings: {},
+    }));
+  }, bigContent);
+
+  await page.goto('/reader');
+  await expect(page.getByText('quick', { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+  expect(await page.evaluate(() => document.querySelectorAll('*').length)).toBeLessThan(20_000);
+
+  const tapStarted = Date.now();
+  await page.getByText('quick', { exact: true }).first().click();
+  await expect(page.getByText('quick', { exact: true }).nth(1)).toBeVisible();
+  expect(Date.now() - tapStarted).toBeLessThan(5_000);
+});

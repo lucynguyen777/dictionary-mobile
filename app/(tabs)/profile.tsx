@@ -1,33 +1,39 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as LocalAuthentication from 'expo-local-authentication';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, AppState, Image, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, AppState, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
+import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
+import FeedbackForm from '@/components/profile/FeedbackForm';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { APP_RELEASE, getAppReleaseSummary } from '@/constants/appRelease';
-import { triggerManualSync } from '@/data/supabaseSyncLifecycle';
 import { ActivityState, getActivitySummary, getDefaultActivityState, loadActivityState } from '@/data/activityStore';
-import { loadCurrentAuthSession, sendPasswordRecoveryEmail, signInAuthSession, signOutAuthSession, signUpAuthSession, subscribeToAuthSessionChanges, syncAuthAutoRefreshForAppState } from '@/data/authController';
+import { loadCurrentAuthSession, subscribeToAuthSessionChanges, syncAuthAutoRefreshForAppState } from '@/data/authController';
 import { type AuthSessionSnapshot } from '@/data/authSession';
 import { exportAllLocalData } from '@/data/exportAllData';
 import { languageOptions } from '@/data/languages';
-import { LibraryState, clearLibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
-import { deleteInstalledOfflineDictionaryPack, installOfflineDictionaryPackFromSource } from '@/data/offlineDictionaryPackActions';
-import { OfflinePackInstallState, clearOfflinePackInstallState, formatOfflinePackInstallStatus, formatOfflinePackProgress, getDefaultOfflinePackInstallState, getOfflinePackInstallRecord, getOfflinePackInstallSummary, loadOfflinePackInstallState } from '@/data/offlineDictionaryPackStore';
-import { formatPackSizeRange, formatPackStatus, getOfflinePackRuntimeGate, getOfflinePackSummary, offlineDictionaryPacks } from '@/data/offlineDictionaryPacks';
-import { NotificationPreferences, UserProfile, clearUserProfile, getDefaultProfile, loadUserProfile, saveUserProfile } from '@/data/profileStore';
-import { ReaderState, clearReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
+import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
+import { OfflinePackInstallState, getDefaultOfflinePackInstallState, loadOfflinePackInstallState } from '@/data/offlineDictionaryPackStore';
+import { offlineDictionaryPacks, type OfflineDictionaryPack } from '@/data/offlineDictionaryPacks';
+import { refreshOfflinePacks } from '@/data/offlinePackCatalog';
+import { UserProfile, clearUserProfile, getDefaultProfile, loadUserProfile, saveUserProfile } from '@/data/profileStore';
+import { ReaderState, getDefaultReaderState, loadReaderState } from '@/data/readerStore';
 import { useToken } from '@/hooks/use-token';
 
-import { buildSavedWordChartData, buildStreakYearHeatmap, getActiveDaysForYear, getStreakYearOptions, getWordChartPeriodLabel, wordChartRanges, type WordChartRange } from '@/data/profileCharts';
-import { NotificationPreferenceRow, ProfileInput, SidebarActionRow, SidebarSection, sidebarNavItems, type SidebarSectionKey } from '@/components/profile/SettingsDrawerParts';
+import { SidebarActionRow, SidebarSection, sidebarNavItems, type SidebarSectionKey } from '@/components/profile/SettingsDrawerParts';
 import { AuthModal, AuthStatusPanel } from '@/components/profile/AuthPanels';
-import { DarkDataStat, DataStat, ProfileMetric, formatMetricNumber } from '@/components/profile/Metrics';
+import { useAuthForm } from '@/components/profile/useAuthForm';
+import { SavedWordsChartCard, StreakCard } from '@/components/profile/ActivityCharts';
+import OfflinePackSettings from '@/components/profile/OfflinePackSettings';
+import ProfileFields from '@/components/profile/ProfileFields';
+import PrivacySettings from '@/components/profile/PrivacySettings';
+import { DataStat, ProfileMetric } from '@/components/profile/Metrics';
 import { styles } from '@/components/profile/styles';
+import { clearAllLocalData } from '@/data/clearLocalData';
+import DeleteAccountForm from '@/components/profile/DeleteAccountForm';
 
-const defaultAvatarUri = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop';
 
 const legalLinks = [
   {
@@ -107,17 +113,27 @@ export default function ProfileScreen() {
   const [saveMessage, setSaveMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarSection, setSidebarSection] = useState<SidebarSectionKey | null>(null);
-  const [editingAvatar, setEditingAvatar] = useState(false);
-  const [offlinePackBusyId, setOfflinePackBusyId] = useState<string | null>(null);
   const [authSession, setAuthSession] = useState<AuthSessionSnapshot>(initialAuthSession);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authBusyAction, setAuthBusyAction] = useState<'sign-in' | 'sign-up' | 'recovery' | null>(null);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'sign-in' | 'sign-up'>('sign-in');
-  const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
-  const [selectedStreakYear, setSelectedStreakYear] = useState(new Date().getFullYear());
-  const [streakYearMenuOpen, setStreakYearMenuOpen] = useState(false);
+  const { authModalProps, handleAuthEntry, handleRefreshAuthSession, handleSignOutAuth, prefillAuthEmail } = useAuthForm({
+    authSession,
+    loadingSession: initialAuthSession,
+    setAuthSession,
+  });
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [offlinePacks, setOfflinePacks] = useState<OfflineDictionaryPack[]>(offlineDictionaryPacks);
+
+  useEffect(() => {
+    let active = true;
+    // Hosted packs (EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL) join the bundled list; offline, the cached catalog is used.
+    refreshOfflinePacks().then((packs) => {
+      if (active) setOfflinePacks(packs);
+    }).catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -142,14 +158,14 @@ export default function ProfileScreen() {
           setReaderState(nextReaderState);
           setOfflinePackInstallState(nextOfflinePackInstallState);
           setAuthSession(nextAuthSession);
-          setAuthEmail((current) => current || nextAuthSession.email || nextProfile.email || '');
+          prefillAuthEmail(nextAuthSession.email || nextProfile.email || '');
         }
       );
 
       return () => {
         isMounted = false;
       };
-    }, [])
+    }, [prefillAuthEmail])
   );
 
   React.useEffect(() => {
@@ -184,138 +200,6 @@ export default function ProfileScreen() {
     });
   };
 
-  const handleRefreshAuthSession = async () => {
-    setAuthSession(initialAuthSession);
-    const nextAuthSession = await loadCurrentAuthSession();
-    setAuthSession(nextAuthSession);
-  };
-
-  const handleAuthEntry = () => {
-    if (authSession.status === 'unconfigured') {
-      Alert.alert(
-        'Chưa cấu hình đăng nhập',
-        'Đăng nhập cloud chưa sẵn sàng trên bản cài đặt này. Bạn vẫn có thể dùng hồ sơ local.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
-    setAuthModalMode('sign-in');
-    setAuthModalOpen(true);
-  };
-
-  const validateAuthEmail = () => {
-    const email = authEmail.trim();
-
-    if (!email) {
-      Alert.alert('Thiếu email', 'Nhập email để dùng đăng nhập cloud.', [{ text: 'OK' }]);
-      return null;
-    }
-
-    return email;
-  };
-
-  const validateAuthCredentials = () => {
-    const email = validateAuthEmail();
-
-    if (!email) return null;
-
-    if (!authPassword) {
-      Alert.alert('Thiếu mật khẩu', 'Nhập mật khẩu để tiếp tục.', [{ text: 'OK' }]);
-      return null;
-    }
-
-    return {
-      email,
-      password: authPassword,
-    };
-  };
-
-  const handleSignInAuth = async () => {
-    const credentials = validateAuthCredentials();
-    if (!credentials) return;
-
-    setAuthBusyAction('sign-in');
-    const nextAuthSession = await signInAuthSession(credentials);
-    setAuthBusyAction(null);
-    setAuthSession(nextAuthSession);
-
-    if (nextAuthSession.status === 'error' || nextAuthSession.status === 'unconfigured') {
-      Alert.alert('Chưa đăng nhập', nextAuthSession.errorMessage ?? 'Không thể đăng nhập cloud.', [{ text: 'OK' }]);
-      return;
-    }
-
-    setAuthPassword('');
-    setAuthModalOpen(false);
-    Alert.alert('Đã đăng nhập', 'Phiên cloud đã sẵn sàng. Dữ liệu local vẫn được giữ nguyên.', [{ text: 'OK' }]);
-  };
-
-  const handleSignUpAuth = async () => {
-    const credentials = validateAuthCredentials();
-    if (!credentials) return;
-
-    setAuthBusyAction('sign-up');
-    const nextAuthSession = await signUpAuthSession(credentials);
-    setAuthBusyAction(null);
-    setAuthSession(nextAuthSession);
-
-    if (nextAuthSession.status === 'error' || nextAuthSession.status === 'unconfigured') {
-      Alert.alert('Chưa tạo tài khoản', nextAuthSession.errorMessage ?? 'Không thể tạo tài khoản cloud.', [{ text: 'OK' }]);
-      return;
-    }
-
-    setAuthPassword('');
-    setAuthModalOpen(false);
-    Alert.alert(
-      nextAuthSession.status === 'needs_verification' ? 'Kiểm tra email' : 'Tài khoản đã sẵn sàng',
-      nextAuthSession.status === 'needs_verification'
-        ? 'Mở email xác minh để hoàn tất đăng ký cloud.'
-        : 'Phiên cloud đã sẵn sàng. Dữ liệu local vẫn được giữ nguyên.',
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handlePasswordRecovery = async () => {
-    const email = validateAuthEmail();
-    if (!email) return;
-
-    setAuthBusyAction('recovery');
-    const nextAuthSession = await sendPasswordRecoveryEmail(email);
-    setAuthBusyAction(null);
-    setAuthSession(nextAuthSession);
-
-    if (nextAuthSession.status === 'error' || nextAuthSession.status === 'unconfigured') {
-      Alert.alert('Chưa gửi được email', nextAuthSession.errorMessage ?? 'Không thể gửi email khôi phục.', [{ text: 'OK' }]);
-      return;
-    }
-
-    Alert.alert('Đã gửi email', 'Kiểm tra hộp thư để tiếp tục khôi phục mật khẩu.', [{ text: 'OK' }]);
-  };
-
-  const handleSignOutAuth = () => {
-    if (authSession.status !== 'authenticated' && authSession.status !== 'needs_verification') {
-      Alert.alert('Đăng xuất', 'Chưa có phiên đăng nhập cloud để đăng xuất. Dữ liệu local vẫn giữ nguyên.', [{ text: 'OK' }]);
-      return;
-    }
-
-    Alert.alert('Đăng xuất', 'Đăng xuất khỏi phiên cloud? Dữ liệu local trên thiết bị sẽ không bị xóa.', [
-      { text: 'Hủy', style: 'cancel' },
-      {
-        text: 'Đăng xuất',
-        onPress: async () => {
-          const nextAuthSession = await signOutAuthSession();
-          setAuthSession(nextAuthSession);
-          Alert.alert(
-            nextAuthSession.status === 'error' ? 'Lỗi đăng xuất' : 'Đã đăng xuất',
-            nextAuthSession.status === 'error'
-              ? nextAuthSession.errorMessage ?? 'Không thể đăng xuất phiên cloud.'
-              : 'Phiên cloud đã được xóa. Hồ sơ và thư viện local vẫn được giữ nguyên.'
-          );
-        },
-      },
-    ]);
-  };
-
   const handleExportAllData = async () => {
     const result = await exportAllLocalData();
     Alert.alert(result.ok ? 'Đã xuất dữ liệu' : 'Lỗi xuất dữ liệu', result.message);
@@ -331,10 +215,7 @@ export default function ProfileScreen() {
           text: 'Xóa tất cả',
           style: 'destructive',
           onPress: async () => {
-            await clearLibraryState();
-            await clearUserProfile();
-            await clearReaderState();
-            await clearOfflinePackInstallState();
+            await clearAllLocalData();
             setLibraryState(getDefaultLibraryState());
             setOfflinePackInstallState(getDefaultOfflinePackInstallState());
             setProfile(getDefaultProfile());
@@ -347,152 +228,8 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleInstallOfflinePack = async (pack: (typeof offlineDictionaryPacks)[number]) => {
-    const runtimeGate = getOfflinePackRuntimeGate(pack);
-
-    if (!runtimeGate.canDownload || !pack.downloadSource) {
-      Alert.alert('Chưa thể tải pack', runtimeGate.detail);
-      return;
-    }
-
-    setOfflinePackBusyId(pack.id);
-
-    try {
-      const result = await installOfflineDictionaryPackFromSource({
-        pack,
-        state: offlinePackInstallState,
-      });
-
-      setOfflinePackInstallState(result.state);
-      Alert.alert(
-        result.ok ? 'Đã cài pack offline' : 'Lỗi cài pack offline',
-        result.ok ? `Đã cài ${result.entryCount} mục từ vào SQLite.` : result.errorMessage
-      );
-    } finally {
-      setOfflinePackBusyId(null);
-    }
-  };
-
-  const handleDeleteOfflinePack = (pack: (typeof offlineDictionaryPacks)[number]) => {
-    Alert.alert('Xóa pack offline', 'Xóa SQLite pack và trạng thái cài đặt local trên thiết bị này?', [
-      { text: 'Hủy', style: 'cancel' },
-      {
-        text: 'Xóa pack',
-        style: 'destructive',
-        onPress: async () => {
-          setOfflinePackBusyId(pack.id);
-
-          try {
-            const nextState = await deleteInstalledOfflineDictionaryPack({
-              pack,
-              state: offlinePackInstallState,
-            });
-            setOfflinePackInstallState(nextState);
-            Alert.alert('Đã xóa pack', 'Pack offline đã được xóa khỏi thiết bị.');
-          } finally {
-            setOfflinePackBusyId(null);
-          }
-        },
-      },
-    ]);
-  };
-
-  const handleToggleAppLock = async (nextValue: boolean) => {
-    try {
-      if (nextValue) {
-        const [hasHardware, isEnrolled] = await Promise.all([
-          LocalAuthentication.hasHardwareAsync(),
-          LocalAuthentication.isEnrolledAsync(),
-        ]);
-
-        if (!hasHardware || !isEnrolled) {
-          Alert.alert(
-            'Chưa thể bật khóa ứng dụng',
-            'Thiết bị này chưa hỗ trợ hoặc chưa thiết lập sinh trắc học/mã khóa thiết bị.'
-          );
-          return;
-        }
-
-        const result = await LocalAuthentication.authenticateAsync({
-          cancelLabel: 'Hủy',
-          disableDeviceFallback: false,
-          fallbackLabel: 'Dùng mã thiết bị',
-          promptMessage: 'Bật khóa Dictionary Mobile',
-        });
-
-        if (!result.success) {
-          Alert.alert('Chưa bật khóa', 'Bạn cần xác thực thành công trước khi bật khóa ứng dụng.');
-          return;
-        }
-      }
-
-      const nextProfile = await saveUserProfile({ ...profile, appLockEnabled: nextValue });
-      setProfile(nextProfile);
-      setSaveMessage(nextValue ? 'Đã bật khóa ứng dụng trên thiết bị này.' : 'Đã tắt khóa ứng dụng.');
-    } catch {
-      Alert.alert('Lỗi khóa ứng dụng', 'Không thể thay đổi thiết lập khóa ứng dụng lúc này.');
-    }
-  };
-
-  const handleToggleCloudSync = async (nextValue: boolean) => {
-    try {
-      const nextProfile = await saveUserProfile({ ...profile, cloudSyncEnabled: nextValue });
-      setProfile(nextProfile);
-      setSaveMessage(nextValue ? 'Đã bật đồng bộ cloud (beta). Ứng dụng sẽ tự đồng bộ khi mở lại và sau khi bạn chỉnh sửa.' : 'Đã tắt đồng bộ đám mây.');
-    } catch {
-      Alert.alert('Lỗi đồng bộ', 'Không thể thay đổi thiết lập đồng bộ lúc này.');
-    }
-  };
-
-  const handleManualCloudSync = async () => {
-    const result = await triggerManualSync();
-    if (result.status === 'synced') {
-      setSaveMessage('Đã đồng bộ cloud.');
-    } else if (result.status === 'idle') {
-      setSaveMessage('Bật đồng bộ cloud (beta) trước khi đồng bộ.');
-    } else if (result.status === 'signed-out') {
-      Alert.alert('Cần đăng nhập', 'Đăng nhập cloud trước khi đồng bộ dữ liệu.');
-    } else if (result.status === 'unconfigured') {
-      Alert.alert('Cloud chưa cấu hình', 'Cần cấu hình Supabase production trước khi đồng bộ.');
-    } else if (result.status === 'offline') {
-      Alert.alert('Ngoại tuyến', 'Kiểm tra mạng rồi thử đồng bộ lại.');
-    } else {
-      Alert.alert('Lỗi đồng bộ', 'Không thể đồng bộ cloud lúc này.');
-    }
-  };
-
-  const handleUpdateNotificationPreference = async <Key extends keyof NotificationPreferences>(
-    key: Key,
-    value: NotificationPreferences[Key]
-  ) => {
-    const nextProfile = await saveUserProfile({
-      ...profile,
-      notificationPreferences: {
-        ...profile.notificationPreferences,
-        [key]: value,
-      },
-    });
-
-    setProfile(nextProfile);
-    setSaveMessage('Đã lưu tùy chọn thông báo local.');
-  };
-
-  const handleChangeNotificationTime = (value: string) => {
-    updateProfile('notificationPreferences', {
-      ...profile.notificationPreferences,
-      reminderTime: value,
-    });
-  };
-
-  const handleCommitNotificationTime = () => {
-    handleUpdateNotificationPreference('reminderTime', profile.notificationPreferences.reminderTime);
-  };
-
   const nativeLanguage = languageOptions.find((language) => language.code === profile.nativeLanguage);
   const learningLanguage = languageOptions.find((language) => language.code === profile.learningLanguage);
-  const offlinePackRuntimeOptions = { supportsSqliteRuntime: Platform.OS !== 'web' };
-  const offlinePackSummary = getOfflinePackSummary(offlineDictionaryPacks, offlinePackRuntimeOptions);
-  const offlinePackInstallSummary = getOfflinePackInstallSummary(offlinePackInstallState);
   const isSignedIn = authSession.status === 'authenticated' || authSession.status === 'needs_verification';
   const isDefaultGuestProfile =
     !isSignedIn &&
@@ -500,20 +237,12 @@ export default function ProfileScreen() {
     !profile.email &&
     !profile.username &&
     !profile.avatarUrl;
-  const avatarUri = profile.avatarUrl || (isDefaultGuestProfile ? '' : defaultAvatarUri);
+  // No stock photo: without a picture of their own, users see a neutral placeholder.
+  const avatarUri = profile.avatarUrl;
   const activeSidebarItem = sidebarNavItems.find((item) => item.key === sidebarSection);
   const dashboardNow = new Date();
   const activitySummary = getActivitySummary(activityState, dashboardNow);
   const dueFlashcards = libraryState.flashcards.filter((card) => new Date(card.dueDate) <= dashboardNow || card.reviewState !== 'reviewed').length;
-  const wordChartData = buildSavedWordChartData(libraryState.savedWords, wordChartRange, dashboardNow);
-  const wordChartPrimaryValue = wordChartRange === 'day' ? wordChartData.totalValue : wordChartData.averageValue;
-  const wordChartMetricLabel = wordChartRange === 'day' ? 'TOTAL' : 'TRUNG BÌNH';
-  const wordChartPeriodLabel = getWordChartPeriodLabel(wordChartRange, dashboardNow);
-  const currentYear = dashboardNow.getFullYear();
-  const streakYearOptions = getStreakYearOptions(activityState, currentYear);
-  const displayedStreakYear = streakYearOptions.includes(selectedStreakYear) ? selectedStreakYear : currentYear;
-  const selectedYearActiveDays = getActiveDaysForYear(activityState, displayedStreakYear);
-  const streakYearHeatmap = buildStreakYearHeatmap(activityState.activeDays, displayedStreakYear);
 
   const handleDeleteLocalProfile = () => {
     Alert.alert('Xóa hồ sơ local', 'Hành động này sẽ xóa hồ sơ local trên thiết bị. Bạn có muốn tiếp tục?', [
@@ -629,187 +358,54 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={[styles.card, styles.metricsCardDark]}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderCopy}>
-              <Text style={styles.metricsCardTitle}>Từ mới thêm vào tủ từ</Text>
-              <Text style={styles.metricsCardSubtitle}>Tốc độ lưu từ theo ngày, tuần, tháng hoặc năm.</Text>
-            </View>
-          </View>
-          <View style={styles.segmentedControl}>
-            {wordChartRanges.map((range) => (
-              <TouchableOpacity
-                key={range.value}
-                activeOpacity={0.82}
-                onPress={() => setWordChartRange(range.value)}
-                style={[styles.segmentButton, wordChartRange === range.value && styles.segmentButtonActive]}>
-                <Text style={[styles.segmentButtonText, wordChartRange === range.value && styles.segmentButtonTextActive]}>
-                  {range.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.metricsHeaderBlock}>
-            <Text style={styles.metricsOverline}>{wordChartMetricLabel}</Text>
-            <Text style={styles.metricsPrimaryValue}>{formatMetricNumber(wordChartPrimaryValue)}</Text>
-            <Text style={styles.metricsPeriod}>{wordChartPeriodLabel}</Text>
-          </View>
-          <View style={styles.fitnessChartFrame}>
-            <View pointerEvents="none" style={styles.chartGridOverlay}>
-              <View style={styles.chartTopRule} />
-              <View style={styles.chartMidRule} />
-              <View style={styles.chartBottomRule} />
-              {wordChartData.points.map((point) => (
-                <View key={point.key} style={styles.chartVerticalRule} />
-              ))}
-            </View>
-            <View style={styles.chartYAxisLabels}>
-              <Text style={styles.chartAxisText}>{wordChartData.maxValue}</Text>
-              <Text style={styles.chartAxisText}>{Math.round(wordChartData.maxValue / 2)}</Text>
-              <Text style={styles.chartAxisText}>0</Text>
-            </View>
-            <View style={styles.barChart}>
-              {wordChartData.points.map((point) => (
-                <View key={point.key} style={styles.barColumn}>
-                  <View style={styles.barTrack}>
-                    <View
-                      style={[
-                        styles.barFill,
-                        point.key === wordChartData.currentKey && styles.barFillActive,
-                        { height: `${Math.max(6, (point.value / wordChartData.maxValue) * 100)}%` },
-                      ]}
-                    />
-                  </View>
-                  <Text style={styles.barLabel} numberOfLines={1}>{point.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
+        <SavedWordsChartCard savedWords={libraryState.savedWords} />
 
-        <View style={[styles.card, styles.metricsCardDark]}>
-          <View style={[styles.cardHeader, { zIndex: 10 }]}>
-            <View style={styles.cardHeaderCopy}>
-              <Text style={styles.metricsCardTitle}>Streak đăng nhập</Text>
-              <Text style={styles.metricsCardSubtitle}>Tính theo ngày app được mở trên thiết bị này.</Text>
-            </View>
-            <View style={styles.yearPickerWrap}>
-              <Pressable
-                accessibilityLabel="Chọn năm streak"
-                accessibilityRole="button"
-                onPress={() => setStreakYearMenuOpen((current) => !current)}
-                style={({ pressed }) => [styles.metricsYearPill, pressed && styles.metricsYearPillPressed]}>
-                <Text style={styles.metricsYearText}>{displayedStreakYear}</Text>
-                <Ionicons name={streakYearMenuOpen ? 'chevron-up' : 'chevron-down'} size={13} color="#EDEAF7" />
-              </Pressable>
-              {streakYearMenuOpen ? (
-                <View style={styles.yearPickerMenu}>
-                  {streakYearOptions.map((year) => (
-                    <Pressable
-                      key={year}
-                      accessibilityRole="button"
-                      onPress={() => {
-                        setSelectedStreakYear(year);
-                        setStreakYearMenuOpen(false);
-                      }}
-                      style={({ pressed }) => [
-                        styles.yearPickerOption,
-                        year === displayedStreakYear && styles.yearPickerOptionActive,
-                        pressed && styles.yearPickerOptionPressed,
-                      ]}>
-                      <Text style={[styles.yearPickerOptionText, year === displayedStreakYear && styles.yearPickerOptionTextActive]}>
-                        {year}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              ) : null}
-            </View>
-          </View>
-          <View style={styles.darkDataRowCompact}>
-            <DarkDataStat compact label="Hiện tại" value={activitySummary.currentStreak} />
-            <DarkDataStat compact label="Dài nhất" value={activitySummary.longestStreak} />
-            <DarkDataStat compact label="Tháng này" value={activitySummary.activeDaysThisMonth} />
-            <DarkDataStat compact label={displayedStreakYear === currentYear ? 'Năm nay' : 'Năm đó'} value={selectedYearActiveDays} />
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.streakHeatmapScroll}
-            contentContainerStyle={styles.streakHeatmapContent}>
-            <View>
-              <View style={styles.streakMonthRow}>
-                <View style={styles.streakWeekLabelSpacer} />
-                <View style={styles.streakMonthGrid}>
-                  {streakYearHeatmap.monthLabels.map((month) => (
-                    <Text key={`${month.label}-${month.weekIndex}`} style={[styles.streakMonthLabel, { left: month.weekIndex * 13 }]}>
-                      {month.label}
-                    </Text>
-                  ))}
-                </View>
-              </View>
-              <View style={styles.streakGridRow}>
-                <View style={styles.streakWeekLabels}>
-                  <Text style={styles.weekLabel}>Mon</Text>
-                  <Text style={styles.weekLabel}>Wed</Text>
-                  <Text style={styles.weekLabel}>Fri</Text>
-                </View>
-                <View style={styles.streakWeeks}>
-                  {streakYearHeatmap.weeks.map((week) => (
-                    <View key={week.key} style={styles.streakWeekColumn}>
-                      {week.days.map((day) => (
-                        <View
-                          key={day.key}
-                          style={[
-                            styles.square,
-                            !day.isInYear && styles.squareMuted,
-                            day.isActive && day.level === 1 && styles.squareLevel1,
-                            day.isActive && day.level === 2 && styles.squareLevel2,
-                            day.isActive && day.level === 3 && styles.squareLevel3,
-                            day.isActive && day.level >= 4 && styles.squareLevel4,
-                          ]}
-                        />
-                      ))}
-                    </View>
-                  ))}
-                </View>
-              </View>
-              <View style={styles.streakContributionFooter}>
-                <Text style={styles.legendText}>Learn how we count app opens</Text>
-                <View style={styles.legend}>
-                  <Text style={styles.legendText}>Less</Text>
-                  <View style={[styles.legendSquare]} />
-                  <View style={[styles.legendSquare, styles.squareLevel1]} />
-                  <View style={[styles.legendSquare, styles.squareLevel2]} />
-                  <View style={[styles.legendSquare, styles.squareLevel3]} />
-                  <View style={[styles.legendSquare, styles.squareLevel4]} />
-                  <Text style={styles.legendText}>More</Text>
-                </View>
-              </View>
-            </View>
-          </ScrollView>
-        </View>
+        <StreakCard activityState={activityState} />
       </ScrollView>
 
-      <AuthModal
-        authBusyAction={authBusyAction}
-        authEmail={authEmail}
-        authPassword={authPassword}
-        authSession={authSession}
-        mode={authModalMode}
-        onChangeEmail={setAuthEmail}
-        onChangeMode={setAuthModalMode}
-        onChangePassword={setAuthPassword}
-        onClose={() => setAuthModalOpen(false)}
-        onPasswordRecovery={handlePasswordRecovery}
-        onSignIn={handleSignInAuth}
-        onSignUp={handleSignUpAuth}
-        visible={authModalOpen}
-      />
+      <AuthModal {...authModalProps} />
+
+      <Modal animationType="fade" onRequestClose={() => setChangePasswordOpen(false)} transparent visible={changePasswordOpen}>
+        <Pressable accessibilityLabel="Đóng" onPress={() => setChangePasswordOpen(false)} style={styles.authModalBackdrop}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={[styles.authModalCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
+            <ChangePasswordForm onDone={() => setChangePasswordOpen(false)} />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal animationType="fade" onRequestClose={() => setDeleteAccountOpen(false)} transparent visible={deleteAccountOpen}>
+        <Pressable accessibilityLabel="Đóng" onPress={() => setDeleteAccountOpen(false)} style={styles.authModalBackdrop}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={[styles.authModalCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
+            <DeleteAccountForm
+              onDone={({ localDataErased, signedOut }) => {
+                setDeleteAccountOpen(false);
+                if (localDataErased) {
+                  setLibraryState(getDefaultLibraryState());
+                  setOfflinePackInstallState(getDefaultOfflinePackInstallState());
+                  setProfile(getDefaultProfile());
+                  setReaderState(getDefaultReaderState());
+                }
+                if (signedOut) {
+                  handleRefreshAuthSession();
+                  Alert.alert('Đã xóa tài khoản', localDataErased ? 'Tài khoản cloud và dữ liệu trên thiết bị đã được xóa.' : 'Tài khoản cloud đã được xóa. Dữ liệu trên thiết bị vẫn được giữ.');
+                }
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal animationType="fade" onRequestClose={() => setFeedbackOpen(false)} transparent visible={feedbackOpen}>
+        <Pressable accessibilityLabel="Đóng" onPress={() => setFeedbackOpen(false)} style={styles.authModalBackdrop}>
+          <Pressable onPress={(event) => event.stopPropagation()} style={[styles.authModalCard, { backgroundColor: colors.surface, borderColor: colors.borderDefault }]}>
+            <FeedbackForm onDone={() => setFeedbackOpen(false)} />
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {sidebarOpen ? (
         <View style={styles.sidebarOverlay}>
-          <TouchableOpacity
+          <Touchable
             accessibilityLabel="Đóng cài đặt"
             activeOpacity={1}
             onPress={() => setSidebarOpen(false)}
@@ -828,7 +424,13 @@ export default function ProfileScreen() {
               </Pressable>
             </View>
             <View style={styles.sidebarProfileCard}>
-              <Image source={{ uri: avatarUri }} style={styles.sidebarProfileAvatar} />
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.sidebarProfileAvatar} />
+              ) : (
+                <View style={[styles.sidebarProfileAvatar, styles.avatarPlaceholder, themed.guestAvatar]}>
+                  <Ionicons name="person-outline" size={22} color={colors.accentPrimary} />
+                </View>
+              )}
               <View style={styles.sidebarProfileCopy}>
                 <Text style={styles.sidebarProfileName} numberOfLines={1}>{profile.displayName}</Text>
                 <Text style={styles.sidebarProfileMeta} numberOfLines={1}>
@@ -893,217 +495,40 @@ export default function ProfileScreen() {
                   onRefreshPress={handleRefreshAuthSession}
                   onSignOutPress={handleSignOutAuth}
                 />
-                <View style={styles.sidebarAvatarBlock}>
-                  <Image source={{ uri: avatarUri }} style={styles.sidebarAvatar} />
-                  <Pressable
-                    onPress={() => setEditingAvatar((value) => !value)}
-                    style={({ pressed }) => [styles.sidebarAvatarAction, pressed && styles.sidebarAvatarActionPressed]}>
-                    <Text style={styles.sidebarAvatarActionText}>{editingAvatar ? 'Hủy' : 'Thay ảnh'}</Text>
-                  </Pressable>
-                </View>
-                {editingAvatar ? (
-                  <ProfileInput
-                    label="Avatar URL"
-                    onChangeText={(value) => updateProfile('avatarUrl', value)}
-                    placeholder="https://..."
-                    value={profile.avatarUrl}
-                  />
-                ) : null}
-                <ProfileInput
-                  label="Tên hiển thị"
-                  onChangeText={(value) => updateProfile('displayName', value)}
-                  placeholder="Tên hiển thị"
-                  value={profile.displayName}
+                <ProfileFields
+                  avatarPlaceholderStyle={themed.guestAvatar}
+                  isCloudSignedIn={authSession.status === 'authenticated'}
+                  onChange={updateProfile}
+                  profile={profile}
                 />
-                <ProfileInput
-                  label="Tên người dùng"
-                  onChangeText={(value) => updateProfile('username', value)}
-                  placeholder="username"
-                  value={profile.username}
-                />
-                <ProfileInput
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  label="Email"
-                  onChangeText={(value) => updateProfile('email', value)}
-                  placeholder="you@example.com"
-                  value={profile.email}
-                />
-                <ProfileInput
-                  label="Số điện thoại"
-                  onChangeText={(value) => updateProfile('phone', value)}
-                  placeholder="+84..."
-                  value={profile.phone}
-                />
-                <View style={styles.fieldBlock}>
-                  <Text style={styles.fieldLabel}>Mật khẩu</Text>
-                  <TextInput
-                    editable={false}
-                    placeholder={authSession.status === 'authenticated' ? 'Dùng email khôi phục để đổi mật khẩu' : 'Cần phiên cloud'}
-                    placeholderTextColor="#94A3B8"
-                    secureTextEntry
-                    style={[styles.profileInput, styles.profileInputDisabled]}
-                    value=""
-                  />
-                  <Text style={styles.fieldHint}>Hồ sơ local vẫn tách khỏi danh tính cloud. Đổi mật khẩu sẽ dùng email khôi phục khi đăng nhập khả dụng.</Text>
-                </View>
-                <TouchableOpacity activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
+                <Touchable activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="save-outline" size={16} color="#0075DE" />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Lưu thay đổi</Text>
-                </TouchableOpacity>
+                </Touchable>
               </SidebarSection>
               ) : null}
 
               {sidebarSection === 'privacy' ? (
               <SidebarSection title="Riêng tư & dữ liệu">
-                <View style={styles.privacyNote}>
-                  <Ionicons name="lock-closed-outline" size={18} color="#0075DE" />
-                  <Text style={styles.privacyText}>
-                    Dữ liệu học tập, hồ sơ và file Reader luôn lưu local trước. Cloud chỉ chạy khi bạn đăng nhập và bật đồng bộ (beta); khi đã bật, ứng dụng tự đồng bộ khi mở lại và sau khi bạn chỉnh sửa.
-                  </Text>
-                </View>
-                <View style={styles.securityRow}>
-                  <View style={styles.securityCopy}>
-                    <Text style={styles.securityTitle}>Khóa ứng dụng</Text>
-                    <Text style={styles.securityText}>Face ID, vân tay hoặc mã thiết bị khi mở app.</Text>
-                  </View>
-                  <Switch
-                    onValueChange={handleToggleAppLock}
-                    thumbColor="#FFFFFF"
-                    trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
-                    value={profile.appLockEnabled}
-                  />
-                </View>
-                {authSession.status === 'authenticated' && (
-                  <View style={styles.cloudSyncPanel}>
-                    <View style={styles.securityRow}>
-                      <View style={styles.securityCopy}>
-                        <Text style={styles.securityTitle}>Beta đồng bộ đám mây</Text>
-                        <Text style={styles.securityText}>Tự động đồng bộ dữ liệu học tập giữa các thiết bị. Dữ liệu local luôn được giữ lại; bấm Đồng bộ ngay để đồng bộ tức thì.</Text>
-                      </View>
-                      <Switch
-                        onValueChange={handleToggleCloudSync}
-                        thumbColor="#FFFFFF"
-                        trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
-                        value={profile.cloudSyncEnabled}
-                      />
-                    </View>
-                    {profile.cloudSyncEnabled ? (
-                      <TouchableOpacity
-                        activeOpacity={0.82}
-                        onPress={handleManualCloudSync}
-                        style={styles.manualSyncButton}>
-                        <Ionicons name="sync-outline" size={15} color="#0075DE" />
-                        <Text style={styles.manualSyncButtonText} numberOfLines={1}>Đồng bộ ngay</Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                )}
-                <Text style={styles.sidebarGroupLabel}>Thông báo local</Text>
-                <View style={styles.notificationPanel}>
-                  <NotificationPreferenceRow
-                    description="Nhắc bạn quay lại học theo giờ đã chọn."
-                    label="Nhắc học mỗi ngày"
-                    onValueChange={(value) => handleUpdateNotificationPreference('dailyReminderEnabled', value)}
-                    value={profile.notificationPreferences.dailyReminderEnabled}
-                  />
-                  <NotificationPreferenceRow
-                    description="Ưu tiên thẻ flashcard đến hạn trong ngày."
-                    label="Nhắc ôn flashcard"
-                    onValueChange={(value) => handleUpdateNotificationPreference('reviewReminderEnabled', value)}
-                    value={profile.notificationPreferences.reviewReminderEnabled}
-                  />
-                  <NotificationPreferenceRow
-                    description="Tổng kết nhẹ vào cuối tuần, vẫn chỉ lưu local."
-                    label="Tổng kết tuần"
-                    onValueChange={(value) => handleUpdateNotificationPreference('weeklySummaryEnabled', value)}
-                    value={profile.notificationPreferences.weeklySummaryEnabled}
-                  />
-                  <View style={styles.notificationTimeRow}>
-                    <View style={styles.securityCopy}>
-                      <Text style={styles.securityTitle}>Giờ nhắc</Text>
-                      <Text style={styles.securityText}>Định dạng 24h, ví dụ 20:00.</Text>
-                    </View>
-                    <TextInput
-                      autoCapitalize="none"
-                      onBlur={handleCommitNotificationTime}
-                      onChangeText={handleChangeNotificationTime}
-                      placeholder="20:00"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.notificationTimeInput}
-                      value={profile.notificationPreferences.reminderTime}
-                    />
-                  </View>
-                </View>
-                <TouchableOpacity activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
+                <PrivacySettings
+                  isSignedIn={authSession.status === 'authenticated'}
+                  onMessage={setSaveMessage}
+                  onProfileChange={setProfile}
+                  profile={profile}
+                />
+                <Touchable activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="cloud-upload-outline" size={16} color="#0075DE" />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Xuất dữ liệu local</Text>
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
+                </Touchable>
+                <Touchable activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
                   <Ionicons name="trash-outline" size={16} color="#DC2626" />
                   <Text style={styles.clearDataText} numberOfLines={1}>Xóa tất cả dữ liệu local</Text>
-                </TouchableOpacity>
-                <Text style={styles.sidebarGroupLabel}>Gói từ điển offline</Text>
-                <View style={styles.offlinePackSummaryRow}>
-                  <DataStat label="Gói" value={offlinePackSummary.packCount} />
-                  <DataStat label="Đã cài" value={offlinePackInstallSummary.readyCount} />
-                </View>
-                {offlineDictionaryPacks.map((pack) => {
-                  const language = languageOptions.find((item) => item.code === pack.languageCode);
-                  const runtimeGate = getOfflinePackRuntimeGate(pack, offlinePackRuntimeOptions);
-                  const installRecord = getOfflinePackInstallRecord(offlinePackInstallState, pack);
-                  const installStatus = formatOfflinePackInstallStatus(installRecord.status);
-                  const progressLabel =
-                    installRecord.status === 'downloading' ? `Tiến độ ${formatOfflinePackProgress(installRecord)}` : installStatus;
-                  const isBusy = offlinePackBusyId === pack.id;
-                  const canInstall = runtimeGate.canDownload && !isBusy;
-                  const hasInstallRecord = installRecord.status !== 'not_downloaded';
-
-                  return (
-                    <View key={pack.id} style={styles.offlinePackRow}>
-                      <View style={styles.securityCopy}>
-                        <Text style={styles.securityTitle}>{language?.label ?? pack.languageCode}</Text>
-                        <Text style={styles.securityText}>
-                          {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
-                        </Text>
-                        <Text style={styles.securityText}>{runtimeGate.detail}</Text>
-                      </View>
-                      <View style={styles.offlinePackStatusColumn}>
-                        <Text style={styles.offlinePackStatus}>{formatPackStatus(pack.status)}</Text>
-                        <Text style={styles.offlinePackInstallText}>{progressLabel}</Text>
-                        <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
-                        <View style={styles.offlinePackActionRow}>
-                          <TouchableOpacity
-                            accessibilityLabel={`Tải ${language?.label ?? pack.languageCode} offline pack`}
-                            accessibilityRole="button"
-                            activeOpacity={0.82}
-                            disabled={!canInstall}
-                            onPress={() => handleInstallOfflinePack(pack)}
-                            style={[styles.offlinePackActionButton, !canInstall && styles.offlinePackActionButtonDisabled]}>
-                            <Ionicons name="download-outline" size={14} color={canInstall ? '#0075DE' : '#A4A097'} />
-                            <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
-                              {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
-                            </Text>
-                          </TouchableOpacity>
-                          {hasInstallRecord ? (
-                            <TouchableOpacity
-                              accessibilityLabel={`Xóa ${language?.label ?? pack.languageCode} offline pack`}
-                              accessibilityRole="button"
-                              activeOpacity={0.82}
-                              disabled={isBusy}
-                              onPress={() => handleDeleteOfflinePack(pack)}
-                              style={[styles.offlinePackDeleteButton, isBusy && styles.offlinePackActionButtonDisabled]}>
-                              <Ionicons name="trash-outline" size={14} color={isBusy ? '#94A3B8' : '#DC2626'} />
-                              <Text style={[styles.offlinePackDeleteText, isBusy && styles.offlinePackActionTextDisabled]}>
-                                Xóa
-                              </Text>
-                            </TouchableOpacity>
-                          ) : null}
-                        </View>
-                      </View>
-                    </View>
-                  );
-                })}
+                </Touchable>
+                <OfflinePackSettings
+                  installState={offlinePackInstallState}
+                  onInstallStateChange={setOfflinePackInstallState}
+                  packs={offlinePacks}
+                />
               </SidebarSection>
               ) : null}
 
@@ -1115,11 +540,17 @@ export default function ProfileScreen() {
                   onPress={() => Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp sẽ mở khi chọn kênh hỗ trợ chính thức.', [{ text: 'OK' }])}
                 />
                 <SidebarActionRow
-                  badge="Phiên bản sau"
-                  disabled
+                  badge={authSession.status === 'authenticated' ? undefined : authSession.status === 'unconfigured' ? 'Chưa cấu hình' : 'Cần đăng nhập'}
+                  disabled={authSession.status === 'loading' || authSession.status === 'unconfigured'}
                   icon="chatbox-ellipses-outline"
                   label="Gửi phản hồi"
-                  onPress={() => Alert.alert('Gửi phản hồi', 'Kênh phản hồi cloud đã được chọn. Biểu mẫu gửi phản hồi sẽ khả dụng sau khi bật máy chủ hỗ trợ.', [{ text: 'OK' }])}
+                  onPress={() => {
+                    if (authSession.status === 'authenticated') {
+                      setFeedbackOpen(true);
+                      return;
+                    }
+                    Alert.alert('Cần đăng nhập', 'Đăng nhập cloud để gửi phản hồi. Mỗi tài khoản gửi tối đa 5 phản hồi mỗi ngày.');
+                  }}
                 />
                 <SidebarActionRow
                   badge={authSession.status === 'authenticated' || authSession.status === 'needs_verification' ? 'Cloud' : 'Local'}
@@ -1134,17 +565,34 @@ export default function ProfileScreen() {
               {sidebarSection === 'account' ? (
               <SidebarSection title="Bảo mật & dữ liệu">
                 <SidebarActionRow
-                  badge="Phiên bản sau"
-                  disabled
                   icon="key-outline"
                   label="Thay đổi mật khẩu"
-                  onPress={() => Alert.alert('Thay đổi mật khẩu', 'Khôi phục mật khẩu qua email sẽ khả dụng khi biểu mẫu đăng nhập cloud được bật.', [{ text: 'OK' }])}
+                  onPress={() => {
+                    if (authSession.status === 'authenticated') {
+                      setChangePasswordOpen(true);
+                      return;
+                    }
+                    Alert.alert('Cần đăng nhập', 'Đăng nhập cloud để đổi mật khẩu. Nếu quên mật khẩu, dùng "Quên mật khẩu" trong màn đăng nhập.');
+                  }}
                 />
                 <SidebarActionRow
                   destructive
                   icon="trash-outline"
                   label="Xóa hồ sơ local"
                   onPress={handleDeleteLocalProfile}
+                />
+                <SidebarActionRow
+                  badge={authSession.status === 'authenticated' ? 'Cloud' : undefined}
+                  destructive
+                  icon="person-remove-outline"
+                  label="Xóa tài khoản cloud"
+                  onPress={() => {
+                    if (authSession.status === 'authenticated') {
+                      setDeleteAccountOpen(true);
+                      return;
+                    }
+                    Alert.alert('Cần đăng nhập', 'Đăng nhập tài khoản cloud cần xóa. Dữ liệu chỉ có trên thiết bị có thể xóa trong Riêng tư & dữ liệu.');
+                  }}
                 />
               </SidebarSection>
               ) : null}

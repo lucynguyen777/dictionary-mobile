@@ -1,0 +1,12 @@
+{
+  "entryCount": 108,
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "input": "ru-probes.jsonl",
+  "langCode": "ru",
+  "license": "CC-BY-SA-4.0/GFDL",
+  "packId": "ruwiktionary-ru-offline-pack-v1",
+  "schemaVersion": 1,
+  "sourceName": "ruwiktionary",
+  "sourceUrl": "https://kaikki.org/ruwiktionary/%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9/kaikki.org-dictionary-%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9.jsonl",
+  "sourceRevision": "2026-10"
+}

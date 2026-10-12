@@ -32,6 +32,9 @@ export type DictionaryEntry = {
     tense: string;
     form: string;
   }[];
+  // Set when the conjugation rows come from a live source (shown once under the table); bundled
+  // sample rows have none and are labelled as samples.
+  conjugationAttribution?: string;
   etymology: string;
   pronunciationTips: {
     phoneme: string;

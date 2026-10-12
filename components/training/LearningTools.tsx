@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ComponentProps } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { FutureFeatureBadge } from '@/components/app/FutureFeature';
 import { useToken } from '@/hooks/use-token';
 
@@ -39,9 +40,7 @@ export const learningTools: {
     description: 'Dịch đoạn văn theo thuật ngữ cá nhân và ngữ cảnh học thuật.',
     icon: 'language-outline',
     accent: '#EAF8F0',
-    status: 'Cập nhật trong phiên bản sau',
-    future: true,
-    futureReason: 'Cần backend DeepL/OpenAI và lưu glossary theo tài khoản.',
+    status: 'Cần đăng nhập cloud',
   },
   {
     id: 'import',
@@ -79,7 +78,7 @@ export function ToolTab({
   const { colors, shadows } = useToken();
 
   return (
-    <TouchableOpacity
+    <Touchable
       activeOpacity={0.82}
       onPress={onPress}
       style={[
@@ -98,7 +97,7 @@ export function ToolTab({
         <Text style={[styles.toolTabDescription, { color: colors.textSecondary }]} numberOfLines={2}>{tool.description}</Text>
       </View>
       <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-    </TouchableOpacity>
+    </Touchable>
   );
 }
 
@@ -131,7 +130,7 @@ export function LearningToolPanel({ tool }: { tool: (typeof learningTools)[numbe
 
 function getToolRoadmapText(toolId: LearningToolId) {
   if (toolId === 'specialized-translation') {
-    return 'Thiết kế UI nhập chuyên ngành/chủ đề, vùng paste/import văn bản, glossary user và kết quả dịch theo thuật ngữ. Translation production cần backend/API riêng.';
+    return 'Glossary theo chuyên ngành, nhập từ CSV/TSV, đồng bộ theo tài khoản khi bật Cloud Sync và được áp dụng khi dịch qua máy chủ AI. Bước tiếp theo: dataset câu mẫu và tối đa 3 agent ngữ cảnh.';
   }
   if (toolId === 'import') {
     return 'Polish flow import dataset: preview, mapping cột/hàng, chọn folder đích, validate trùng/trống và tạo flashcard từ dataset.';

@@ -1,0 +1,254 @@
+import { StyleSheet } from 'react-native';
+
+import type { useToken } from '@/hooks/use-token';
+
+// Styles for the Word screen (app/(tabs)/word.tsx), built from the theme tokens.
+export function createWordStyles({
+  colors,
+  radius,
+  shadows,
+  spacing,
+}: ReturnType<typeof useToken>) {
+return StyleSheet.create({
+  container: {
+    backgroundColor: colors.canvasAlt,
+    flex: 1,
+  },
+  lookupPanel: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  lookupSearchCard: {
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    padding: 10,
+    ...shadows.sm,
+  },
+  inputBox: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.focusRing,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    height: 50,
+    paddingHorizontal: 14,
+  },
+  input: {
+    color: colors.textPrimary,
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  languageToggle: {
+    alignItems: 'center',
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  languageCaption: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 8,
+  },
+  detectedLanguageChip: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.focusRing,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 7,
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  detectedLanguageText: {
+    color: colors.accentPrimary,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  detectedLanguageUndo: {
+    color: colors.accentPrimary,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  recognitionActionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  futureRecognitionButton: {
+    opacity: 0.58,
+  },
+  futureRecognitionHint: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 7,
+  },
+  languageControls: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  languageSwap: {
+    alignItems: 'center',
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
+    height: 34,
+    justifyContent: 'center',
+    marginTop: 14,
+    width: 34,
+  },
+  resultRow: {
+    gap: 10,
+    paddingBottom: 14,
+    paddingTop: 12,
+  },
+  resultChip: {
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    minWidth: 116,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  activeResultChip: {
+    backgroundColor: colors.accentPrimary,
+    borderColor: colors.accentPrimary,
+  },
+  resultWord: {
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  activeResultText: {
+    color: colors.textOnAccent,
+  },
+  resultMeta: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  activeResultMeta: {
+    color: colors.textOnAccent,
+  },
+  apiLookupChip: {
+    backgroundColor: colors.surfaceHero,
+    borderRadius: radius.md,
+    minWidth: 132,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  apiLookupTitle: {
+    color: colors.textOnHero,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  apiLookupMeta: {
+    color: colors.accentPrimary,
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '700',
+    paddingBottom: 10,
+  },
+  historyBlock: {
+    paddingBottom: 12,
+  },
+  historyTitle: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  historyRow: {
+    gap: 8,
+  },
+  historyChip: {
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderDefault,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  historyText: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  suggestionBlock: {
+    paddingBottom: 12,
+  },
+  suggestionTitle: {
+    color: colors.accentError,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  suggestionRow: {
+    gap: 8,
+  },
+  suggestionChip: {
+    backgroundColor: colors.statusError,
+    borderColor: colors.accentError,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  suggestionText: {
+    color: colors.accentError,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  morphologyBlock: {
+    paddingBottom: 12,
+  },
+  morphologyTitle: {
+    color: colors.accentPrimary,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  morphologyChip: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.focusRing,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    minWidth: 104,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  morphologyText: {
+    color: colors.accentPrimary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  morphologyMeta: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    marginTop: 3,
+  },
+});
+}

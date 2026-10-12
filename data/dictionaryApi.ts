@@ -3,8 +3,17 @@ import {
   isBlockedBilingualDictionaryPair as isBlockedPair,
   isSupportedBilingualDictionaryPair,
 } from './languages';
-import { findLocalDictionaryEntry, normalizeEstonianWord, normalizeHindiWord, normalizeUzbekWord } from './localLexicon';
+import {
+  DEFAULT_DEFINITION_DOMAIN,
+  getLocalPackSource,
+  lookupLocalPackMeaning,
+  lookupLocalPackRelatedWords,
+} from './localPackDictionarySources';
 import { getMorphologyCandidates } from './morphology';
+import { fetchWithTimeout } from './http';
+
+// Dictionary lookups fail over to other sources, so a stalled API should give up quickly.
+const DICTIONARY_FETCH_TIMEOUT_MS = 10_000;
 
 export type ApiDefinition = {
   partOfSpeech: string;
@@ -19,7 +28,6 @@ export type ApiDefinition = {
   vietnamese?: string;
 };
 
-const DEFAULT_DEFINITION_DOMAIN = 'Nghĩa chung';
 
 export type ApiMeaningResult = {
   word: string;
@@ -182,9 +190,6 @@ const MINH_QND_DICTIONARY_API_BASE = 'https://dict.minhqnd.com/api/v1/lookup';
 const MINH_QND_SUGGEST_API_BASE = 'https://dict.minhqnd.com/api/v1/suggest';
 const WIKTAPI_BASE = 'https://api.wiktapi.dev/v1';
 
-export function canUseMonolingualDictionaryApi(languageCode: string) {
-  return ['en', 'vi', 'fr', 'es', 'ms', 'et', 'hi', 'kk', 'uz'].includes(languageCode);
-}
 
 export function canUseBilingualDictionaryApi(sourceLang: string, targetLang: string) {
   return isSupportedBilingualDictionaryPair(sourceLang, targetLang);
@@ -194,78 +199,42 @@ export function isBlockedBilingualDictionaryPair(sourceLang: string, targetLang:
   return isBlockedPair(sourceLang, targetLang);
 }
 
+// Remote sources by language; every other supported language is served from a bundled local pack
+// (see data/localPackDictionarySources.ts).
+const REMOTE_MONOLINGUAL_SOURCES: Record<string, {
+  meaning: (word: string) => Promise<ApiMeaningResult>;
+  relatedWords: (word: string) => Promise<ApiRelatedWords>;
+}> = {
+  en: { meaning: (word) => fetchEnglishMeaning(word), relatedWords: (word) => fetchEnglishRelatedWords(word) },
+  vi: { meaning: (word) => fetchMinhQndMonolingualMeaning(word, 'vi'), relatedWords: (word) => fetchMinhQndRelatedWords(word, 'vi') },
+  fr: { meaning: (word) => fetchWiktApiMonolingualMeaning(word, 'fr'), relatedWords: (word) => fetchWiktApiRelatedWords(word, 'fr') },
+  es: { meaning: (word) => fetchWiktApiMonolingualMeaning(word, 'es'), relatedWords: (word) => fetchWiktApiRelatedWords(word, 'es') },
+  ms: { meaning: (word) => fetchWiktApiMonolingualMeaning(word, 'ms'), relatedWords: (word) => fetchWiktApiRelatedWords(word, 'ms') },
+};
+
+export function hasMonolingualDictionarySource(languageCode: string) {
+  return Boolean(REMOTE_MONOLINGUAL_SOURCES[languageCode] || getLocalPackSource(languageCode));
+}
+
+// Whether the Word screen should run a same-language lookup. Derived from the source registry (plan
+// 6.1) instead of a separate list, so every language with a remote source or a local pack is looked
+// up, and installed offline packs (checked first by lookupMonolingual) are reached.
+export function canUseMonolingualDictionaryApi(languageCode: string) {
+  return hasMonolingualDictionarySource(languageCode);
+}
+
 export async function fetchMonolingualMeaning(word: string, languageCode: string): Promise<ApiMeaningResult> {
-  if (languageCode === 'en') return fetchEnglishMeaning(word);
-  if (languageCode === 'vi') return fetchMinhQndMonolingualMeaning(word, 'vi');
-  if (languageCode === 'fr') return fetchWiktApiMonolingualMeaning(word, 'fr');
-  if (languageCode === 'es') return fetchWiktApiMonolingualMeaning(word, 'es');
-  if (languageCode === 'ms') return fetchWiktApiMonolingualMeaning(word, 'ms');
-  if (languageCode === 'fi') return fetchFinnishMeaning(word);
-  if (languageCode === 'et') return fetchEstonianMeaning(word);
-  if (languageCode === 'hi') return fetchHindiMeaning(word);
-  if (languageCode === 'tr') return fetchTurkishMeaning(word);
-  if (languageCode === 'uz') return fetchUzbekMeaning(word);
-  if (languageCode === 'kk') return fetchKazakhMeaning(word);
-  if (languageCode === 'ja') return fetchJapaneseMeaning(word);
-  if (languageCode === 'ko') return fetchKoreanMeaning(word);
-  if (languageCode === 'sw') return fetchSwahiliMeaning(word);
-  if (languageCode === 'hu') return fetchHungarianMeaning(word);
-  if (languageCode === 'ar') return fetchArabicMeaning(word);
-  if (languageCode === 'he') return fetchHebrewMeaning(word);
-  if (languageCode === 'tl') return fetchTagalogMeaning(word);
-  if (languageCode === 'am') return fetchAmharicMeaning(word);
-  if (languageCode === 'ru') return fetchRussianMeaning(word);
-  if (languageCode === 'zh') return fetchMandarinMeaning(word);
-  if (languageCode === 'jv') return fetchJavaneseMeaning(word);
-  if (languageCode === 'so') return fetchSomaliMeaning(word);
-  if (languageCode === 'my') return fetchBurmeseMeaning(word);
-  if (languageCode === 'bo') return fetchTibetanMeaning(word);
-  if (languageCode === 'yo') return fetchYorubaMeaning(word);
-  if (languageCode === 'zu') return fetchZuluMeaning(word);
-  if (languageCode === 'ig') return fetchIgboMeaning(word);
-  if (languageCode === 'haw') return fetchHawaiianMeaning(word);
-  if (languageCode === 'ta') return fetchTamilMeaning(word);
-  if (languageCode === 'te') return fetchTeluguMeaning(word);
-  if (languageCode === 'kn') return fetchKannadaMeaning(word);
-  if (languageCode === 'ml') return fetchMalayalamMeaning(word);
+  const remote = REMOTE_MONOLINGUAL_SOURCES[languageCode];
+  if (remote) return remote.meaning(word);
+  if (getLocalPackSource(languageCode)) return lookupLocalPackMeaning(languageCode, word);
 
   throw new Error(`No monolingual dictionary source selected for "${languageCode}".`);
 }
 
 export async function fetchRelatedWords(word: string, languageCode: string): Promise<ApiRelatedWords> {
-  if (languageCode === 'en') return fetchEnglishRelatedWords(word);
-  if (languageCode === 'vi') return fetchMinhQndRelatedWords(word, 'vi');
-  if (languageCode === 'fr') return fetchWiktApiRelatedWords(word, 'fr');
-  if (languageCode === 'es') return fetchWiktApiRelatedWords(word, 'es');
-  if (languageCode === 'ms') return fetchWiktApiRelatedWords(word, 'ms');
-  if (languageCode === 'fi') return fetchFinnishRelatedWords(word);
-  if (languageCode === 'et') return fetchEstonianRelatedWords(word);
-  if (languageCode === 'hi') return fetchHindiRelatedWords(word);
-  if (languageCode === 'tr') return fetchTurkishRelatedWords(word);
-  if (languageCode === 'uz') return fetchUzbekRelatedWords(word);
-  if (languageCode === 'kk') return fetchKazakhRelatedWords(word);
-  if (languageCode === 'ja') return fetchJapaneseRelatedWords(word);
-  if (languageCode === 'ko') return fetchKoreanRelatedWords(word);
-  if (languageCode === 'sw') return fetchSwahiliRelatedWords(word);
-  if (languageCode === 'hu') return fetchHungarianRelatedWords(word);
-  if (languageCode === 'ar') return fetchArabicRelatedWords(word);
-  if (languageCode === 'he') return fetchHebrewRelatedWords(word);
-  if (languageCode === 'tl') return fetchTagalogRelatedWords(word);
-  if (languageCode === 'am') return fetchAmharicRelatedWords(word);
-  if (languageCode === 'ru') return fetchRussianRelatedWords(word);
-  if (languageCode === 'zh') return fetchMandarinRelatedWords(word);
-  if (languageCode === 'jv') return fetchJavaneseRelatedWords(word);
-  if (languageCode === 'so') return fetchSomaliRelatedWords(word);
-  if (languageCode === 'my') return fetchBurmeseRelatedWords(word);
-  if (languageCode === 'bo') return fetchTibetanRelatedWords(word);
-  if (languageCode === 'yo') return fetchYorubaRelatedWords(word);
-  if (languageCode === 'zu') return fetchZuluRelatedWords(word);
-  if (languageCode === 'ig') return fetchIgboRelatedWords(word);
-  if (languageCode === 'haw') return fetchHawaiianRelatedWords(word);
-  if (languageCode === 'ta') return fetchTamilRelatedWords(word);
-  if (languageCode === 'te') return fetchTeluguRelatedWords(word);
-  if (languageCode === 'kn') return fetchKannadaRelatedWords(word);
-  if (languageCode === 'ml') return fetchMalayalamRelatedWords(word);
+  const remote = REMOTE_MONOLINGUAL_SOURCES[languageCode];
+  if (remote) return remote.relatedWords(word);
+  if (getLocalPackSource(languageCode)) return lookupLocalPackRelatedWords(languageCode, word);
 
   return { synonyms: [], antonyms: [] };
 }
@@ -293,7 +262,7 @@ export async function fetchEnglishMeaning(word: string): Promise<ApiMeaningResul
 }
 
 async function fetchEnglishMeaningCandidate(lookupWord: string, requestedWord: string): Promise<ApiMeaningResult> {
-  const response = await fetch(`${DICTIONARY_API_BASE}/${encodeURIComponent(lookupWord)}`);
+  const response = await fetchWithTimeout(`${DICTIONARY_API_BASE}/${encodeURIComponent(lookupWord)}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No dictionary entry found for "${requestedWord}".`);
@@ -360,7 +329,7 @@ export async function fetchBilingualMeaning(
     lang: sourceLang,
     def_lang: targetLang,
   });
-  const response = await fetch(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No bilingual dictionary entry found for "${normalizedWord}".`);
@@ -468,14 +437,17 @@ export async function fetchWiktApiMonolingualMeaning(word: string, languageCode:
   }
 
   const sounds = entries.flatMap((entry) => entry.sounds ?? []);
-  const preferredSound = sounds.find((sound) => sound.ipa || sound.mp3_url || sound.audio || sound.ogg_url);
+  // `audio` is a bare Commons file name; only the transcoded URLs play (MP3 first: iOS cannot play Ogg).
+  const playableAudio = sounds
+    .map((sound) => [sound.mp3_url, sound.ogg_url, sound.audio].map((value) => normalizeAudioUrl(value ?? '')).find((value) => /^https:\/\//.test(value)))
+    .find(Boolean);
 
   const sourceRows = extractWiktApiAttributedRows(result, normalizedWord, languageCode);
 
   return {
     word: result.word ?? entries[0]?.word ?? normalizedWord,
-    ipa: preferredSound?.ipa ?? '',
-    audio: normalizeAudioUrl(preferredSound?.mp3_url ?? preferredSound?.audio ?? preferredSound?.ogg_url ?? ''),
+    ipa: normalizeWiktionaryIpa(sounds.find((sound) => sound.ipa?.trim())?.ipa ?? ''),
+    audio: playableAudio ?? '',
     definitions,
     source: 'wiktapi.dev',
     ...sourceRows,
@@ -528,7 +500,7 @@ export async function fetchVietnameseSuggestions(query: string): Promise<string[
   if (!normalizedQuery) return [];
 
   const params = new URLSearchParams({ q: normalizedQuery });
-  const response = await fetch(`${MINH_QND_SUGGEST_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${MINH_QND_SUGGEST_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) return [];
 
@@ -548,7 +520,7 @@ async function fetchMinhQndLookup(
     lang: sourceLang,
     def_lang: targetLang,
   });
-  const response = await fetch(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${MINH_QND_DICTIONARY_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No dictionary entry found for "${word}".`);
@@ -617,7 +589,7 @@ function mapMinhQndRelations(relations: MinhQndRelation[]): ApiRelatedWords {
 
 async function fetchWiktApiWord(word: string, languageCode: string): Promise<WiktApiWordResponse> {
   const params = new URLSearchParams({ lang: languageCode });
-  const response = await fetch(`${WIKTAPI_BASE}/${languageCode}/word/${encodeURIComponent(word)}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${WIKTAPI_BASE}/${languageCode}/word/${encodeURIComponent(word)}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`No ${languageCode} Wiktionary entry found for "${word}".`);
@@ -635,7 +607,8 @@ function mapWiktApiDefinitions(entry: WiktApiEntry, languageCode: string): ApiDe
     .slice(0, 12)
     .flatMap((sense) =>
       (sense.glosses ?? []).map((gloss) => ({
-        partOfSpeech: entry.pos ?? 'word',
+        // Some editions (e.g. French via wiktapi.dev) omit the part of speech; the UI then shows no heading.
+        partOfSpeech: entry.pos ?? '',
         meaning: gloss,
         examples: mapWiktApiExamples(sense.examples ?? []).slice(0, 2),
         synonyms: uniqueWords(mapWiktApiLinkages(entry.synonyms ?? [])),
@@ -816,6 +789,12 @@ function getAudioPreferenceScore(audioUrl: string) {
   return 10;
 }
 
+// French Wiktionary writes phonemic transcriptions as \mɛ.zɔ̃\; show the usual /mɛ.zɔ̃/ form.
+export function normalizeWiktionaryIpa(ipa: string) {
+  const trimmed = ipa.trim();
+  return /^\\[^\\]+\\$/.test(trimmed) ? `/${trimmed.slice(1, -1)}/` : trimmed;
+}
+
 function normalizeAudioUrl(audioUrl: string) {
   if (audioUrl.startsWith('//')) return `https:${audioUrl}`;
 
@@ -833,7 +812,7 @@ async function fetchDatamuseRelation(word: string, relation: 'syn' | 'ant') {
     [`rel_${relation}`]: word,
     max: '24',
   });
-  const response = await fetch(`${DATAMUSE_API_BASE}?${params.toString()}`);
+  const response = await fetchWithTimeout(`${DATAMUSE_API_BASE}?${params.toString()}`, { timeoutMs: DICTIONARY_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`Could not fetch ${relation} words for "${word}".`);
@@ -848,1545 +827,59 @@ function uniqueWords(words: string[]) {
   return Array.from(new Set(words.map((word) => word.trim()).filter(Boolean))).slice(0, 24);
 }
 
-export async function fetchFinnishMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().toLocaleLowerCase();
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('fi', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('fi', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'fiwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'fiwiktionary' : `fiwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Finnish Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchFinnishRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().toLocaleLowerCase();
-  const localEntry = findLocalDictionaryEntry('fi', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchEstonianMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = normalizeEstonianWord(word);
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('et', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('et', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'etwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'etwiktionary' : `etwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Estonian Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchEstonianRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = normalizeEstonianWord(word);
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('et', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('et', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchHindiMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = normalizeHindiWord(word);
-  if (!normalizedWord || !/[\u0900-\u097F]/.test(normalizedWord)) {
-    throw new Error(`No Hindi Wiktionary meanings found for "${normalizedWord}".`);
-  }
-
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('hi', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('hi', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'hiwiktionary · CC BY-SA 4.0',
-          })),
-          source: lookupWord === normalizedWord
-            ? 'hiwiktionary · CC BY-SA 4.0'
-            : `hiwiktionary · CC BY-SA 4.0 · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Hindi Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchHindiRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = normalizeHindiWord(word);
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('hi', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('hi', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchTurkishMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC').replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr-TR');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('tr', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('tr', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'trwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'trwiktionary' : `trwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Turkish Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchTurkishRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC').replace(/I/g, 'ı').replace(/İ/g, 'i').toLocaleLowerCase('tr-TR');
-  const localEntry = findLocalDictionaryEntry('tr', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchKazakhMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC').toLocaleLowerCase('kk-KZ');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('kk', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('kk', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'kkwiktionary · CC BY-SA 4.0',
-          })),
-          source: lookupWord === normalizedWord
-            ? 'kkwiktionary · CC BY-SA 4.0'
-            : `kkwiktionary · CC BY-SA 4.0 · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Kazakh Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchKazakhRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC').toLocaleLowerCase('kk-KZ');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('kk', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('kk', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchUzbekMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = normalizeUzbekWord(word);
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('uz', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('uz', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'uzwiktionary · CC BY-SA 4.0',
-          })),
-          source: lookupWord === normalizedWord
-            ? 'uzwiktionary · CC BY-SA 4.0'
-            : `uzwiktionary · CC BY-SA 4.0 · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Uzbek Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchUzbekRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = normalizeUzbekWord(word);
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('uz', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('uz', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchJapaneseMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ja', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('ja', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'jawiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'jawiktionary' : `jawiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Japanese Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchJapaneseRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ja', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('ja', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchKoreanMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ko', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('ko', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'kowiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'kowiktionary' : `kowiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Korean Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchKoreanRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ko', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('ko', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchSwahiliMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().toLowerCase();
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('sw', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('sw', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'swwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'swwiktionary' : `swwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Swahili Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchSwahiliRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().toLowerCase();
-  const localEntry = findLocalDictionaryEntry('sw', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchHungarianMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('hu', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('hu', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'huwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'huwiktionary' : `huwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Hungarian Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchHungarianRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('hu', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchArabicMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ar', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('ar', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'arwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'arwiktionary' : `arwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Arabic Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchArabicRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ar', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('ar', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchHebrewMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('he', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('he', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'hewiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'hewiktionary' : `hewiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Hebrew Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchHebrewRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('he', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('he', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchTagalogMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('tl', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('tl', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'tlwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'tlwiktionary' : `tlwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Tagalog Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchTagalogRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('tl', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchAmharicMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('am', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('am', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'amwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'amwiktionary' : `amwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Amharic Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchAmharicRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('am', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchRussianMeaning(word: string): Promise<ApiMeaningResult> {
-  // Strip stress marks (U+0301 combining acute accent)
-  const normalizedWord = word.trim().normalize('NFD').replace(/\u0301/g, '').normalize('NFC').toLocaleLowerCase('ru-RU');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ru', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('ru', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'ruwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'ruwiktionary' : `ruwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Russian Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchRussianRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFD').replace(/\u0301/g, '').normalize('NFC').toLocaleLowerCase('ru-RU');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ru', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('ru', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchMandarinMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('zh', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('zh', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'zhwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'zhwiktionary' : `zhwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Mandarin Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchMandarinRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('zh', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('zh', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchJavaneseMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('jv', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('jv', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'jvwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'jvwiktionary' : `jvwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Javanese Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchJavaneseRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('jv', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchSomaliMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('so', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('so', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'sowiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'sowiktionary' : `sowiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Somali Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchSomaliRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('so', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchBurmeseMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('my', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('my', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'mywiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'mywiktionary' : `mywiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Burmese Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchBurmeseRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('my', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchTibetanMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('bo', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('bo', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'bowiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'bowiktionary' : `bowiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Tibetan Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchTibetanRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('bo', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchYorubaMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('yo', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('yo', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'yowiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'yowiktionary' : `yowiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Yoruba Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchYorubaRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('yo', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchZuluMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('zu', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('zu', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'zuwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'zuwiktionary' : `zuwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Zulu Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchZuluRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('zu', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchIgboMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ig', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('ig', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'ig-local-fixture',
-          })),
-          source: lookupWord === localEntry.word ? 'ig-local-fixture' : `ig-local-fixture · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Igbo local fixture meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchIgboRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('ig', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchHawaiianMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('haw', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('haw', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'haw-local-fixture',
-          })),
-          source: lookupWord === localEntry.word ? 'haw-local-fixture' : `haw-local-fixture · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Hawaiian local fixture meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchHawaiianRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('haw', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchTamilMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ta', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('ta', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'tawiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'tawiktionary' : `tawiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Tamil Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchTamilRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ta', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('ta', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchTeluguMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('te', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('te', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'tewiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'tewiktionary' : `tewiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Telugu Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchTeluguRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('te', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('te', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchKannadaMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('kn', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('kn', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'knwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'knwiktionary' : `knwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Kannada Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchKannadaRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('kn', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  for (const lookupWord of lookupCandidates) {
-    const localEntry = findLocalDictionaryEntry('kn', lookupWord);
-    if (localEntry) {
-      return {
-        synonyms: localEntry.synonyms || [],
-        antonyms: localEntry.antonyms || [],
-      };
-    }
-  }
-
-  return { synonyms: [], antonyms: [] };
-}
-
-export async function fetchMalayalamMeaning(word: string): Promise<ApiMeaningResult> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const lookupCandidates = uniqueWords([
-    normalizedWord,
-    ...getMorphologyCandidates('ml', normalizedWord).map((candidate) => candidate.word),
-  ]);
-
-  const errors: unknown[] = [];
-
-  for (const lookupWord of lookupCandidates) {
-    try {
-      const localEntry = findLocalDictionaryEntry('ml', lookupWord);
-      if (localEntry) {
-        return {
-          word: localEntry.word,
-          ipa: localEntry.ipa || '',
-          audio: localEntry.audio || '',
-          definitions: localEntry.definitions.map((def) => ({
-            partOfSpeech: def.partOfSpeech,
-            meaning: def.meaning,
-            examples: def.examples,
-            synonyms: localEntry.synonyms || [],
-            antonyms: localEntry.antonyms || [],
-            domain: def.domain || DEFAULT_DEFINITION_DOMAIN,
-            level: def.level || localEntry.level,
-            vietnamese: def.vietnamese,
-            source: 'mlwiktionary',
-          })),
-          source: lookupWord === normalizedWord ? 'mlwiktionary' : `mlwiktionary · base form of ${normalizedWord}`,
-        };
-      }
-    } catch (error) {
-      errors.push(error);
-    }
-  }
-
-  throw new Error(`No Malayalam Wiktionary meanings found for "${normalizedWord}".`);
-}
-
-export async function fetchMalayalamRelatedWords(word: string): Promise<ApiRelatedWords> {
-  const normalizedWord = word.trim().normalize('NFC');
-  const localEntry = findLocalDictionaryEntry('ml', normalizedWord);
-  if (localEntry) {
-    return {
-      synonyms: localEntry.synonyms || [],
-      antonyms: localEntry.antonyms || [],
-    };
-  }
-  return { synonyms: [], antonyms: [] };
-}
+export const fetchFinnishMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('fi', word);
+export const fetchFinnishRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('fi', word);
+export const fetchEstonianMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('et', word);
+export const fetchEstonianRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('et', word);
+export const fetchHindiMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('hi', word);
+export const fetchHindiRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('hi', word);
+export const fetchTurkishMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('tr', word);
+export const fetchTurkishRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('tr', word);
+export const fetchKazakhMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('kk', word);
+export const fetchKazakhRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('kk', word);
+export const fetchUzbekMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('uz', word);
+export const fetchUzbekRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('uz', word);
+export const fetchJapaneseMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('ja', word);
+export const fetchJapaneseRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('ja', word);
+export const fetchKoreanMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('ko', word);
+export const fetchKoreanRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('ko', word);
+export const fetchSwahiliMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('sw', word);
+export const fetchSwahiliRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('sw', word);
+export const fetchHungarianMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('hu', word);
+export const fetchHungarianRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('hu', word);
+export const fetchArabicMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('ar', word);
+export const fetchArabicRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('ar', word);
+export const fetchHebrewMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('he', word);
+export const fetchHebrewRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('he', word);
+export const fetchTagalogMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('tl', word);
+export const fetchTagalogRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('tl', word);
+export const fetchAmharicMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('am', word);
+export const fetchAmharicRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('am', word);
+export const fetchRussianMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('ru', word);
+export const fetchRussianRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('ru', word);
+export const fetchMandarinMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('zh', word);
+export const fetchMandarinRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('zh', word);
+export const fetchJavaneseMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('jv', word);
+export const fetchJavaneseRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('jv', word);
+export const fetchSomaliMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('so', word);
+export const fetchSomaliRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('so', word);
+export const fetchBurmeseMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('my', word);
+export const fetchBurmeseRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('my', word);
+export const fetchTibetanMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('bo', word);
+export const fetchTibetanRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('bo', word);
+export const fetchYorubaMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('yo', word);
+export const fetchYorubaRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('yo', word);
+export const fetchZuluMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('zu', word);
+export const fetchZuluRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('zu', word);
+export const fetchIgboMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('ig', word);
+export const fetchIgboRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('ig', word);
+export const fetchHawaiianMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('haw', word);
+export const fetchHawaiianRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('haw', word);
+export const fetchTamilMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('ta', word);
+export const fetchTamilRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('ta', word);
+export const fetchTeluguMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('te', word);
+export const fetchTeluguRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('te', word);
+export const fetchKannadaMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('kn', word);
+export const fetchKannadaRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('kn', word);
+export const fetchMalayalamMeaning = (word: string): Promise<ApiMeaningResult> => lookupLocalPackMeaning('ml', word);
+export const fetchMalayalamRelatedWords = (word: string): Promise<ApiRelatedWords> => lookupLocalPackRelatedWords('ml', word);

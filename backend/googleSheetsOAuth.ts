@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
+import { fetchWithTimeout } from '../data/http';
+
 export const GOOGLE_SHEETS_SCOPES = [
   'https://www.googleapis.com/auth/drive.file',
   'https://www.googleapis.com/auth/spreadsheets',
@@ -94,7 +96,8 @@ export async function exchangeGoogleAuthorizationCode(
   config: Extract<GoogleSheetsConfig, { status: 'configured' }>,
   code: string
 ) {
-  const response = await fetch('https://oauth2.googleapis.com/token', {
+  const response = await fetchWithTimeout('https://oauth2.googleapis.com/token', {
+    timeoutMs: 15_000,
     body: new URLSearchParams({
       client_id: config.clientId,
       client_secret: config.clientSecret,
@@ -113,7 +116,8 @@ export async function refreshGoogleAccessToken(
   config: Extract<GoogleSheetsConfig, { status: 'configured' }>,
   refreshToken: string
 ) {
-  const response = await fetch('https://oauth2.googleapis.com/token', {
+  const response = await fetchWithTimeout('https://oauth2.googleapis.com/token', {
+    timeoutMs: 15_000,
     body: new URLSearchParams({
       client_id: config.clientId,
       client_secret: config.clientSecret,
@@ -128,19 +132,21 @@ export async function refreshGoogleAccessToken(
 }
 
 export async function createGoogleSpreadsheet(accessToken: string, title: string, rows: string[][]) {
-  const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+  const createResponse = await fetchWithTimeout('https://sheets.googleapis.com/v4/spreadsheets', {
+    timeoutMs: 15_000,
     body: JSON.stringify({ properties: { title: sanitizeSpreadsheetTitle(title) } }),
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     method: 'POST',
   });
   if (!createResponse.ok) throw new Error('google_sheet_create_failed');
   const created = await createResponse.json() as { spreadsheetId: string; spreadsheetUrl: string };
-  const writeResponse = await fetch(
+  const writeResponse = await fetchWithTimeout(
     `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(created.spreadsheetId)}/values/A1?valueInputOption=RAW`,
     {
       body: JSON.stringify({ majorDimension: 'ROWS', values: rows }),
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       method: 'PUT',
+      timeoutMs: 15_000,
     }
   );
   if (!writeResponse.ok) throw new Error('google_sheet_write_failed');
@@ -174,7 +180,8 @@ export function buildGoogleOAuthReturnUrl(returnTo: string, params: Record<strin
 }
 
 export async function revokeGoogleToken(token: string) {
-  const response = await fetch('https://oauth2.googleapis.com/revoke', {
+  const response = await fetchWithTimeout('https://oauth2.googleapis.com/revoke', {
+    timeoutMs: 15_000,
     body: new URLSearchParams({ token }),
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     method: 'POST',

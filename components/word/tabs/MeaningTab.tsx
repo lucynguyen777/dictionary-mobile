@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Speech from 'expo-speech';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult } from '@/data/dictionaryApi';
 import { getLanguageByCode } from '@/data/languages';
@@ -105,8 +106,8 @@ export function MeaningTab({
         />
       ) : null}
       {groupedDefinitions.map((group) => (
-        <View key={group.partOfSpeech} style={styles.block}>
-          <Text style={styles.heading}>{group.partOfSpeech}</Text>
+        <View key={group.partOfSpeech || 'unspecified'} style={styles.block}>
+          {group.partOfSpeech ? <Text style={styles.heading}>{group.partOfSpeech}</Text> : null}
           {group.definitions.map((item, index) => (
             <View
               key={`${item.meaning}-${index}`}
@@ -139,12 +140,13 @@ export function MeaningTab({
                   {item.examples.map((example, i) => (
                     <View key={i} style={styles.exampleBlock}>
                       <View style={styles.exampleRow}>
-                        <TouchableOpacity
+                        <Touchable
+                          accessibilityLabel="Nghe câu ví dụ"
                           activeOpacity={0.7}
                           onPress={() => speakExample(example.source)}
                           style={styles.exampleAudioButton}>
                           <Ionicons name="volume-medium-outline" size={16} color={colors.accentPrimary} />
-                        </TouchableOpacity>
+                        </Touchable>
                         <Text
                           style={[
                             styles.example,
@@ -214,7 +216,7 @@ function groupDefinitionsByPartOfSpeech(definitions: MeaningDefinitionItem[]) {
   const groups: { partOfSpeech: string; definitions: MeaningDefinitionItem[] }[] = [];
 
   definitions.forEach((definition) => {
-    const partOfSpeech = definition.partOfSpeech.trim() || 'word';
+    const partOfSpeech = definition.partOfSpeech.trim();
     const existingGroup = groups.find((group) => group.partOfSpeech.toLowerCase() === partOfSpeech.toLowerCase());
 
     if (existingGroup) {

@@ -1,16 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, Stack, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import Screen from '@/components/app/Screen';
-import { useToken } from '@/hooks/use-token';
+import { exportFolderWithAlert } from '@/components/library/exportFolder';
+import { useFolderStyles } from '@/components/library/folderDetailStyles';
 import {
   LibraryState,
   SavedWord,
   deleteFolder,
-  exportFolderToCsv,
-  exportFolderToExcel,
   getDefaultLibraryState,
   getFavoriteFolderId,
   getFolderById,
@@ -20,6 +20,8 @@ import {
   renameFolder,
   updateSavedWordNote,
 } from '@/data/libraryStore';
+import AppButton from '@/components/app/AppButton';
+import Surface from '@/components/app/Surface';
 
 export default function FolderDetailScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
@@ -73,17 +75,10 @@ export default function FolderDetailScreen() {
     });
   }, [folderId, libraryState, query]);
 
-  const handleExport = async (format: 'csv' | 'excel') => {
+  const handleExport = (format: 'csv' | 'excel') => {
     if (!folderId) return;
     setFolderMenuOpen(false);
-
-    try {
-      const result = format === 'excel' ? await exportFolderToExcel(libraryState, folderId) : await exportFolderToCsv(libraryState, folderId);
-
-      Alert.alert(result.ok ? 'Xuất dữ liệu xong' : 'Chưa thể xuất dữ liệu', result.message);
-    } catch (error) {
-      Alert.alert('Xuất dữ liệu thất bại', error instanceof Error ? error.message : 'Chưa thể xuất bộ từ này.');
-    }
+    exportFolderWithAlert(libraryState, folderId, format);
   };
 
   const handleSaveNote = (wordId: string, note: string) => {
@@ -135,31 +130,25 @@ export default function FolderDetailScreen() {
       <View style={styles.screenBody}>
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity accessibilityLabel="Quay lại" accessibilityRole="button" onPress={() => router.back()} style={styles.iconButton}>
+          <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" onPress={() => router.back()} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Touchable>
+          <Touchable
             accessibilityLabel="Mở menu bộ từ"
             accessibilityRole="button"
             activeOpacity={0.82}
             onPress={() => setFolderMenuOpen((isOpen) => !isOpen)}
             style={styles.iconButton}>
             <Ionicons name="ellipsis-horizontal" size={22} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </Touchable>
         </View>
 
         {folderMenuOpen && folder ? (
-          <View style={styles.folderMenuPanel}>
+          <Surface padding="md" radius="sm" style={styles.folderMenuPanel}>
             <Text style={styles.folderMenuLabel}>Xuất bộ từ</Text>
             <View style={styles.exportGroup}>
-              <TouchableOpacity onPress={() => handleExport('csv')} style={styles.exportButton}>
-                <Ionicons name="download-outline" size={18} color={colors.accentPrimary} />
-                <Text style={styles.exportText}>CSV</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleExport('excel')} style={styles.exportButton}>
-                <Ionicons name="grid-outline" size={18} color={colors.accentPrimary} />
-                <Text style={styles.exportText}>XLS</Text>
-              </TouchableOpacity>
+              <AppButton accessibilityLabel="Xuất CSV" icon="download-outline" label="CSV" onPress={() => handleExport('csv')} />
+              <AppButton accessibilityLabel="Xuất Excel" icon="grid-outline" label="XLS" onPress={() => handleExport('excel')} />
             </View>
             <View style={styles.manageHeader}>
               <Text style={styles.manageTitle}>Cài đặt bộ từ</Text>
@@ -173,18 +162,15 @@ export default function FolderDetailScreen() {
               style={styles.nameInput}
             />
             <View style={styles.manageActions}>
-              <TouchableOpacity activeOpacity={0.82} onPress={handleRenameFolder} style={styles.saveButton}>
-                <Ionicons name="checkmark-circle-outline" size={18} color={colors.accentPrimary} />
-                <Text style={styles.saveButtonText}>Đổi tên</Text>
-              </TouchableOpacity>
+              <AppButton icon="checkmark-circle-outline" label="Đổi tên" onPress={handleRenameFolder} />
               {!isFavoriteFolder ? (
-                <TouchableOpacity activeOpacity={0.82} onPress={handleDeleteFolder} style={styles.deleteButton}>
+                <Touchable activeOpacity={0.82} onPress={handleDeleteFolder} style={styles.deleteButton}>
                   <Ionicons name="trash-outline" size={18} color={colors.accentError} />
                   <Text style={styles.deleteButtonText}>Xóa</Text>
-                </TouchableOpacity>
+                </Touchable>
               ) : null}
             </View>
-          </View>
+          </Surface>
         ) : null}
 
         <View style={styles.hero}>
@@ -230,13 +216,13 @@ export default function FolderDetailScreen() {
           </View>
         ) : null}
       </ScrollView>
-      <TouchableOpacity
+      <Touchable
         accessibilityLabel="Lên đầu trang"
         activeOpacity={0.84}
         onPress={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
         style={styles.scrollTopButton}>
         <Ionicons name="arrow-up" size={20} color={colors.textOnAccent} />
-      </TouchableOpacity>
+      </Touchable>
       </View>
     </Screen>
   );
@@ -262,18 +248,18 @@ function FolderWordCard({
     <View style={styles.wordCard}>
       <View style={styles.wordTopRow}>
         <Link href={{ pathname: '/word', params: { word: word.word } }} asChild>
-          <TouchableOpacity activeOpacity={0.82} style={styles.wordLink}>
+          <Touchable activeOpacity={0.82} style={styles.wordLink}>
             <Text style={[styles.wordTitle, /[\u0600-\u06FF\u0590-\u05FF]/.test(word.word) && { textAlign: 'right', writingDirection: 'rtl' }]}>{word.word}</Text>
             <Text style={styles.wordMeta}>{word.ipa || 'Đang chờ IPA'}</Text>
-          </TouchableOpacity>
+          </Touchable>
         </Link>
-        <TouchableOpacity
+        <Touchable
           accessibilityLabel={`Gỡ ${word.word} khỏi bộ từ`}
           accessibilityRole="button"
           onPress={onRemove}
           style={styles.removeButton}>
           <Ionicons name="trash-outline" size={18} color={colors.accentError} />
-        </TouchableOpacity>
+        </Touchable>
       </View>
 
       <Text numberOfLines={3} style={styles.definition}>{word.definition || 'Đang chờ định nghĩa'}</Text>
@@ -286,315 +272,7 @@ function FolderWordCard({
         onChangeText={setNoteDraft}
         style={styles.noteInput}
       />
-      <TouchableOpacity
-        activeOpacity={0.82}
-        onPress={() => onSaveNote(word.id, noteDraft)}
-        style={styles.noteButton}>
-        <Ionicons name="checkmark-circle-outline" size={18} color={colors.accentPrimary} />
-        <Text style={styles.noteButtonText}>Lưu ghi chú</Text>
-      </TouchableOpacity>
+      <AppButton icon="checkmark-circle-outline" label="Lưu ghi chú" onPress={() => onSaveNote(word.id, noteDraft)} style={styles.noteButton} />
     </View>
   );
-}
-
-function createFolderStyles(colors: ReturnType<typeof useToken>['colors']) {
-  return StyleSheet.create({
-    screenBody: {
-      flex: 1,
-    },
-    content: {
-      paddingBottom: 96,
-      paddingHorizontal: 18,
-      paddingTop: 14,
-    },
-    scrollTopButton: {
-      alignItems: 'center',
-      backgroundColor: colors.accentPrimary,
-      borderRadius: 22,
-      bottom: 18,
-      elevation: 24,
-      height: 44,
-      justifyContent: 'center',
-      position: 'absolute',
-      right: 18,
-      boxShadow: '0px 6px 12px rgba(15, 23, 42, 0.18)',
-      width: 44,
-      zIndex: 30,
-    },
-    header: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    iconButton: {
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: 999,
-      height: 42,
-      justifyContent: 'center',
-      width: 42,
-    },
-    exportGroup: {
-      flexDirection: 'row',
-      gap: 8,
-    },
-    folderMenuPanel: {
-      backgroundColor: colors.surface,
-      borderColor: colors.borderDefault,
-      borderRadius: 8,
-      borderWidth: 1,
-      gap: 10,
-      marginTop: 12,
-      padding: 12,
-    },
-    folderMenuLabel: {
-      color: colors.textSecondary,
-      fontSize: 11,
-      fontWeight: '700',
-      textTransform: 'uppercase',
-    },
-    exportButton: {
-      alignItems: 'center',
-      backgroundColor: colors.accentSoft,
-      borderRadius: 999,
-      flexDirection: 'row',
-      gap: 6,
-      paddingHorizontal: 13,
-      paddingVertical: 10,
-    },
-    exportText: {
-      color: colors.accentPrimary,
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    hero: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 14,
-      marginTop: 18,
-    },
-    folderIcon: {
-      alignItems: 'center',
-      borderRadius: 8,
-      height: 74,
-      justifyContent: 'center',
-      overflow: 'hidden',
-      width: 74,
-    },
-    folderAvatarImage: {
-      height: '100%',
-      width: '100%',
-    },
-    heroCopy: {
-      flex: 1,
-      minWidth: 0,
-    },
-    kicker: {
-      color: colors.textSecondary,
-      fontSize: 13,
-      fontWeight: '800',
-      textTransform: 'uppercase',
-    },
-    title: {
-      color: colors.textPrimary,
-      fontSize: 26,
-      fontWeight: '700',
-      marginTop: 4,
-    },
-    subtitle: {
-      color: colors.textSecondary,
-      fontSize: 14,
-      fontWeight: '800',
-      marginTop: 6,
-    },
-    folderTags: {
-      color: colors.accentPrimary,
-      fontSize: 12,
-      fontWeight: '800',
-      marginTop: 6,
-    },
-    manageCard: {
-      backgroundColor: colors.surface,
-      borderRadius: 8,
-      marginTop: 16,
-      padding: 14,
-    },
-    manageHeader: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    manageTitle: {
-      color: colors.textPrimary,
-      fontSize: 15,
-      fontWeight: '700',
-    },
-    lockedPill: {
-      backgroundColor: colors.surfaceMuted,
-      borderRadius: 999,
-      color: colors.textSecondary,
-      fontSize: 11,
-      fontWeight: '700',
-      overflow: 'hidden',
-      paddingHorizontal: 9,
-      paddingVertical: 5,
-    },
-    nameInput: {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.borderDefault,
-      borderRadius: 8,
-      borderWidth: 1,
-      color: colors.textPrimary,
-      fontSize: 15,
-      fontWeight: '800',
-      marginTop: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-    },
-    manageActions: {
-      flexDirection: 'row',
-      gap: 10,
-      marginTop: 12,
-    },
-    saveButton: {
-      alignItems: 'center',
-      backgroundColor: colors.accentSoft,
-      borderRadius: 999,
-      flexDirection: 'row',
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 9,
-    },
-    saveButtonText: {
-      color: colors.accentPrimary,
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    deleteButton: {
-      alignItems: 'center',
-      backgroundColor: colors.statusError,
-      borderRadius: 999,
-      flexDirection: 'row',
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 9,
-    },
-    deleteButtonText: {
-      color: colors.accentError,
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    searchBox: {
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: 8,
-      flexDirection: 'row',
-      gap: 10,
-      height: 48,
-      marginBottom: 14,
-      marginTop: 18,
-      paddingHorizontal: 16,
-    },
-    searchInput: {
-      color: colors.textPrimary,
-      flex: 1,
-      fontSize: 14,
-      fontWeight: '700',
-    },
-    wordCard: {
-      backgroundColor: colors.surface,
-      borderRadius: 8,
-      marginBottom: 12,
-      padding: 14,
-    },
-    wordTopRow: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    wordLink: {
-      flex: 1,
-      paddingRight: 12,
-    },
-    wordTitle: {
-      color: colors.textPrimary,
-      fontSize: 20,
-      fontWeight: '700',
-    },
-    wordMeta: {
-      color: colors.accentPrimary,
-      fontSize: 13,
-      fontWeight: '800',
-      marginTop: 3,
-    },
-    removeButton: {
-      alignItems: 'center',
-      backgroundColor: colors.statusError,
-      borderRadius: 999,
-      height: 36,
-      justifyContent: 'center',
-      width: 36,
-    },
-    definition: {
-      color: colors.textSecondary,
-      fontSize: 13,
-      fontWeight: '700',
-      lineHeight: 19,
-      marginTop: 10,
-    },
-    noteInput: {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.borderDefault,
-      borderRadius: 8,
-      borderWidth: 1,
-      color: colors.textPrimary,
-      fontSize: 13,
-      lineHeight: 19,
-      marginTop: 12,
-      minHeight: 70,
-      padding: 10,
-      textAlignVertical: 'top',
-    },
-    noteButton: {
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      backgroundColor: colors.accentSoft,
-      borderRadius: 999,
-      flexDirection: 'row',
-      gap: 6,
-      marginTop: 10,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    noteButtonText: {
-      color: colors.accentPrimary,
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    emptyCard: {
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: 8,
-      padding: 22,
-    },
-    emptyTitle: {
-      color: colors.textPrimary,
-      fontSize: 17,
-      fontWeight: '700',
-      marginTop: 10,
-    },
-    emptyText: {
-      color: colors.textSecondary,
-      fontSize: 13,
-      fontWeight: '700',
-      lineHeight: 19,
-      marginTop: 6,
-      textAlign: 'center',
-    },
-  });
-}
-
-function useFolderStyles() {
-  const { colors } = useToken();
-  return { colors, styles: useMemo(() => createFolderStyles(colors), [colors]) };
 }

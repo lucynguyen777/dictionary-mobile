@@ -37,6 +37,11 @@ const fixtures = [
     columns: true,
   },
   {
+    fileName: 'glossary-arrows.pdf',
+    title: 'Medical glossary',
+    lines: ['Medical glossary', 'MRI -> chup cong huong tu', 'ECG -> dien tam do', 'A note without a translation'],
+  },
+  {
     fileName: 'empty.pdf',
     title: 'Reader PDF Empty Fixture',
     lines: [],

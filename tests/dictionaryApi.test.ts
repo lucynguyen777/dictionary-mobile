@@ -1179,3 +1179,14 @@ describe('Uzbek monolingual baseline and morphology', () => {
     expect(related2.synonyms).toContain('turarjoy');
   });
 });
+
+describe('monolingual lookup availability comes from the source registry (plan 6.1)', () => {
+  it('covers remote sources and every local pack language', async () => {
+    const { canUseMonolingualDictionaryApi } = await import('../data/dictionaryApi');
+    const { LOCAL_PACK_SOURCES } = await import('../data/localPackDictionarySources');
+    for (const code of ['en', 'vi', 'fr', 'es', 'ms', ...Object.keys(LOCAL_PACK_SOURCES)]) {
+      expect(canUseMonolingualDictionaryApi(code), code).toBe(true);
+    }
+    expect(canUseMonolingualDictionaryApi('xx')).toBe(false);
+  });
+});

@@ -66,3 +66,6 @@ trace.zip
 screenshot-*.png
 .vercel
 supabase/.temp/
+
+# Chandra OCR host secrets (copy from deploy/chandra.env.example)
+backend/chandra-service/deploy/chandra.env

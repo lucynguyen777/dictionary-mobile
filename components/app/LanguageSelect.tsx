@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import { languageOptions, type LanguageOption } from '@/data/languages';
 import { useToken } from '@/hooks/use-token';
@@ -28,7 +29,7 @@ export default function LanguageSelect({ active, label, selectedLanguage, onTogg
 
   return (
     <View style={styles.wrap}>
-      <TouchableOpacity
+      <Touchable
         accessibilityLabel={`${label}: ${selectedLanguage.label}`}
         accessibilityRole="button"
         accessibilityState={{ expanded: active }}
@@ -40,7 +41,7 @@ export default function LanguageSelect({ active, label, selectedLanguage, onTogg
           <Text numberOfLines={1} style={styles.value}>{selectedLanguage.label}</Text>
           <Ionicons name={active ? 'chevron-up' : 'chevron-down'} size={15} color={colors.textSecondary} />
         </View>
-      </TouchableOpacity>
+      </Touchable>
       {active ? (
         <View accessibilityRole="menu" style={styles.menu}>
           {languageOptions.map((language) => {
@@ -48,7 +49,7 @@ export default function LanguageSelect({ active, label, selectedLanguage, onTogg
             const isUnavailable = language.dictionaryStatus === 'unavailable';
 
             return (
-              <TouchableOpacity
+              <Touchable
                 key={language.code}
                 accessibilityHint={isUnavailable ? UNAVAILABLE_LANGUAGE_HINT : undefined}
                 accessibilityRole="menuitem"
@@ -66,7 +67,7 @@ export default function LanguageSelect({ active, label, selectedLanguage, onTogg
                 </View>
                 {isSelected ? <Ionicons name="checkmark" size={16} color={colors.accentPrimary} /> : null}
                 {!isSelected && isUnavailable ? <Ionicons name="time-outline" size={15} color={colors.textSecondary} /> : null}
-              </TouchableOpacity>
+              </Touchable>
             );
           })}
         </View>

@@ -12,6 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
+# Run without root so a compromised OCR dependency cannot modify the image or host mounts.
+RUN useradd --create-home --uid 10001 chandra
+USER chandra
+
 EXPOSE 8080
 
 CMD ["python", "-m", "app.main"]

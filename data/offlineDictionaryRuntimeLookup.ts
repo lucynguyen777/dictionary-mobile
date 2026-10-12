@@ -8,6 +8,7 @@ import {
   mapOfflineEntryToApiMeaning,
   normalizeOfflineLookupKey,
 } from './offlineDictionaryLookup';
+import { loadCachedOfflinePacks } from './offlinePackCatalog';
 import { type OfflineDictionaryPack, offlineDictionaryPacks } from './offlineDictionaryPacks';
 import { type OfflinePackInstallState, loadOfflinePackInstallState } from './offlineDictionaryPackStore';
 
@@ -53,7 +54,7 @@ export async function findReadyOfflineEntry(
   languageCode: string,
   {
     loadState = loadOfflinePackInstallState,
-    packs = offlineDictionaryPacks,
+    packs,
     storageFactory = createDefaultOfflineDictionaryStorage,
   }: {
     loadState?: () => Promise<OfflinePackInstallState>;
@@ -61,7 +62,9 @@ export async function findReadyOfflineEntry(
     storageFactory?: OfflineDictionaryStorageFactory;
   } = {}
 ) {
-  const readyManifests = getReadyOfflinePackManifests(await loadState(), packs).filter(
+  // Hosted packs come from the cached catalog so installed packs resolve without network.
+  const knownPacks = packs ?? await loadCachedOfflinePacks().catch(() => offlineDictionaryPacks);
+  const readyManifests = getReadyOfflinePackManifests(await loadState(), knownPacks).filter(
     (manifest) => manifest.langCode === languageCode
   );
   if (!readyManifests.length) return null;

@@ -37,3 +37,41 @@ test('A word saved as favorite appears in Library and Home stats', async ({ page
 
   await captureUiArtifacts(page, testInfo, 'favorite-word');
 });
+
+test('Library imports a CSV into a new folder', async ({ page }) => {
+  await page.goto('/library');
+  await page.getByLabel('Thêm bộ từ').click();
+
+  const fileChooserPromise = page.waitForEvent('filechooser');
+  await page.getByText('Tải lên file', { exact: true }).click();
+  await (await fileChooserPromise).setFiles({
+    buffer: Buffer.from('word,definition\nharbor,a sheltered port\nlantern,a portable light\n', 'utf8'),
+    mimeType: 'text/csv',
+    name: 'Coast words.csv',
+  });
+
+  await expect(page.getByText('Coast words.csv · 2 từ hợp lệ', { exact: false })).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByText('Import vào bộ từ', { exact: true }).click();
+  await expect(page.getByText('Coast words', { exact: true }).first()).toBeVisible();
+});
+
+test('Library renames a folder and changes its color from the folder menu', async ({ page }) => {
+  await page.goto('/library');
+  await page.getByLabel('Thêm bộ từ').click();
+  await page.getByText('Tạo mới', { exact: true }).click();
+  await page.getByPlaceholder('Tên bộ từ').fill('Draft folder');
+  await page.getByText('Tạo bộ từ', { exact: true }).click();
+
+  await page.getByLabel('Tùy chọn bộ từ Draft folder').click();
+  await page.getByText('Đổi tên', { exact: true }).click();
+  await page.getByPlaceholder('Tên mới cho bộ từ').fill('Renamed folder');
+  await page.getByText('Lưu', { exact: true }).click();
+  await expect(page.getByText('Renamed folder', { exact: true }).first()).toBeVisible();
+
+  await page.getByLabel('Tùy chọn bộ từ Renamed folder').click();
+  await page.getByText('Thay đổi màu sắc', { exact: true }).click();
+  await page.getByPlaceholder("Ghi chú cho màu này (ví dụ: 'Học vựng hằng ngày')").fill('Weekly review');
+  await page.getByText('Lưu', { exact: true }).click();
+  await expect(page.getByText('Chọn màu cho bộ từ')).toHaveCount(0);
+});

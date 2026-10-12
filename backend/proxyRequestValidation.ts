@@ -1,5 +1,6 @@
 import type { BackendProxyLimits } from './proxyConfig';
 import type { UserProviderSecretScope } from './userProviderSecrets';
+import { MAX_SENTENCE_EXAMPLE_CHARS, MAX_SENTENCE_EXAMPLES, type SentencePair } from '../data/sentenceMemory';
 
 export const AI_CHAT_MAX_MESSAGES = 20;
 export const AI_CHAT_MAX_MESSAGE_CHARS = 4_000;
@@ -14,8 +15,10 @@ export type ProxyValidationErrorCode =
   | 'glossary_entry_invalid'
   | 'glossary_language_mismatch'
   | 'provider_secret_invalid'
+  | 'sentence_example_invalid'
   | 'text_too_large'
   | 'unsupported_language_pair'
+  | 'unsupported_tone'
   | 'voice_feedback_audio_not_supported';
 
 export type ProxyValidationError = {
@@ -81,6 +84,33 @@ export type ValidatedGlossaryRequest = {
   sourceLang: string;
   targetLang: string;
 };
+
+export const SPECIALIZED_TRANSLATION_DOMAINS = ['general', 'medical', 'legal', 'tech', 'academic'] as const;
+export type SpecializedTranslationDomain = (typeof SPECIALIZED_TRANSLATION_DOMAINS)[number];
+
+export type SpecializedTranslateRequest = {
+  domainId?: unknown;
+  examples?: unknown;
+  glossary?: unknown;
+  tone?: unknown;
+  sourceLang?: unknown;
+  sourceText?: unknown;
+  targetLang?: unknown;
+};
+
+export type ValidatedSpecializedTranslateRequest = {
+  characterCount: number;
+  domainId: SpecializedTranslationDomain;
+  examples: SentencePair[];
+  glossary: ValidatedGlossaryEntry[];
+  sourceLang: string;
+  sourceText: string;
+  targetLang: string;
+  tone: SpecializedTranslationTone;
+};
+
+export const SPECIALIZED_TRANSLATION_TONES = ['neutral', 'formal', 'plain'] as const;
+export type SpecializedTranslationTone = (typeof SPECIALIZED_TRANSLATION_TONES)[number];
 
 export type AiChatMessageRequest = {
   content?: unknown;
@@ -174,6 +204,74 @@ export function validateTranslateTextRequest(
     },
     ok: true,
   };
+}
+
+// Glossary terms travel with each request (the glossary lives on the device); the server only
+// uses the terms that occur in the source text and builds the prompt itself.
+export function validateSpecializedTranslateRequest(
+  request: SpecializedTranslateRequest,
+  limits: Pick<BackendProxyLimits, 'maxGlossaryEntries' | 'maxTextInputChars'>
+): ProxyValidationResult<ValidatedSpecializedTranslateRequest> {
+  const sourceText = readTrimmedString(request.sourceText);
+  const sourceLang = normalizeLanguageCode(request.sourceLang);
+  const targetLang = normalizeLanguageCode(request.targetLang);
+  const glossary = request.glossary === undefined ? [] : request.glossary;
+
+  if (!sourceText) {
+    return invalid('text_too_large', 'sourceText', 'Source text is required.', 400);
+  }
+  const characterCount = countCodePoints(sourceText);
+  if (characterCount > limits.maxTextInputChars) {
+    return invalid('text_too_large', 'sourceText', 'Source text exceeds the configured size limit.', 413);
+  }
+  if (!sourceLang || !targetLang || sourceLang === targetLang || !/^[A-Z]{2,3}(-[A-Z]{2,4})?$/.test(sourceLang) || !/^[A-Z]{2,3}(-[A-Z]{2,4})?$/.test(targetLang)) {
+    return invalid('unsupported_language_pair', 'targetLang', 'Source and target languages must be explicit and different.');
+  }
+  if (!Array.isArray(glossary) || glossary.length > limits.maxGlossaryEntries) {
+    return invalid('glossary_entry_invalid', 'glossary', 'Glossary must stay within the configured limit.');
+  }
+
+  const seenSourceTerms = new Set<string>();
+  const entries: ValidatedGlossaryEntry[] = [];
+  for (let index = 0; index < glossary.length; index += 1) {
+    const entry = (glossary[index] ?? {}) as GlossaryEntryRequest;
+    const sourceTerm = sanitizeGlossaryTerm(entry.sourceTerm);
+    const targetTerm = sanitizeGlossaryTerm(entry.targetTerm);
+    if (!sourceTerm || !targetTerm) {
+      return invalid('glossary_entry_invalid', `glossary.${index}`, 'Glossary entries require source and target terms.');
+    }
+    const sourceKey = sourceTerm.toLocaleLowerCase();
+    if (seenSourceTerms.has(sourceKey)) {
+      return invalid('glossary_entry_duplicate', `glossary.${index}.sourceTerm`, 'Glossary source terms must be unique.');
+    }
+    seenSourceTerms.add(sourceKey);
+    entries.push({ sourceTerm, targetTerm });
+  }
+
+  // Reference sentence pairs the device picked from the user's sentence memory (data/sentenceMemory.ts).
+  const rawExamples = request.examples === undefined ? [] : request.examples;
+  if (!Array.isArray(rawExamples) || rawExamples.length > MAX_SENTENCE_EXAMPLES) {
+    return invalid('sentence_example_invalid', 'examples', `At most ${MAX_SENTENCE_EXAMPLES} reference sentences are allowed.`);
+  }
+  const examples: SentencePair[] = [];
+  for (let index = 0; index < rawExamples.length; index += 1) {
+    const example = (rawExamples[index] ?? {}) as { source?: unknown; target?: unknown };
+    const source = sanitizeSentenceExample(example.source);
+    const target = sanitizeSentenceExample(example.target);
+    if (!source || !target) {
+      return invalid('sentence_example_invalid', `examples.${index}`, 'Reference sentences require a source and a target.');
+    }
+    examples.push({ source, target });
+  }
+
+  // Tone comes from a fixed list (agent presets); free-text instructions are never accepted.
+  if (request.tone !== undefined && !SPECIALIZED_TRANSLATION_TONES.includes(request.tone as SpecializedTranslationTone)) {
+    return invalid('unsupported_tone', 'tone', 'Tone must be one of neutral, formal or plain.');
+  }
+  const tone = (request.tone as SpecializedTranslationTone | undefined) ?? 'neutral';
+
+  const domainId = SPECIALIZED_TRANSLATION_DOMAINS.find((domain) => domain === request.domainId) ?? 'general';
+  return { data: { characterCount, domainId, examples, glossary: entries, sourceLang, sourceText, targetLang, tone }, ok: true };
 }
 
 export function validateGlossaryRequest(
@@ -366,6 +464,12 @@ function sanitizeGlossaryTerm(value: unknown) {
 
 function hasControlCharacters(value: string) {
   return /[\u0000-\u001f\u007f]/u.test(value);
+}
+
+function sanitizeSentenceExample(value: unknown) {
+  const text = readTrimmedString(value);
+  if (!text || hasControlCharacters(text) || countCodePoints(text) > MAX_SENTENCE_EXAMPLE_CHARS) return undefined;
+  return text;
 }
 
 function countCodePoints(value: string) {

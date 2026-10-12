@@ -3,7 +3,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
 import { Flashcard, FlashcardReviewState, FlashcardType, LibraryState, createFlashcardsFromSavedWords, exportFlashcardsToAnkiText, getDefaultLibraryState, loadLibraryState, reviewFlashcard, saveLibraryState } from '@/data/libraryStore';
@@ -19,6 +20,8 @@ import { SpecializedTranslationToolPanel } from '@/components/training/Specializ
 import { ReaderLibraryToolPanel } from '@/components/training/ReaderLibraryToolPanel';
 import { AnalyticsStat, FlashcardStatusDonut, getFlashcardAnalytics } from '@/components/training/FlashcardAnalytics';
 import { styles } from '@/components/training/styles';
+import LoadErrorNotice from '@/components/app/LoadErrorNotice';
+import SkeletonBlock from '@/components/app/SkeletonBlock';
 
 export default function AdvancedScreen() {
   const router = useRouter();
@@ -75,6 +78,8 @@ export default function AdvancedScreen() {
     [colors, radius.md, shadows.glow, shadows.md, shadows.sm]
   );
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  // Until the first load finishes, "no flashcards yet" would be wrong (plan 3.6).
+  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [readerState, setReaderState] = useState<ReaderState>(getDefaultReaderState());
   const [isImportingReaderDocument, setIsImportingReaderDocument] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Record<FlashcardType, boolean>>({
@@ -97,21 +102,32 @@ export default function AdvancedScreen() {
     if (googleSheetsReturn) setActiveToolId('export');
   }, [googleSheetsReturn]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
+  // Returns a cleanup so a load that finishes after the screen loses focus is ignored.
+  const loadTrainingData = useCallback(() => {
+    let isMounted = true;
 
-      Promise.all([loadLibraryState(), loadReaderState()]).then(([nextLibraryState, nextReaderState]) => {
+    Promise.all([loadLibraryState(), loadReaderState()])
+      .then(([nextLibraryState, nextReaderState]) => {
         if (!isMounted) return;
         setLibraryState(nextLibraryState);
         setReaderState(nextReaderState);
+        setLoadStatus('ready');
+      })
+      .catch(() => {
+        if (isMounted) setLoadStatus((current) => (current === 'ready' ? current : 'error'));
       });
 
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useFocusEffect(loadTrainingData);
+
+  const reloadTrainingData = () => {
+    setLoadStatus('loading');
+    loadTrainingData();
+  };
 
   const selectedFlashcardTypes = useMemo(() => {
     return flashcardOptions.filter((option) => selectedTypes[option.type]).map((option) => option.type);
@@ -291,13 +307,13 @@ export default function AdvancedScreen() {
 
         {activeTool ? (
           <View style={[styles.toolDetailHeader, themed.card]}>
-            <TouchableOpacity
+            <Touchable
               activeOpacity={0.78}
               accessibilityLabel="Quay lại danh sách luyện tập"
               onPress={() => setActiveToolId(null)}
               style={[styles.toolBackButton, themed.softBadge]}>
               <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
-            </TouchableOpacity>
+            </Touchable>
             <View style={[styles.toolDetailHeaderIcon, { backgroundColor: activeTool.accent }]}>
               <Ionicons name={activeTool.icon} size={18} color="#0F172A" />
             </View>
@@ -329,7 +345,7 @@ export default function AdvancedScreen() {
 
           <View style={[styles.flashcardModeTabs, themed.mutedPanel]}>
             {flashcardModeOptions.map((mode) => (
-              <TouchableOpacity
+              <Touchable
                 key={mode.value}
                 activeOpacity={0.82}
                 onPress={() => setFlashcardMode(mode.value)}
@@ -337,7 +353,7 @@ export default function AdvancedScreen() {
                 <Text style={[styles.flashcardModeTabText, themed.mutedText, flashcardMode === mode.value && styles.flashcardModeTabTextActive]}>
                   {mode.label}
                 </Text>
-              </TouchableOpacity>
+              </Touchable>
             ))}
           </View>
 
@@ -397,7 +413,7 @@ export default function AdvancedScreen() {
               const isSelected = selectedTypes[option.type];
 
               return (
-                <TouchableOpacity
+                <Touchable
                   key={option.type}
                   activeOpacity={0.82}
                   onPress={() => handleToggleFlashcardType(option.type)}
@@ -411,12 +427,12 @@ export default function AdvancedScreen() {
                     <Text style={[styles.checkLabel, themed.primaryText]}>{option.label}</Text>
                     <Text style={[styles.checkDescription, themed.mutedText]}>{option.description}</Text>
                   </View>
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
           </View>
 
-          <TouchableOpacity
+          <Touchable
             activeOpacity={0.85}
             disabled={!selectedFlashcardTypes.length || !libraryState.savedWords.length}
             onPress={handleCreateFlashcards}
@@ -427,9 +443,9 @@ export default function AdvancedScreen() {
             ]}>
             <Ionicons name="albums-outline" size={18} color="#FFFFFF" />
             <Text style={styles.generateButtonText}>Tạo flashcard từ từ đã lưu</Text>
-          </TouchableOpacity>
+          </Touchable>
 
-          <TouchableOpacity
+          <Touchable
             activeOpacity={0.85}
             disabled={!filteredFlashcards.length || isExporting}
             onPress={handleExportAnki}
@@ -439,7 +455,7 @@ export default function AdvancedScreen() {
             ]}>
             <Ionicons name="download-outline" size={18} color="#FFFFFF" />
             <Text style={styles.exportButtonText}>{isExporting ? 'Đang xuất...' : 'Xuất Anki (text)'}</Text>
-          </TouchableOpacity>
+          </Touchable>
 
           <View style={[styles.filterBlock, themed.mutedPanel]}>
             <Text style={[styles.filterLabel, themed.mutedText]}>Bộ từ</Text>
@@ -484,29 +500,33 @@ export default function AdvancedScreen() {
           activeCard ? (
             <View style={[styles.reviewCard, themed.mutedPanel]}>
               <Text style={[styles.reviewType, themed.mutedText]}>{formatFlashcardType(activeCard.type)} · {formatReviewState(activeCard.reviewState)}</Text>
-              <TouchableOpacity activeOpacity={0.86} onPress={() => setShowBack((value) => !value)} style={styles.flashcardFace}>
+              <Touchable activeOpacity={0.86} onPress={() => setShowBack((value) => !value)} style={styles.flashcardFace}>
                 <Text style={styles.faceLabel}>{showBack ? 'Back' : 'Front'}</Text>
                 <Text style={styles.faceText}>{showBack ? activeCard.back : activeCard.front}</Text>
-              </TouchableOpacity>
+              </Touchable>
               <View style={styles.reviewActions}>
-                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 1)} style={styles.againButton}>
+                <Touchable activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 1)} style={styles.againButton}>
                   <Text style={styles.againButtonText}>Lại</Text>
                   <Text style={styles.reviewButtonHint}>Không nhớ</Text>
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 3)} style={styles.hardButton}>
+                </Touchable>
+                <Touchable activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 3)} style={styles.hardButton}>
                   <Text style={styles.hardButtonText}>Khó</Text>
                   <Text style={styles.reviewButtonHint}>Nhớ chậm</Text>
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 4)} style={styles.goodButton}>
+                </Touchable>
+                <Touchable activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 4)} style={styles.goodButton}>
                   <Text style={styles.goodButtonText}>Tốt</Text>
                   <Text style={styles.reviewButtonHint}>Nhớ được</Text>
-                </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 5)} style={styles.easyButton}>
+                </Touchable>
+                <Touchable activeOpacity={0.82} onPress={() => handleReviewCard(activeCard, 5)} style={styles.easyButton}>
                   <Text style={styles.easyButtonText}>Dễ</Text>
                   <Text style={styles.reviewButtonHint}>Rất nhanh</Text>
-                </TouchableOpacity>
+                </Touchable>
               </View>
             </View>
+          ) : loadStatus === 'loading' ? (
+            <SkeletonBlock height={120} />
+          ) : loadStatus === 'error' ? (
+            <LoadErrorNotice message="Không đọc được flashcard trên thiết bị." onRetry={reloadTrainingData} />
           ) : (
             <View style={[styles.emptyFlashcard, themed.mutedPanel]}>
               <Ionicons name="albums-outline" size={23} color={colors.textTertiary} />

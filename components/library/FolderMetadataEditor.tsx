@@ -1,4 +1,5 @@
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import { styles } from '@/components/library/styles';
 
@@ -30,8 +31,10 @@ export function FolderMetadataEditor({
       <Text style={styles.metadataTitle}>Tùy chỉnh bộ từ</Text>
       <View style={styles.colorSwatchRow}>
         {folderColorOptions.map((option) => (
-          <TouchableOpacity
+          <Touchable
             key={option}
+            accessibilityLabel={`Màu ${option}`}
+            accessibilityState={{ selected: color === option }}
             activeOpacity={0.85}
             onPress={() => onColorChange(option)}
             style={[styles.colorSwatch, { backgroundColor: option }, color === option && styles.colorSwatchSelected]}

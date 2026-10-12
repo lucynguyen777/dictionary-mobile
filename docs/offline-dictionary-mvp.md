@@ -67,7 +67,7 @@ Minimum `offline_pack_meta` keys:
 
 ## Pack Generation
 
-Use `scripts/build-offline-pack.mjs` for small local prototypes:
+Use `scripts/build-offline-pack.mjs` on a Kaikki/Wiktextract JSONL dump (a per-language file or the full raw dump):
 
 ```bash
 node scripts/build-offline-pack.mjs \
@@ -75,13 +75,38 @@ node scripts/build-offline-pack.mjs \
   --lang en \
   --source enwiktionary \
   --source-url https://kaikki.org/dictionary/rawdata.html \
-  --out tmp/offline-packs/en-sample
+  --source-revision 2026-10-01 \
+  --generated-at 2026-10-11T00:00:00.000Z \
+  --public-base-url https://<cdn>/offline-packs/enwiktionary-v1 \
+  --out tmp/offline-packs/en-v1
 ```
+
+What the builder guarantees (covered by `tests/offlinePackBuilder.test.ts`):
+
+- Only the requested Wiktionary language section is kept (`lang_code` must match `--lang`); entries without definitions are dropped.
+- Records for the same headword (one per part of speech in Wiktextract) are merged; definitions, examples and relations are de-duplicated and capped (16 definitions, 8 examples, 24 relations, 1,000 characters per text).
+- `--generated-at` plus a fixed gzip header make rebuilds of the same dump byte-identical, so checksums only change when content does.
+- `--limit <n>` caps the number of headwords for lite packs.
 
 The script writes:
 
-- `manifest.json`: pack metadata and counts.
-- `entries.json.gz`: compressed normalized entries.
+- `manifest.json`: pack metadata, counts and `sourceRevision`.
+- `entries.json.gz`: compressed normalized entries, each with licence and attribution.
+- `download-source.json`: URLs, entry count and MD5s to paste into `downloadSource` in `data/offlineDictionaryPacks.ts` (the app verifies downloads against them).
+- `build-report.json`: scanned/merged/skipped counts for review.
+
+## Hosting Packs (plan 6.3)
+
+Once a host is chosen (owner decision D9), publishing is:
+
+```bash
+node scripts/build-pack-catalog.mjs --out tmp/offline-packs/catalog.json tmp/offline-packs/en-v1 tmp/offline-packs/fr-v1
+# upload catalog.json and the pack folders, keeping their relative paths
+```
+
+Then set `EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL` (absolute HTTPS URL of `catalog.json`) in the EAS build env. Profile refreshes the catalog (`data/offlinePackCatalog.ts`), caches the last valid copy for offline use, drops packs with a bad checksum, non-HTTPS URL, unknown language, other licence or missing attribution, and lets a hosted pack replace the bundled sample of the same language. Lookups use the cached catalog only (no network).
+
+On import the app re-validates every entry (`sanitizeOfflinePackEntry` in `data/offlineDictionaryPackActions.ts`): entries from another language or without definitions, licence or attribution are dropped, and a pack with no valid entries is rejected.
 
 Generated pack output belongs in `tmp/offline-packs/` and must not be committed. Durable parser fixtures, if needed, belong under `tests/fixtures/`.
 

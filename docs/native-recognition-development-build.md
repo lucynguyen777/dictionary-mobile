@@ -55,14 +55,18 @@ docker build -t dictionaire-chandra backend/chandra-service
 docker run --rm -p 8080:8080 \
   -e CHANDRA_MAX_INPUT_BYTES=52428800 \
   -e CHANDRA_TIMEOUT_SECONDS=180 \
+  -e CHANDRA_SUPABASE_URL=https://your-project.supabase.co \
+  -e CHANDRA_SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
   dictionaire-chandra
 ```
+
+For a quick local run without Supabase, add `-e CHANDRA_ALLOW_UNAUTHENTICATED=1` (never on a public host).
 
 Before using production documents, deploy it to a Docker/GPU-capable host with:
 
 - HTTPS;
 - request size and timeout limits;
-- authentication or another abuse-control boundary;
+- Supabase user authentication and the per-user daily limit (built into the service);
 - no document-body logging;
 - explicit retention/deletion policy;
 - Chandra model-license review.

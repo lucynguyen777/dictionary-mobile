@@ -4,13 +4,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import LanguageSelect, { getUnavailableLanguageMessage } from '@/components/app/LanguageSelect';
@@ -18,7 +17,7 @@ import StickyTabBar from '@/components/word/StickyTabBar';
 import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
 import { lookupMonolingual, lookupRelatedWords } from '@/data/adapterRegistry';
-import { DictionaryEntry, dictionaryEntries } from '@/data/dictionary';
+import { dictionaryEntries } from '@/data/dictionary';
 import {
   ApiBilingualMeaningResult,
   ApiMeaningResult,
@@ -29,11 +28,6 @@ import {
   fetchVietnameseSuggestions,
   isBlockedBilingualDictionaryPair,
 } from '@/data/dictionaryApi';
-import {
-  buildLocalFixtureFallback,
-  formatEtymologyWithAttribution,
-  resolveEtymologyDisplay,
-} from '@/data/etymologyAdapter';
 import { detectLookupSourceLanguage, type LookupLanguageDetection } from '@/data/languageDetection';
 import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair } from '@/data/languages';
 import {
@@ -55,6 +49,13 @@ import {
 } from '@/data/localLexicon';
 import { getMorphologyCandidates } from '@/data/morphology';
 import { useToken } from '@/hooks/use-token';
+import RecognitionLookupSheet, { type RecognitionMode } from '@/components/word/RecognitionLookupSheet';
+import { NATIVE_RECOGNITION_ENABLED } from '@/constants/featureFlags';
+import LookupSuggestions from '@/components/word/LookupSuggestions';
+import { createWordStyles } from '@/components/word/wordStyles';
+import { getBilingualDictionaryUnavailableMessage, getRouteParam, mergeLookupEntry } from '@/data/wordLookupEntry';
+import AppButton from '@/components/app/AppButton';
+import { describeLookupError } from '@/data/lookupErrors';
 
 const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etymology', 'Pronunciation'];
 
@@ -72,6 +73,7 @@ export default function WordScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState('');
   const [selectedWord, setSelectedWord] = useState(dictionaryEntries[0].word);
+  const [recognitionMode, setRecognitionMode] = useState<RecognitionMode | null>(null);
   const [lookupStatus, setLookupStatus] = useState<LookupStatus>('idle');
   const [lookupError, setLookupError] = useState('');
   const [bilingualLookupError, setBilingualLookupError] = useState('');
@@ -271,7 +273,7 @@ export default function WordScreen() {
         (bilingualMeaningResult.status === 'rejected' && bilingualMeaningResult.reason) ||
         (relatedWordsResult.status === 'rejected' && relatedWordsResult.reason);
       setLookupStatus('error');
-      setLookupError(error instanceof Error ? error.message : 'Chưa thể tải dữ liệu từ điển.');
+      setLookupError(describeLookupError(error, selectedWord, sourceLanguage.label));
     }
 
     lookupWord();
@@ -287,6 +289,7 @@ export default function WordScreen() {
     selectedWord,
     shouldUseBilingualDictionary,
     sourceLanguage.code,
+    sourceLanguage.label,
     targetLanguage.code,
   ]);
 
@@ -405,20 +408,22 @@ export default function WordScreen() {
               ]}
             />
             {query ? (
-              <TouchableOpacity
+              <Touchable
                 accessibilityLabel="Xóa nội dung tìm kiếm"
                 accessibilityRole="button"
                 hitSlop={10}
                 onPress={() => setQuery('')}>
                 <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
-              </TouchableOpacity>
+              </Touchable>
             ) : null}
-            <TouchableOpacity
+            <Touchable
+              accessibilityLabel="Chọn ngôn ngữ tra cứu"
+              accessibilityState={{ expanded: showLanguageControls }}
               activeOpacity={0.78}
               onPress={() => setShowLanguageControls((value) => !value)}
               style={styles.languageToggle}>
               <Ionicons name="language-outline" size={18} color={colors.accentPrimary} />
-            </TouchableOpacity>
+            </Touchable>
           </View>
           {showLanguageControls ? (
             <Text style={styles.languageCaption}>
@@ -431,38 +436,45 @@ export default function WordScreen() {
               <Text style={styles.detectedLanguageText}>
                 Đã nhận diện: {getLanguageByCode(detectedLanguage.languageCode, sourceLanguage.code).label}
               </Text>
-              <TouchableOpacity
+              <Touchable
+                accessibilityLabel="Hoàn tác ngôn ngữ đã nhận diện"
                 activeOpacity={0.75}
+                hitSlop={12}
                 onPress={() => {
                   setDetectedLanguage(null);
                   router.setParams({ sourceLang: sourceLanguage.code, targetLang: targetLanguage.code });
                 }}>
                 <Text style={styles.detectedLanguageUndo}>Hoàn tác</Text>
-              </TouchableOpacity>
+              </Touchable>
             </View>
           ) : null}
-          {showLanguageControls ? (
+          {showLanguageControls && NATIVE_RECOGNITION_ENABLED ? (
             <View style={styles.recognitionActionRow}>
-              <TouchableOpacity
+              <AppButton accessibilityLabel="Tìm bằng giọng nói" icon="mic-outline" label="Voice" onPress={() => setRecognitionMode('voice')} />
+              <AppButton accessibilityLabel="Tra cứu qua ảnh (OCR)" icon="scan-outline" label="OCR" onPress={() => setRecognitionMode('ocr')} />
+            </View>
+          ) : showLanguageControls ? (
+            <View style={styles.recognitionActionRow}>
+              <AppButton
                 accessibilityLabel="Tìm bằng giọng nói: cập nhật trong phiên bản sau"
-                activeOpacity={0.82}
+                icon="time-outline"
+                label="Voice"
                 onPress={() => showFutureFeatureNotice('Voice Search cần dev-client/native STT và kiểm thử quyền microphone trước khi mở production.')}
-                style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
-                <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
-                <Text style={styles.recognitionActionText}>Voice</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+                style={styles.futureRecognitionButton}
+              />
+              <AppButton
                 accessibilityLabel="Tra cứu qua ảnh (OCR): cập nhật trong phiên bản sau"
-                activeOpacity={0.82}
+                icon="time-outline"
+                label="OCR"
                 onPress={() => showFutureFeatureNotice('OCR Camera Lookup cần dev-client/native OCR engine và dữ liệu kiểm thử ảnh trước khi mở production.')}
-                style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
-                <Ionicons name="time-outline" size={17} color={colors.textSecondary} />
-                <Text style={styles.recognitionActionText}>OCR</Text>
-              </TouchableOpacity>
+                style={styles.futureRecognitionButton}
+              />
             </View>
           ) : null}
           {showLanguageControls ? (
-            <Text style={styles.futureRecognitionHint}>Voice/OCR: Cập nhật trong phiên bản sau · Cần dev-client</Text>
+            <Text style={styles.futureRecognitionHint}>
+              {NATIVE_RECOGNITION_ENABLED ? 'Voice/OCR: bản thử nghiệm dev-client, nhận dạng trên thiết bị' : 'Voice/OCR: Cập nhật trong phiên bản sau · Cần dev-client'}
+            </Text>
           ) : null}
           {showLanguageControls ? (
             <View style={styles.languageControls}>
@@ -492,70 +504,36 @@ export default function WordScreen() {
               const isSelected = entry.word === selectedEntry.word;
 
               return (
-                <TouchableOpacity
+                <Touchable
                   key={entry.word}
                   activeOpacity={0.82}
                   onPress={() => selectWord(entry.word)}
                   style={[styles.resultChip, isSelected && styles.activeResultChip]}>
                   <Text style={[styles.resultWord, isSelected && styles.activeResultText]}>{entry.word}</Text>
                   <Text style={[styles.resultMeta, isSelected && styles.activeResultMeta]}>{entry.level} · {entry.topic}</Text>
-                </TouchableOpacity>
+                </Touchable>
               );
             })}
             {shouldShowApiLookup ? (
-              <TouchableOpacity activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
+              <Touchable activeOpacity={0.82} onPress={() => selectWord(query)} style={styles.apiLookupChip}>
                 <Text style={styles.apiLookupTitle}>Tra {query.trim()}</Text>
                 <Text style={styles.apiLookupMeta}>
                   {isBilingualSourceBlocked ? 'Cập nhật sau' : `${sourceLanguage.label} dictionary`}
                 </Text>
-              </TouchableOpacity>
+              </Touchable>
             ) : null}
           </ScrollView>
         ) : null}
-        {query && results.length === 0 && !shouldShowApiLookup && allSpellingSuggestions.length === 0 ? (
-          <Text style={styles.emptyText}>Nhập từ thuộc ngôn ngữ gốc rồi nhấn tìm kiếm.</Text>
-        ) : null}
-        {query && results.length === 0 && allSpellingSuggestions.length > 0 ? (
-          <View style={styles.suggestionBlock}>
-            <Text style={styles.suggestionTitle}>Có phải ý bạn là:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionRow}>
-              {allSpellingSuggestions.map((suggestion) => (
-                <TouchableOpacity key={suggestion} activeOpacity={0.82} onPress={() => selectWord(suggestion)} style={styles.suggestionChip}>
-                  <Text style={styles.suggestionText}>{suggestion}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
-        {query && results.length === 0 && morphologySuggestions.length > 0 ? (
-          <View style={styles.morphologyBlock}>
-            <Text style={styles.morphologyTitle}>Dạng gốc có thể là:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionRow}>
-              {morphologySuggestions.map((suggestion) => (
-                <TouchableOpacity
-                  key={`${suggestion.word}-${suggestion.reason}`}
-                  activeOpacity={0.82}
-                  onPress={() => selectWord(suggestion.word)}
-                  style={styles.morphologyChip}>
-                  <Text style={styles.morphologyText}>{suggestion.label}</Text>
-                  <Text style={styles.morphologyMeta}>{suggestion.reason}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
-        {!query && libraryState.searchHistory.length ? (
-          <View style={styles.historyBlock}>
-            <Text style={styles.historyTitle}>Recent searches</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.historyRow}>
-              {libraryState.searchHistory.map((item) => (
-                <TouchableOpacity key={`${item.word}-${item.lookedUpAt}`} activeOpacity={0.82} onPress={() => selectWord(item.word)} style={styles.historyChip}>
-                  <Text style={styles.historyText}>{item.word}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
+        <LookupSuggestions
+          hasResults={results.length > 0}
+          morphologySuggestions={morphologySuggestions}
+          onSelect={selectWord}
+          query={query}
+          searchHistory={libraryState.searchHistory}
+          showApiLookup={shouldShowApiLookup}
+          spellingSuggestions={allSpellingSuggestions}
+          styles={styles}
+        />
       </View>
       <WordHeader
         entry={selectedEntry}
@@ -584,499 +562,17 @@ export default function WordScreen() {
         scrollRef={scrollRef}
         onIndexChange={setActiveIndex}
       />
+      {NATIVE_RECOGNITION_ENABLED ? (
+        <RecognitionLookupSheet
+          languageCode={sourceLanguage.code}
+          mode={recognitionMode}
+          onClose={() => setRecognitionMode(null)}
+          onSelectWord={(word) => {
+            setRecognitionMode(null);
+            selectWord(word);
+          }}
+        />
+      ) : null}
     </View>
   );
-}
-
-function getEtymologyForEntry(
-  localEntry: DictionaryEntry | undefined,
-  apiMeaning: ApiMeaningResult | null,
-  canUseSourceDictionaryApi: boolean,
-  isBilingualLookup: boolean,
-  sourceLanguageLabel: string,
-  targetLanguageLabel: string
-): string {
-  if (!isBilingualLookup && apiMeaning?.etymology) {
-    return `${apiMeaning.etymology.text}\n\n${apiMeaning.etymology.attribution}`;
-  }
-
-  return formatEtymologyWithAttribution(
-    resolveEtymologyDisplay({
-      localEtymology: localEntry?.etymology,
-      sourceLanguageLabel,
-      targetLanguageLabel,
-      isBilingualLookup,
-      hasConfiguredSource: canUseSourceDictionaryApi,
-      sourceName: getEtymologySourceName(apiMeaning, sourceLanguageLabel),
-    })
-  );
-}
-
-function getLiveConjugationRows(apiMeaning: ApiMeaningResult | null) {
-  return apiMeaning?.forms?.map((row) => ({
-    tense: row.features.length ? row.features.join(' · ') : 'Form',
-    form: `${row.form}\n${row.attribution}`,
-  })) ?? [];
-}
-
-function mergeLookupEntry(
-  localEntry: DictionaryEntry | undefined,
-  selectedWord: string,
-  apiBilingualMeaning: ApiBilingualMeaningResult | null,
-  apiMeaning: ApiMeaningResult | null,
-  canUseSourceDictionaryApi: boolean,
-  hasLocalDictionarySource: boolean,
-  isBilingualSourceBlocked: boolean,
-  sourceLanguageLabel: string,
-  targetLanguageLabel: string
-): DictionaryEntry {
-  const fallbackEntry = localEntry ?? dictionaryEntries[0];
-  const hasLocalEntry = Boolean(localEntry);
-  const apiDefinitions = apiMeaning?.definitions.map((definition) => ({
-    partOfSpeech: definition.partOfSpeech,
-    meaning: definition.meaning,
-    vietnamese: '',
-    examples: definition.examples,
-    domain: definition.domain,
-    gender: definition.gender,
-    level: definition.level,
-  }));
-  const bilingualDefinitions = apiBilingualMeaning?.definitions.map((definition) => ({
-    partOfSpeech: definition.partOfSpeech,
-    meaning: definition.meaning,
-    vietnamese: definition.meaning,
-    examples: definition.examples,
-    domain: definition.domain,
-    gender: definition.gender,
-    level: definition.level,
-  }));
-
-  if (isBilingualSourceBlocked) {
-    return createDictionaryUnavailableEntry(
-      selectedWord,
-      hasLocalDictionarySource,
-      sourceLanguageLabel,
-      targetLanguageLabel,
-      `Chưa chọn nguồn dữ liệu từ điển ${sourceLanguageLabel} sang ${targetLanguageLabel} đủ tin cậy.`
-    );
-  }
-
-  if (apiBilingualMeaning?.definitions.length) {
-    return {
-      ...fallbackEntry,
-      word: apiBilingualMeaning.word,
-      ipa: apiBilingualMeaning.ipa || apiMeaning?.ipa || (hasLocalEntry ? fallbackEntry.ipa : ''),
-      audio: apiBilingualMeaning.audio || apiMeaning?.audio || (hasLocalEntry ? fallbackEntry.audio : ''),
-      level: hasLocalEntry ? fallbackEntry.level : 'EN-VI',
-      topic: 'Bilingual dictionary',
-      vietnamese: apiBilingualMeaning.definitions[0]?.meaning ?? fallbackEntry.vietnamese,
-      shortDefinition: apiBilingualMeaning.definitions[0]?.meaning ?? fallbackEntry.shortDefinition,
-      definitions: bilingualDefinitions ?? [],
-      synonyms: hasLocalEntry ? fallbackEntry.synonyms : [],
-      antonyms: hasLocalEntry ? fallbackEntry.antonyms : [],
-      collocations: hasLocalEntry ? fallbackEntry.collocations : [],
-      idioms: hasLocalEntry ? fallbackEntry.idioms : [],
-      conjugation: hasLocalEntry ? fallbackEntry.conjugation : [],
-      etymology: getEtymologyForEntry(
-        localEntry,
-        apiMeaning,
-        canUseSourceDictionaryApi,
-        true,
-        sourceLanguageLabel,
-        targetLanguageLabel
-      ),
-      pronunciationTips: hasLocalEntry ? fallbackEntry.pronunciationTips : [],
-    };
-  }
-
-  if (!hasLocalEntry) {
-    if (!canUseSourceDictionaryApi && !apiMeaning) {
-      return createDictionaryUnavailableEntry(selectedWord, hasLocalDictionarySource, sourceLanguageLabel, targetLanguageLabel);
-    }
-
-    return {
-      word: apiMeaning?.word ?? selectedWord,
-      ipa: apiMeaning?.ipa ?? '',
-      audio: apiMeaning?.audio ?? '',
-      level: sourceLanguageLabel,
-      topic: 'Online dictionary',
-      vietnamese: apiDefinitions?.[0]?.meaning ?? 'Chưa có nghĩa đích',
-      shortDefinition: apiDefinitions?.[0]?.meaning ?? 'Live dictionary lookup.',
-      definitions: apiDefinitions?.length
-        ? apiDefinitions
-        : [
-            {
-              partOfSpeech: 'lookup',
-              meaning: 'Live dictionary data will appear here when available.',
-              vietnamese: 'Dữ liệu tra cứu trực tuyến sẽ hiển thị khi có kết quả.',
-              examples: [],
-            },
-          ],
-      synonyms: [],
-      antonyms: [],
-      collocations: [],
-      idioms: [],
-      conjugation: getLiveConjugationRows(apiMeaning),
-      etymology: getEtymologyForEntry(
-        undefined,
-        apiMeaning,
-        canUseSourceDictionaryApi,
-        false,
-        sourceLanguageLabel,
-        targetLanguageLabel
-      ),
-      pronunciationTips: [],
-    };
-  }
-
-  return {
-    ...fallbackEntry,
-    word: apiMeaning?.word ?? selectedWord,
-    ipa: apiMeaning?.ipa || fallbackEntry.ipa,
-    audio: apiMeaning?.audio || fallbackEntry.audio,
-    level: fallbackEntry.level,
-    topic: fallbackEntry.topic,
-    vietnamese: fallbackEntry.vietnamese,
-    shortDefinition: apiDefinitions?.[0]?.meaning ?? fallbackEntry.shortDefinition,
-    definitions: fallbackEntry.definitions,
-    conjugation: getLiveConjugationRows(apiMeaning).length
-      ? getLiveConjugationRows(apiMeaning)
-      : fallbackEntry.conjugation,
-    etymology: getEtymologyForEntry(
-      localEntry,
-      apiMeaning,
-      canUseSourceDictionaryApi,
-      false,
-      sourceLanguageLabel,
-      targetLanguageLabel
-    ),
-  };
-}
-
-function getRouteParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function getEtymologySourceName(apiMeaning: ApiMeaningResult | null, sourceLanguageLabel: string) {
-  const sourceName = apiMeaning?.source.split(' · ')[0];
-  if (sourceName?.toLocaleLowerCase().includes('wiktionary')) {
-    return sourceName;
-  }
-
-  return `${sourceLanguageLabel} Wiktionary`;
-}
-
-function getBilingualDictionaryUnavailableMessage(sourceLanguage: LanguageOption, targetLanguage: LanguageOption) {
-  if (isBlockedBilingualDictionaryPair(sourceLanguage.code, targetLanguage.code)) {
-    return `Cập nhật trong phiên bản sau: cần nguồn dữ liệu từ điển ${sourceLanguage.label} → ${targetLanguage.label} đủ tin cậy.`;
-  }
-
-  return `Cập nhật trong phiên bản sau: chưa có nguồn dữ liệu từ điển ${sourceLanguage.label} sang ${targetLanguage.label} đủ tin cậy.`;
-}
-
-function createDictionaryUnavailableEntry(
-  word: string,
-  hasLocalDictionarySource: boolean,
-  sourceLanguageLabel: string,
-  targetLanguageLabel: string,
-  customMessage?: string
-): DictionaryEntry {
-  const sourceMessage = customMessage ?? (hasLocalDictionarySource
-    ? `Chưa có mục từ local cho "${word}".`
-    : `Dữ liệu từ điển ${sourceLanguageLabel} chưa được bật.`);
-
-  return {
-    word,
-    ipa: '',
-    audio: '',
-    level: hasLocalDictionarySource ? 'Local' : 'Soon',
-    topic: hasLocalDictionarySource ? 'Từ điển' : 'Cần nguồn dữ liệu',
-    vietnamese: `${sourceLanguageLabel} sang ${targetLanguageLabel}`,
-    shortDefinition: sourceMessage,
-    definitions: [
-      {
-        partOfSpeech: 'trạng thái từ điển',
-        meaning: sourceMessage,
-        vietnamese: 'Cần bổ sung dataset hoặc API hợp pháp để tra cứu đầy đủ ngôn ngữ này.',
-        examples: [],
-        domain: 'Hệ thống',
-        level: hasLocalDictionarySource ? 'Preview' : 'Cập nhật sau',
-      },
-    ],
-    synonyms: [],
-    antonyms: [],
-    collocations: [],
-    idioms: [],
-    conjugation: [],
-    etymology: formatEtymologyWithAttribution(buildLocalFixtureFallback()),
-    pronunciationTips: [],
-  };
-}
-
-function createWordStyles({
-  colors,
-  radius,
-  shadows,
-  spacing,
-}: ReturnType<typeof useToken>) {
-return StyleSheet.create({
-  container: {
-    backgroundColor: colors.canvasAlt,
-    flex: 1,
-  },
-  lookupPanel: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-  },
-  lookupSearchCard: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    padding: 10,
-    ...shadows.sm,
-  },
-  inputBox: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.focusRing,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    height: 50,
-    paddingHorizontal: 14,
-  },
-  input: {
-    color: colors.textPrimary,
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  languageToggle: {
-    alignItems: 'center',
-    backgroundColor: colors.accentSoft,
-    borderRadius: radius.md,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  languageCaption: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '800',
-    marginTop: 8,
-  },
-  detectedLanguageChip: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.focusRing,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 7,
-    marginTop: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  detectedLanguageText: {
-    color: colors.accentPrimary,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  detectedLanguageUndo: {
-    color: colors.accentPrimary,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  recognitionActionRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-  },
-  recognitionActionButton: {
-    alignItems: 'center',
-    backgroundColor: colors.statusSuccess,
-    borderColor: colors.accentSuccess,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 34,
-    paddingHorizontal: 10,
-  },
-  futureRecognitionButton: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.focusRing,
-    opacity: 0.58,
-  },
-  recognitionActionText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  futureRecognitionHint: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 7,
-  },
-  languageControls: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-  },
-  languageSwap: {
-    alignItems: 'center',
-    backgroundColor: colors.accentSoft,
-    borderRadius: radius.md,
-    height: 34,
-    justifyContent: 'center',
-    marginTop: 14,
-    width: 34,
-  },
-  resultRow: {
-    gap: 10,
-    paddingBottom: 14,
-    paddingTop: 12,
-  },
-  resultChip: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    minWidth: 116,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  activeResultChip: {
-    backgroundColor: colors.accentPrimary,
-    borderColor: colors.accentPrimary,
-  },
-  resultWord: {
-    color: colors.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  activeResultText: {
-    color: colors.textOnAccent,
-  },
-  resultMeta: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  activeResultMeta: {
-    color: colors.textOnAccent,
-  },
-  apiLookupChip: {
-    backgroundColor: colors.surfaceHero,
-    borderRadius: radius.md,
-    minWidth: 132,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  apiLookupTitle: {
-    color: colors.textOnHero,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  apiLookupMeta: {
-    color: colors.accentPrimary,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  emptyText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '700',
-    paddingBottom: 10,
-  },
-  historyBlock: {
-    paddingBottom: 12,
-  },
-  historyTitle: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  historyRow: {
-    gap: 8,
-  },
-  historyChip: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  historyText: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  suggestionBlock: {
-    paddingBottom: 12,
-  },
-  suggestionTitle: {
-    color: colors.accentError,
-    fontSize: 12,
-    fontWeight: '700',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  suggestionRow: {
-    gap: 8,
-  },
-  suggestionChip: {
-    backgroundColor: colors.statusError,
-    borderColor: colors.accentError,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  suggestionText: {
-    color: colors.accentError,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  morphologyBlock: {
-    paddingBottom: 12,
-  },
-  morphologyTitle: {
-    color: colors.accentPrimary,
-    fontSize: 12,
-    fontWeight: '700',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  morphologyChip: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.focusRing,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    minWidth: 104,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  morphologyText: {
-    color: colors.accentPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  morphologyMeta: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '800',
-    marginTop: 3,
-  },
-});
 }

@@ -254,7 +254,7 @@ describe('authController', () => {
       email: 'reader@example.com',
       lastAuthEvent: 'recovery',
     });
-    expect(calls).toEqual([['reader@example.com', { redirectTo: AUTH_CALLBACK_URL }]]);
+    expect(calls).toEqual([['reader@example.com', { redirectTo: `${AUTH_CALLBACK_URL}?flow=recovery` }]]);
   });
 
   it('maps callback provider errors without exchanging a code', async () => {
