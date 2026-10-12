@@ -1,10 +1,11 @@
-import type { ApiMeaningResult, ApiRelatedWords } from './dictionaryApi';
+import type { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from './dictionaryApi';
 import type { LanguageCode } from './languages';
 import { createDefaultOfflineDictionaryStorage } from './offlineDictionaryDefaultStorage';
 import type { OfflineDictionaryStorage, OfflinePackManifest } from './offlineDictionaryImport';
 import {
   type OfflineDictionaryEntry,
   getOfflineLookupCandidates,
+  mapOfflineEntryToApiBilingualMeaning,
   mapOfflineEntryToApiMeaning,
   normalizeOfflineLookupKey,
 } from './offlineDictionaryLookup';
@@ -31,6 +32,24 @@ export async function fetchOfflineMonolingualMeaning(
   return mapOfflineEntryToApiMeaning(buildOfflineLookupResult(entry, word, languageCode as LanguageCode));
 }
 
+// Bilingual lookup through an installed pair pack (e.g. VI→FR). Null when no pair pack is ready.
+export async function fetchOfflineBilingualMeaning(
+  word: string,
+  sourceLanguageCode: string,
+  targetLanguageCode: string,
+  options: {
+    loadState?: () => Promise<OfflinePackInstallState>;
+    packs?: OfflineDictionaryPack[];
+    storageFactory?: OfflineDictionaryStorageFactory;
+  } = {}
+): Promise<ApiBilingualMeaningResult | null> {
+  if (sourceLanguageCode === targetLanguageCode) return null;
+  const entry = await findReadyOfflineEntry(word, sourceLanguageCode, { ...options, glossLanguageCode: targetLanguageCode });
+  if (!entry) return null;
+
+  return mapOfflineEntryToApiBilingualMeaning(buildOfflineLookupResult(entry, word, sourceLanguageCode as LanguageCode));
+}
+
 export async function fetchOfflineRelatedWords(
   word: string,
   languageCode: string,
@@ -53,10 +72,14 @@ export async function findReadyOfflineEntry(
   word: string,
   languageCode: string,
   {
+    glossLanguageCode = languageCode,
     loadState = loadOfflinePackInstallState,
     packs,
     storageFactory = createDefaultOfflineDictionaryStorage,
   }: {
+    // The language definitions must be written in: the headword language for monolingual lookups,
+    // the target language for pair packs (VI→FR).
+    glossLanguageCode?: string;
     loadState?: () => Promise<OfflinePackInstallState>;
     packs?: OfflineDictionaryPack[];
     storageFactory?: OfflineDictionaryStorageFactory;
@@ -65,7 +88,7 @@ export async function findReadyOfflineEntry(
   // Hosted packs come from the cached catalog so installed packs resolve without network.
   const knownPacks = packs ?? await loadCachedOfflinePacks().catch(() => offlineDictionaryPacks);
   const readyManifests = getReadyOfflinePackManifests(await loadState(), knownPacks).filter(
-    (manifest) => manifest.langCode === languageCode
+    (manifest) => manifest.langCode === languageCode && (manifest.glossLangCode ?? manifest.langCode) === glossLanguageCode
   );
   if (!readyManifests.length) return null;
 
@@ -91,6 +114,7 @@ export function getReadyOfflinePackManifests(
         {
           entryCount: record.entryCount,
           generatedAt: record.installedAt || record.updatedAt,
+          ...(pack.glossLanguageCode ? { glossLangCode: pack.glossLanguageCode } : {}),
           langCode: pack.languageCode,
           license: pack.license,
           packId: pack.id,

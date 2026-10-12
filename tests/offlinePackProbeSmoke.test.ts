@@ -34,6 +34,9 @@ const PACKS = [
   { dir: 'tests/fixtures/offline-packs/tr-probe-smoke', lang: 'tr', probes: 'data/headword-lists/turkish-promotion-100.txt' },
   // Vietnamese Wiktionary for the VI-VI offline pack (plan 6.5).
   { dir: 'tests/fixtures/offline-packs/vi-probe-smoke', lang: 'vi', probes: 'data/headword-lists/vietnamese-promotion-100.txt' },
+  // VI->FR pair pack (decision D13): French Wiktionary's Vietnamese section, --gloss-lang fr, with English
+  // Wiktionary Vietnamese relations as a credited helper. Built from the 2026-10-02 dumps on 2026-10-12.
+  { dir: 'tests/fixtures/offline-packs/vi-fr-probe-smoke', lang: 'vi', probes: 'data/headword-lists/vietnamese-promotion-100.txt' },
 ] as const;
 
 // The expo-sqlite subset the offline storage uses, on Node's built-in SQLite (FTS5 included).
@@ -75,7 +78,7 @@ function readProbes(path: string) {
     });
 }
 
-describe.each(PACKS)('offline pack smoke: $lang probes from Wiktionary', ({ dir, lang, probes }) => {
+describe.each(PACKS)('offline pack smoke: $lang probes from Wiktionary ($dir)', ({ dir, lang, probes }) => {
   it('imports, finds the promotion probes, keeps attribution, and deletes cleanly', async () => {
     const manifest = JSON.parse(readFileSync(`${dir}/manifest.json`, 'utf8'));
     const entries = await readOfflinePackEntries(
@@ -90,6 +93,7 @@ describe.each(PACKS)('offline pack smoke: $lang probes from Wiktionary', ({ dir,
     const pack: OfflineDictionaryPack = {
       attribution: `Source: ${manifest.sourceName} via Kaikki/Wiktextract (CC-BY-SA-4.0/GFDL)`,
       estimatedCompressedSizeMb: { max: 1, min: 1 },
+      ...(manifest.glossLangCode ? { glossLanguageCode: manifest.glossLangCode as LanguageCode } : {}),
       id: manifest.packId,
       languageCode: lang as LanguageCode,
       license: 'CC-BY-SA-4.0/GFDL',
@@ -121,6 +125,13 @@ describe.each(PACKS)('offline pack smoke: $lang probes from Wiktionary', ({ dir,
       expect(entry.license).toBe('CC-BY-SA-4.0/GFDL');
       expect(entry.attribution).toContain('wiktionary');
       expect(entry.definitions.length).toBeGreaterThan(0);
+      if (manifest.glossLangCode) {
+        // Pair packs: definitions are in the gloss language, never Vietnamese cross-references.
+        expect(entry.definitions.map((definition) => definition.gloss).filter((gloss) => /^(xem|như|nói tắt)\s/iu.test(gloss))).toEqual([]);
+        for (const example of entry.examples) {
+          if (example.translation) expect(example.translationLanguage).toBe(manifest.glossLangCode);
+        }
+      }
     }
 
     await storage.deletePack(pack.id);

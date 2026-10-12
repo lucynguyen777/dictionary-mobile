@@ -1,3 +1,5 @@
+import { LANGUAGE_PROMOTION_THRESHOLDS } from './languagePromotionGate';
+
 export type LanguageProductionRoadmapState = 'production-maintenance' | 'preview-promotion' | 'source-gated';
 
 export type LanguageProductionRoadmapTarget = {
@@ -55,7 +57,7 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
   { batch: 5, code: 'he', difficulty: 'hard', sourcePlan: 'Measure native definitions from he.wiktionary.org while documenting its current corpus-size constraint; English-definition data remains helper-only.', specialWork: 'RTL smoke, exact-then-niqqud-insensitive lookup, clitics, plurals, and explicit root-pattern limitations.', state: 'preview-promotion' },
 
   { batch: 6, code: 'zh', difficulty: 'hard', sourcePlan: 'Chinese Wiktionary (zhwiktionary) extraction measured 2026-10-11: exact 70% after following simplified→traditional soft redirects; the rest is a source content gap (the Wiktionary pages for core words such as 做 have no definitions, only pronunciation and translations). Needs another Chinese-definition source (D16). English-definition data remains helper-only.', specialWork: 'Segmentation, directional simplified/traditional normalization, multi-character words, and pronunciation metadata.', state: 'preview-promotion' },
-  { batch: 6, code: 'ja', difficulty: 'very-hard', sourcePlan: 'Japanese Wiktionary (jawiktionary) extraction measured 2026-10-11: exact 97.5%, morphology 100%, related words 64.6% with English-edition relations as a helper; examples 36.7% native (86% with English-edition example sentences, owner decision D12). English-definition data remains helper-only.', specialWork: 'Tokenizer, source form-of/readings, bounded inflections, kana/kanji variants, and optional source-backed pitch accent.', state: 'preview-promotion' },
+  { batch: 6, code: 'ja', difficulty: 'very-hard', sourcePlan: 'Japanese Wiktionary (jawiktionary) extraction measured 2026-10-11: exact 97.5%, morphology 100%, related words 64.6% with English-edition relations as a helper; examples 36.7% native, 86% with English Wiktionary example sentences as a credited helper (owner decision D12, approved 2026-10-12: Japanese sentences shown with their English translation labelled as an English aid). Source gates pass; pack scope/host (D9), probe-scoped pack smoke (jawiktionary headwords are kana with kanji in forms) and UI smoke pending. English-definition data remains helper-only.', specialWork: 'Tokenizer, source form-of/readings, bounded inflections, kana/kanji variants, and optional source-backed pitch accent.', state: 'preview-promotion' },
   { batch: 6, code: 'ko', difficulty: 'very-hard', sourcePlan: 'Korean Wiktionary (kowiktionary) extraction measured 2026-10-11: passes source gates after contracted-form morphology fix (exact 100%, morphology 100%, examples 100%, related 76%) and probe-scoped pack smoke; validate NIKL terms before any secondary source; pack scope/host pending (D9).', specialWork: 'Particles, source pronunciation/romanization, bounded endings, and segmentation.', state: 'preview-promotion' },
 
   { batch: 7, code: 'ta', difficulty: 'very-hard', sourcePlan: 'Extract and measure Tamil-language sections from ta.wiktionary.org or Tamil-edition Wiktextract; edition page counts must not be treated as Tamil lemma coverage.', specialWork: 'NFC-safe native-script tokenization, suffix chains, sandhi, and lemma fallback.', state: 'preview-promotion' },
@@ -64,9 +66,9 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
   { batch: 7, code: 'ml', difficulty: 'very-hard', sourcePlan: 'Malayalam Wiktionary-derived corpus.', specialWork: 'Chillu/virama preservation, suffix chains, and lemma fallback.', state: 'preview-promotion' },
   { batch: 7, code: 'my', difficulty: 'very-hard', sourcePlan: 'Burmese Wiktionary-derived corpus.', specialWork: 'Script segmentation and conservative morphology.', state: 'preview-promotion' },
   { batch: 7, code: 'bo', difficulty: 'very-hard', sourcePlan: 'Tibetan Wiktionary-derived corpus.', specialWork: 'Tsek-aware segmentation and conservative morphology.', state: 'preview-promotion' },
+  { batch: 7, code: 'vi->fr', difficulty: 'very-hard', sourcePlan: 'French Wiktionary Vietnamese section via Kaikki/Wiktextract (dump 2026-10-02), approved as the VI->FR source by owner decision D13 (2026-10-12), with English Wiktionary Vietnamese relations as a credited related-words helper: 16k headwords, exact 98%, examples 67.3%, related words 65.3% with helper. VI->FR pair pack builder (--gloss-lang fr) and probe-scoped pack smoke pass; pack host (D9) and UI smoke pending.', specialWork: 'Pair pack keyed separately from the VI-VI pack; drop Vietnamese-glossed cross-reference senses; never substitute machine translation.', state: 'preview-promotion' },
   { batch: 7, code: 'am', difficulty: 'very-hard', sourcePlan: 'Amharic Wiktionary-derived corpus.', specialWork: 'Fidel normalization, prefix/suffix clitics, and root-pattern limits.', state: 'preview-promotion' },
 
-  { batch: 8, code: 'vi->fr', difficulty: 'very-hard', sourcePlan: 'DBnary/Wiktionary bilingual extraction or licensed dictionary.', specialWork: 'Prove dictionary-style bilingual rows; never substitute machine translation.', state: 'source-gated' },
   { batch: 8, code: 'yue', difficulty: 'very-hard', sourcePlan: 'Words.hk permission/full-definition dataset.', specialWork: 'Traditional Hanzi, vernacular characters, Jyutping, tones, and segmentation.', state: 'source-gated' },
   { batch: 8, code: 'ug', difficulty: 'very-hard', sourcePlan: 'Larger approved Uyghur-definition source or balanced Wiktionary set.', specialWork: 'RTL Arabic script, bidi policy, ULY mapping, and Turkic suffixes.', state: 'source-gated' },
   { batch: 8, code: 'eu', difficulty: 'very-hard', sourcePlan: 'Basque Wiktionary/Kaikki source gate.', specialWork: 'Agglutinative morphology and case system.', state: 'source-gated' },
@@ -75,6 +77,43 @@ export const languageProductionRoadmap: LanguageProductionRoadmapTarget[] = [
   { batch: 8, code: 'nah', difficulty: 'very-hard', sourcePlan: 'Variety-specific Nahuatl Wiktionary/Kaikki source gate.', specialWork: 'Choose variety, orthography, and polysynthetic morphology scope.', state: 'source-gated' },
   { batch: 8, code: 'gn', difficulty: 'very-hard', sourcePlan: 'Guarani Wiktionary/Kaikki source gate.', specialWork: 'Nasal harmony, orthography, and morphology scope.', state: 'source-gated' },
 ];
+
+// Where a source gate passes only with a credited helper edition (never helper definitions). Figures are
+// probe coverage from docs/native-wiktionary-source-measurements.md and docs/vi-fr-source-gate.md.
+export type LanguageHelperSourceAllowance = {
+  code: string;
+  decision: string;
+  helperSource: string;
+  nativePercent: number;
+  // Examples only: the language of the helper's example translations, shown as a labelled aid.
+  translationLanguage?: string;
+  use: 'examples' | 'related-words';
+  withHelperPercent: number;
+};
+
+export const LANGUAGE_HELPER_SOURCE_ALLOWANCES: LanguageHelperSourceAllowance[] = [
+  { code: 'tr', decision: 'Roadmap helper policy (relations only)', helperSource: 'enwiktionary', nativePercent: 27.6, use: 'related-words', withHelperPercent: 63 },
+  { code: 'ja', decision: 'Roadmap helper policy (relations only)', helperSource: 'enwiktionary', nativePercent: 7.6, use: 'related-words', withHelperPercent: 64.6 },
+  { code: 'ja', decision: 'D12 (approved 2026-10-12)', helperSource: 'enwiktionary', nativePercent: 36.7, translationLanguage: 'en', use: 'examples', withHelperPercent: 86 },
+  { code: 'vi->fr', decision: 'D13 (approved 2026-10-12)', helperSource: 'enwiktionary', nativePercent: 12.2, use: 'related-words', withHelperPercent: 65.3 },
+];
+
+const HELPER_GATE_THRESHOLDS = {
+  examples: LANGUAGE_PROMOTION_THRESHOLDS.exampleCoveragePercent,
+  'related-words': LANGUAGE_PROMOTION_THRESHOLDS.relatedWordsCoveragePercent,
+} as const;
+
+export function getHelperSourceGate(code: string, use: LanguageHelperSourceAllowance['use']) {
+  const allowance = LANGUAGE_HELPER_SOURCE_ALLOWANCES.find((item) => item.code === code && item.use === use);
+  if (!allowance) return null;
+  const threshold = HELPER_GATE_THRESHOLDS[use];
+  return {
+    ...allowance,
+    passesNatively: allowance.nativePercent >= threshold,
+    passesWithHelper: allowance.withHelperPercent >= threshold,
+    threshold,
+  };
+}
 
 export function getLanguageProductionBatch(batch: number) {
   return languageProductionRoadmap.filter((target) => target.batch === batch);

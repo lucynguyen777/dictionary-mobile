@@ -4,7 +4,7 @@
 // valid copy is cached so installed packs keep working offline.
 // The catalog is built by scripts/build-pack-catalog.mjs from builder output.
 import { languageOptions, type LanguageCode } from './languages';
-import { offlineDictionaryPacks, type OfflineDictionaryPack } from './offlineDictionaryPacks';
+import { getOfflinePackDictionaryKey, offlineDictionaryPacks, type OfflineDictionaryPack } from './offlineDictionaryPacks';
 import { getStoredItem, setStoredItem } from './storageAdapter';
 
 export const OFFLINE_PACK_CATALOG_STORAGE_KEY = 'dictionary-mobile.offline-pack-catalog.v1';
@@ -47,6 +47,14 @@ export function parseOfflinePackCatalog(value: unknown, catalogUrl: string): Off
     const manifestUrl = resolveUrl(raw.manifestUrl, catalogUrl);
     const entryCount = Number(raw.entryCount);
     const sizeBytes = Number(raw.compressedSizeBytes);
+    // Pair packs (e.g. VI→FR) name the language their definitions are written in.
+    const glossLanguageCode = raw.glossLanguageCode;
+    if (
+      glossLanguageCode !== undefined
+      && (typeof glossLanguageCode !== 'string' || !KNOWN_LANGUAGES.has(glossLanguageCode) || glossLanguageCode === raw.languageCode)
+    ) {
+      return [];
+    }
     if (
       typeof raw.id !== 'string' || !raw.id.trim()
       || typeof raw.languageCode !== 'string' || !KNOWN_LANGUAGES.has(raw.languageCode)
@@ -69,6 +77,7 @@ export function parseOfflinePackCatalog(value: unknown, catalogUrl: string): Off
         ...(manifestUrl ? { manifestMd5: raw.manifestMd5 as string, manifestUrl } : {}),
       },
       estimatedCompressedSizeMb: { max: sizeMb, min: sizeMb },
+      ...(typeof glossLanguageCode === 'string' ? { glossLanguageCode: glossLanguageCode as LanguageCode } : {}),
       id: raw.id.trim(),
       languageCode: raw.languageCode as LanguageCode,
       license: 'CC-BY-SA-4.0/GFDL',
@@ -78,10 +87,11 @@ export function parseOfflinePackCatalog(value: unknown, catalogUrl: string): Off
   });
 }
 
-// A hosted pack replaces the bundled pack of the same language (e.g. the English sample pack).
+// A hosted pack replaces the bundled pack of the same dictionary (e.g. the English sample pack). Pair packs
+// have their own key ("vi->fr"), so a hosted Vietnamese pack does not replace the VI→FR pair pack.
 export function mergeOfflinePacks(base: OfflineDictionaryPack[], catalogPacks: OfflineDictionaryPack[]) {
-  const hostedLanguages = new Set(catalogPacks.map((pack) => pack.languageCode));
-  return [...base.filter((pack) => !hostedLanguages.has(pack.languageCode)), ...catalogPacks];
+  const hostedDictionaries = new Set(catalogPacks.map(getOfflinePackDictionaryKey));
+  return [...base.filter((pack) => !hostedDictionaries.has(getOfflinePackDictionaryKey(pack))), ...catalogPacks];
 }
 
 type CachedCatalog = { catalog: unknown; catalogUrl: string };

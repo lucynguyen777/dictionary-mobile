@@ -33,8 +33,9 @@ export type LanguageCoverageInventoryRow = {
 export type BilingualCoverageInventoryRow = {
   pair: string;
   label: string;
-  status: 'production-parity' | 'source-gated';
-  sourceKind: 'production-api' | 'source-gated';
+  // approved-source: approved lexical source with a builder-ready offline pair pack that is not hosted yet.
+  status: 'production-parity' | 'approved-source' | 'source-gated';
+  sourceKind: 'production-api' | 'offline-pair-pack' | 'source-gated';
   topGap: string;
   nextAction: string;
 };
@@ -287,11 +288,11 @@ export function getBilingualCoverageInventoryRows(): BilingualCoverageInventoryR
     },
     {
       label: 'Vietnamese to French',
-      nextAction: 'Select DBnary/Wiktionary-derived lexical source before enabling the pair.',
+      nextAction: 'Host the frwiktionary VI->FR pair pack (D9), then run the native/UI smoke.',
       pair: 'vi->fr',
-      sourceKind: 'source-gated',
-      status: 'source-gated',
-      topGap: 'No approved VI-to-FR lexical dictionary source; machine translation is not dictionary data.',
+      sourceKind: 'offline-pair-pack',
+      status: 'approved-source',
+      topGap: 'French Wiktionary source approved (D13) and the pair pack builds; not hosted, so nothing is installed by default.',
     },
   ];
 }
@@ -307,6 +308,7 @@ export function getLanguageCoverageSummary() {
   const allRows = [...languageRows, ...pairRows, ...futureGateRows];
 
   return {
+    approvedSource: allRows.filter((row) => row.status === 'approved-source').length,
     focusedTestLanguages: languageRows.filter((row) => row.testLevel === 'focused').length,
     localEntryTotal: languageRows.reduce((total, row) => total + row.localEntryCount, 0),
     monolingualPreview: allRows.filter((row) => row.status === 'monolingual-preview').length,

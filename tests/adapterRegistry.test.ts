@@ -77,6 +77,7 @@ vi.mock('../data/dictionaryApi', () => {
 });
 
 vi.mock('../data/offlineDictionaryRuntimeLookup', () => ({
+  fetchOfflineBilingualMeaning: vi.fn(async () => null),
   fetchOfflineMonolingualMeaning: vi.fn(async () => null),
   fetchOfflineRelatedWords: vi.fn(async () => null),
 }));
@@ -161,6 +162,26 @@ describe('adapterRegistry', () => {
 
     expect(result.translations).toContain('t-mock');
     expect((dictApi as any).fetchBilingualMeaning).toHaveBeenCalledWith('bonjour', 'fr', 'en');
+  });
+
+  it('lookupBilingual answers VI->FR only from an installed pair pack', async () => {
+    vi.mocked(offlineLookup.fetchOfflineBilingualMeaning).mockResolvedValueOnce({
+      audio: '',
+      definitions: [{ antonyms: [], examples: [], meaning: 'Maison; demeure.', partOfSpeech: 'noun', synonyms: [] }],
+      ipa: '',
+      source: 'frwiktionary offline pack',
+      translations: [],
+      word: 'nhà',
+    });
+
+    await expect(lookupBilingual('nhà', 'vi', 'fr')).resolves.toMatchObject({ source: 'frwiktionary offline pack', word: 'nhà' });
+    expect(offlineLookup.fetchOfflineBilingualMeaning).toHaveBeenCalledWith('nhà', 'vi', 'fr');
+    expect((dictApi as any).fetchBilingualMeaning).not.toHaveBeenCalled();
+  });
+
+  it('never falls back to a remote or machine-translation source for VI->FR without a pack', async () => {
+    await expect(lookupBilingual('nhà', 'vi', 'fr')).rejects.toThrow(/gói offline từ Wiktionary/);
+    expect((dictApi as any).fetchBilingualMeaning).not.toHaveBeenCalled();
   });
 
   it('getAdapterForLanguage falls back to adapterKey mapping', () => {

@@ -23,6 +23,8 @@ export type OfflineDictionaryPack = {
     max: number;
     min: number;
   };
+  // Pair packs only: headwords in `languageCode`, definitions in this language (e.g. VI→FR).
+  glossLanguageCode?: LanguageCode;
   id: string;
   // A tiny development pack used for smoke tests; shown as a sample, never as a full dictionary.
   isSample?: boolean;
@@ -55,7 +57,45 @@ export const offlineDictionaryPacks: OfflineDictionaryPack[] = [
     sourceName: 'enwiktionary',
     status: 'builder_ready',
   },
+  // VI→FR (decision D13): French Wiktionary's Vietnamese section, with English Wiktionary's Vietnamese
+  // relations as a credited related-words helper. The builder output is ready, but the pack is not hosted
+  // yet (D9: Supabase Storage), so there is no download source and nothing is installed by default.
+  {
+    attribution:
+      'Source: French Wiktionary (Vietnamese section) via Kaikki/Wiktextract (CC-BY-SA-4.0/GFDL); related words also from English Wiktionary',
+    estimatedCompressedSizeMb: {
+      max: 2,
+      min: 1,
+    },
+    glossLanguageCode: 'fr',
+    id: 'frwiktionary-vi-fr-offline-pack-v1',
+    languageCode: 'vi',
+    license: 'CC-BY-SA-4.0/GFDL',
+    sourceName: 'frwiktionary',
+    status: 'builder_ready',
+  },
 ];
+
+// Monolingual packs are keyed by language, pair packs by "source->target", so a hosted Vietnamese pack
+// never replaces the VI→FR pair pack (or the other way round).
+export function getOfflinePackDictionaryKey(pack: Pick<OfflineDictionaryPack, 'glossLanguageCode' | 'languageCode'>) {
+  return pack.glossLanguageCode && pack.glossLanguageCode !== pack.languageCode
+    ? `${pack.languageCode}->${pack.glossLanguageCode}`
+    : pack.languageCode;
+}
+
+export function isPairOfflinePack(pack: Pick<OfflineDictionaryPack, 'glossLanguageCode' | 'languageCode'>) {
+  return getOfflinePackDictionaryKey(pack) !== pack.languageCode;
+}
+
+export function formatPackLanguageLabel(
+  pack: Pick<OfflineDictionaryPack, 'glossLanguageCode' | 'languageCode'>,
+  getLabel: (code: string) => string
+) {
+  return isPairOfflinePack(pack)
+    ? `${getLabel(pack.languageCode)} → ${getLabel(pack.glossLanguageCode as string)}`
+    : getLabel(pack.languageCode);
+}
 
 export function getOfflinePackSummary(
   packs: OfflineDictionaryPack[] = offlineDictionaryPacks,

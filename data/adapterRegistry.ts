@@ -14,8 +14,12 @@ import {
   fetchWiktApiRelatedWords,
 } from './dictionaryApi';
 import { LOCAL_PACK_SOURCES, lookupLocalPackMeaning, lookupLocalPackRelatedWords } from './localPackDictionarySources';
-import { languageOptions } from './languages';
-import { fetchOfflineMonolingualMeaning, fetchOfflineRelatedWords } from './offlineDictionaryRuntimeLookup';
+import { getLanguageByCode, isOfflinePackBilingualDictionaryPair, languageOptions } from './languages';
+import {
+  fetchOfflineBilingualMeaning,
+  fetchOfflineMonolingualMeaning,
+  fetchOfflineRelatedWords,
+} from './offlineDictionaryRuntimeLookup';
 
 export type LanguageAdapter = {
   key: string;
@@ -154,10 +158,24 @@ export async function lookupRelatedWords(word: string, languageCode: string) {
   return adapter.fetchRelatedWords(word);
 }
 
+// Installed pair packs answer first. Offline-only pairs (VI→FR) have no remote fallback: without an
+// installed pack the lookup fails with an honest message instead of reaching another source.
 export async function lookupBilingual(word: string, sourceLang: string, targetLang: string) {
+  const offlineMeaning = await fetchOfflineBilingualMeaning(word, sourceLang, targetLang);
+  if (offlineMeaning) return offlineMeaning;
+  if (isOfflinePackBilingualDictionaryPair(sourceLang, targetLang)) {
+    throw new Error(getOfflinePairPackMissingMessage(sourceLang, targetLang));
+  }
+
   const adapter = getAdapterForPair(sourceLang, targetLang);
   if (!adapter.fetchBilingualMeaning) throw new Error(`No bilingual adapter for ${sourceLang}->${targetLang}`);
   return adapter.fetchBilingualMeaning(word, sourceLang, targetLang);
+}
+
+export function getOfflinePairPackMissingMessage(sourceLang: string, targetLang: string) {
+  const source = getLanguageByCode(sourceLang, 'vi').label;
+  const target = getLanguageByCode(targetLang, 'fr').label;
+  return `Từ điển ${source} → ${target} dùng gói offline từ Wiktionary (CC BY-SA 4.0). Gói chưa được phát hành để tải, hoặc chưa cài trên máy này, hoặc gói không có từ này.`;
 }
 
 export default {
