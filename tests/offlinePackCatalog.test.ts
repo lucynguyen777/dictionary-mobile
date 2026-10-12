@@ -14,7 +14,7 @@ import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { loadCachedOfflinePacks, mergeOfflinePacks, parseOfflinePackCatalog, refreshOfflinePacks } from '../data/offlinePackCatalog';
+import { loadCachedOfflinePacks, mergeOfflinePacks, parseOfflinePackCatalog, refreshOfflinePacks, resolveOfflinePackCatalogUrl } from '../data/offlinePackCatalog';
 import { offlineDictionaryPacks } from '../data/offlineDictionaryPacks';
 
 const CATALOG_URL = 'https://cdn.example/packs/catalog.json';
@@ -36,6 +36,12 @@ const frPack = {
 beforeEach(() => storage.clear());
 
 describe('offline pack catalog', () => {
+  it('finds the catalog in the Supabase Storage bucket unless a URL is configured (D9)', () => {
+    expect(resolveOfflinePackCatalogUrl(undefined, 'https://abc.supabase.co/')).toBe('https://abc.supabase.co/storage/v1/object/public/offline-packs/catalog.json');
+    expect(resolveOfflinePackCatalogUrl(' https://cdn.example/catalog.json ', 'https://abc.supabase.co')).toBe('https://cdn.example/catalog.json');
+    expect(resolveOfflinePackCatalogUrl(undefined, undefined)).toBe('');
+  });
+
   it('resolves relative URLs against the catalog and keeps checksums', () => {
     const [pack] = parseOfflinePackCatalog({ packs: [frPack], schemaVersion: 1 }, CATALOG_URL);
     expect(pack).toMatchObject({

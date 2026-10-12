@@ -1,6 +1,7 @@
-// Remote catalog of hosted offline dictionary packs (plan 6.3). Once packs are hosted (owner
-// decision D9), setting EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL is all the app needs: Profile refreshes
-// the catalog, and the last valid copy is cached so installed packs keep working offline.
+// Remote catalog of hosted offline dictionary packs (plan 6.3). Owner decision D9: packs live in the
+// public Supabase Storage bucket `offline-packs`, so the catalog URL follows from the Supabase project
+// URL; EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL overrides it. Profile refreshes the catalog, and the last
+// valid copy is cached so installed packs keep working offline.
 // The catalog is built by scripts/build-pack-catalog.mjs from builder output.
 import { languageOptions, type LanguageCode } from './languages';
 import { offlineDictionaryPacks, type OfflineDictionaryPack } from './offlineDictionaryPacks';
@@ -8,7 +9,17 @@ import { getStoredItem, setStoredItem } from './storageAdapter';
 
 export const OFFLINE_PACK_CATALOG_STORAGE_KEY = 'dictionary-mobile.offline-pack-catalog.v1';
 // Expo inlines EXPO_PUBLIC_* only for direct property access.
-export const OFFLINE_PACK_CATALOG_URL = process.env.EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL?.trim() ?? '';
+export function resolveOfflinePackCatalogUrl(configuredUrl: string | undefined, supabaseUrl: string | undefined) {
+  const configured = configuredUrl?.trim();
+  if (configured) return configured;
+  const project = supabaseUrl?.trim().replace(/\/+$/, '');
+  return project ? `${project}/storage/v1/object/public/offline-packs/catalog.json` : '';
+}
+
+export const OFFLINE_PACK_CATALOG_URL = resolveOfflinePackCatalogUrl(
+  process.env.EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL,
+  process.env.EXPO_PUBLIC_SUPABASE_URL
+);
 
 const MD5 = /^[a-f0-9]{32}$/;
 const KNOWN_LANGUAGES = new Set<string>(languageOptions.map((language) => language.code));
