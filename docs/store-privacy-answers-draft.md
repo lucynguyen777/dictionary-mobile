@@ -16,6 +16,9 @@ Draft answers for Apple's App Privacy ("nutrition label") and Google Play's Data
 | Google Sheets export (optional) | Saved words of a folder; Google OAuth refresh token (encrypted, server only) | Backend proxy → Google Sheets API | User connects Google and exports |
 | Scanned PDF OCR (when configured) | The PDF file | Chandra OCR service (`EXPO_PUBLIC_CHANDRA_OCR_URL`), authenticated with the Supabase session | User imports a scanned PDF |
 | Dictionary lookup | The looked-up word, plus the IP address any request carries | Third-party dictionary APIs: dictionaryapi.dev, api.wiktapi.dev, api.datamuse.com, dict.minhqnd.com | Each online lookup (offline packs need none) |
+| Pronunciation scoring (D6) | The learner's recording and the word being practised | Backend proxy (transcoded in memory) → Microsoft Azure AI Speech; never stored | User taps "Gửi bản ghi để chấm điểm"; requires sign-in; 20 per day |
+| Crash reports (D8, opt-in) | Error type, scrubbed message and stack, device model, OS and app version; no user id, breadcrumbs or sessions | Sentry | Only after the learner turns on "Gửi báo cáo lỗi" |
+| Offline packs (D9) | Download request (no user data) | Supabase Storage bucket `offline-packs` | User installs a pack |
 | Pronunciation audio | Audio file request | ssl.gstatic.com and Wikimedia Commons | User taps play |
 | PDF reader library | Library download (no user data) | cdn.jsdelivr.net, unpkg.com | First PDF import on a device |
 | Profile picture | Image request | Whatever URL the user enters as their picture (the default is a local placeholder) | Profile screen |
@@ -25,7 +28,7 @@ Stays on the device:
 - Voice search uses the operating system's speech recognizer. Audio goes to Apple or Google only under their own terms when the OS does not recognize on-device; the app never receives or stores it.
 - Offline packs and the local SQLite database stay on the device unless Cloud Sync is on.
 - There is no analytics or advertising SDK and no tracking across apps.
-- No crash reporting is wired yet (D8). If one is added, Diagnostics must be declared.
+- Crash reporting (Sentry) is off until the learner opts in (D8). It must still be declared as Diagnostics.
 
 ## Apple App Privacy (draft)
 
@@ -34,8 +37,10 @@ Stays on the device:
   - Contact Info → Email Address, for App Functionality.
   - Identifiers → User ID, for App Functionality.
   - User Content → Other User Content (synced learning data, glossaries, feedback, text sent for translation or AI), for App Functionality. Product Interaction is not collected.
-- **Data not linked to you:** none beyond the above. Third-party dictionary APIs receive the looked-up word without any identifier.
-- **Not collected:** Location, Contacts, Health, Financial, Browsing History, Search History (kept on the device unless synced, then linked as User Content), Purchases, Diagnostics (until D8), Audio and Photos (processed on-device or by the OS).
+  - User Content → Audio Data (pronunciation recordings sent for scoring, not stored), for App Functionality.
+- **Data not linked to you:** Diagnostics → Crash Data (opt-in Sentry reports, no user id), for App Functionality.
+- Third-party dictionary APIs receive the looked-up word without any identifier.
+- **Not collected:** Location, Contacts, Health, Financial, Browsing History, Search History (kept on the device unless synced, then linked as User Content), Purchases, Photos (processed on-device). Audio is collected only for pronunciation scoring, as above.
 
 ## Google Play Data safety (draft)
 
@@ -43,11 +48,12 @@ Stays on the device:
   - Personal info → Email address: required for an account, account management.
   - Personal info → User IDs.
   - App activity → Other user-generated content (synced learning data, glossaries, feedback, text for translation or AI): app functionality, optional.
-- **Data shared with third parties:** none for advertising or analytics. DeepL, OpenAI, Google Sheets and the dictionary APIs act on the user's request as service providers.
+  - Audio → Voice or sound recordings: pronunciation scoring, optional, processed ephemerally (not stored).
+  - App info and performance → Crash logs, Diagnostics: optional (opt-in), app functionality.
+- **Data shared with third parties:** none for advertising or analytics. DeepL, OpenAI, Microsoft Azure, Sentry, Google Sheets and the dictionary APIs act on the user's request as service providers.
 - **Security:** all traffic uses HTTPS. Provider keys stay on the server.
-- **Deletion:** users can request deletion. The in-app flow and the deletion URL depend on D3.
+- **Deletion:** users can request deletion in the app (Profile → Bảo mật & dữ liệu → Xóa tài khoản cloud); data is deleted 30 days later unless the request is cancelled (D3).
 
 ## Gaps to close before submission
 
-- Privacy Policy and Terms URLs (D5) and the account-deletion URL (D3).
-- Update this file when crash reporting (D8) or Azure pronunciation scoring (D6) lands.
+- Publish the Privacy Policy and Terms (drafts in `docs/legal/`, D5) and a web page for account-deletion requests (store requirement).
