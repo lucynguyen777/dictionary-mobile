@@ -69,3 +69,6 @@ supabase/.temp/
 
 # Chandra OCR host secrets (copy from deploy/chandra.env.example)
 backend/chandra-service/deploy/chandra.env
+
+# Agent worktrees
+.claude/worktrees/
