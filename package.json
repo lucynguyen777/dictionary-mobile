@@ -39,6 +39,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@sentry/react-native": "~7.2.0",
     "@supabase/supabase-js": "^2.106.2",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",

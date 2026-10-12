@@ -92,9 +92,13 @@ export function createServer(deps: ServerDependencies) {
 
   const accountDeletionConfig = readAccountDeletionConfig(deps.env);
 
-  // Purges scheduled account deletions whose grace period ended. Called by a scheduler (e.g. a Vercel
-  // cron) with CRON_SECRET; never by the app.
-  app.post('/admin/purge-account-deletions', async (req: Request, res: Response) => {
+  // Purges scheduled account deletions whose grace period ended. Called by the Vercel cron (GET, with
+  // CRON_SECRET as a bearer token) or another scheduler (POST); never by the app.
+  app.all('/admin/purge-account-deletions', async (req: Request, res: Response) => {
+    if (req.method !== 'GET' && req.method !== 'POST') {
+      res.status(405).end();
+      return;
+    }
     const secret = deps.env.CRON_SECRET?.trim();
     const provided = (req.headers.authorization ?? '').replace(/^Bearer /, '');
     const expected = Buffer.from(secret ?? '');
