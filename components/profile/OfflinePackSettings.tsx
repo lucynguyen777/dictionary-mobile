@@ -4,9 +4,10 @@ import { Alert, Platform, Text, View } from 'react-native';
 
 import Touchable from '@/components/app/Touchable';
 import { DataStat } from '@/components/profile/Metrics';
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
 import { languageOptions } from '@/data/languages';
 import { deleteInstalledOfflineDictionaryPack, installOfflineDictionaryPackFromSource } from '@/data/offlineDictionaryPackActions';
+import { useToken } from '@/hooks/use-token';
 import {
   type OfflinePackInstallState,
   formatOfflinePackInstallStatus,
@@ -32,6 +33,8 @@ type Props = {
 
 // Offline dictionary packs in the Profile privacy & data drawer: install, reinstall and delete.
 export default function OfflinePackSettings({ installState, onInstallStateChange, packs }: Props) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   const [busyId, setBusyId] = useState<string | null>(null);
   const offlinePackRuntimeOptions = { supportsSqliteRuntime: Platform.OS !== 'web' };
   const offlinePackSummary = getOfflinePackSummary(packs, offlinePackRuntimeOptions);
@@ -129,7 +132,7 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
                   disabled={!canInstall}
                   onPress={() => handleInstallOfflinePack(pack)}
                   style={[styles.offlinePackActionButton, !canInstall && styles.offlinePackActionButtonDisabled]}>
-                  <Ionicons name="download-outline" size={14} color={canInstall ? '#0075DE' : '#A4A097'} />
+                  <Ionicons name="download-outline" size={14} color={canInstall ? colors.accentPrimary : colors.disabledText} />
                   <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
                     {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
                   </Text>
@@ -142,7 +145,7 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
                     disabled={isBusy}
                     onPress={() => handleDeleteOfflinePack(pack)}
                     style={[styles.offlinePackDeleteButton, isBusy && styles.offlinePackActionButtonDisabled]}>
-                    <Ionicons name="trash-outline" size={14} color={isBusy ? '#94A3B8' : '#DC2626'} />
+                    <Ionicons name="trash-outline" size={14} color={isBusy ? colors.textTertiary : colors.statusErrorText} />
                     <Text style={[styles.offlinePackDeleteText, isBusy && styles.offlinePackActionTextDisabled]}>
                       Xóa
                     </Text>

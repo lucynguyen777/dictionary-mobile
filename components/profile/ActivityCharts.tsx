@@ -4,9 +4,10 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import Touchable from '@/components/app/Touchable';
 import { DarkDataStat, formatMetricNumber } from '@/components/profile/Metrics';
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
 import { type ActivityState, getActivitySummary } from '@/data/activityStore';
 import type { LibraryState } from '@/data/libraryStore';
+import { useToken } from '@/hooks/use-token';
 import {
   buildSavedWordChartData,
   buildStreakYearHeatmap,
@@ -19,6 +20,7 @@ import {
 
 // Saved words per day/week/month/year on the Profile dashboard.
 export function SavedWordsChartCard({ savedWords }: { savedWords: LibraryState['savedWords'] }) {
+  const styles = useProfileStyles();
   const [wordChartRange, setWordChartRange] = useState<WordChartRange>('day');
   const now = new Date();
   const wordChartData = buildSavedWordChartData(savedWords, wordChartRange, now);
@@ -89,6 +91,8 @@ export function SavedWordsChartCard({ savedWords }: { savedWords: LibraryState['
 
 // App-open streak with a yearly heatmap on the Profile dashboard.
 export function StreakCard({ activityState }: { activityState: ActivityState }) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   const [selectedStreakYear, setSelectedStreakYear] = useState(new Date().getFullYear());
   const [streakYearMenuOpen, setStreakYearMenuOpen] = useState(false);
   const now = new Date();
@@ -113,7 +117,7 @@ export function StreakCard({ activityState }: { activityState: ActivityState }) 
             onPress={() => setStreakYearMenuOpen((current) => !current)}
             style={({ pressed }) => [styles.metricsYearPill, pressed && styles.metricsYearPillPressed]}>
             <Text style={styles.metricsYearText}>{displayedStreakYear}</Text>
-            <Ionicons name={streakYearMenuOpen ? 'chevron-up' : 'chevron-down'} size={13} color="#EDEAF7" />
+            <Ionicons name={streakYearMenuOpen ? 'chevron-up' : 'chevron-down'} size={13} color={colors.textOnHero} />
           </Pressable>
           {streakYearMenuOpen ? (
             <View style={styles.yearPickerMenu}>

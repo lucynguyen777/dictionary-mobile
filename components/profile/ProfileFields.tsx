@@ -1,21 +1,21 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
-import { Image, Pressable, Text, TextInput, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Image, Pressable, Text, TextInput, View } from 'react-native';
 
 import { ProfileInput } from '@/components/profile/SettingsDrawerParts';
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
 import type { UserProfile } from '@/data/profileStore';
 import { useToken } from '@/hooks/use-token';
 
 type Props = {
-  avatarPlaceholderStyle: StyleProp<ViewStyle>;
   isCloudSignedIn: boolean;
   onChange: <Key extends keyof UserProfile>(key: Key, value: UserProfile[Key]) => void;
   profile: UserProfile;
 };
 
 // Editable local profile fields in the Profile account drawer (saved by the screen's Save button).
-export default function ProfileFields({ avatarPlaceholderStyle, isCloudSignedIn, onChange, profile }: Props) {
+export default function ProfileFields({ isCloudSignedIn, onChange, profile }: Props) {
+  const styles = useProfileStyles();
   const { colors } = useToken();
   const [editingAvatar, setEditingAvatar] = useState(false);
 
@@ -25,7 +25,7 @@ export default function ProfileFields({ avatarPlaceholderStyle, isCloudSignedIn,
         {profile.avatarUrl ? (
           <Image source={{ uri: profile.avatarUrl }} style={styles.sidebarAvatar} />
         ) : (
-          <View style={[styles.sidebarAvatar, styles.avatarPlaceholder, avatarPlaceholderStyle]}>
+          <View style={[styles.sidebarAvatar, styles.avatarPlaceholder]}>
             <Ionicons name="person-outline" size={26} color={colors.accentPrimary} />
           </View>
         )}
@@ -74,7 +74,7 @@ export default function ProfileFields({ avatarPlaceholderStyle, isCloudSignedIn,
         <TextInput
           editable={false}
           placeholder={isCloudSignedIn ? 'Dùng email khôi phục để đổi mật khẩu' : 'Cần phiên cloud'}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.textTertiary}
           secureTextEntry
           style={[styles.profileInput, styles.profileInputDisabled]}
           value=""

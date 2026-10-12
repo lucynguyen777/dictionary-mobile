@@ -8,7 +8,9 @@ import { BackendProxyError, completeGoogleSheetsConnection, connectGoogleSheets,
 
 import { FilterChip } from '@/components/training/shared';
 import { ImportValidationStat } from '@/components/training/ImportToolPanel';
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
+import { Pastels } from '@/constants/pastels';
+import { useToken } from '@/hooks/use-token';
 
 type ExportActionId = FolderExportFormat | 'google-sheets';
 
@@ -79,6 +81,8 @@ export function useGoogleSheetsReturnParams(): GoogleSheetsReturn | null {
 }
 
 export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }) {
+  const { colors } = useToken();
+  const styles = useTrainingStyles();
   const libraryHref = '/library' as Href;
   const router = useRouter();
   const googleSheetsReturn = useGoogleSheetsReturnParams();
@@ -234,8 +238,8 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
   return (
     <View style={styles.toolPanel}>
       <View style={styles.toolPanelHeader}>
-        <View style={[styles.iconWrap, { backgroundColor: '#EAF7FA' }]}>
-          <Ionicons name="download-outline" size={28} color="#0F172A" />
+        <View style={[styles.iconWrap, { backgroundColor: Pastels.cyan }]}>
+          <Ionicons name="download-outline" size={28} color={colors.textOnPastel} />
         </View>
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>Xuất bộ từ</Text>
@@ -244,7 +248,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
       </View>
 
       <View style={styles.blockedNotice}>
-        <Ionicons name="shield-checkmark-outline" size={16} color="#B45309" />
+        <Ionicons name="shield-checkmark-outline" size={16} color={colors.statusWarningText} />
         <Text style={styles.blockedNoticeText}>Google Sheets đang ở beta. OAuth chạy qua backend; app không lưu Google token trên thiết bị.</Text>
       </View>
 
@@ -262,7 +266,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
         </ScrollView>
       ) : (
         <View style={styles.toolStateCard}>
-          <Ionicons name="folder-open-outline" size={22} color="#94A3B8" />
+          <Ionicons name="folder-open-outline" size={22} color={colors.textTertiary} />
           <Text style={styles.toolStateTitle}>Chưa có bộ từ để xuất</Text>
           <Text style={styles.toolStateText}>Tạo folder và lưu vài từ trong Library trước khi xuất file.</Text>
           <Link href={libraryHref} asChild>
@@ -296,11 +300,11 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
                 isBlocked && styles.futureFeatureMuted,
               ]}>
               <View style={styles.importSourceHeader}>
-                <Ionicons name={action.icon} size={18} color={isBlocked ? '#B45309' : isSelected ? '#7C3AED' : '#64748B'} />
+                <Ionicons name={action.icon} size={18} color={isBlocked ? colors.statusWarningText : isSelected ? colors.accentPrimary : colors.textSecondary} />
                 <Ionicons
                   name={isSelected ? 'radio-button-on' : 'radio-button-off'}
                   size={18}
-                  color={isSelected ? '#7C3AED' : '#CBD5E1'}
+                  color={isSelected ? colors.accentPrimary : colors.textTertiary}
                 />
               </View>
               <Text style={[styles.importSourceTitle, isSelected && styles.importSourceTitleActive]}>{action.title}</Text>
@@ -319,7 +323,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
           styles.exportButton,
           (isRunningExport || !canRunExportAction) && styles.exportButtonDisabled,
         ]}>
-        <Ionicons name={activeActionId === 'google-sheets' ? 'logo-google' : 'download-outline'} size={18} color="#FFFFFF" />
+        <Ionicons name={activeActionId === 'google-sheets' ? 'logo-google' : 'download-outline'} size={18} color={colors.textOnAccent} />
         <Text style={styles.exportButtonText}>
           {isRunningExport ? 'Đang xử lý...' : activeActionId === 'google-sheets' ? (googleSheetsConnected ? 'Xuất sang Google Sheets' : 'Kết nối Google') : 'Xuất file'}
         </Text>
@@ -338,7 +342,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
               <Ionicons
                 name={item.status === 'success' ? 'checkmark-circle-outline' : item.status === 'blocked' ? 'lock-closed-outline' : 'alert-circle-outline'}
                 size={18}
-                color={item.status === 'success' ? '#16A34A' : item.status === 'blocked' ? '#B45309' : '#DC2626'}
+                color={item.status === 'success' ? colors.statusSuccessText : item.status === 'blocked' ? colors.statusWarningText : colors.statusErrorText}
               />
               <View style={styles.exportHistoryCopy}>
                 <Text style={styles.exportHistoryTitle} numberOfLines={1}>
@@ -352,7 +356,7 @@ export function ExportToolPanel({ libraryState }: { libraryState: LibraryState }
         </View>
       ) : (
         <View style={styles.toolStateCard}>
-          <Ionicons name="time-outline" size={22} color="#94A3B8" />
+          <Ionicons name="time-outline" size={22} color={colors.textTertiary} />
           <Text style={styles.toolStateTitle}>Chưa có lượt xuất</Text>
           <Text style={styles.toolStateText}>Kết quả xuất file trong phiên này sẽ hiện ở đây.</Text>
         </View>

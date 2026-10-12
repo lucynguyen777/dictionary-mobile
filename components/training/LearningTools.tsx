@@ -3,10 +3,11 @@ import { ComponentProps } from 'react';
 import { Text, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import { FutureFeatureBadge } from '@/components/app/FutureFeature';
+import { Pastels } from '@/constants/pastels';
 import { useToken } from '@/hooks/use-token';
 
 import { type LearningToolId } from '@/components/training/shared';
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
 
 export const learningTools: {
   id: LearningToolId;
@@ -23,7 +24,7 @@ export const learningTools: {
     title: 'Flashcard local',
     description: 'Tạo, lọc và ôn thẻ từ các từ đã lưu.',
     icon: 'albums-outline',
-    accent: '#FFEFF3',
+    accent: Pastels.rose,
     status: 'Đang dùng được',
   },
   {
@@ -31,7 +32,7 @@ export const learningTools: {
     title: 'AI Tutor',
     description: 'Luyện hội thoại, sửa câu, giải thích ngữ pháp và nhập vai với AI.',
     icon: 'chatbubbles-outline',
-    accent: '#F3E8FF',
+    accent: Pastels.purple,
     status: 'Cần đăng nhập cloud',
   },
   {
@@ -39,7 +40,7 @@ export const learningTools: {
     title: 'Dịch chuyên ngành',
     description: 'Dịch đoạn văn theo thuật ngữ cá nhân và ngữ cảnh học thuật.',
     icon: 'language-outline',
-    accent: '#EAF8F0',
+    accent: Pastels.green,
     status: 'Cần đăng nhập cloud',
   },
   {
@@ -47,7 +48,7 @@ export const learningTools: {
     title: 'Nhập dữ liệu',
     description: 'Nhập CSV, highlight từ sách hoặc danh sách từ từ lớp học.',
     icon: 'cloud-upload-outline',
-    accent: '#FFF1E8',
+    accent: Pastels.orange,
     status: 'CSV/TSV đã có',
   },
   {
@@ -55,7 +56,7 @@ export const learningTools: {
     title: 'Đọc sách kèm tra từ',
     description: 'Highlight, tra nghĩa, lưu ghi chú và tạo flashcard ngay khi đọc.',
     icon: 'reader-outline',
-    accent: '#F1ECFF',
+    accent: Pastels.purple,
     status: 'TXT/HTML đã có',
   },
   {
@@ -63,7 +64,7 @@ export const learningTools: {
     title: 'Xuất bộ từ',
     description: 'Xuất sang CSV, Excel hoặc Anki text để học ngoài app.',
     icon: 'download-outline',
-    accent: '#EAF7FA',
+    accent: Pastels.cyan,
     status: 'CSV/Excel/Anki text',
   },
 ];
@@ -75,6 +76,7 @@ export function ToolTab({
   onPress: () => void;
   tool: (typeof learningTools)[number];
 }) {
+  const styles = useTrainingStyles();
   const { colors, shadows } = useToken();
 
   return (
@@ -87,7 +89,7 @@ export function ToolTab({
         tool.future && styles.futureFeatureMuted,
       ]}>
       <View style={[styles.toolTabIcon, { backgroundColor: tool.accent }]}>
-        <Ionicons name={tool.icon} size={18} color="#0F172A" />
+        <Ionicons name={tool.icon} size={18} color={colors.textOnPastel} />
       </View>
       <View style={styles.toolTabCopy}>
         <View style={styles.futureTitleRow}>
@@ -102,13 +104,14 @@ export function ToolTab({
 }
 
 export function LearningToolPanel({ tool }: { tool: (typeof learningTools)[number] }) {
+  const styles = useTrainingStyles();
   const { colors, shadows } = useToken();
 
   return (
     <View style={[styles.toolPanel, { backgroundColor: colors.surface, borderColor: colors.borderDefault, ...shadows.sm }]}>
       <View style={styles.toolPanelHeader}>
         <View style={[styles.iconWrap, { backgroundColor: tool.accent }]}>
-          <Ionicons name={tool.icon} size={28} color="#0F172A" />
+          <Ionicons name={tool.icon} size={28} color={colors.textOnPastel} />
         </View>
         <View style={styles.copy}>
           <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>{tool.title}</Text>

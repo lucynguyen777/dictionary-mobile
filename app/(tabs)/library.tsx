@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Linking, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
@@ -14,7 +14,7 @@ import LoadErrorNotice from '@/components/app/LoadErrorNotice';
 import SkeletonBlock from '@/components/app/SkeletonBlock';
 import { exportFolderWithAlert, type FolderFileFormat } from '@/components/library/exportFolder';
 import { FolderColorSheet, RenameFolderSheet } from '@/components/library/FolderEditSheets';
-import { styles } from '@/components/library/styles';
+import { useLibraryStyles } from '@/components/library/styles';
 
 type LibrarySegment = 'folders' | 'favorites' | 'imported';
 
@@ -39,69 +39,8 @@ const SCROLL_BOTTOM_PADDING = 148;
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, radius, shadows } = useToken();
-  const themed = useMemo(
-    () =>
-      StyleSheet.create({
-        activeChip: {
-          backgroundColor: colors.accentSoft,
-          borderColor: colors.accentPrimary,
-        },
-        activeChipText: {
-          color: colors.accentPrimary,
-        },
-        bottomSheet: {
-          backgroundColor: colors.surfaceRaised,
-          borderColor: colors.borderDefault,
-          ...shadows.lg,
-        },
-        card: {
-          backgroundColor: colors.surface,
-          borderColor: colors.borderDefault,
-          ...shadows.sm,
-        },
-        dangerText: {
-          color: colors.accentError,
-        },
-        input: {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.borderDefault,
-          color: colors.textPrimary,
-        },
-        mutedPanel: {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.borderDefault,
-        },
-        mutedText: {
-          color: colors.textSecondary,
-        },
-        primaryText: {
-          color: colors.textPrimary,
-        },
-        primaryButton: {
-          backgroundColor: colors.accentPrimary,
-          borderRadius: radius.md,
-          ...shadows.glow,
-        },
-        secondaryButton: {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.borderDefault,
-        },
-        segment: {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.borderDefault,
-          borderWidth: 1,
-        },
-        surface: {
-          backgroundColor: colors.canvasAlt,
-        },
-        tonalButton: {
-          backgroundColor: colors.accentSoft,
-          borderColor: colors.focusRing,
-        },
-      }),
-    [colors, radius.md, shadows.glow, shadows.lg, shadows.sm]
-  );
+  const { colors } = useToken();
+  const styles = useLibraryStyles();
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   const [query, setQuery] = useState('');
   const [activeSegment, setActiveSegment] = useState<LibrarySegment>('folders');
@@ -242,7 +181,7 @@ export default function LibraryScreen() {
 
   return (
     <Screen>
-      <View style={[styles.screenBody, themed.surface]}>
+      <View style={styles.screenBody}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: scrollBottomPadding }]}
         keyboardShouldPersistTaps="handled"
@@ -251,12 +190,12 @@ export default function LibraryScreen() {
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-            <Text style={[styles.kicker, themed.mutedText]}>Thư viện</Text>
-            <Text style={[styles.title, themed.primaryText]}>Tủ từ của bạn</Text>
+            <Text style={styles.kicker}>Thư viện</Text>
+            <Text style={styles.title}>Tủ từ của bạn</Text>
           </View>
         </View>
 
-        <View style={[styles.segment, themed.segment]}>
+        <View style={styles.segment}>
           {segments.map((segment) => {
             const isActive = activeSegment === segment.key;
 
@@ -265,14 +204,14 @@ export default function LibraryScreen() {
                 key={segment.key}
                 activeOpacity={0.82}
                 onPress={() => setActiveSegment(segment.key)}
-                style={isActive ? [styles.segmentActive, themed.activeChip] : styles.segmentItem}>
-                <Text style={isActive ? [styles.segmentActiveText, themed.activeChipText] : [styles.segmentText, themed.mutedText]}>{segment.label}</Text>
+                style={isActive ? styles.segmentActive : styles.segmentItem}>
+                <Text style={isActive ? styles.segmentActiveText : styles.segmentText}>{segment.label}</Text>
               </Touchable>
             );
           })}
         </View>
 
-        <View style={[styles.searchBox, themed.card]}>
+        <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color={colors.accentPrimary} />
           <TextInput
             autoCapitalize="none"
@@ -281,7 +220,7 @@ export default function LibraryScreen() {
             placeholderTextColor={colors.textTertiary}
             value={query}
             onChangeText={setQuery}
-            style={[styles.searchInput, themed.primaryText]}
+            style={styles.searchInput}
           />
         </View>
 
@@ -292,14 +231,14 @@ export default function LibraryScreen() {
               setActiveFolderMenuId('');
               setSortPanelOpen((isOpen) => !isOpen);
             }}
-            style={[styles.toolbarLeft, themed.card]}>
+            style={styles.toolbarLeft}>
             <Ionicons name="swap-vertical" size={18} color={colors.textSecondary} />
-            <Text ellipsizeMode="tail" numberOfLines={1} style={[styles.toolbarText, themed.mutedText]}>
+            <Text ellipsizeMode="tail" numberOfLines={1} style={styles.toolbarText}>
               {getSortLabel(folderSort)}
             </Text>
             <Ionicons name="chevron-down" size={15} color={colors.textTertiary} />
           </Touchable>
-          <View style={[styles.viewToggle, themed.card]}>
+          <View style={styles.viewToggle}>
             {viewModeOptions.map((option) => {
               const isActive = folderViewMode === option.value;
 
@@ -313,7 +252,7 @@ export default function LibraryScreen() {
                     setSortPanelOpen(false);
                     setFolderViewMode(option.value);
                   }}
-                  style={[styles.viewIconButton, isActive && styles.viewIconButtonActive, isActive && themed.tonalButton]}>
+                  style={[styles.viewIconButton, isActive && styles.viewIconButtonActive]}>
                   <Ionicons
                     name={option.icon}
                     size={18}
@@ -342,8 +281,8 @@ export default function LibraryScreen() {
                     setFolderSort(option.value);
                     setSortPanelOpen(false);
                   }}
-                  style={[styles.controlChip, themed.card, isActive && styles.controlChipActive, isActive && themed.activeChip]}>
-                  <Text style={[styles.controlChipText, themed.mutedText, isActive && styles.controlChipTextActive, isActive && themed.activeChipText]}>{option.label}</Text>
+                  style={[styles.controlChip, isActive && styles.controlChipActive]}>
+                  <Text style={[styles.controlChipText, isActive && styles.controlChipTextActive]}>{option.label}</Text>
                 </Touchable>
               );
             })}
@@ -359,7 +298,6 @@ export default function LibraryScreen() {
               key={folder.id}
               style={[
                 styles.folderCard,
-                themed.card,
                 isList && styles.folderCardList,
                 activeFolderMenuId === folder.id && styles.folderCardMenuOpen,
                 activeFolderMenuId === folder.id && { borderColor: colors.focusRing },
@@ -384,17 +322,17 @@ export default function LibraryScreen() {
                 <View style={[styles.folderInfo, isList && styles.folderInfoList]}>
                   <View style={styles.folderCopy}>
                     <View style={styles.folderNameRow}>
-                      <Text numberOfLines={1} style={[styles.folderName, themed.primaryText]}>{folder.name}</Text>
+                      <Text numberOfLines={1} style={styles.folderName}>{folder.name}</Text>
                       {folder.isFavorite ? (
                         <View style={styles.folderFavoritePill}>
-                          <Ionicons name="star" size={11} color="#B45309" />
+                          <Ionicons name="star" size={11} color={colors.statusWarningText} />
                           <Text style={styles.folderFavoriteText}>Bộ từ yêu thích</Text>
                         </View>
                       ) : null}
                     </View>
-                    <Text style={[styles.wordNumber, themed.mutedText]}>{wordCount} từ</Text>
+                    <Text style={styles.wordNumber}>{wordCount} từ</Text>
                     {folder.tags.length ? (
-                      <Text numberOfLines={1} style={[styles.folderTagText, themed.mutedText]}>{folder.tags.join(', ')}</Text>
+                      <Text numberOfLines={1} style={styles.folderTagText}>{folder.tags.join(', ')}</Text>
                     ) : null}
                   </View>
                   <Touchable
@@ -405,7 +343,7 @@ export default function LibraryScreen() {
                       event.stopPropagation();
                       handleToggleFolderMenu(folder.id);
                     }}
-                    style={[styles.folderMenuButton, themed.secondaryButton]}>
+                    style={styles.folderMenuButton}>
                     <Ionicons name="ellipsis-vertical" size={18} color={colors.textSecondary} />
                   </Touchable>
                 </View>
@@ -413,14 +351,14 @@ export default function LibraryScreen() {
               {activeFolderMenuId === folder.id ? (
                 <ScrollView
                   nestedScrollEnabled
-                  style={[styles.folderActionPanel, themed.mutedPanel]}
+                  style={styles.folderActionPanel}
                   onStartShouldSetResponder={() => true}
                   showsVerticalScrollIndicator={false}>
                   <Touchable
                     activeOpacity={0.78}
                     onPress={() => handleToggleFavoriteFolder(folder)}
                     style={styles.folderActionRow}>
-                    <Ionicons name={folder.isFavorite ? 'star' : 'star-outline'} size={17} color={folder.isFavorite ? '#D97706' : '#64748B'} />
+                    <Ionicons name={folder.isFavorite ? 'star' : 'star-outline'} size={17} color={folder.isFavorite ? colors.statusWarningText : colors.textSecondary} />
                     <Text style={styles.folderActionText}>
                       {folder.isFavorite ? 'Gỡ khỏi bộ từ yêu thích' : 'Thêm bộ từ vào yêu thích'}
                     </Text>
@@ -429,7 +367,7 @@ export default function LibraryScreen() {
                     activeOpacity={0.78}
                     onPress={() => handleDuplicateFolder(folder)}
                     style={styles.folderActionRow}>
-                    <Ionicons name="copy-outline" size={17} color="#64748B" />
+                    <Ionicons name="copy-outline" size={17} color={colors.textSecondary} />
                     <Text style={styles.folderActionText}>Tạo bản sao</Text>
                   </Touchable>
                   <Touchable
@@ -439,7 +377,7 @@ export default function LibraryScreen() {
                       setColorPickerFolderId(folder.id);
                     }}
                     style={styles.folderActionRow}>
-                    <Ionicons name="color-palette-outline" size={17} color="#64748B" />
+                    <Ionicons name="color-palette-outline" size={17} color={colors.textSecondary} />
                     <Text style={styles.folderActionText}>Thay đổi màu sắc</Text>
                   </Touchable>
                   <Touchable
@@ -449,7 +387,7 @@ export default function LibraryScreen() {
                       setRenameFolderId(folder.id);
                     }}
                     style={styles.folderActionRow}>
-                    <Ionicons name="pencil-outline" size={17} color="#64748B" />
+                    <Ionicons name="pencil-outline" size={17} color={colors.textSecondary} />
                     <Text style={styles.folderActionText}>Đổi tên</Text>
                   </Touchable>
                   <View style={styles.folderActionDivider} />
@@ -485,7 +423,7 @@ export default function LibraryScreen() {
                         activeOpacity={0.78}
                         onPress={() => handleShareFolder(folder.id, item.format)}
                         style={styles.shareChip}>
-                        <Ionicons name="share-social-outline" size={13} color="#0F766E" />
+                        <Ionicons name="share-social-outline" size={13} color={colors.statusSuccessText} />
                         <Text style={styles.shareChipText}>{item.label}</Text>
                       </Touchable>
                     ))}
@@ -530,7 +468,7 @@ export default function LibraryScreen() {
         ))}
         {loadStatus === 'ready' && !recentWords.length ? (
           <View style={styles.emptyCard}>
-            <Ionicons name="bookmark-outline" size={24} color="#94A3B8" />
+            <Ionicons name="bookmark-outline" size={24} color={colors.textTertiary} />
             <Text style={styles.emptyCardTitle}>Chưa có từ đã lưu</Text>
             <Text style={styles.emptyCardText}>Vào tab Tra cứu, bấm trái tim hoặc lưu vào folder để bắt đầu thư viện của bạn.</Text>
           </View>
@@ -546,7 +484,6 @@ export default function LibraryScreen() {
             setQuery('');
           }}
           onLibraryChange={setLibraryState}
-          themed={themed}
         />
       ) : null}
       {colorPickerFolder ? (
@@ -571,7 +508,7 @@ export default function LibraryScreen() {
         activeOpacity={0.86}
         onPress={() => setCreatePanelOpen((isOpen) => !isOpen)}
         style={[styles.floatingAddButton, { bottom: floatingButtonBottom, height: FAB_SIZE, width: FAB_SIZE }]}>
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color={colors.textOnAccent} />
       </Touchable>
       </View>
     </Screen>

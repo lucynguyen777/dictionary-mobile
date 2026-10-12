@@ -141,6 +141,20 @@ export const DesignSystem = {
       surfaceGlass: 'rgba(255, 255, 255, 0.84)',
       surfaceHero: '#1F1B2E',
       surfaceHeroAlt: '#241B36',
+      // Controls, rules and data marks drawn on hero surfaces (dark in both themes).
+      surfaceOnHero: '#2A2636',
+      surfaceOnHeroPressed: '#353042',
+      surfaceOnHeroActive: '#706E78',
+      borderOnHero: '#3A3646',
+      accentOnHero: '#A998F4',
+      accentOnHeroMuted: '#5B5278',
+      successOnHero: '#B6FF4D',
+      // Activity heatmap scale (none -> most), shown on hero surfaces.
+      heatmapLevel0: '#161B22',
+      heatmapLevel1: '#0E4429',
+      heatmapLevel2: '#006D32',
+      heatmapLevel3: '#26A641',
+      heatmapLevel4: '#39D353',
 
       // Text hierarchy
       textPrimary: '#11181C',
@@ -183,6 +197,14 @@ export const DesignSystem = {
       statusWarning: '#fef3c7',
       statusError: '#fee2e2',
       statusInfo: '#cffafe',
+      // Readable text/icon ink on the status backgrounds above.
+      statusSuccessText: '#047857',
+      statusWarningText: '#b45309',
+      statusErrorText: '#b91c1c',
+      statusInfoText: '#0e7490',
+
+      // Scrim behind modals, sheets and drawers.
+      backdrop: 'rgba(15, 23, 42, 0.4)',
     },
     shadows: {
       none: {
@@ -244,6 +266,20 @@ export const DesignSystem = {
       surfaceGlass: 'rgba(24, 24, 27, 0.86)',
       surfaceHero: '#17131F',
       surfaceHeroAlt: '#20182D',
+      // Controls, rules and data marks drawn on hero surfaces (dark in both themes).
+      surfaceOnHero: '#2A2636',
+      surfaceOnHeroPressed: '#353042',
+      surfaceOnHeroActive: '#706E78',
+      borderOnHero: '#3A3646',
+      accentOnHero: '#A998F4',
+      accentOnHeroMuted: '#5B5278',
+      successOnHero: '#B6FF4D',
+      // Activity heatmap scale (none -> most), shown on hero surfaces.
+      heatmapLevel0: '#161B22',
+      heatmapLevel1: '#0E4429',
+      heatmapLevel2: '#006D32',
+      heatmapLevel3: '#26A641',
+      heatmapLevel4: '#39D353',
 
       // Text hierarchy
       textPrimary: '#ECEDEE',
@@ -285,6 +321,14 @@ export const DesignSystem = {
       statusWarning: '#78350f',
       statusError: '#7c2d12',
       statusInfo: '#164e63',
+      // Readable text/icon ink on the status backgrounds above.
+      statusSuccessText: '#6ee7b7',
+      statusWarningText: '#fcd34d',
+      statusErrorText: '#fca5a5',
+      statusInfoText: '#67e8f9',
+
+      // Scrim behind modals, sheets and drawers.
+      backdrop: 'rgba(0, 0, 0, 0.6)',
     },
     shadows: {
       none: {

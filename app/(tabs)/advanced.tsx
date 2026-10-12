@@ -3,7 +3,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import Screen from '@/components/app/Screen';
 import { useToken } from '@/hooks/use-token';
@@ -19,64 +19,14 @@ import { LearningToolPanel, ToolTab, learningTools } from '@/components/training
 import { SpecializedTranslationToolPanel } from '@/components/training/SpecializedTranslationToolPanel';
 import { ReaderLibraryToolPanel } from '@/components/training/ReaderLibraryToolPanel';
 import { AnalyticsStat, FlashcardStatusDonut, getFlashcardAnalytics } from '@/components/training/FlashcardAnalytics';
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
 import LoadErrorNotice from '@/components/app/LoadErrorNotice';
 import SkeletonBlock from '@/components/app/SkeletonBlock';
 
 export default function AdvancedScreen() {
   const router = useRouter();
-  const { colors, radius, shadows } = useToken();
-  const themed = useMemo(
-    () =>
-      StyleSheet.create({
-        activeChip: {
-          backgroundColor: colors.accentSoft,
-          borderColor: colors.accentPrimary,
-        },
-        activeChipText: {
-          color: colors.accentPrimary,
-        },
-        card: {
-          backgroundColor: colors.surface,
-          borderColor: colors.borderDefault,
-          ...shadows.sm,
-        },
-        hero: {
-          backgroundColor: colors.surfaceHero,
-          borderColor: colors.borderMuted,
-          borderWidth: 1,
-          ...shadows.md,
-        },
-        input: {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.borderDefault,
-          color: colors.textPrimary,
-        },
-        mutedPanel: {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.borderDefault,
-        },
-        mutedText: {
-          color: colors.textSecondary,
-        },
-        primaryButton: {
-          backgroundColor: colors.accentPrimary,
-          borderRadius: radius.md,
-          ...shadows.glow,
-        },
-        primaryText: {
-          color: colors.textPrimary,
-        },
-        screen: {
-          backgroundColor: colors.canvasAlt,
-        },
-        softBadge: {
-          backgroundColor: colors.accentSoft,
-          borderColor: colors.focusRing,
-        },
-      }),
-    [colors, radius.md, shadows.glow, shadows.md, shadows.sm]
-  );
+  const { colors } = useToken();
+  const styles = useTrainingStyles();
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
   // Until the first load finishes, "no flashcards yet" would be wrong (plan 3.6).
   const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -289,35 +239,35 @@ export default function AdvancedScreen() {
   };
 
   return (
-    <Screen style={themed.screen}>
+    <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.kicker, themed.mutedText]}>Phòng luyện tập</Text>
-        <Text style={[styles.title, themed.primaryText]}>Công cụ học nâng cao</Text>
+        <Text style={styles.kicker}>Phòng luyện tập</Text>
+        <Text style={styles.title}>Công cụ học nâng cao</Text>
         {(!activeToolId || activeToolId === 'flashcards') ? (
-          <View style={[styles.challengeCard, themed.hero]}>
-            <View style={[styles.challengeIcon, { backgroundColor: colors.accentPrimary }]}>
-              <Ionicons name="flash" size={26} color="#FFFFFF" />
+          <View style={styles.challengeCard}>
+            <View style={styles.challengeIcon}>
+              <Ionicons name="flash" size={26} color={colors.textOnAccent} />
             </View>
             <View style={styles.challengeCopy}>
-              <Text style={[styles.challengeTitle, { color: colors.textOnHero }]}>{dueFlashcards} thẻ cần ôn</Text>
-              <Text style={[styles.challengeText, { color: colors.textOnHeroMuted }]}>Lọc theo bộ từ, loại thẻ hoặc trạng thái để ôn đúng nhóm cần học.</Text>
+              <Text style={styles.challengeTitle}>{dueFlashcards} thẻ cần ôn</Text>
+              <Text style={styles.challengeText}>Lọc theo bộ từ, loại thẻ hoặc trạng thái để ôn đúng nhóm cần học.</Text>
             </View>
           </View>
         ) : null}
 
         {activeTool ? (
-          <View style={[styles.toolDetailHeader, themed.card]}>
+          <View style={styles.toolDetailHeader}>
             <Touchable
               activeOpacity={0.78}
               accessibilityLabel="Quay lại danh sách luyện tập"
               onPress={() => setActiveToolId(null)}
-              style={[styles.toolBackButton, themed.softBadge]}>
+              style={styles.toolBackButton}>
               <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
             </Touchable>
             <View style={[styles.toolDetailHeaderIcon, { backgroundColor: activeTool.accent }]}>
-              <Ionicons name={activeTool.icon} size={18} color="#0F172A" />
+              <Ionicons name={activeTool.icon} size={18} color={colors.textOnPastel} />
             </View>
-            <Text style={[styles.toolDetailTitle, themed.primaryText]} numberOfLines={1}>{activeTool.title}</Text>
+            <Text style={styles.toolDetailTitle} numberOfLines={1}>{activeTool.title}</Text>
           </View>
         ) : (
           <View style={styles.toolList}>
@@ -332,25 +282,25 @@ export default function AdvancedScreen() {
         )}
 
         {activeToolId === 'flashcards' ? (
-          <View style={[styles.flashcardPanel, themed.card]}>
+          <View style={styles.flashcardPanel}>
           <View style={styles.panelHeader}>
             <View>
-              <Text style={[styles.panelKicker, themed.mutedText]}>Flashcard local</Text>
-              <Text style={[styles.panelTitle, themed.primaryText]}>{filteredFlashcards.length} / {libraryState.flashcards.length} thẻ</Text>
+              <Text style={styles.panelKicker}>Flashcard local</Text>
+              <Text style={styles.panelTitle}>{filteredFlashcards.length} / {libraryState.flashcards.length} thẻ</Text>
             </View>
-            <View style={[styles.savedWordPill, themed.softBadge]}>
-              <Text style={[styles.savedWordPillText, themed.activeChipText]}>{libraryState.savedWords.length} từ</Text>
+            <View style={styles.savedWordPill}>
+              <Text style={styles.savedWordPillText}>{libraryState.savedWords.length} từ</Text>
             </View>
           </View>
 
-          <View style={[styles.flashcardModeTabs, themed.mutedPanel]}>
+          <View style={styles.flashcardModeTabs}>
             {flashcardModeOptions.map((mode) => (
               <Touchable
                 key={mode.value}
                 activeOpacity={0.82}
                 onPress={() => setFlashcardMode(mode.value)}
-                style={[styles.flashcardModeTab, flashcardMode === mode.value && styles.flashcardModeTabActive, flashcardMode === mode.value && themed.primaryButton]}>
-                <Text style={[styles.flashcardModeTabText, themed.mutedText, flashcardMode === mode.value && styles.flashcardModeTabTextActive]}>
+                style={[styles.flashcardModeTab, flashcardMode === mode.value && styles.flashcardModeTabActive]}>
+                <Text style={[styles.flashcardModeTabText, flashcardMode === mode.value && styles.flashcardModeTabTextActive]}>
                   {mode.label}
                 </Text>
               </Touchable>
@@ -383,22 +333,22 @@ export default function AdvancedScreen() {
             </View>
           </View>
 
-          <View style={[styles.flashcardSettingsPanel, themed.mutedPanel]}>
+          <View style={styles.flashcardSettingsPanel}>
             <View style={styles.settingInputGroup}>
-              <Text style={[styles.filterLabel, themed.mutedText]}>Điểm TB để completed</Text>
+              <Text style={styles.filterLabel}>Điểm TB để completed</Text>
               <TextInput
                 keyboardType="numeric"
                 onChangeText={(value) => handleUpdateCompletionSetting('completionMinAverageQuality', value)}
-                style={[styles.settingInput, themed.input]}
+                style={styles.settingInput}
                 value={`${libraryState.flashcardLearningSettings?.completionMinAverageQuality ?? 4}`}
               />
             </View>
             <View style={styles.settingInputGroup}>
-              <Text style={[styles.filterLabel, themed.mutedText]}>Số lần test tối thiểu</Text>
+              <Text style={styles.filterLabel}>Số lần test tối thiểu</Text>
               <TextInput
                 keyboardType="numeric"
                 onChangeText={(value) => handleUpdateCompletionSetting('completionMinReviewCount', value)}
-                style={[styles.settingInput, themed.input]}
+                style={styles.settingInput}
                 value={`${libraryState.flashcardLearningSettings?.completionMinReviewCount ?? 3}`}
               />
             </View>
@@ -417,15 +367,15 @@ export default function AdvancedScreen() {
                   key={option.type}
                   activeOpacity={0.82}
                   onPress={() => handleToggleFlashcardType(option.type)}
-                  style={[styles.checkItem, themed.mutedPanel, isSelected && styles.checkItemActive, isSelected && themed.activeChip]}>
+                  style={[styles.checkItem, isSelected && styles.checkItemActive]}>
                   <Ionicons
                     name={isSelected ? 'checkbox' : 'square-outline'}
                     size={21}
                     color={isSelected ? colors.accentPrimary : colors.textTertiary}
                   />
                   <View style={styles.checkCopy}>
-                    <Text style={[styles.checkLabel, themed.primaryText]}>{option.label}</Text>
-                    <Text style={[styles.checkDescription, themed.mutedText]}>{option.description}</Text>
+                    <Text style={styles.checkLabel}>{option.label}</Text>
+                    <Text style={styles.checkDescription}>{option.description}</Text>
                   </View>
                 </Touchable>
               );
@@ -438,10 +388,9 @@ export default function AdvancedScreen() {
             onPress={handleCreateFlashcards}
             style={[
               styles.generateButton,
-              themed.primaryButton,
               (!selectedFlashcardTypes.length || !libraryState.savedWords.length) && styles.generateButtonDisabled,
             ]}>
-            <Ionicons name="albums-outline" size={18} color="#FFFFFF" />
+            <Ionicons name="albums-outline" size={18} color={colors.textOnAccent} />
             <Text style={styles.generateButtonText}>Tạo flashcard từ từ đã lưu</Text>
           </Touchable>
 
@@ -453,12 +402,12 @@ export default function AdvancedScreen() {
               styles.exportButton,
               (!filteredFlashcards.length || isExporting) && styles.exportButtonDisabled,
             ]}>
-            <Ionicons name="download-outline" size={18} color="#FFFFFF" />
+            <Ionicons name="download-outline" size={18} color={colors.statusSuccessText} />
             <Text style={styles.exportButtonText}>{isExporting ? 'Đang xuất...' : 'Xuất Anki (text)'}</Text>
           </Touchable>
 
-          <View style={[styles.filterBlock, themed.mutedPanel]}>
-            <Text style={[styles.filterLabel, themed.mutedText]}>Bộ từ</Text>
+          <View style={styles.filterBlock}>
+            <Text style={styles.filterLabel}>Bộ từ</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
               <FilterChip label="Tất cả" isSelected={folderFilterId === 'all'} onPress={() => setFolderFilterId('all')} />
               {libraryState.folders.map((folder) => (
@@ -470,7 +419,7 @@ export default function AdvancedScreen() {
                 />
               ))}
             </ScrollView>
-            <Text style={[styles.filterLabel, themed.mutedText]}>Loại thẻ</Text>
+            <Text style={styles.filterLabel}>Loại thẻ</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
               {typeFilterOptions.map((option) => (
                 <FilterChip
@@ -481,7 +430,7 @@ export default function AdvancedScreen() {
                 />
               ))}
             </ScrollView>
-            <Text style={[styles.filterLabel, themed.mutedText]}>Trạng thái</Text>
+            <Text style={styles.filterLabel}>Trạng thái</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
               {reviewFilterOptions.map((option) => (
                 <FilterChip
@@ -498,8 +447,8 @@ export default function AdvancedScreen() {
 
           {flashcardMode === 'study' ? (
           activeCard ? (
-            <View style={[styles.reviewCard, themed.mutedPanel]}>
-              <Text style={[styles.reviewType, themed.mutedText]}>{formatFlashcardType(activeCard.type)} · {formatReviewState(activeCard.reviewState)}</Text>
+            <View style={styles.reviewCard}>
+              <Text style={styles.reviewType}>{formatFlashcardType(activeCard.type)} · {formatReviewState(activeCard.reviewState)}</Text>
               <Touchable activeOpacity={0.86} onPress={() => setShowBack((value) => !value)} style={styles.flashcardFace}>
                 <Text style={styles.faceLabel}>{showBack ? 'Back' : 'Front'}</Text>
                 <Text style={styles.faceText}>{showBack ? activeCard.back : activeCard.front}</Text>
@@ -528,10 +477,10 @@ export default function AdvancedScreen() {
           ) : loadStatus === 'error' ? (
             <LoadErrorNotice message="Không đọc được flashcard trên thiết bị." onRetry={reloadTrainingData} />
           ) : (
-            <View style={[styles.emptyFlashcard, themed.mutedPanel]}>
+            <View style={styles.emptyFlashcard}>
               <Ionicons name="albums-outline" size={23} color={colors.textTertiary} />
-              <Text style={[styles.emptyFlashcardTitle, themed.primaryText]}>{libraryState.flashcards.length ? 'Không có thẻ phù hợp' : 'Chưa có flashcard'}</Text>
-              <Text style={[styles.emptyFlashcardText, themed.mutedText]}>
+              <Text style={styles.emptyFlashcardTitle}>{libraryState.flashcards.length ? 'Không có thẻ phù hợp' : 'Chưa có flashcard'}</Text>
+              <Text style={styles.emptyFlashcardText}>
                 {libraryState.flashcards.length
                   ? 'Đổi bộ lọc để xem nhóm thẻ khác.'
                   : 'Lưu vài từ trong tab Tra cứu, chọn loại thẻ, rồi tạo flashcard tại đây.'}

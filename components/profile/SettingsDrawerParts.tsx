@@ -2,7 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
 import { Pressable, Switch, Text, TextInput, View } from 'react-native';
 
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
+import { useToken } from '@/hooks/use-token';
 
 export type SidebarSectionKey = 'account' | 'privacy' | 'support';
 
@@ -13,6 +14,7 @@ export const sidebarNavItems: { key: SidebarSectionKey; label: string; icon: Rea
 ];
 
 export function SidebarSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useProfileStyles();
   return (
     <View style={styles.sidebarSection}>
       <Text style={styles.sidebarSectionTitle}>{title}</Text>
@@ -36,7 +38,9 @@ export function SidebarActionRow({
   label: string;
   onPress: () => void;
 }) {
-  const iconColor = destructive ? '#DC2626' : disabled ? '#A4A097' : '#5D5B54';
+  const { colors } = useToken();
+  const styles = useProfileStyles();
+  const iconColor = destructive ? colors.statusErrorText : disabled ? colors.disabledText : colors.textSecondary;
 
   return (
     <Pressable
@@ -75,6 +79,8 @@ export function NotificationPreferenceRow({
   onValueChange: (value: boolean) => void;
   value: boolean;
 }) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   return (
     <View style={styles.notificationRow}>
       <View style={styles.securityCopy}>
@@ -83,8 +89,8 @@ export function NotificationPreferenceRow({
       </View>
       <Switch
         onValueChange={onValueChange}
-        thumbColor="#FFFFFF"
-        trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
+        thumbColor={colors.textOnAccent}
+        trackColor={{ false: colors.borderDefault, true: colors.accentPrimary }}
         value={value}
       />
     </View>
@@ -106,6 +112,8 @@ export function ProfileInput({
   placeholder: string;
   value: string;
 }) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   return (
     <View style={styles.fieldBlock}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -114,7 +122,7 @@ export function ProfileInput({
         keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.textTertiary}
         style={styles.profileInput}
         value={value}
       />
