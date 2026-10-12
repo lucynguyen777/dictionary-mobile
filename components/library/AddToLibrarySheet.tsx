@@ -2,11 +2,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { useState } from 'react';
-import { Alert, Platform, ScrollView, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { Alert, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 
 import Touchable from '@/components/app/Touchable';
-import { DEFAULT_FOLDER_COLOR, FolderMetadataEditor, parseTagDraft } from '@/components/library/FolderMetadataEditor';
-import { styles } from '@/components/library/styles';
+import { FolderMetadataEditor, parseTagDraft } from '@/components/library/FolderMetadataEditor';
+import { DEFAULT_FOLDER_COLOR } from '@/constants/pastels';
+import { useLibraryStyles } from '@/components/library/styles';
 import { VocabularyImportField, VocabularyImportOptions, VocabularyImportOrientation, VocabularyImportRow, detectHeaderFieldMapping, parseVocabularyCsv } from '@/data/csvImport';
 import { FlashcardType, LibraryState, createFlashcardsFromWordIds, createFolder, getFavoriteFolderId, importVocabularyRowsToFolder } from '@/data/libraryStore';
 import { useToken } from '@/hooks/use-token';
@@ -40,12 +41,12 @@ type Props = {
   onFolderCreated: () => void;
   onLibraryChange: (state: LibraryState) => void;
   // The Library screen's theme overrides (light/dark surfaces and text).
-  themed: Record<string, StyleProp<ViewStyle & TextStyle>>;
 };
 
 // Library "add" bottom sheet: create a folder, or import vocabulary from a CSV/TSV file into a new
 // or existing folder (optionally with flashcards). Drafts live here and reset when the sheet closes.
-export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, onFolderCreated, onLibraryChange, themed }: Props) {
+export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, onFolderCreated, onLibraryChange }: Props) {
+  const styles = useLibraryStyles();
   const { colors } = useToken();
   const [addPanelMode, setAddPanelMode] = useState<AddPanelMode>('choice');
   const [folderNameDraft, setFolderNameDraft] = useState('');
@@ -227,7 +228,7 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
   return (
     <View style={styles.addSheetOverlay}>
       <Touchable activeOpacity={1} onPress={closeAddPanel} style={styles.addSheetBackdrop} />
-      <View style={[styles.addSheet, themed.bottomSheet, { paddingBottom: 16 + Math.max(bottomInset, Platform.OS === 'web' ? 8 : 0) }]}>
+      <View style={[styles.addSheet, { paddingBottom: 16 + Math.max(bottomInset, Platform.OS === 'web' ? 8 : 0) }]}>
         <ScrollView
           contentContainerStyle={styles.addSheetContent}
           keyboardShouldPersistTaps="handled"
@@ -235,35 +236,35 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
           showsVerticalScrollIndicator={false}>
           {addPanelMode === 'choice' ? (
             <>
-              <Text style={[styles.addSheetTitle, themed.primaryText]}>Thêm vào Tủ từ</Text>
-              <Touchable activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={[styles.addChoiceCard, themed.mutedPanel]}>
+              <Text style={styles.addSheetTitle}>Thêm vào Tủ từ</Text>
+              <Touchable activeOpacity={0.84} onPress={() => setAddPanelMode('create')} style={styles.addChoiceCard}>
                 <Ionicons name="folder-outline" size={23} color={colors.accentPrimary} />
                 <View style={styles.addChoiceCopy}>
-                  <Text style={[styles.addChoiceTitle, themed.primaryText]}>Tạo mới</Text>
-                  <Text style={[styles.addChoiceText, themed.mutedText]}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
+                  <Text style={styles.addChoiceTitle}>Tạo mới</Text>
+                  <Text style={styles.addChoiceText}>Đặt tên, chọn màu, tag và ảnh đại diện cho bộ từ.</Text>
                 </View>
               </Touchable>
-              <Touchable activeOpacity={0.84} onPress={handlePickCsv} style={[styles.addChoiceCard, themed.mutedPanel]}>
+              <Touchable activeOpacity={0.84} onPress={handlePickCsv} style={styles.addChoiceCard}>
                 <Ionicons name="cloud-upload-outline" size={23} color={colors.accentPrimary} />
                 <View style={styles.addChoiceCopy}>
-                  <Text style={[styles.addChoiceTitle, themed.primaryText]}>Tải lên file</Text>
-                  <Text style={[styles.addChoiceText, themed.mutedText]}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
+                  <Text style={styles.addChoiceTitle}>Tải lên file</Text>
+                  <Text style={styles.addChoiceText}>Chọn CSV/TSV, đổi tên và cấu hình bộ từ trước khi import.</Text>
                 </View>
               </Touchable>
-              <Touchable activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetClose, themed.secondaryButton]}>
-                <Text style={[styles.addSheetCloseText, themed.mutedText]}>Đóng</Text>
+              <Touchable activeOpacity={0.82} onPress={closeAddPanel} style={styles.addSheetClose}>
+                <Text style={styles.addSheetCloseText}>Đóng</Text>
               </Touchable>
             </>
           ) : null}
           {addPanelMode === 'create' ? (
             <>
               <View style={styles.addSheetHeaderRow}>
-                <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
                   <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
                 </Touchable>
-                <Text style={[styles.addSheetTitle, themed.primaryText]}>Tạo bộ từ mới</Text>
+                <Text style={styles.addSheetTitle}>Tạo bộ từ mới</Text>
               </View>
-              <View style={[styles.createInputBox, themed.input]}>
+              <View style={styles.createInputBox}>
                 <Ionicons name="folder-outline" size={19} color={colors.accentPrimary} />
                 <TextInput
                   autoCorrect={false}
@@ -273,7 +274,7 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                   }}
                   placeholder="Tên bộ từ"
                   placeholderTextColor={colors.textTertiary}
-                  style={[styles.createInput, themed.primaryText]}
+                  style={styles.createInput}
                   value={folderNameDraft}
                 />
               </View>
@@ -291,10 +292,10 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                 />
               ) : null}
               <View style={styles.addSheetActions}>
-                <Touchable activeOpacity={0.82} onPress={closeAddPanel} style={[styles.addSheetSecondary, themed.secondaryButton]}>
-                  <Text style={[styles.addSheetSecondaryText, themed.mutedText]}>Hủy</Text>
+                <Touchable activeOpacity={0.82} onPress={closeAddPanel} style={styles.addSheetSecondary}>
+                  <Text style={styles.addSheetSecondaryText}>Hủy</Text>
                 </Touchable>
-                <Touchable activeOpacity={0.84} onPress={handleCreateFolder} style={[styles.addSheetPrimary, themed.primaryButton]}>
+                <Touchable activeOpacity={0.84} onPress={handleCreateFolder} style={styles.addSheetPrimary}>
                   <Text style={styles.addSheetPrimaryText}>Tạo bộ từ</Text>
                 </Touchable>
               </View>
@@ -303,18 +304,18 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
           {addPanelMode === 'import' ? (
             <>
               <View style={styles.addSheetHeaderRow}>
-                <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={[styles.addBackButton, themed.tonalButton]}>
+                <Touchable accessibilityLabel="Quay lại" accessibilityRole="button" activeOpacity={0.78} onPress={() => setAddPanelMode('choice')} style={styles.addBackButton}>
                   <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
                 </Touchable>
-                <Text style={[styles.addSheetTitle, themed.primaryText]}>Tải lên file</Text>
+                <Text style={styles.addSheetTitle}>Tải lên file</Text>
               </View>
-              <Touchable activeOpacity={0.82} onPress={handlePickCsv} style={[styles.importPickButton, themed.tonalButton]}>
+              <Touchable activeOpacity={0.82} onPress={handlePickCsv} style={styles.importPickButton}>
                 <Ionicons name="cloud-upload-outline" size={18} color={colors.accentPrimary} />
-                <Text style={[styles.importPickText, themed.activeChipText]}>{importFileName ? 'Đổi file' : 'Chọn CSV/TSV'}</Text>
+                <Text style={styles.importPickText}>{importFileName ? 'Đổi file' : 'Chọn CSV/TSV'}</Text>
               </Touchable>
               {importFileName ? (
                 <>
-                  <Text style={[styles.importFileName, themed.mutedText]}>{importFileName} · {importRows.length} từ hợp lệ</Text>
+                  <Text style={styles.importFileName}>{importFileName} · {importRows.length} từ hợp lệ</Text>
                   <FolderMetadataEditor
                     avatarUri={folderAvatarDraft}
                     color={folderColorDraft}
@@ -344,7 +345,7 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                             <Ionicons
                               name={isSelected ? 'radio-button-on' : 'radio-button-off'}
                               size={17}
-                              color={isSelected ? '#7C3AED' : '#94A3B8'}
+                              color={isSelected ? colors.accentPrimary : colors.textTertiary}
                             />
                             <View style={styles.importOptionCopy}>
                               <Text style={[styles.importOptionTitle, isSelected && styles.activeImportOptionTitle]}>
@@ -367,7 +368,7 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                       <Ionicons
                         name={importOptions.hasHeader ? 'checkbox' : 'square-outline'}
                         size={20}
-                        color={importOptions.hasHeader ? '#7C3AED' : '#94A3B8'}
+                        color={importOptions.hasHeader ? colors.accentPrimary : colors.textTertiary}
                       />
                       <View style={styles.importFlashcardCopy}>
                         <Text style={styles.importFlashcardTitle}>Dùng hàng/cột đầu làm tên trường</Text>
@@ -427,7 +428,7 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                       <Ionicons
                         name={importTargetMode === 'new' ? 'radio-button-on' : 'radio-button-off'}
                         size={17}
-                        color={importTargetMode === 'new' ? '#7C3AED' : '#94A3B8'}
+                        color={importTargetMode === 'new' ? colors.accentPrimary : colors.textTertiary}
                       />
                       <Text style={[styles.importModeText, importTargetMode === 'new' && styles.activeImportModeText]}>
                         Bộ từ mới
@@ -443,7 +444,7 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                       <Ionicons
                         name={importTargetMode === 'existing' ? 'radio-button-on' : 'radio-button-off'}
                         size={17}
-                        color={importTargetMode === 'existing' ? '#7C3AED' : '#94A3B8'}
+                        color={importTargetMode === 'existing' ? colors.accentPrimary : colors.textTertiary}
                       />
                       <Text style={[styles.importModeText, importTargetMode === 'existing' && styles.activeImportModeText]}>
                         Bộ từ có sẵn
@@ -452,12 +453,12 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                   </View>
                   {importTargetMode === 'new' ? (
                     <View style={styles.createInputBox}>
-                      <Ionicons name="folder-outline" size={19} color="#7C3AED" />
+                      <Ionicons name="folder-outline" size={19} color={colors.accentPrimary} />
                       <TextInput
                         autoCorrect={false}
                         onChangeText={setImportFolderName}
                         placeholder="Tên bộ từ sau khi import"
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor={colors.textTertiary}
                         style={styles.createInput}
                         value={importFolderName}
                       />
@@ -490,7 +491,7 @@ export default function AddToLibrarySheet({ bottomInset, libraryState, onClose, 
                     <Ionicons
                       name={shouldCreateImportFlashcards ? 'checkbox' : 'square-outline'}
                       size={20}
-                      color={shouldCreateImportFlashcards ? '#7C3AED' : '#94A3B8'}
+                      color={shouldCreateImportFlashcards ? colors.accentPrimary : colors.textTertiary}
                     />
                     <View style={styles.importFlashcardCopy}>
                       <Text style={styles.importFlashcardTitle}>Tạo flashcard sau import</Text>

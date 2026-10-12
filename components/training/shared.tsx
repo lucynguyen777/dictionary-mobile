@@ -2,7 +2,7 @@ import { Text } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import { FlashcardReviewState, FlashcardType } from '@/data/libraryStore';
 
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
 
 export const flashcardOptions: { type: FlashcardType; label: string; description: string }[] = [
   { type: 'bilingual', label: 'Song ngữ', description: 'Từ + nghĩa + ghi chú' },
@@ -47,6 +47,7 @@ export function formatReviewState(state: FlashcardReviewState) {
 }
 
 export function FilterChip({ label, isSelected, onPress }: { label: string; isSelected: boolean; onPress: () => void }) {
+  const styles = useTrainingStyles();
   return (
     <Touchable activeOpacity={0.78} onPress={onPress} style={[styles.filterChip, isSelected && styles.filterChipActive]}>
       <Text style={[styles.filterChipText, isSelected && styles.filterChipTextActive]} numberOfLines={1}>

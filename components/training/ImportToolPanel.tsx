@@ -6,7 +6,9 @@ import Touchable from '@/components/app/Touchable';
 import { FlashcardType, LibraryState, getFavoriteFolderId } from '@/data/libraryStore';
 
 import { FilterChip, flashcardOptions } from '@/components/training/shared';
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
+import { Pastels } from '@/constants/pastels';
+import { useToken } from '@/hooks/use-token';
 
 type ImportSourceId = 'csv-tsv' | 'reader-highlights' | 'class-list';
 
@@ -60,6 +62,8 @@ const importMappingPreview: Record<ImportSourceId, { source: string; target: str
 };
 
 export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }) {
+  const { colors } = useToken();
+  const styles = useTrainingStyles();
   const libraryHref = '/library' as Href;
   const [sourceId, setSourceId] = useState<ImportSourceId>('csv-tsv');
   const [destinationMode, setDestinationMode] = useState<'new' | 'existing'>('new');
@@ -93,8 +97,8 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
   return (
     <View style={styles.toolPanel}>
       <View style={styles.toolPanelHeader}>
-        <View style={[styles.iconWrap, { backgroundColor: '#FFF1E8' }]}>
-          <Ionicons name="cloud-upload-outline" size={28} color="#0F172A" />
+        <View style={[styles.iconWrap, { backgroundColor: Pastels.orange }]}>
+          <Ionicons name="cloud-upload-outline" size={28} color={colors.textOnPastel} />
         </View>
         <View style={styles.copy}>
           <Text style={styles.featureTitle}>Nhập dữ liệu</Text>
@@ -114,11 +118,11 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
               onPress={() => setSourceId(source.id)}
               style={[styles.importSourceCard, isSelected && styles.importSourceCardActive]}>
               <View style={styles.importSourceHeader}>
-                <Ionicons name={source.icon} size={18} color={isSelected ? '#7C3AED' : '#64748B'} />
+                <Ionicons name={source.icon} size={18} color={isSelected ? colors.accentPrimary : colors.textSecondary} />
                 <Ionicons
                   name={isSelected ? 'radio-button-on' : 'radio-button-off'}
                   size={18}
-                  color={isSelected ? '#7C3AED' : '#CBD5E1'}
+                  color={isSelected ? colors.accentPrimary : colors.textTertiary}
                 />
               </View>
               <Text style={[styles.importSourceTitle, isSelected && styles.importSourceTitleActive]}>{source.title}</Text>
@@ -137,7 +141,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
         {importMappingPreview[sourceId].map((item) => (
           <View key={`${item.source}-${item.target}`} style={styles.importMappingPreviewRow}>
             <Text style={styles.importMappingSource} numberOfLines={1}>{item.source}</Text>
-            <Ionicons name="arrow-forward" size={15} color="#94A3B8" />
+            <Ionicons name="arrow-forward" size={15} color={colors.textTertiary} />
             <Text style={styles.importMappingTarget} numberOfLines={1}>{item.target}</Text>
             <Text style={styles.importMappingNote} numberOfLines={1}>{item.note}</Text>
           </View>
@@ -155,7 +159,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
       </View>
 
       <View style={styles.importValidationNote}>
-        <Ionicons name="checkmark-circle-outline" size={17} color="#16A34A" />
+        <Ionicons name="checkmark-circle-outline" size={17} color={colors.statusSuccessText} />
         <Text style={styles.importValidationText}>
           Flow thật trong Library đã kiểm tra file trống, thiếu khóa chính và từ trùng trước khi import.
         </Text>
@@ -170,7 +174,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
           <Ionicons
             name={destinationMode === 'new' ? 'radio-button-on' : 'radio-button-off'}
             size={17}
-            color={destinationMode === 'new' ? '#7C3AED' : '#94A3B8'}
+            color={destinationMode === 'new' ? colors.accentPrimary : colors.textTertiary}
           />
           <Text style={[styles.importDestinationText, destinationMode === 'new' && styles.importDestinationTextActive]}>
             Bộ từ mới theo tên file
@@ -186,7 +190,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
           <Ionicons
             name={destinationMode === 'existing' ? 'radio-button-on' : 'radio-button-off'}
             size={17}
-            color={destinationMode === 'existing' ? '#7C3AED' : '#94A3B8'}
+            color={destinationMode === 'existing' ? colors.accentPrimary : colors.textTertiary}
           />
           <Text style={[styles.importDestinationText, destinationMode === 'existing' && styles.importDestinationTextActive]}>
             Bộ từ có sẵn
@@ -212,7 +216,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
           </ScrollView>
         ) : (
           <View style={styles.toolStateCard}>
-            <Ionicons name="folder-open-outline" size={22} color="#94A3B8" />
+            <Ionicons name="folder-open-outline" size={22} color={colors.textTertiary} />
             <Text style={styles.toolStateTitle}>Chưa có bộ từ đích</Text>
             <Text style={styles.toolStateText}>Tạo bộ từ mới khi import hoặc tạo folder trước trong Library.</Text>
           </View>
@@ -233,7 +237,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
               <Ionicons
                 name={isSelected ? 'checkbox' : 'square-outline'}
                 size={20}
-                color={isSelected ? '#7C3AED' : '#94A3B8'}
+                color={isSelected ? colors.accentPrimary : colors.textTertiary}
               />
               <View style={styles.importFlashcardPlanCopy}>
                 <Text style={styles.importFlashcardPlanTitle}>{option.label}</Text>
@@ -246,7 +250,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
 
       <Link href={libraryHref} asChild>
         <Touchable activeOpacity={0.85} style={styles.generateButton}>
-          <Ionicons name="open-outline" size={18} color="#FFFFFF" />
+          <Ionicons name="open-outline" size={18} color={colors.textOnAccent} />
           <Text style={styles.generateButtonText}>Mở Library để import file</Text>
         </Touchable>
       </Link>
@@ -255,6 +259,7 @@ export function ImportToolPanel({ libraryState }: { libraryState: LibraryState }
 }
 
 export function ImportValidationStat({ label, value }: { label: string; value: string }) {
+  const styles = useTrainingStyles();
   return (
     <View style={styles.importValidationStat}>
       <Text style={styles.importValidationValue} numberOfLines={1}>{value}</Text>

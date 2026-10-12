@@ -4,7 +4,8 @@ import Touchable from '@/components/app/Touchable';
 import { useToken } from '@/hooks/use-token';
 import { ReaderDocument, ReaderState } from '@/data/readerStore';
 
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
+import { Pastels } from '@/constants/pastels';
 
 export function ReaderLibraryToolPanel({
   isImporting,
@@ -17,14 +18,15 @@ export function ReaderLibraryToolPanel({
   onOpenDocument: (documentId: string) => void;
   readerState: ReaderState;
 }) {
+  const styles = useTrainingStyles();
   const { colors, shadows } = useToken();
   const documents = readerState.documents;
 
   return (
     <View style={[styles.toolPanel, { backgroundColor: colors.surface, borderColor: colors.borderDefault, ...shadows.sm }]}>
       <View style={styles.toolPanelHeader}>
-        <View style={[styles.iconWrap, { backgroundColor: '#F1ECFF' }]}>
-          <Ionicons name="reader-outline" size={28} color="#0F172A" />
+        <View style={[styles.iconWrap, { backgroundColor: Pastels.purple }]}>
+          <Ionicons name="reader-outline" size={28} color={colors.textOnPastel} />
         </View>
         <View style={styles.copy}>
           <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>Đọc sách kèm tra từ</Text>
@@ -41,7 +43,7 @@ export function ReaderLibraryToolPanel({
           disabled={isImporting}
           onPress={onImport}
           style={[styles.readerImportButton, { backgroundColor: colors.accentPrimary, ...shadows.glow }, isImporting && styles.exportButtonDisabled]}>
-          <Ionicons name="document-text-outline" size={17} color="#FFFFFF" />
+          <Ionicons name="document-text-outline" size={17} color={colors.textOnAccent} />
           <Text style={styles.openToolButtonText}>{isImporting ? 'Đang nhập...' : 'Nhập file'}</Text>
         </Touchable>
       </View>
@@ -79,6 +81,7 @@ function ReaderDocumentCard({
   isSelected: boolean;
   onPress: () => void;
 }) {
+  const styles = useTrainingStyles();
   const { colors, shadows } = useToken();
   const wordCount = getReaderDocumentWordCount(document.content);
 

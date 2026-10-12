@@ -2,9 +2,11 @@ import { Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { LibraryState } from '@/data/libraryStore';
 
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
+import { useToken } from '@/hooks/use-token';
 
 export function AnalyticsStat({ label, value }: { label: string; value: number | string }) {
+  const styles = useTrainingStyles();
   return (
     <View style={styles.analyticsStat}>
       <Text style={styles.analyticsStatValue}>{value}</Text>
@@ -22,20 +24,22 @@ export function FlashcardStatusDonut({
   inProgress: number;
   started: number;
 }) {
+  const { colors } = useToken();
+  const styles = useTrainingStyles();
   const total = Math.max(1, completed + inProgress + started);
   const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const segments = [
-    { color: '#B6FF4D', value: completed },
-    { color: '#A998F4', value: inProgress },
-    { color: '#5B5278', value: started },
+    { color: colors.successOnHero, value: completed },
+    { color: colors.accentOnHero, value: inProgress },
+    { color: colors.accentOnHeroMuted, value: started },
   ];
   let offset = 0;
 
   return (
     <View style={styles.donutWrap}>
       <Svg height={86} width={86} viewBox="0 0 86 86">
-        <Circle cx="43" cy="43" fill="none" r={radius} stroke="#24212B" strokeWidth="10" />
+        <Circle cx="43" cy="43" fill="none" r={radius} stroke={colors.surfaceOnHero} strokeWidth="10" />
         {segments.map((segment) => {
           const dash = (segment.value / total) * circumference;
           const strokeDashoffset = -offset;

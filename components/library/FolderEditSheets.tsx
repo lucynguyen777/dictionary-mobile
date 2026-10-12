@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import Touchable from '@/components/app/Touchable';
-import { DEFAULT_FOLDER_COLOR, folderColorOptions } from '@/components/library/FolderMetadataEditor';
-import { styles } from '@/components/library/styles';
+import { DEFAULT_FOLDER_COLOR, FOLDER_COLOR_OPTIONS } from '@/constants/pastels';
+import { useLibraryStyles } from '@/components/library/styles';
 import { type Folder, type LibraryState, renameFolder, updateFolderColorAndNote } from '@/data/libraryStore';
+import { useToken } from '@/hooks/use-token';
 
 type SheetProps = {
   folder: Folder;
@@ -15,6 +16,8 @@ type SheetProps = {
 
 // Folder color and color note, opened from a folder's menu in Library.
 export function FolderColorSheet({ folder, libraryState, onClose, onLibraryChange }: SheetProps) {
+  const { colors } = useToken();
+  const styles = useLibraryStyles();
   const [selectedColor, setSelectedColor] = useState(folder.color);
   const [colorNote, setColorNote] = useState(folder.colorNote ?? '');
 
@@ -31,7 +34,7 @@ export function FolderColorSheet({ folder, libraryState, onClose, onLibraryChang
       <View style={styles.colorPickerSheet}>
         <Text style={styles.colorPickerTitle}>Chọn màu cho bộ từ</Text>
         <View style={styles.colorSwatchRow}>
-          {folderColorOptions.map((color) => (
+          {FOLDER_COLOR_OPTIONS.map((color) => (
             <Touchable
               key={color}
               accessibilityLabel={`Màu ${color}`}
@@ -46,7 +49,7 @@ export function FolderColorSheet({ folder, libraryState, onClose, onLibraryChang
           value={colorNote}
           onChangeText={setColorNote}
           placeholder="Ghi chú cho màu này (ví dụ: 'Học vựng hằng ngày')"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.textTertiary}
           style={styles.colorNoteInput}
         />
         <View style={styles.colorPickerActions}>
@@ -64,6 +67,8 @@ export function FolderColorSheet({ folder, libraryState, onClose, onLibraryChang
 
 // Rename a folder; names must be non-empty and unique (case-insensitive).
 export function RenameFolderSheet({ folder, libraryState, onClose, onLibraryChange }: SheetProps) {
+  const { colors } = useToken();
+  const styles = useLibraryStyles();
   const [name, setName] = useState(folder.name);
   const [error, setError] = useState('');
 
@@ -95,7 +100,7 @@ export function RenameFolderSheet({ folder, libraryState, onClose, onLibraryChan
             setError('');
           }}
           placeholder="Tên mới cho bộ từ"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.textTertiary}
           style={styles.renameInput}
         />
         {error ? <Text style={styles.renameError}>{error}</Text> : null}
