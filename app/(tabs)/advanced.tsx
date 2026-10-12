@@ -27,7 +27,8 @@ import {
   saveLibraryState,
 } from '@/data/libraryStore';
 
-import { BackendProxyError, aiChat, completeGoogleSheetsConnection, connectGoogleSheets, exportFolderToGoogleSheets, getGoogleSheetsStatus, translateText } from '@/data/backendProxyClient';
+import { countDueFlashcards } from '@/data/studyStats';
+import { BackendProxyError, completeGoogleSheetsConnection, connectGoogleSheets, exportFolderToGoogleSheets, getGoogleSheetsStatus, translateText } from '@/data/backendProxyClient';
 import {
   extractReaderDocument,
   getReaderImportFormat,
@@ -101,13 +102,11 @@ const learningTools: {
   },
   {
     id: 'ai-chat',
-    title: 'AI hội thoại',
-    description: 'Luyện phản xạ bằng giọng nói hoặc tin nhắn với gợi ý sửa câu.',
+    title: 'AI Tutor',
+    description: 'Luyện hội thoại, sửa câu, giải thích ngữ pháp và nhập vai với AI.',
     icon: 'chatbubbles-outline',
     accent: '#F3E8FF',
-    status: 'Cập nhật trong phiên bản sau',
-    future: true,
-    futureReason: 'Cần backend OpenAI, streaming, auth và giới hạn chi phí.',
+    status: 'Cần đăng nhập cloud',
   },
   {
     id: 'specialized-translation',
@@ -315,10 +314,7 @@ export default function AdvancedScreen() {
     });
   }, [folderFilterId, libraryState.flashcards, reviewFilter, savedWordsById, typeFilter]);
 
-  const dueFlashcards = useMemo(() => {
-    const now = new Date();
-    return libraryState.flashcards.filter((card) => new Date(card.dueDate) <= now || card.reviewState !== 'reviewed').length;
-  }, [libraryState.flashcards]);
+  const dueFlashcards = useMemo(() => countDueFlashcards(libraryState.flashcards), [libraryState.flashcards]);
   const flashcardAnalytics = useMemo(() => getFlashcardAnalytics(libraryState, dueFlashcards), [dueFlashcards, libraryState]);
 
   const activeCard = filteredFlashcards[activeCardIndex];
@@ -486,7 +482,7 @@ export default function AdvancedScreen() {
               <ToolTab
                 key={tool.id}
                 tool={tool}
-                onPress={() => setActiveToolId(tool.id)}
+                onPress={() => (tool.id === 'ai-chat' ? router.push('/ai-assistant' as Href) : setActiveToolId(tool.id))}
               />
             ))}
           </View>
@@ -697,8 +693,6 @@ export default function AdvancedScreen() {
           )
           ) : null}
           </View>
-        ) : activeToolId === 'ai-chat' ? (
-          <AiConversationToolPanel />
         ) : activeToolId === 'specialized-translation' ? (
           <SpecializedTranslationToolPanel />
         ) : activeToolId === 'import' ? (
@@ -778,13 +772,6 @@ function FutureFeatureNotice({ reason }: { reason: string }) {
   );
 }
 
-type AiChatPreviewState = 'empty' | 'loading' | 'ready' | 'error';
-
-const aiChatThreads = [
-  { id: 'travel', title: 'Đặt phòng khách sạn', preview: 'I would like to book a room...' },
-  { id: 'work', title: 'Email công việc', preview: 'Please find attached the report...' },
-];
-
 const translationDomains = [
   { id: 'general', label: 'Chung' },
   { id: 'medical', label: 'Y khoa' },
@@ -792,164 +779,6 @@ const translationDomains = [
   { id: 'tech', label: 'CNTT' },
   { id: 'academic', label: 'Học thuật' },
 ];
-
-interface AiChatMessageDisplay {
-  content: string;
-  role: 'user' | 'assistant' | 'system';
-}
-
-function AiConversationToolPanel() {
-  const [previewState, setPreviewState] = useState<AiChatPreviewState>('empty');
-  const [activeThreadId, setActiveThreadId] = useState('');
-  const [messages, setMessages] = useState<AiChatMessageDisplay[]>([]);
-  const [draftMessage, setDraftMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const [errorText, setErrorText] = useState('');
-
-  const activeThread = aiChatThreads.find((thread) => thread.id === activeThreadId);
-  const isFutureFeature = true;
-
-  const handleOpenThread = (threadId: string) => {
-    setActiveThreadId(threadId);
-    setPreviewState('loading');
-    setMessages([]);
-    setDraftMessage('');
-    setErrorText('');
-
-    setTimeout(() => {
-      setPreviewState('ready');
-      const thread = aiChatThreads.find((t) => t.id === threadId);
-      if (thread) {
-        setMessages([{ content: `Xin chào! Hãy luyện tập chủ đề: ${thread.title}.`, role: 'assistant' }]);
-      }
-      setDraftMessage(aiChatThreads.find((t) => t.id === threadId)?.preview ?? '');
-    }, 300);
-  };
-
-  const handleSend = async () => {
-    const text = draftMessage.trim();
-    if (!text || isSending || !activeThread) return;
-
-    setMessages((prev) => [...prev, { content: text, role: 'user' }]);
-    setDraftMessage('');
-    setIsSending(true);
-    setErrorText('');
-
-    try {
-      const res = await aiChat({
-        goal: 'conversation',
-        learningLanguage: 'en',
-        messages: [{ content: text, role: 'user' }],
-        nativeLanguage: 'vi',
-        stream: false,
-      });
-      setMessages((prev) => [...prev, { content: res.content, role: 'assistant' }]);
-    } catch (err) {
-      const msg = err instanceof BackendProxyError ? `${err.code ? `[${err.code}] ` : ''}${err.message}` : 'Lỗi kết nối đến backend.';
-      setErrorText(msg);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleReset = () => {
-    setActiveThreadId('');
-    setPreviewState('empty');
-    setMessages([]);
-    setDraftMessage('');
-    setErrorText('');
-  };
-
-  return (
-    <View style={styles.toolPanel}>
-      <View style={styles.toolPanelHeader}>
-        <View style={[styles.iconWrap, { backgroundColor: '#F3E8FF' }]}>
-          <Ionicons name="chatbubbles-outline" size={28} color="#0F172A" />
-        </View>
-        <View style={styles.copy}>
-          <Text style={styles.featureTitle}>AI hội thoại</Text>
-          <Text style={styles.description}>Khung luyện hội thoại đã được chuẩn bị, nhưng bản deploy hiện tại chưa bật backend AI.</Text>
-        </View>
-      </View>
-      <FutureFeatureNotice reason="Cần backend OpenAI, streaming, auth, rate limit và kiểm soát chi phí trước khi mở cho người dùng." />
-
-      <Text style={styles.toolSectionLabel}>Danh sách hội thoại</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-        {aiChatThreads.map((thread) => (
-          <FilterChip
-            key={thread.id}
-            isSelected={activeThreadId === thread.id}
-            label={thread.title}
-            onPress={() => handleOpenThread(thread.id)}
-          />
-        ))}
-        <FilterChip isSelected={false} label="Đặt lại" onPress={handleReset} />
-      </ScrollView>
-
-      {previewState === 'empty' ? (
-        <View style={styles.toolStateCard}>
-          <Ionicons name="chatbubble-ellipses-outline" size={22} color="#94A3B8" />
-          <Text style={styles.toolStateTitle}>Chưa chọn hội thoại</Text>
-          <Text style={styles.toolStateText}>Chọn một chủ đề ở trên để bắt đầu chat với AI.</Text>
-        </View>
-      ) : null}
-
-      {previewState === 'loading' ? (
-        <View style={styles.toolStateCard}>
-          <Text style={styles.toolStateTitle}>Đang tải hội thoại...</Text>
-        </View>
-      ) : null}
-
-      {previewState === 'ready' && activeThread ? (
-        <>
-          <View style={styles.chatSurface}>
-            <Text style={styles.chatBubbleLabel}>Chủ đề · {activeThread.title}</Text>
-            {messages.map((msg, i) => (
-              <View key={i} style={msg.role === 'user' ? styles.chatBubbleUser : styles.chatBubbleAssistant}>
-                <Text style={msg.role === 'user' ? styles.chatBubbleTextUser : styles.chatBubbleText}>
-                  {msg.content}
-                </Text>
-              </View>
-            ))}
-            {isSending ? (
-              <View style={styles.chatBubbleAssistant}>
-                <Text style={styles.chatBubbleText}>Đang suy nghĩ...</Text>
-              </View>
-            ) : null}
-          </View>
-
-          {errorText ? (
-            <View style={[styles.toolStateCard, styles.toolStateCardError]}>
-              <Ionicons name="alert-circle-outline" size={18} color="#DC2626" />
-              <Text style={styles.toolStateText}>{errorText}</Text>
-            </View>
-          ) : null}
-
-          <View style={styles.chatInputRow}>
-            <TextInput
-              multiline
-              onChangeText={setDraftMessage}
-              editable={!isFutureFeature}
-              placeholder="Cập nhật trong phiên bản sau"
-              placeholderTextColor="#94A3B8"
-              style={[styles.toolTextArea, { flex: 1, marginBottom: 0 }]}
-              value={draftMessage}
-            />
-            <TouchableOpacity
-              activeOpacity={0.82}
-              disabled={isFutureFeature || isSending || !draftMessage.trim()}
-              onPress={handleSend}
-              style={[styles.generateButton, { marginLeft: 8, marginTop: 0, minWidth: 70 },
-                (isFutureFeature || isSending || !draftMessage.trim()) && styles.generateButtonDisabled]}>
-              <Ionicons name="send" size={16} color="#FFFFFF" />
-              <Text style={styles.generateButtonText}>Sau</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      ) : null}
-    </View>
-  );
-}
 
 function SpecializedTranslationToolPanel() {
   const [domainId, setDomainId] = useState('general');
@@ -1772,9 +1601,6 @@ function LearningToolPanel({ tool }: { tool: (typeof learningTools)[number] }) {
 }
 
 function getToolRoadmapText(toolId: LearningToolId) {
-  if (toolId === 'ai-chat') {
-    return 'Thiết kế tab hội thoại gồm danh sách hội thoại, khung chat realtime, trạng thái ghi âm, transcript và feedback sửa câu. Backend/AI vẫn blocked cho tới khi chọn auth, streaming và cost controls.';
-  }
   if (toolId === 'specialized-translation') {
     return 'Thiết kế UI nhập chuyên ngành/chủ đề, vùng paste/import văn bản, glossary user và kết quả dịch theo thuật ngữ. Translation production cần backend/API riêng.';
   }
@@ -2995,47 +2821,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  chatSurface: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 8,
-    marginTop: 12,
-    padding: 12,
-  },
-  chatBubbleLabel: {
-    color: '#64748B',
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  chatBubbleAssistant: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    maxWidth: '92%',
-    padding: 10,
-  },
-  chatBubbleUser: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#7C3AED',
-    borderRadius: 8,
-    maxWidth: '92%',
-    padding: 10,
-  },
-  chatBubbleText: {
-    color: '#0F172A',
-    fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 18,
-  },
-  chatBubbleTextUser: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 18,
-  },
   voiceRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -3147,10 +2932,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 21,
     marginTop: 4,
-  },
-  chatInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
   },
 });

@@ -18,12 +18,18 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_PROXY_URL": "https://dictionaire-mobile.vercel.app"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_PROXY_URL": "https://dictionaire-mobile.vercel.app"
       }
     }
   },

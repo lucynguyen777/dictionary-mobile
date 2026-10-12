@@ -97,7 +97,7 @@
 - Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- v1.4.0 Security And Data Integrity Hardening is done locally (RLS migration 009, Google OAuth binding, proxy hardening, safe SQLite upgrades); migration 009 still needs to be applied to the paused Supabase project. Next: v1.4.1 Product Truth Fixes, then v1.5.0 Cloud Sync Data Path.
+- v1.4.0 Security And Data Integrity Hardening is done locally (RLS migration 009, Google OAuth binding, proxy hardening, safe SQLite upgrades); migration 009 still needs to be applied to the paused Supabase project. v1.4.1 Product Truth Fixes is done (real Home stats, native proxy URL, AI Tutor entry, pair-aware translation, no fixture OCR). Next: v1.5.0 Cloud Sync Data Path.
 - Current deployable release remains the v1.3.8 product-readiness Reader OCR wiring release.
 - v1.3.11 blocker-resolution audit is complete in `docs/blocked-feature-resolution-playbook.md`; the next implementation module should be selected from its recommended execution order.
 - v1.3.7 Supabase Auth And Cloud Sync Production Smoke has a verified connection, configured local/Vercel Production/Development Expo env, applied remote migrations, and passing cross-user RLS probes; redirect/callback, Preview-branch setup, and two-device sync sessions remain.

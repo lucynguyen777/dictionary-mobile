@@ -6,20 +6,14 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 import MotionPressable from '@/components/app/MotionPressable';
 import Screen from '@/components/app/Screen';
 import { loadAppColorSchemePreference, saveAppColorSchemePreference, type AppColorSchemePreference } from '@/data/appThemePreference';
-import { dictionaryEntries, getWordOfDay, studyStats } from '@/data/dictionary';
+import { getDefaultActivityState, getLocalDateKey, loadActivityState, type ActivityState } from '@/data/activityStore';
+import { dictionaryEntries, getWordOfDay } from '@/data/dictionary';
 import { detectLookupSourceLanguage, type LookupLanguageDetection } from '@/data/languageDetection';
 import { getLanguageByCode, LanguageOption, languageOptions } from '@/data/languages';
 import { LibraryState, getDefaultLibraryState, loadLibraryState } from '@/data/libraryStore';
 import { normalizeLookupTerm } from '@/data/localLexicon';
+import { getStudyStats } from '@/data/studyStats';
 import { useToken } from '@/hooks/use-token';
-
-const reviewPlan = [
-  { label: 'Từ cần ôn', value: studyStats.dueToday, icon: 'time-outline' as const },
-  { label: 'Đã nhớ', value: studyStats.mastered, icon: 'checkmark-done-outline' as const },
-  { label: 'Chuỗi ngày', value: studyStats.streak, icon: 'flame-outline' as const },
-];
-
-const wordOfDay = getWordOfDay();
 
 type LanguageField = 'source' | 'target';
 
@@ -33,6 +27,8 @@ export default function HomeScreen() {
   const lookupInputRef = useRef<TextInput | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
+  const [activityState, setActivityState] = useState<ActivityState>(getDefaultActivityState());
+  const [todayKey, setTodayKey] = useState(() => getLocalDateKey(new Date()));
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [lookupQuery, setLookupQuery] = useState('');
   const [sourceLanguage, setSourceLanguage] = useState<LanguageOption>(languageOptions[0]);
@@ -45,18 +41,35 @@ export default function HomeScreen() {
     useCallback(() => {
       let isMounted = true;
 
-      Promise.all([loadLibraryState(), loadAppColorSchemePreference()]).then(([state, preference]) => {
-        if (!isMounted) return;
+      setTodayKey(getLocalDateKey(new Date()));
+      Promise.all([loadLibraryState(), loadActivityState(), loadAppColorSchemePreference()])
+        .then(([state, activity, preference]) => {
+          if (!isMounted) return;
 
-        setLibraryState(state);
-        setThemePreference(preference);
-      });
+          setLibraryState(state);
+          setActivityState(activity);
+          setThemePreference(preference);
+        })
+        .catch(() => undefined);
 
       return () => {
         isMounted = false;
       };
     }, [])
   );
+
+  // Both refresh on focus (todayKey and reloaded stores), so they roll over after midnight.
+  const wordOfDay = useMemo(() => getWordOfDay(todayKey), [todayKey]);
+  // Seeing Home means the app is open today; include it so the streak doesn't race recordAppOpen in _layout.
+  const studyStats = useMemo(
+    () => getStudyStats(libraryState, { activeDays: [...activityState.activeDays, todayKey] }),
+    [activityState, libraryState, todayKey]
+  );
+  const reviewPlan = [
+    { label: 'Từ cần ôn', value: studyStats.dueToday, icon: 'time-outline' as const },
+    { label: 'Đã nhớ', value: studyStats.mastered, icon: 'checkmark-done-outline' as const },
+    { label: 'Chuỗi ngày', value: studyStats.streak, icon: 'flame-outline' as const },
+  ];
 
   const recentSearches = useMemo(() => {
     return libraryState.searchHistory.slice(0, 4).map((item) => {
@@ -143,9 +156,6 @@ export default function HomeScreen() {
               style={styles.iconButton}>
               <Ionicons name={themePreference === 'dark' ? 'moon' : 'sunny'} size={22} color={colors.textPrimary} />
             </MotionPressable>
-            <MotionPressable accessibilityLabel="Thông báo" style={styles.iconButton}>
-              <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
-            </MotionPressable>
           </View>
         </View>
 
@@ -156,8 +166,8 @@ export default function HomeScreen() {
             <Text style={styles.heroText}>Từ điển, phát âm, collocation và flashcard nằm trong cùng một luồng học.</Text>
           </View>
           <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeNumber}>{studyStats.listeningScore}</Text>
-            <Text style={styles.heroBadgeLabel}>Pronunciation</Text>
+            <Text style={styles.heroBadgeNumber}>{studyStats.savedWords}</Text>
+            <Text style={styles.heroBadgeLabel}>Từ đã lưu</Text>
           </View>
         </View>
 

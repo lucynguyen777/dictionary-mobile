@@ -37,6 +37,7 @@ import {
 import { loadUserProfile } from '@/data/profileStore';
 import { getStoredItem, setStoredItem } from '@/data/storageAdapter';
 import { TranslationPanel } from '@/components/TranslationPanel';
+import { getDefinitionTranslationTarget, toDeepLSourceLanguage } from '@/data/translationTargets';
 import { loadAppColorSchemePreference, resolveAppColorScheme } from '@/data/appThemePreference';
 import { getLanguageByCode, languageOptions, type LanguageCode } from '@/data/languages';
 import { getReaderBackgroundPreset, readerBackgroundPresets, type ReaderBackgroundPresetId, type ReaderThemeMode } from '@/data/readerTheme';
@@ -896,6 +897,7 @@ function ReaderHighlightPanel({
   const [activeLanguageMenu, setActiveLanguageMenu] = useState<'source' | 'target' | null>(null);
   const sourceLanguage = getLanguageByCode(sourceLanguageCode, 'en');
   const targetLanguage = getLanguageByCode(targetLanguageCode, 'vi');
+  const readerTranslationTarget = getDefinitionTranslationTarget(sourceLanguage.code, targetLanguage.code);
   const selectableLanguages = languageOptions.filter((language) => language.dictionaryStatus !== 'unavailable').slice(0, 12);
 
   return (
@@ -937,7 +939,13 @@ function ReaderHighlightPanel({
         />
       </View>
 
-      <TranslationPanel sourceText={selectedHighlightText} sourceLang={sourceLanguage.code.toUpperCase()} targetLang={targetLanguage.code.toUpperCase()} />
+      {readerTranslationTarget ? (
+        <TranslationPanel
+          sourceText={selectedHighlightText}
+          sourceLang={toDeepLSourceLanguage(sourceLanguage.code)}
+          targetLang={readerTranslationTarget}
+        />
+      ) : null}
 
       <TextInput
         multiline

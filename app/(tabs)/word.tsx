@@ -1,21 +1,9 @@
-import VoiceCapturePreview from '@/components/word/VoiceCapturePreview';
-import { performOCR } from '@/data/ocr';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {
-  RecordingPresets,
-  requestRecordingPermissionsAsync,
-  setAudioModeAsync,
-  useAudioRecorder,
-} from 'expo-audio';
-import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
-  Image,
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -65,18 +53,6 @@ import {
   supportsLocalDictionary,
 } from '@/data/localLexicon';
 import { getMorphologyCandidates } from '@/data/morphology';
-import {
-  RecognitionKind,
-  RecognitionPrototypeResult,
-  createOcrPrototypeResult,
-  createSpeechToTextPrototypeResult,
-} from '@/data/recognition';
-import type { RecognitionCapturePreview } from '@/data/recognitionCapture';
-import {
-  createAudioCapturePreview,
-  createImageCapturePreview,
-  formatCapturePreviewMeta,
-} from '@/data/recognitionCapture';
 import { useToken } from '@/hooks/use-token';
 
 const { width } = Dimensions.get('window');
@@ -85,7 +61,6 @@ const TABS = ['Meaning', 'Synonyms', 'Collocation & Idiom', 'Conjugation', 'Etym
 
 type LookupStatus = 'idle' | 'loading' | 'ready' | 'error';
 type LanguageField = 'source' | 'target';
-type RecognitionStatus = 'idle' | 'requesting' | 'recording' | 'processing' | 'ready' | 'error';
 
 export default function WordScreen() {
   const insets = useSafeAreaInsets();
@@ -108,14 +83,6 @@ export default function WordScreen() {
   const [showLanguageControls, setShowLanguageControls] = useState(false);
   const [activeLanguageField, setActiveLanguageField] = useState<LanguageField | null>(null);
   const [detectedLanguage, setDetectedLanguage] = useState<LookupLanguageDetection | null>(null);
-  const [recognitionModalOpen, setRecognitionModalOpen] = useState(false);
-  const [recognitionMode, setRecognitionMode] = useState<RecognitionKind>('speech');
-  const [recognitionStatus, setRecognitionStatus] = useState<RecognitionStatus>('idle');
-  const [recognitionResult, setRecognitionResult] = useState<RecognitionPrototypeResult | null>(null);
-  const [recognitionCapturePreview, setRecognitionCapturePreview] = useState<RecognitionCapturePreview | null>(null);
-  const [recognitionError, setRecognitionError] = useState('');
-  const [capturePreviewVisible, setCapturePreviewVisible] = useState(false);
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scrollRef = useRef<ScrollView | null>(null);
   const sourceLanguage = getLanguageByCode(getRouteParam(params.sourceLang), 'en');
   const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
@@ -411,126 +378,6 @@ export default function WordScreen() {
     Alert.alert('Cập nhật trong phiên bản sau', message);
   };
 
-  const closeRecognitionModal = async () => {
-    await stopSpeechRecording();
-    setRecognitionModalOpen(false);
-  };
-
-  const stopSpeechRecording = async () => {
-    if (recognitionStatus !== 'recording') return null;
-
-    try {
-      await audioRecorder.stop();
-      return audioRecorder.uri;
-    } catch {
-      return audioRecorder.uri;
-    } finally {
-      await setAudioModeAsync({ allowsRecording: false });
-    }
-  };
-
-  const handleStartSpeechPrototype = async () => {
-    setRecognitionStatus('requesting');
-    setRecognitionError('');
-    setRecognitionResult(null);
-
-    try {
-      const permission = await requestRecordingPermissionsAsync();
-      if (!permission.granted) {
-        throw new Error('Cần quyền microphone để thử luồng tra bằng giọng nói.');
-      }
-
-      await setAudioModeAsync({
-        allowsRecording: true,
-        playsInSilentMode: true,
-      });
-
-      await audioRecorder.prepareToRecordAsync();
-      audioRecorder.record();
-      setRecognitionStatus('recording');
-    } catch (error) {
-      setRecognitionStatus('error');
-      setRecognitionError(error instanceof Error ? error.message : 'Chưa thể bắt đầu ghi âm.');
-    }
-  };
-
-  const handleCapture = async (uri: string) => {
-    setCapturePreviewVisible(false);
-    setRecognitionMode('ocr');
-    setRecognitionStatus('processing');
-    setRecognitionCapturePreview(createImageCapturePreview({ uri, source: 'camera' }));
-    try {
-      const ocrResult = await performOCR(uri, sourceLanguage.code);
-      setRecognitionResult(createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri: uri, ocrResult }));
-      setRecognitionStatus('ready');
-      setRecognitionModalOpen(true);
-    } catch {
-      setRecognitionError('OCR processing failed');
-      setRecognitionStatus('error');
-      setRecognitionModalOpen(true);
-    }
-  };
-
-  const handleFinishSpeechPrototype = async () => {
-    setRecognitionStatus('processing');
-    setRecognitionError('');
-
-    const durationMs = audioRecorder.getStatus().durationMillis;
-    const audioUri = await stopSpeechRecording();
-    setRecognitionCapturePreview(createAudioCapturePreview({ uri: audioUri, durationMs }));
-    setRecognitionResult(createSpeechToTextPrototypeResult({ languageCode: sourceLanguage.code, audioUri }));
-    setRecognitionStatus('ready');
-  };
-
-  const handlePickOcrPrototypeImage = async () => {
-    setRecognitionStatus('requesting');
-    setRecognitionError('');
-    setRecognitionResult(null);
-    setRecognitionCapturePreview(null);
-
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        throw new Error('Cần quyền thư viện ảnh để thử luồng OCR.');
-      }
-
-      const pickerResult = await ImagePicker.launchImageLibraryAsync({
-        allowsEditing: false,
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
-      });
-
-      if (pickerResult.canceled) {
-        setRecognitionStatus('idle');
-        return;
-      }
-
-      setRecognitionStatus('processing');
-      const imageAsset = pickerResult.assets[0];
-      const imageUri = imageAsset?.uri ?? null;
-      setRecognitionCapturePreview(
-        createImageCapturePreview({
-          uri: imageUri,
-          width: imageAsset?.width,
-          height: imageAsset?.height,
-          sizeBytes: imageAsset?.fileSize,
-          source: 'library',
-        })
-      );
-      const ocrResult = imageUri ? await performOCR(imageUri, sourceLanguage.code) : undefined;
-      setRecognitionResult(createOcrPrototypeResult({ languageCode: sourceLanguage.code, imageUri, ocrResult }));
-      setRecognitionStatus('ready');
-    } catch (error) {
-      setRecognitionStatus('error');
-      setRecognitionError(error instanceof Error ? error.message : 'Chưa thể chọn ảnh OCR.');
-    }
-  };
-
-  const handleUseRecognitionText = (text: string) => {
-    selectWord(text);
-    setRecognitionModalOpen(false);
-  };
-
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
       <View style={styles.lookupPanel}>
@@ -588,7 +435,7 @@ export default function WordScreen() {
           {showLanguageControls ? (
             <View style={styles.recognitionActionRow}>
               <TouchableOpacity
-                accessibilityLabel="Voice search will be updated in a later version"
+                accessibilityLabel="Tìm bằng giọng nói: cập nhật trong phiên bản sau"
                 activeOpacity={0.82}
                 onPress={() => showFutureFeatureNotice('Voice Search cần dev-client/native STT và kiểm thử quyền microphone trước khi mở production.')}
                 style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
@@ -596,7 +443,7 @@ export default function WordScreen() {
                 <Text style={styles.recognitionActionText}>Voice</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                accessibilityLabel="OCR lookup will be updated in a later version"
+                accessibilityLabel="Tra cứu qua ảnh (OCR): cập nhật trong phiên bản sau"
                 activeOpacity={0.82}
                 onPress={() => showFutureFeatureNotice('OCR Camera Lookup cần dev-client/native OCR engine và dữ liệu kiểm thử ảnh trước khi mở production.')}
                 style={[styles.recognitionActionButton, styles.futureRecognitionButton]}>
@@ -730,207 +577,7 @@ export default function WordScreen() {
         scrollRef={scrollRef}
         onIndexChange={setActiveIndex}
       />
-      <RecognitionPrototypeModal
-        error={recognitionError}
-        mode={recognitionMode}
-        preview={recognitionCapturePreview}
-        result={recognitionResult}
-        status={recognitionStatus}
-        sourceLanguage={sourceLanguage}
-        visible={recognitionModalOpen}
-        onClose={closeRecognitionModal}
-        onOpenCamera={() => setCapturePreviewVisible(true)}
-        onPickImage={handlePickOcrPrototypeImage}
-        onStartSpeech={handleStartSpeechPrototype}
-        onStopSpeech={handleFinishSpeechPrototype}
-        onUseText={handleUseRecognitionText}
-      />
-      <VoiceCapturePreview
-        visible={capturePreviewVisible}
-        onClose={() => setCapturePreviewVisible(false)}
-        onCapture={handleCapture}
-      />
     </View>
-  );
-}
-
-function RecognitionPrototypeModal({
-  error,
-  mode,
-  preview,
-  result,
-  status,
-  sourceLanguage,
-  visible,
-  onClose,
-  onOpenCamera,
-  onPickImage,
-  onStartSpeech,
-  onStopSpeech,
-  onUseText,
-}: {
-  error: string;
-  mode: RecognitionKind;
-  preview: RecognitionCapturePreview | null;
-  result: RecognitionPrototypeResult | null;
-  status: RecognitionStatus;
-  sourceLanguage: LanguageOption;
-  visible: boolean;
-  onClose: () => void;
-  onOpenCamera: () => void;
-  onPickImage: () => void;
-  onStartSpeech: () => void;
-  onStopSpeech: () => void;
-  onUseText: (text: string) => void;
-}) {
-  const token = useToken();
-  const styles = useMemo(() => createWordStyles(token), [token]);
-  const { colors } = token;
-  const isSpeechMode = mode === 'speech';
-  const isBusy = status === 'requesting' || status === 'processing';
-
-  return (
-    <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
-      <View style={styles.recognitionBackdrop}>
-        <View style={styles.recognitionSheet}>
-          <View style={styles.recognitionHeader}>
-            <View>
-              <Text style={styles.recognitionEyebrow}>{sourceLanguage.label}</Text>
-              <Text style={styles.recognitionTitle}>{isSpeechMode ? 'Voice Search' : 'OCR Lookup'}</Text>
-            </View>
-            <TouchableOpacity
-              accessibilityLabel="Close recognition prototype"
-              activeOpacity={0.78}
-              onPress={onClose}
-              style={styles.recognitionCloseButton}>
-              <Ionicons name="close" size={20} color={colors.textPrimary} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.recognitionStatusCard}>
-            <View style={styles.recognitionStatusIcon}>
-              {isBusy ? (
-                <ActivityIndicator color={colors.accentSuccess} />
-              ) : (
-                <Ionicons
-                  name={isSpeechMode ? (status === 'recording' ? 'radio-button-on' : 'mic-outline') : 'image-outline'}
-                  size={24}
-                  color={status === 'recording' ? colors.accentError : colors.accentSuccess}
-                />
-              )}
-            </View>
-            <View style={styles.recognitionStatusCopy}>
-              <Text style={styles.recognitionStatusTitle}>{getRecognitionStatusTitle(mode, status)}</Text>
-              <Text style={styles.recognitionStatusText}>{getRecognitionStatusText(mode, status)}</Text>
-            </View>
-          </View>
-
-          {error ? <Text style={styles.recognitionError}>{error}</Text> : null}
-
-          {preview ? (
-            <View style={styles.recognitionPreviewCard}>
-              {preview.kind === 'image' ? (
-                <Image source={{ uri: preview.uri }} style={styles.recognitionPreviewImage} />
-              ) : (
-                <View style={styles.recognitionPreviewAudio}>
-                  <Ionicons name="musical-notes" size={20} color={colors.accentSuccess} />
-                </View>
-              )}
-              <View style={styles.recognitionPreviewCopy}>
-                <Text style={styles.recognitionPreviewTitle}>
-                  {preview.kind === 'audio' ? 'Âm thanh đã ghi' : preview.source === 'camera' ? 'Ảnh đã chụp' : 'Ảnh đã chọn'}
-                </Text>
-                <Text numberOfLines={1} style={styles.recognitionPreviewMeta}>
-                  {formatCapturePreviewMeta(preview)}
-                </Text>
-              </View>
-            </View>
-          ) : null}
-
-          {result ? (
-            <View style={styles.recognitionResultBlock}>
-              <Text style={styles.recognitionResultLabel}>{getRecognitionResultLabel(result)}</Text>
-              <Text style={styles.recognitionResultText}>{result.text}</Text>
-              <Text style={styles.recognitionNotice}>{result.notice}</Text>
-              {result.ocrResult?.blocks.length ? (
-                <View style={styles.recognitionOcrLines}>
-                  {result.ocrResult.blocks.flatMap((block) => block.lines).map((line) => (
-                    <TouchableOpacity
-                      key={line.id}
-                      activeOpacity={0.82}
-                      onPress={() => onUseText(line.text)}
-                      style={styles.recognitionOcrLine}>
-                      <Text numberOfLines={1} style={styles.recognitionOcrLineText}>
-                        {line.text}
-                      </Text>
-                      {typeof line.confidence === 'number' ? (
-                        <Text style={styles.recognitionOcrConfidence}>{Math.round(line.confidence * 100)}%</Text>
-                      ) : null}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : null}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recognitionSuggestionRow}>
-                {result.suggestions.map((suggestion) => (
-                  <TouchableOpacity
-                    key={suggestion}
-                    activeOpacity={0.82}
-                    onPress={() => onUseText(suggestion)}
-                    style={styles.recognitionSuggestionChip}>
-                    <Text style={styles.recognitionSuggestionText}>{suggestion}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          ) : null}
-
-          <View style={styles.recognitionFooter}>
-            {isSpeechMode ? (
-              <TouchableOpacity
-                accessibilityLabel={status === 'recording' ? 'Stop voice recording prototype' : 'Start voice recording prototype'}
-                activeOpacity={0.84}
-                disabled={isBusy}
-                onPress={status === 'recording' ? onStopSpeech : onStartSpeech}
-                style={[
-                  styles.recognitionPrimaryButton,
-                  status === 'recording' && styles.recognitionStopButton,
-                  isBusy && styles.recognitionDisabledButton,
-                ]}>
-                <Ionicons name={status === 'recording' ? 'stop-circle' : 'mic'} size={18} color={colors.textOnAccent} />
-                <Text style={styles.recognitionPrimaryText}>{status === 'recording' ? 'Dừng ghi' : 'Bắt đầu'}</Text>
-              </TouchableOpacity>
-            ) : (
-              <>
-                <TouchableOpacity
-                  accessibilityLabel="Pick OCR prototype image"
-                  activeOpacity={0.84}
-                  disabled={isBusy}
-                  onPress={onPickImage}
-                  style={[styles.recognitionPrimaryButton, isBusy && styles.recognitionDisabledButton]}>
-                  <Ionicons name="image" size={18} color={colors.textOnAccent} />
-                  <Text style={styles.recognitionPrimaryText}>Chọn ảnh</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  accessibilityLabel="Open OCR camera preview"
-                  activeOpacity={0.82}
-                  disabled={isBusy}
-                  onPress={onOpenCamera}
-                  style={[styles.recognitionSecondaryButton, isBusy && styles.recognitionDisabledButton]}>
-                  <Ionicons name="camera" size={17} color={colors.accentSuccess} />
-                  <Text style={styles.recognitionSecondaryText}>Camera</Text>
-                </TouchableOpacity>
-              </>
-            )}
-            {result ? (
-              <TouchableOpacity activeOpacity={0.82} onPress={() => onUseText(result.suggestions[0] ?? result.text)} style={styles.recognitionSecondaryButton}>
-                <Ionicons name="search" size={17} color={colors.accentSuccess} />
-                <Text style={styles.recognitionSecondaryText}>Tra kết quả</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        </View>
-      </View>
-    </Modal>
   );
 }
 
@@ -1188,39 +835,6 @@ function getBilingualDictionaryUnavailableMessage(sourceLanguage: LanguageOption
   }
 
   return `Cập nhật trong phiên bản sau: chưa có nguồn dữ liệu từ điển ${sourceLanguage.label} sang ${targetLanguage.label} đủ tin cậy.`;
-}
-
-function getRecognitionStatusTitle(mode: RecognitionKind, status: RecognitionStatus) {
-  if (status === 'requesting') return 'Đang xin quyền';
-  if (status === 'recording') return 'Đang ghi âm';
-  if (status === 'processing') return 'Đang xử lý';
-  if (status === 'ready') return mode === 'speech' ? 'Đã có transcript' : 'Đã có text OCR';
-  if (status === 'error') return 'Cần thử lại';
-
-  return mode === 'speech' ? 'Sẵn sàng ghi âm' : 'Sẵn sàng chọn ảnh';
-}
-
-function getRecognitionResultLabel(result: RecognitionPrototypeResult) {
-  if (result.kind === 'ocr') {
-    return result.engineStatus === 'native-ready' ? 'OCR candidates' : 'OCR readiness candidates';
-  }
-
-  return 'Kết quả thử nghiệm';
-}
-
-function getRecognitionStatusText(mode: RecognitionKind, status: RecognitionStatus) {
-  if (status === 'requesting') {
-    return mode === 'speech' ? 'Kiểm tra quyền microphone trên thiết bị.' : 'Kiểm tra quyền thư viện ảnh trên thiết bị.';
-  }
-
-  if (status === 'recording') return 'Dừng ghi để tạo transcript thử nghiệm.';
-  if (status === 'processing') return 'Luồng capture đã nhận dữ liệu cục bộ và đang tạo kết quả thử nghiệm.';
-  if (status === 'ready') return 'Chọn một chip hoặc tra ngay kết quả đầu tiên.';
-  if (status === 'error') return 'Quyền hoặc capture chưa sẵn sàng trên môi trường này.';
-
-  return mode === 'speech'
-    ? 'Prototype này chỉ giữ audio cục bộ và chưa gửi lên dịch vụ ngoài.'
-    : 'Prototype này chỉ chọn ảnh cục bộ và chưa gửi lên dịch vụ ngoài.';
 }
 
 function createDictionaryUnavailableEntry(
@@ -1606,242 +1220,6 @@ return StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     marginTop: 3,
-  },
-  recognitionBackdrop: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.48)',
-    flex: 1,
-    justifyContent: 'center',
-    padding: 18,
-  },
-  recognitionSheet: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    maxWidth: 430,
-    padding: 16,
-    width: '100%',
-  },
-  recognitionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  recognitionEyebrow: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  recognitionTitle: {
-    color: colors.textPrimary,
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  recognitionCloseButton: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.md,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
-  },
-  recognitionStatusCard: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 14,
-    padding: 12,
-  },
-  recognitionStatusIcon: {
-    alignItems: 'center',
-    backgroundColor: colors.statusSuccess,
-    borderRadius: radius.md,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  recognitionStatusCopy: {
-    flex: 1,
-  },
-  recognitionStatusTitle: {
-    color: colors.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  recognitionStatusText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 17,
-    marginTop: 3,
-  },
-  recognitionError: {
-    backgroundColor: colors.statusError,
-    borderColor: colors.accentError,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    color: colors.accentError,
-    fontSize: 12,
-    fontWeight: '800',
-    lineHeight: 17,
-    marginTop: 12,
-    padding: 10,
-  },
-  recognitionPreviewCard: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
-    padding: 10,
-  },
-  recognitionPreviewImage: {
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.md,
-    height: 52,
-    width: 52,
-  },
-  recognitionPreviewAudio: {
-    alignItems: 'center',
-    backgroundColor: colors.statusSuccess,
-    borderRadius: radius.md,
-    height: 52,
-    justifyContent: 'center',
-    width: 52,
-  },
-  recognitionPreviewCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  recognitionPreviewTitle: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  recognitionPreviewMeta: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  recognitionResultBlock: {
-    marginTop: 14,
-  },
-  recognitionResultLabel: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  recognitionResultText: {
-    color: colors.textPrimary,
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 5,
-  },
-  recognitionNotice: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 17,
-    marginTop: 7,
-  },
-  recognitionOcrLines: {
-    gap: 7,
-    marginTop: 10,
-  },
-  recognitionOcrLine: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.borderDefault,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'space-between',
-    minHeight: 36,
-    paddingHorizontal: 10,
-  },
-  recognitionOcrLineText: {
-    color: colors.textPrimary,
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  recognitionOcrConfidence: {
-    color: colors.accentSuccess,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  recognitionSuggestionRow: {
-    gap: 8,
-    paddingTop: 12,
-  },
-  recognitionSuggestionChip: {
-    backgroundColor: colors.statusSuccess,
-    borderColor: colors.accentSuccess,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  recognitionSuggestionText: {
-    color: colors.accentSuccess,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  recognitionFooter: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 16,
-  },
-  recognitionPrimaryButton: {
-    alignItems: 'center',
-    backgroundColor: colors.accentSuccess,
-    borderRadius: radius.md,
-    flexDirection: 'row',
-    gap: 7,
-    minHeight: 42,
-    paddingHorizontal: 14,
-  },
-  recognitionStopButton: {
-    backgroundColor: colors.accentError,
-  },
-  recognitionDisabledButton: {
-    opacity: 0.7,
-  },
-  recognitionPrimaryText: {
-    color: colors.textOnAccent,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  recognitionSecondaryButton: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.accentSuccess,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 7,
-    minHeight: 42,
-    paddingHorizontal: 14,
-  },
-  recognitionSecondaryText: {
-    color: colors.accentSuccess,
-    fontSize: 13,
-    fontWeight: '700',
   },
 });
 }

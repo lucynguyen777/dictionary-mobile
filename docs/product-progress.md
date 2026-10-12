@@ -35,7 +35,7 @@ File này là checklist tiến độ chính của dự án. Sau mỗi bước tr
 | Multilingual Architecture | 88% | Adapter architecture ready with v1.3.6 source smoke | Most languages remain fixture/Wiktionary preview | Language corpus expansion |
 | Supabase Auth | 75% | Implemented and env-gated | Redirect allow-list, production smoke, copy | v1.3.0 auth/guest polish |
 | Cloud Sync | 40% | Manual beta runner exists but does not sync data yet | Push sends only `{id, user_id}` and pull applies only deletions (2026-10 audit) | v1.5.0 Cloud Sync Data Path |
-| AI Infrastructure | 60% | Backend proxy hardened (v1.4.0); web only | Native base URL unset, provider env, durable quota | v1.4.1 Product Truth Fixes |
+| AI Infrastructure | 70% | Backend proxy hardened (v1.4.0); native URL wired (v1.4.1) | Provider env, durable quota, authenticated smoke | AI/provider production gates |
 | OCR Infrastructure | 70% | Contracts/preview/provider registry plus Chandra request boundary | Native/dev-client and live Chandra service smoke | OCR backend/native smoke |
 | Real OCR Engine | 30% | Scanned PDF request path exists but live endpoint/camera OCR still gated | Chandra backend and MLKit dev-client validation | OCR backend/native smoke |
 | Pronunciation Assessment | 10% | Decision accepted only | Azure backend upload/proxy/privacy/quota | Speech scoring MVP |
@@ -58,7 +58,7 @@ Note: no area is currently 100%. `95%` rows are production-ready for local-first
 | Language Production Parity | 35% | Limited production parity | English, Vietnamese, supported `en->vi`, `vi->en`, `fr->vi`; 34-language inventory exists | Corpus size/source/offline/UI smoke for preview languages | Language Source And Corpus Smoke |
 | Supabase Auth | 75% | Implemented and env-gated | SecureStore/web token storage, sign-in/up/recovery/callback/session lifecycle UI | Redirect allow-list and production auth smoke | Supabase Auth And Cloud Sync Production Smoke |
 | Cloud Sync | 40% | Manual beta runner exists but does not sync data yet | SQL/RLS, PGlite RLS tests, client/local/runtime ports, manual runner and lifecycle tests | Push omits row data (no `remoteRow` mapping) and pull ignores inserts/updates | v1.5.0 Cloud Sync Data Path |
-| AI/Translation | 60% | Backend-proxy gated; web only | Vercel proxy, DeepL text translation, AI Tutor, v1.4.0 system-role/error/CORS hardening, no-overshoot quota | Native proxy base URL, provider env, durable quota, authenticated smoke | v1.4.1 Product Truth Fixes |
+| AI/Translation | 70% | Backend-proxy gated | Vercel proxy, DeepL text translation with pair-aware targets, AI Tutor, v1.4.0 hardening, native proxy URL | Provider env, durable quota, authenticated smoke | Provider Feature Gates |
 | OCR | 70% | Architecture ready; engines gated | OCR contracts, capture previews, provider registry, Chandra service, scanned-PDF hook, JSON/base64 request boundary | Live Chandra endpoint config and MLKit dev-client smoke | Reader OCR endpoint smoke |
 | Pronunciation | 10% | Decision accepted only | Recording playback and Azure decision prep | Azure upload/proxy/privacy/quota/fake-provider tests | Provider Feature Gates |
 | Google Sheets | 15% | Accepted/staged | Backend-mediated OAuth decision and export contract plan | Google Cloud OAuth, token storage, fake client tests | Provider Feature Gates |
@@ -175,6 +175,12 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 ## Current Baseline
 - 2026-10 audit and completion plan: `docs/completion-plan.md`.
 - Latest completed commits:
+  - `f165651` fix(home): count today in the streak while app-open is still recording
+  - `555402b` fix(word): stop presenting fixture OCR text as recognition results
+  - `57e3a1c` fix(translate): translate into the lookup's target language
+  - `9223b45` fix(advanced): open the working AI Tutor instead of a disabled copy
+  - `d31a1a6` fix(proxy-client): reach the backend proxy from native builds
+  - `3b45f9f` fix(home): show real study stats instead of hardcoded numbers
   - `0673cfb` fix(db): upgrade SQLite schema in place instead of re-importing
   - `acc6cc4` fix(proxy): harden AI and translation proxy boundaries
   - `e7ee1e7` fix(sheets): bind Google OAuth completion to the signed-in user
@@ -183,13 +189,22 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 
 ## Next Work Module
 
-**Module: v1.4.1 Product Truth Fixes** - TODO
+**Module: v1.4.1 Product Truth Fixes** - DONE
 - Module Completion Plan: make every visible UI claim match runtime behavior (plan Phase 1 in `docs/completion-plan.md`).
-- [ ] TODO [EASY]: Home stats from `libraryStore`/`activityStore` instead of hardcoded `data/dictionary.ts` values; word of the day per current date.
-- [ ] TODO [EASY]: Native backend proxy base URL via `EXPO_PUBLIC_BACKEND_PROXY_URL` and a shared Supabase client in `data/backendProxyClient.ts`.
-- [ ] TODO [EASY]: Replace the disabled AI panel in `advanced.tsx` with a link to the working AI Tutor.
-- [ ] TODO [EASY]: Word-tab translation target follows the selected pair/native language instead of hardcoded `VI`.
-- [ ] TODO [EASY]: Camera OCR never returns fixture text outside tests; remove the unreachable recognition modal or wire it.
+- Acceptance criteria: no hardcoded stats or fixture recognition output in production paths; provider features are reachable on native when configured; translation targets follow the lookup pair; duplicate disabled AI UI removed.
+- [x] DONE [EASY]: Home stats (due, mastered, streak, saved words) come from `data/studyStats.ts` over local flashcards/activity; mock `studyStats` and the fake pronunciation score are removed; Advanced uses the same due definition; word of the day rolls over on focus.
+- [x] DONE [EASY]: Native builds call the proxy at `EXPO_PUBLIC_BACKEND_PROXY_URL` (set in EAS preview/production) and fail fast with `backend_proxy_unconfigured` otherwise; proxy calls and auth share one Supabase client.
+- [x] DONE [EASY]: The Training tab's disabled AI panel is replaced by navigation to the working AI Tutor.
+- [x] DONE [EASY]: Word/Reader translation targets follow the pair (monolingual lookups translate into Vietnamese) via `data/translationTargets.ts`, mapped to DeepL codes and hidden when unsupported.
+- [x] DONE [EASY]: `performOCR` throws `OcrEngineUnavailableError` instead of returning fixture text; the unreachable recognition modal is removed from `word.tsx`; `e2e/word-recognition.spec.js` asserts the later-version state.
+- Known pre-existing issue: `e2e/profile-offline-pack.spec.js` also fails on `main` (expected offline-pack status text not found); tracked for the next UI module.
+
+**Module: v1.5.0 Cloud Sync Data Path** - TODO
+- Module Completion Plan: plan Phase 2 in `docs/completion-plan.md`.
+- [ ] TODO [HARD]: Map dirty SQLite rows to full remote rows (`supabaseSyncMappers`) on push; fix conflict targets for tables without `id`.
+- [ ] TODO [HARD]: Apply remote inserts/updates on pull with last-writer-wins on `updated_at`/`remote_version`, keeping tombstones.
+- [ ] TODO [MEDIUM]: Paginated `(updated_at, id)` pull cursor.
+- [ ] TODO [HARD]: Two-client sync integration tests against PGlite Supabase schema.
 
 **Module: Kannada Native Source And Inflected-Relations Readiness** - DONE WITH SECTION-FILTER GATE
 - Module Completion Plan: validate Kannada Wiktionary as a mixed-language native-edition extraction candidate and reuse conservative suffix fallback for related words without broad glide/sandhi guessing.

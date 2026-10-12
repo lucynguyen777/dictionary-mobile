@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { translateText, type TranslateTextResponse } from '@/data/backendProxyClient';
+import { languageOptions } from '@/data/languages';
 import { useToken } from '@/hooks/use-token';
 
 interface TranslationPanelProps {
   sourceText: string;
-  targetLang?: string; // Default: 'VI'
+  targetLang?: string; // DeepL target code, e.g. 'VI' or 'EN-US'. Default: 'VI'
   sourceLang?: string;
 }
 
@@ -45,11 +46,10 @@ export function TranslationPanel({
   };
 
   const getLanguageLabel = (code: string) => {
-    switch (code.toUpperCase()) {
-      case 'VI': return 'Tiếng Việt';
-      case 'EN': return 'Tiếng Anh';
-      default: return code.toUpperCase();
-    }
+    const baseCode = code.split('-')[0].toLowerCase();
+    if (baseCode === 'vi') return 'Tiếng Việt';
+    if (baseCode === 'en') return 'Tiếng Anh';
+    return languageOptions.find((language) => language.code === baseCode)?.label ?? code.toUpperCase();
   };
 
   return (
