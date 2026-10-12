@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
@@ -33,21 +33,25 @@ import { DataStat, ProfileMetric } from '@/components/profile/Metrics';
 import { styles } from '@/components/profile/styles';
 import { clearAllLocalData } from '@/data/clearLocalData';
 import DeleteAccountForm from '@/components/profile/DeleteAccountForm';
+import { legalUrls } from '@/data/legalLinks';
 
 
 const legalLinks = [
   {
     icon: 'document-text-outline' as const,
-    message: 'Điều khoản sử dụng sẽ được hoàn thiện trước khi phát hành công khai. Hiện app đang chạy local-first.',
+    message: 'Dữ liệu học tập nằm trên thiết bị của bạn. Các tính năng cloud (đồng bộ, dịch, AI, chấm phát âm) cần đăng nhập và có giới hạn sử dụng hằng ngày.',
     title: 'Điều khoản',
+    url: legalUrls.terms,
   },
   {
     icon: 'shield-checkmark-outline' as const,
-    message: 'Dictionary Mobile hiện lưu dữ liệu học tập trên thiết bị. Đồng bộ cloud và chia sẻ dữ liệu sẽ cần xác nhận riêng.',
+    message: 'Dữ liệu học tập nằm trên thiết bị. Chỉ khi bạn bật Đồng bộ cloud, dùng dịch/AI hoặc gửi bản ghi để chấm điểm thì dữ liệu tương ứng mới được gửi lên máy chủ. Bản ghi âm không được lưu.',
     title: 'Chính sách riêng tư',
+    url: legalUrls.privacyPolicy,
   },
   {
     icon: 'information-circle-outline' as const,
+    url: null,
     message: 'Ứng dụng dùng Expo, React Native và các nguồn dữ liệu/adapter từ điển được tách theo giấy phép tương ứng. Offline dictionary pack sẽ ghi rõ nguồn Wiktionary/Kaikki và giấy phép CC BY-SA/GFDL trước khi cho tải hoặc hiển thị dữ liệu.',
     title: 'Ghi nhận',
   },
@@ -537,7 +541,9 @@ export default function ProfileScreen() {
                 <SidebarActionRow
                   icon="book-outline"
                   label="Trung tâm trợ giúp"
-                  onPress={() => Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp sẽ mở khi chọn kênh hỗ trợ chính thức.', [{ text: 'OK' }])}
+                  onPress={() => (legalUrls.helpCenter
+                    ? Linking.openURL(legalUrls.helpCenter).catch(() => undefined)
+                    : Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp chưa được xuất bản. Bạn có thể dùng "Gửi phản hồi" để hỏi trực tiếp.', [{ text: 'OK' }]))}
                 />
                 <SidebarActionRow
                   badge={authSession.status === 'authenticated' ? undefined : authSession.status === 'unconfigured' ? 'Chưa cấu hình' : 'Cần đăng nhập'}
@@ -602,7 +608,7 @@ export default function ProfileScreen() {
                   <Pressable
                     accessibilityRole="button"
                     key={item.title}
-                    onPress={() => Alert.alert(item.title, item.message, [{ text: 'OK' }])}
+                    onPress={() => (item.url ? Linking.openURL(item.url).catch(() => Alert.alert(item.title, item.message)) : Alert.alert(item.title, item.message, [{ text: 'OK' }]))}
                     style={({ pressed }) => [styles.sidebarLegalLink, pressed && styles.sidebarLegalLinkPressed]}>
                     <Ionicons name={item.icon} size={15} color="#5D5B54" />
                     <Text style={styles.sidebarLegalLinkText}>{item.title}</Text>
