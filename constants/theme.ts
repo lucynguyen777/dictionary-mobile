@@ -286,7 +286,9 @@ export const DesignSystem = {
       textSecondary: '#a1a1aa',
       textTertiary: '#71717a',
       textInverse: '#11181C',
-      textOnAccent: '#ffffff',
+      // Dark ink: the dark-theme accents (#a78bfa, #22d3ee) are light, so white text on them is ~2.7:1;
+      // this ink gives ~6.7:1 on accentPrimary and ~10:1 on accentNeo (WCAG AA).
+      textOnAccent: '#1c1033',
       textOnHero: '#f8fafc',
       textOnHeroMuted: '#c7c7d1',
       textOnPastel: '#0f172a',
