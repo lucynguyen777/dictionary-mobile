@@ -7,9 +7,10 @@ import Touchable from '@/components/app/Touchable';
 import { DictionaryEntry } from '@/data/dictionary';
 
 import { EmptyState, PreviewNotice } from '@/components/word/tabs/common';
+import { PronunciationScoreCard } from '@/components/word/tabs/PronunciationScoreCard';
 import { useTabPagerStyles, useTabPagerToken } from '@/components/word/tabs/tabPagerStyles';
 
-export function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
+export function PronunciationTab({ entry, language }: { entry: DictionaryEntry; language: string }) {
   const styles = useTabPagerStyles();
   const { colors } = useTabPagerToken();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -88,7 +89,7 @@ export function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
     <View>
       <PreviewNotice
         title="Ghi âm phát âm"
-        text="Bạn có thể ghi âm và phát lại phát âm của mình. Căn chỉnh phoneme và chấm điểm sẽ thuộc phase sau."
+        text="Ghi âm, nghe lại, rồi gửi bản ghi để Microsoft Azure chấm điểm theo từ và âm vị."
       />
       <View style={styles.recordingCard}>
         <View style={styles.recordingCopy}>
@@ -117,6 +118,9 @@ export function PronunciationTab({ entry }: { entry: DictionaryEntry }) {
           </Touchable>
         </View>
       </View>
+      {recordedUri && !isRecording ? (
+        <PronunciationScoreCard audioUri={recordedUri} key={recordedUri} language={language} referenceText={entry.word} />
+      ) : null}
       <Text style={styles.sectionTitle}>Hướng dẫn IPA</Text>
       <Text style={styles.body}>Dùng nút loa phía trên để nghe phát âm mẫu của {entry.word}.</Text>
       <View style={styles.tableHeader}>

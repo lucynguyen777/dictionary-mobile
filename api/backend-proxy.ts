@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import { createClient } from '@supabase/supabase-js';
+import ffmpegPath from 'ffmpeg-static';
 
 import { createServer } from '../backend/server';
 import { createSupabaseFeedbackStore, type FeedbackStore } from '../backend/feedback';
@@ -60,6 +61,8 @@ export function createBackendProxyHandler({
     env,
     feedbackStore,
     googleSheetsStore,
+    // Transcodes pronunciation recordings in memory before they go to Azure.
+    pronunciation: { ffmpegPath },
     verifyAuth,
   });
 

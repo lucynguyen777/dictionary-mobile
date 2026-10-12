@@ -15,7 +15,8 @@ import {
 type ConsumeRow = { allowed: boolean; daily_used: number | string; exceeded: 'daily' | 'monthly' | null; monthly_used: number | string };
 
 // PostgREST / Postgres codes for "function or table does not exist": migration 011 is not applied yet.
-const MISSING_SCHEMA_CODES = new Set(['PGRST202', 'PGRST205', '42883', '42P01']);
+// 23514 (check violation) means the table predates a feature (migration 013 adds 'pronunciation').
+const MISSING_SCHEMA_CODES = new Set(['PGRST202', 'PGRST205', '42883', '42P01', '23514']);
 
 function isMissingSchema(error: unknown) {
   return MISSING_SCHEMA_CODES.has(String((error as { code?: unknown } | null)?.code ?? ''));

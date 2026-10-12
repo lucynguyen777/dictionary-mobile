@@ -775,8 +775,8 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 ### Pronunciation
 - [x] DONE: Audio-only pronunciation in lookup.
 - [x] DONE [MEDIUM]: Record user pronunciation (commit `8764019`).
-- [ ] TODO [HARD]: IPA comparison with per-phoneme alignment and scoring is accepted/staged through Azure AI Speech Pronunciation Assessment, backend upload/proxy, quota, privacy copy, retention policy, and fake-provider tests.
-- [ ] TODO [HARD]: Phoneme-level scoring table must use provider-backed Azure output only; no fake scores.
+- [~] IN PROGRESS [HARD]: Pronunciation scoring through Azure AI Speech Pronunciation Assessment (owner decision D6: audio never stored, 20 scores per user per day). `POST /proxy/pronunciation/assess` validates the recording and word, checks quota before anything leaves the server, transcodes the recording in memory with ffmpeg to 16 kHz mono WAV, and returns Azure's overall/accuracy/fluency/completeness, word and phoneme scores (`backend/pronunciationAssessment.ts`, `tests/pronunciationAssessment.test.ts`). The Pronunciation tab sends a recording only when the learner taps "Gửi bản ghi để chấm điểm", with copy saying where it goes. Production needs `AZURE_SPEECH_KEY`/`AZURE_SPEECH_REGION` on Vercel, migration 013 for the durable counter, and a first-language smoke.
+- [x] DONE [HARD]: Phoneme-level scores come only from Azure output; when Azure returns none for a language the tab says so instead of inventing rows.
 - [ ] TODO [MEDIUM]: Visual pronunciation guidance can start with provider-backed score rows and static local guidance; GIF/content pipeline remains optional later work.
 
 ## Learning Tools
@@ -1219,7 +1219,7 @@ Recommended execution order: French, Malay, Spanish; Latin fixture previews; agg
 - [!] BLOCKED [HARD]: DeepL/OpenAI live smoke cannot run because `DEEPL_API_BASE_URL`, `DEEPL_API_KEY`, `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL`, and Supabase auth env are missing.
 - [~] IN PROGRESS [HARD]: Google Sheets OAuth web client and Vercel client env are configured; backend OAuth/export implementation is active, while secure refresh-token persistence still requires `SUPABASE_SERVICE_ROLE_KEY` and `USER_PROVIDER_SECRET_ENCRYPTION_KEY`.
 - [!] BLOCKED [HARD]: Feedback/account deletion backend cannot proceed because Supabase/Resend/admin backend setup is not available.
-- [!] BLOCKED [HARD]: Azure pronunciation scoring cannot proceed because Azure Speech credentials and backend audio upload/privacy/quota contract are not configured.
+- [~] IN PROGRESS [HARD]: Azure pronunciation scoring is built (decision D6); only the Azure Speech credentials on Vercel, migration 013 and a first-language smoke remain.
 - [x] DONE [MEDIUM]: Added `docs/provider-feature-gates-status.md` with exact setup steps and no-secret rules.
 
 **Module: v1.3.5 Completion Dashboard And Version Roadmap Sync** - DONE

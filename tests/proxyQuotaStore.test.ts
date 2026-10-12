@@ -11,6 +11,7 @@ const BOB = '00000000-0000-4000-8000-0000000000b1';
 
 const LIMITS: BackendProxyLimits = {
   dailyAiRequestLimitPerUser: 3,
+  dailyPronunciationLimitPerUser: 20,
   dailyTranslationCharacterLimitPerUser: 100,
   maxGlossaryEntries: 1_000,
   maxTextInputChars: 5_000,

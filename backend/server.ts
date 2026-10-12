@@ -29,6 +29,15 @@ import { validateSpecializedTranslateRequest } from './proxyRequestValidation';
 import { buildSpecializedTranslationMessages } from './specializedTranslation';
 import { submitFeedback, type FeedbackStore } from './feedback';
 import { readAccountDeletionConfig, requestAccountDeletion, type AccountDeletionStore } from './accountDeletion';
+import {
+  MAX_AUDIO_BYTES,
+  assessPronunciation,
+  createFfmpegTranscoder,
+  readPronunciationConfig,
+  validatePronunciationRequest,
+  type Transcoder,
+} from './pronunciationAssessment';
+import { readProxyLimits } from './proxyConfig';
 
 const DEFAULT_PORT = 3001;
 
@@ -40,6 +49,8 @@ export type ServerDependencies = {
   accountDeletionStore?: AccountDeletionStore;
   // Durable quota storage; defaults to the in-memory tracker (fine for local dev, not for serverless).
   createQuotaStore?: (limits: BackendProxyLimits) => QuotaStore;
+  // Pronunciation scoring: the Azure HTTP client and the audio transcoder (ffmpeg by default).
+  pronunciation?: { fetch?: typeof fetch; ffmpegPath?: string | null; transcode?: Transcoder };
   verifyAuth: (token: string) => Promise<{ userId: string } | null>;
 };
 
@@ -91,6 +102,15 @@ export function createServer(deps: ServerDependencies) {
   });
 
   const accountDeletionConfig = readAccountDeletionConfig(deps.env);
+  const pronunciationConfig = readPronunciationConfig(deps.env);
+  // Pronunciation has its own provider (Azure), so its quota does not depend on DeepL/OpenAI being set.
+  const pronunciationQuota: QuotaStore | null = pronunciationConfig.status === 'configured'
+    ? (() => {
+      const limits = readProxyLimits(deps.env);
+      return deps.createQuotaStore?.(limits) ?? new QuotaTracker(limits);
+    })()
+    : null;
+  const transcode = deps.pronunciation?.transcode ?? createFfmpegTranscoder(deps.pronunciation?.ffmpegPath);
 
   // Purges scheduled account deletions whose grace period ended. Called by the Vercel cron (GET, with
   // CRON_SECRET as a bearer token) or another scheduler (POST); never by the app.
@@ -283,6 +303,42 @@ export function createServer(deps: ServerDependencies) {
       res.status(status).json({ error: { code } });
     }
   });
+
+  // POST /proxy/pronunciation/assess?language=en&text=... with the recording as the raw body.
+  // The audio is only held in memory for this request (owner decision D6) and never logged.
+  app.post(
+    '/proxy/pronunciation/assess',
+    express.raw({ limit: MAX_AUDIO_BYTES, type: 'audio/*' }),
+    async (req: Request, res: Response) => {
+      if (pronunciationConfig.status !== 'configured' || !pronunciationQuota) {
+        res.status(503).json({ error: { code: 'pronunciation_unconfigured' } });
+        return;
+      }
+      const validation = validatePronunciationRequest({
+        body: req.body,
+        contentType: req.headers['content-type'],
+        language: req.query.language,
+        referenceText: req.query.text,
+      });
+      if (!validation.ok) {
+        res.status(400).json({ error: { code: validation.code } });
+        return;
+      }
+      const userId = (req as Request & { userId: string }).userId;
+      // Quota runs before anything is sent to Azure.
+      const quota = await checkQuotaOrFailClosed(pronunciationQuota, userId, 'pronunciation', 1);
+      if (quota.ok === false) {
+        res.status(quota.status).json({ error: quota.error });
+        return;
+      }
+      try {
+        res.json(await assessPronunciation(pronunciationConfig, validation.data, { fetch: deps.pronunciation?.fetch ?? fetch, transcode }));
+      } catch (error) {
+        const code = error instanceof Error && error.message === 'pronunciation_no_speech' ? 'pronunciation_no_speech' : 'pronunciation_failed';
+        res.status(code === 'pronunciation_no_speech' ? 422 : 502).json({ error: { code } });
+      }
+    }
+  );
 
   // Health check (no auth required)
   app.get('/health', (_req: Request, res: Response) => {

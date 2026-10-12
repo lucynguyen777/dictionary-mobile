@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const DEFAULT_LIMITS = {
   dailyAiRequestLimitPerUser: 25,
+  dailyPronunciationLimitPerUser: 20,
   dailyTranslationCharacterLimitPerUser: 20_000,
   maxGlossaryEntries: 1_000,
   maxTextInputChars: 5_000,

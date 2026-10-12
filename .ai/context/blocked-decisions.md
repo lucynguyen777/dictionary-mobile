@@ -140,7 +140,7 @@ Acceptance gate:
 ---
 
 ## Speech Scoring
-Status: Azure AI Speech Pronunciation Assessment is accepted in `.docs/decisions/speech-scoring-engine.md`; implementation is staged until backend/privacy/quota/testing gates are defined.
+Status: Built (2026-10-13). Owner decision D6: raw audio is transcoded in memory, sent to Azure and never stored; 20 scores per user per day. Route `/proxy/pronunciation/assess`, fake-provider tests in `tests/pronunciationAssessment.test.ts`. Production needs `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` and migration 013.
 
 Staged implementation:
 - Azure-backed IPA comparison when provider output can be aligned with source-backed IPA.

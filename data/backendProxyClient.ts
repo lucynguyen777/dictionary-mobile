@@ -330,3 +330,44 @@ export function requestAccountDeletion() {
 export function cancelAccountDeletion() {
   return proxyFetch<{ scheduled: null }>('/proxy/account/deletion', { method: 'DELETE' });
 }
+
+// --- Pronunciation scoring (plan 4.6, owner decision D6) ---
+// The recording goes to the proxy, which transcodes it in memory and sends it to Azure; nothing is stored.
+
+export type PronunciationResult = {
+  accuracyScore: number;
+  completenessScore: number;
+  fluencyScore: number;
+  locale: string;
+  overallScore: number;
+  phonemes: { phoneme: string; score: number }[];
+  recognizedText: string;
+  words: { accuracy: number; error?: string; text: string }[];
+};
+
+const AUDIO_TYPES_BY_EXTENSION: Record<string, string> = {
+  '3gp': 'audio/3gpp',
+  aac: 'audio/aac',
+  m4a: 'audio/mp4',
+  mp4: 'audio/mp4',
+  ogg: 'audio/ogg',
+  wav: 'audio/wav',
+  webm: 'audio/webm',
+};
+
+export function audioContentType(uri: string, blobType = '') {
+  const type = blobType.split(';')[0].trim().toLowerCase();
+  if (type.startsWith('audio/')) return type;
+  const extension = uri.split(/[?#]/)[0].split('.').pop()?.toLowerCase() ?? '';
+  return AUDIO_TYPES_BY_EXTENSION[extension] ?? 'audio/mp4';
+}
+
+export async function assessPronunciation(input: { audioUri: string; language: string; referenceText: string }) {
+  const audio = await (await fetch(input.audioUri)).blob();
+  const query = `language=${encodeURIComponent(input.language)}&text=${encodeURIComponent(input.referenceText)}`;
+  return proxyFetch<PronunciationResult>(`/proxy/pronunciation/assess?${query}`, {
+    body: audio,
+    headers: { 'Content-Type': audioContentType(input.audioUri, audio.type) },
+    method: 'POST',
+  });
+}

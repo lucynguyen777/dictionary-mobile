@@ -1,6 +1,6 @@
 import type { BackendProxyLimits } from './proxyConfig';
 
-export type QuotaFeature = 'translation' | 'ai-chat';
+export type QuotaFeature = 'translation' | 'ai-chat' | 'pronunciation';
 
 export type QuotaCheckResult =
   | {
@@ -108,10 +108,12 @@ export class QuotaTracker implements QuotaStore {
 }
 
 export function getQuotaLimits(limits: BackendProxyLimits, feature: QuotaFeature) {
-  return feature === 'translation'
-    ? { dailyLimit: limits.dailyTranslationCharacterLimitPerUser, monthlyLimit: limits.monthlyCharacterLimitPerUser }
-    // Approximate monthly cap for AI: the daily cap over a 31-day month.
-    : { dailyLimit: limits.dailyAiRequestLimitPerUser, monthlyLimit: limits.dailyAiRequestLimitPerUser * 31 };
+  if (feature === 'translation') {
+    return { dailyLimit: limits.dailyTranslationCharacterLimitPerUser, monthlyLimit: limits.monthlyCharacterLimitPerUser };
+  }
+  // Approximate monthly caps for request-counted features: the daily cap over a 31-day month.
+  const daily = feature === 'pronunciation' ? limits.dailyPronunciationLimitPerUser : limits.dailyAiRequestLimitPerUser;
+  return { dailyLimit: daily, monthlyLimit: daily * 31 };
 }
 
 export function quotaExceeded(feature: QuotaFeature, period: 'Daily' | 'Monthly', resetTime: number): QuotaCheckResult {
