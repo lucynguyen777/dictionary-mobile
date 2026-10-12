@@ -1,6 +1,11 @@
 export type BilingualExample = {
   source: string;
   translation?: string;
+  // Language of `translation` when a pack recorded it (e.g. 'en' for English Wiktionary example
+  // sentences shown as an English aid in Japanese entries, decision D12). Never a Vietnamese gloss.
+  translationLanguage?: string;
+  // Edition the example came from when it is not the entry's own source (credited in the UI).
+  helperSource?: string;
 };
 
 export type DictionaryEntry = {

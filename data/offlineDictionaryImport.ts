@@ -48,6 +48,8 @@ export const OFFLINE_DICTIONARY_SCHEMA_SQL = [
 export type OfflinePackManifest = {
   entryCount: number;
   generatedAt: string;
+  // Pair packs only: the language the definitions are written in (e.g. 'fr' in the VI→FR pack).
+  glossLangCode?: LanguageCode;
   langCode: LanguageCode;
   license: 'CC-BY-SA-4.0/GFDL';
   packId: string;
@@ -149,6 +151,12 @@ export function validateOfflinePackManifest(
 
   if (manifest.langCode !== pack.languageCode) {
     errors.push(`Language mismatch: expected ${pack.languageCode}, received ${manifest.langCode}.`);
+  }
+
+  if ((manifest.glossLangCode ?? manifest.langCode) !== (pack.glossLanguageCode ?? pack.languageCode)) {
+    errors.push(
+      `Definition language mismatch: expected ${pack.glossLanguageCode ?? pack.languageCode}, received ${manifest.glossLangCode ?? manifest.langCode}.`
+    );
   }
 
   if (manifest.license !== pack.license) {

@@ -117,7 +117,7 @@ Before any blocked language/pair moves from `[!] BLOCKED` to `[ ] TODO`, create 
   - accepted source-gate path: Wiktionary/DBnary bilingual extraction if Vietnamese-to-French translations are structured enough and license/attribution are preserved;
   - deferred fallback: commercial bilingual dictionary license;
   - personal-data-only fallback: user-provided import.
-- Probed in `docs/vi-fr-source-gate.md` (2026-10-11): the French Wiktionary's Vietnamese section passes the corpus, headword (98%) and example (67.3%) gates, and related words with English-Wiktionary helper relations (65.3%). Waiting for owner approval (completion plan D13).
+- Probed in `docs/vi-fr-source-gate.md` (2026-10-11): the French Wiktionary's Vietnamese section passes the corpus, headword (98%) and example (67.3%) gates, and related words with English-Wiktionary helper relations (65.3%). Approved by the owner on 2026-10-12 (completion plan D13): implemented as the `frwiktionary-vi-fr-offline-pack-v1` pair pack (builder-ready, hosting pending D9); see `docs/vi-fr-source-gate.md`.
 
 ### Basque
 

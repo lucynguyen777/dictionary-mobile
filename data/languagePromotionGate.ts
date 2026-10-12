@@ -45,6 +45,23 @@ export const frenchPromotionMeasurement: LanguagePromotionMeasurement = {
   uiSmokePassed: true,
 };
 
+// Japanese source gates (docs/native-wiktionary-source-measurements.md). Examples count English Wiktionary
+// example sentences as a credited helper (decision D12): 36.7% native, 86% with the helper. No Japanese pack
+// is hosted or smoke-tested yet, so the pack and UI gates stay open.
+export const japanesePromotionMeasurement: LanguagePromotionMeasurement = {
+  attributedEntries: 112_940,
+  exampleCoveragePercent: 86,
+  exactLookupPassPercent: 97.5,
+  languageCode: 'ja',
+  missingResultPass: true,
+  morphologyPassPercent: 100,
+  offlinePackEntryCount: 0,
+  offlinePackSmokePassed: false,
+  relatedWordsCoveragePercent: 64.6,
+  representativeHeadwords: 100,
+  uiSmokePassed: false,
+};
+
 export const languagePromotionCandidates: LanguagePromotionCandidate[] = [
   {
     active: true,

@@ -15,6 +15,7 @@ import {
   getOfflinePackInstallSummary,
 } from '@/data/offlineDictionaryPackStore';
 import {
+  formatPackLanguageLabel,
   formatPackSizeRange,
   formatPackStatus,
   formatPackTitle,
@@ -94,7 +95,10 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
         <DataStat label="Đã cài" value={offlinePackInstallSummary.readyCount} />
       </View>
       {packs.map((pack) => {
-        const language = languageOptions.find((item) => item.code === pack.languageCode);
+        const packLanguageLabel = formatPackLanguageLabel(
+          pack,
+          (code) => languageOptions.find((item) => item.code === code)?.label ?? code
+        );
         const runtimeGate = getOfflinePackRuntimeGate(pack, offlinePackRuntimeOptions);
         const installRecord = getOfflinePackInstallRecord(installState, pack);
         const installStatus = formatOfflinePackInstallStatus(installRecord.status);
@@ -107,7 +111,7 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
         return (
           <View key={pack.id} style={styles.offlinePackRow}>
             <View style={styles.securityCopy}>
-              <Text style={styles.securityTitle}>{formatPackTitle(pack, language?.label ?? pack.languageCode)}</Text>
+              <Text style={styles.securityTitle}>{formatPackTitle(pack, packLanguageLabel)}</Text>
               <Text style={styles.securityText}>
                 {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
               </Text>
@@ -119,7 +123,7 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
               <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
               <View style={styles.offlinePackActionRow}>
                 <Touchable
-                  accessibilityLabel={`Tải ${language?.label ?? pack.languageCode} offline pack`}
+                  accessibilityLabel={`Tải ${packLanguageLabel} offline pack`}
                   accessibilityRole="button"
                   activeOpacity={0.82}
                   disabled={!canInstall}
@@ -132,7 +136,7 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
                 </Touchable>
                 {hasInstallRecord ? (
                   <Touchable
-                    accessibilityLabel={`Xóa ${language?.label ?? pack.languageCode} offline pack`}
+                    accessibilityLabel={`Xóa ${packLanguageLabel} offline pack`}
                     accessibilityRole="button"
                     activeOpacity={0.82}
                     disabled={isBusy}

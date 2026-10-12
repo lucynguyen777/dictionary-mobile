@@ -16,7 +16,7 @@ import LanguageSelect, { getUnavailableLanguageMessage } from '@/components/app/
 import StickyTabBar from '@/components/word/StickyTabBar';
 import TabPager from '@/components/word/TabPager';
 import WordHeader from '@/components/word/WordHeader';
-import { lookupMonolingual, lookupRelatedWords } from '@/data/adapterRegistry';
+import { lookupBilingual, lookupMonolingual, lookupRelatedWords } from '@/data/adapterRegistry';
 import { dictionaryEntries } from '@/data/dictionary';
 import {
   ApiBilingualMeaningResult,
@@ -24,12 +24,16 @@ import {
   ApiRelatedWords,
   canUseBilingualDictionaryApi,
   canUseMonolingualDictionaryApi,
-  fetchBilingualMeaning,
   fetchVietnameseSuggestions,
   isBlockedBilingualDictionaryPair,
 } from '@/data/dictionaryApi';
 import { detectLookupSourceLanguage, type LookupLanguageDetection } from '@/data/languageDetection';
-import { LanguageOption, getLanguageByCode, isTranslationComingSoonPair } from '@/data/languages';
+import {
+  LanguageOption,
+  getLanguageByCode,
+  isOfflinePackBilingualDictionaryPair,
+  isTranslationComingSoonPair,
+} from '@/data/languages';
 import {
   LibraryState,
   addSearchHistory,
@@ -91,10 +95,14 @@ export default function WordScreen() {
   const targetLanguage = getLanguageByCode(getRouteParam(params.targetLang), 'vi');
   const shouldUseBilingualDictionary = sourceLanguage.code !== targetLanguage.code;
   const isBilingualSourceBlocked = isBlockedBilingualDictionaryPair(sourceLanguage.code, targetLanguage.code);
-  const canUseBilingualDictionaryApiForPair = canUseBilingualDictionaryApi(sourceLanguage.code, targetLanguage.code);
+  // Remote bilingual API pairs, plus pairs served by an installed offline pair pack (VI→FR, decision D13).
+  const canUseBilingualDictionaryApiForPair =
+    canUseBilingualDictionaryApi(sourceLanguage.code, targetLanguage.code) ||
+    isOfflinePackBilingualDictionaryPair(sourceLanguage.code, targetLanguage.code);
   const canUseSourceDictionaryApi = canUseMonolingualDictionaryApi(sourceLanguage.code);
   const hasLocalDictionarySource = supportsLocalDictionary(sourceLanguage.code);
-  const isTranslationComingSoon = isTranslationComingSoonPair(sourceLanguage.code, targetLanguage.code);
+  const isTranslationComingSoon =
+    isTranslationComingSoonPair(sourceLanguage.code, targetLanguage.code) && !apiBilingualMeaning?.definitions.length;
   const bilingualDictionaryUnavailableMessage = useMemo(
     () => getBilingualDictionaryUnavailableMessage(sourceLanguage, targetLanguage),
     [sourceLanguage, targetLanguage]
@@ -237,7 +245,7 @@ export default function WordScreen() {
         canUseSourceDictionaryApi ? lookupMonolingual(selectedWord, sourceLanguage.code) : Promise.resolve(null),
         canUseSourceDictionaryApi ? lookupRelatedWords(selectedWord, sourceLanguage.code) : Promise.resolve(null),
         canUseBilingualDictionaryApiForPair
-          ? fetchBilingualMeaning(selectedWord, sourceLanguage.code, targetLanguage.code)
+          ? lookupBilingual(selectedWord, sourceLanguage.code, targetLanguage.code)
           : Promise.resolve(null),
       ] as const;
       const [meaningResult, relatedWordsResult, bilingualMeaningResult] = await Promise.allSettled(lookupTasks);

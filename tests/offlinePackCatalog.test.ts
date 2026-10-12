@@ -69,22 +69,53 @@ describe('offline pack catalog', () => {
   it('lets a hosted pack replace the bundled sample of the same language', () => {
     const hostedEnglish = parseOfflinePackCatalog({ packs: [{ ...frPack, id: 'enwiktionary-en-v2', languageCode: 'en' }], schemaVersion: 1 }, CATALOG_URL);
     const merged = mergeOfflinePacks(offlineDictionaryPacks, hostedEnglish);
-    expect(merged.map((pack) => pack.id)).toEqual(['enwiktionary-en-v2']);
+    expect(merged.map((pack) => pack.id)).toEqual(['frwiktionary-vi-fr-offline-pack-v1', 'enwiktionary-en-v2']);
+  });
+
+  it('keys pair packs separately so a hosted Vietnamese pack does not replace the VI->FR pair pack', () => {
+    const hosted = parseOfflinePackCatalog({
+      packs: [
+        { ...frPack, id: 'viwiktionary-vi-offline-pack-v1', languageCode: 'vi', sourceName: 'viwiktionary' },
+        { ...frPack, glossLanguageCode: 'fr', id: 'frwiktionary-vi-fr-offline-pack-v2', languageCode: 'vi' },
+      ],
+      schemaVersion: 1,
+    }, CATALOG_URL);
+    expect(hosted.map((pack) => [pack.id, pack.glossLanguageCode])).toEqual([
+      ['viwiktionary-vi-offline-pack-v1', undefined],
+      ['frwiktionary-vi-fr-offline-pack-v2', 'fr'],
+    ]);
+    expect(mergeOfflinePacks(offlineDictionaryPacks, hosted.slice(0, 1)).map((pack) => pack.id)).toEqual([
+      'enwiktionary-en-offline-pack-v1',
+      'frwiktionary-vi-fr-offline-pack-v1',
+      'viwiktionary-vi-offline-pack-v1',
+    ]);
+    // A hosted pair pack replaces the bundled builder-only entry of the same pair.
+    expect(mergeOfflinePacks(offlineDictionaryPacks, hosted.slice(1)).map((pack) => pack.id)).toEqual([
+      'enwiktionary-en-offline-pack-v1',
+      'frwiktionary-vi-fr-offline-pack-v2',
+    ]);
+  });
+
+  it.each([
+    ['unknown gloss language', { glossLanguageCode: 'xx' }],
+    ['gloss language equal to headword language', { glossLanguageCode: 'fr' }],
+  ])('drops a pair pack with %s', (_label, override) => {
+    expect(parseOfflinePackCatalog({ packs: [{ ...frPack, ...override }], schemaVersion: 1 }, CATALOG_URL)).toEqual([]);
   });
 
   it('caches the last valid catalog and falls back to it offline', async () => {
     const online = vi.fn(async () => new Response(JSON.stringify({ packs: [frPack], schemaVersion: 1 }), { status: 200 }));
-    expect((await refreshOfflinePacks({ catalogUrl: CATALOG_URL, fetchImpl: online as typeof fetch })).map((pack) => pack.languageCode)).toEqual(['en', 'fr']);
+    expect((await refreshOfflinePacks({ catalogUrl: CATALOG_URL, fetchImpl: online as typeof fetch })).map((pack) => pack.languageCode)).toEqual(['en', 'vi', 'fr']);
 
     const offline = vi.fn(async () => {
       throw new TypeError('Network request failed');
     });
-    expect((await refreshOfflinePacks({ catalogUrl: CATALOG_URL, fetchImpl: offline as typeof fetch })).map((pack) => pack.languageCode)).toEqual(['en', 'fr']);
-    expect((await loadCachedOfflinePacks()).map((pack) => pack.languageCode)).toEqual(['en', 'fr']);
+    expect((await refreshOfflinePacks({ catalogUrl: CATALOG_URL, fetchImpl: offline as typeof fetch })).map((pack) => pack.languageCode)).toEqual(['en', 'vi', 'fr']);
+    expect((await loadCachedOfflinePacks()).map((pack) => pack.languageCode)).toEqual(['en', 'vi', 'fr']);
 
     // A broken catalog never replaces the cached one.
     const broken = vi.fn(async () => new Response('{"schemaVersion":1,"packs":[]}', { status: 200 }));
-    expect((await refreshOfflinePacks({ catalogUrl: CATALOG_URL, fetchImpl: broken as typeof fetch })).map((pack) => pack.languageCode)).toEqual(['en', 'fr']);
+    expect((await refreshOfflinePacks({ catalogUrl: CATALOG_URL, fetchImpl: broken as typeof fetch })).map((pack) => pack.languageCode)).toEqual(['en', 'vi', 'fr']);
   });
 
   it('uses only bundled packs when no catalog is configured', async () => {
@@ -105,5 +136,25 @@ describe('build-pack-catalog script', () => {
     const packs = parseOfflinePackCatalog(catalog, 'https://cdn.example/packs/catalog.json');
     expect(packs.map((pack) => [pack.languageCode, pack.downloadSource?.entryCount])).toEqual([['fr', 216], ['es', 126]]);
     expect(packs[0].downloadSource?.entriesUrl).toBe('https://cdn.example/tests/fixtures/offline-packs/fr-probe-smoke/entries.json.gz');
+  });
+
+  it('carries the pair-pack definition language and helper credits into the catalog', () => {
+    const dir = 'tmp/offline-packs/catalog-pair-test';
+    rmSync(dir, { force: true, recursive: true });
+    mkdirSync(dir, { recursive: true });
+    execFileSync('node', ['scripts/build-pack-catalog.mjs', '--out', `${dir}/catalog.json`, 'tests/fixtures/offline-packs/vi-fr-probe-smoke', 'tests/fixtures/offline-packs/vi-probe-smoke']);
+
+    const catalog = JSON.parse(readFileSync(`${dir}/catalog.json`, 'utf8'));
+    expect(catalog.packs[0]).toMatchObject({
+      attribution: 'Source: frwiktionary via Kaikki/Wiktextract (CC-BY-SA-4.0/GFDL); related words also from enwiktionary',
+      glossLanguageCode: 'fr',
+      id: 'frwiktionary-vi-fr-offline-pack-v1',
+      languageCode: 'vi',
+    });
+    const packs = parseOfflinePackCatalog(catalog, 'https://cdn.example/packs/catalog.json');
+    expect(packs.map((pack) => [pack.id, pack.glossLanguageCode])).toEqual([
+      ['frwiktionary-vi-fr-offline-pack-v1', 'fr'],
+      ['viwiktionary-vi-offline-pack-v1', undefined],
+    ]);
   });
 });

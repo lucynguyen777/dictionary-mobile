@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import { BilingualExample, DictionaryEntry } from '@/data/dictionary';
 import { ApiBilingualMeaningResult, ApiMeaningResult } from '@/data/dictionaryApi';
+import { getExampleTranslationLabel } from '@/data/exampleTranslationLabel';
 import { getLanguageByCode } from '@/data/languages';
 import { TranslationPanel } from '@/components/TranslationPanel';
 import { getDefinitionTranslationTarget, toDeepLSourceLanguage } from '@/data/translationTargets';
@@ -137,7 +138,9 @@ export function MeaningTab({
               {item.examples.length ? (
                 <>
                   <Text style={styles.exampleLabel}>Ví dụ</Text>
-                  {item.examples.map((example, i) => (
+                  {item.examples.map((example, i) => {
+                    const translationLabel = getExampleTranslationLabel(example, targetLang);
+                    return (
                     <View key={i} style={styles.exampleBlock}>
                       <View style={styles.exampleRow}>
                         <Touchable
@@ -156,10 +159,21 @@ export function MeaningTab({
                         </Text>
                       </View>
                       {example.translation ? (
-                        <Text style={styles.exampleTranslation}>{example.translation}</Text>
+                        <Text
+                          accessibilityLabel={translationLabel.accessibilityLabel ?? undefined}
+                          style={styles.exampleTranslation}>
+                          {translationLabel.badge ? (
+                            <Text style={styles.exampleTranslationLanguage}>{translationLabel.badge}</Text>
+                          ) : null}
+                          {example.translation}
+                        </Text>
+                      ) : null}
+                      {translationLabel.caption ? (
+                        <Text style={styles.exampleCredit}>{translationLabel.caption}</Text>
                       ) : null}
                     </View>
-                  ))}
+                    );
+                  })}
                 </>
               ) : null}
             </View>

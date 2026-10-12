@@ -10,7 +10,7 @@ describe('language parity dashboard data', () => {
       expect.objectContaining({ code: 'en', status: 'production-parity' }),
       expect.objectContaining({ code: 'vi', status: 'production-parity' }),
       expect.objectContaining({ code: 'fr->vi', status: 'production-parity' }),
-      expect.objectContaining({ code: 'vi->fr', status: 'source-gated' }),
+      expect.objectContaining({ code: 'vi->fr', status: 'approved-source' }),
     ]));
     expect(rows.some((row) => row.status === 'monolingual-preview')).toBe(true);
     expect(rows.some((row) => row.status === 'source-gated')).toBe(true);

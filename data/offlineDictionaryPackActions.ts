@@ -158,6 +158,7 @@ export async function readOfflinePackEntries(
   return entries;
 }
 
+const LANGUAGE_TAG = /^[a-z]{2,3}$/;
 const strings = (value: unknown) => (Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())) : []);
 const text = (value: unknown) => (typeof value === 'string' ? value : '');
 
@@ -191,9 +192,20 @@ export function sanitizeOfflinePackEntry(value: unknown, expectedLangCode?: stri
       .map((example) => {
         const item = (example ?? {}) as Record<string, unknown>;
         const translation = text(item.translation).trim();
-        return translation ? { source: text(item.source).trim(), translation } : { source: text(item.source).trim() };
+        const translationLanguage = text(item.translationLanguage).trim();
+        const helperSource = text(item.helperSource).trim();
+        return {
+          source: text(item.source).trim(),
+          ...(translation ? { translation } : {}),
+          // The language marker only travels with a translation, so an English aid is never shown unlabelled.
+          ...(translation && LANGUAGE_TAG.test(translationLanguage) ? { translationLanguage } : {}),
+          ...(helperSource ? { helperSource } : {}),
+        };
       })
       .filter((example) => example.source),
+    ...(LANGUAGE_TAG.test(text(raw.glossLangCode)) && raw.glossLangCode !== langCode
+      ? { glossLangCode: raw.glossLangCode as OfflineDictionaryEntry['langCode'] }
+      : {}),
     id: text(raw.id).trim() || `${langCode}:${normalizedWord}`,
     ipa: text(raw.ipa),
     langCode: langCode as OfflineDictionaryEntry['langCode'],
@@ -228,6 +240,7 @@ function getManifestFromDownloadSource(
   return {
     entryCount: source.entryCount,
     generatedAt: '',
+    ...(pack.glossLanguageCode ? { glossLangCode: pack.glossLanguageCode } : {}),
     langCode: pack.languageCode,
     license: pack.license,
     packId: pack.id,

@@ -30,12 +30,15 @@ const packs = packDirs.map((dir) => {
   if (manifest.license !== 'CC-BY-SA-4.0/GFDL' || !manifest.sourceName || !manifest.entryCount) {
     throw new Error(`${basename(dir)}: manifest needs license, sourceName and entryCount.`);
   }
+  // Helper editions (related words, example sentences) are credited in the pack attribution too.
+  const helperCredits = (manifest.helperSources ?? []).map((helper) => `${helper.use === 'examples' ? 'examples' : 'related words'} also from ${helper.name}`);
   return {
-    attribution: `Source: ${manifest.sourceName} via Kaikki/Wiktextract (${manifest.license})`,
+    attribution: [`Source: ${manifest.sourceName} via Kaikki/Wiktextract (${manifest.license})`, ...helperCredits].join('; '),
     compressedSizeBytes: statSync(entriesPath).size,
     entriesMd5: md5(entriesPath),
     entriesUrl: urlFor(entriesPath),
     entryCount: manifest.entryCount,
+    ...(manifest.glossLangCode ? { glossLanguageCode: manifest.glossLangCode } : {}),
     id: manifest.packId,
     languageCode: manifest.langCode,
     license: manifest.license,

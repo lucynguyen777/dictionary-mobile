@@ -282,6 +282,17 @@ return StyleSheet.create({
     marginLeft: 32,
     marginTop: 4,
   },
+  // Language badge before an aid translation in another language (e.g. "EN · …", decision D12).
+  exampleTranslationLanguage: {
+    color: colors.accentPrimary,
+  },
+  exampleCredit: {
+    color: colors.textTertiary,
+    fontSize: 12,
+    lineHeight: 16,
+    marginLeft: 32,
+    marginTop: 4,
+  },
   sectionTitle: {
     color: colors.textPrimary,
     fontSize: 18,
