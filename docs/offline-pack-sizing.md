@@ -1,5 +1,7 @@
 # Offline Pack Sizing (2026-10-11)
 
+> **Decision D9 (2026-10-13):** packs are hosted in the Supabase Storage bucket `offline-packs`, built lemma-only and capped at 50k entries by richness. The seven hosted packs (en, es, fr, ko, ru, tr, vi) and their smoke results are listed in `docs/product-progress.md`.
+
 Input for owner decision D9 (pack hosting and size). Packs were built from the whole Kaikki/Wiktextract native-edition dumps with `scripts/build-offline-pack.mjs`. Each pack was imported the way the app does it, into a real SQLite file through `tests/offlinePackFullSmoke.test.ts` (opt-in, `OFFLINE_PACK_DIR=…`), then the 100 promotion probes were looked up through the app's offline lookup, including morphology. Nothing here was uploaded anywhere.
 
 "Lemma-only" (`--lemmas-only`) drops Wiktionary's inflected-form entries ("plural of …"), because the app's morphology resolves inflections to the lemma.
