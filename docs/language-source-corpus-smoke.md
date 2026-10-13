@@ -35,6 +35,7 @@ Live smoke was run on 2026-06-05 from the local development machine with a bound
 - Do not promote `es`, `ms`, or monolingual `fr` to production parity in v1.3.6.
 - Keep `fr->vi` as a supported production pair, but not as 100% complete because source-size, attribution/offline packaging, and broader smoke are still open.
 - Keep `vi->fr` source-gated. DeepL/OpenAI translation cannot be used as dictionary data.
+  - Superseded 2026-10-12: the owner approved French Wiktionary's Vietnamese section as the VI->FR source (D13, `docs/vi-fr-source-gate.md`). Machine translation is still never dictionary data.
 - No new offline pack is produced in this module; offline pack expansion remains v1.3.10 after source/corpus gates pass.
 
 ## Next Modules

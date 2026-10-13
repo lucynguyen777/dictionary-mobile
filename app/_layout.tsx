@@ -1,24 +1,44 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Stack } from 'expo-router';
+import * as Sentry from '@sentry/react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, Platform, StyleSheet, Text, View } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 import 'react-native-reanimated';
 
 import { recordAppOpen } from '@/data/activityStore';
 import { installDevelopmentWarningFilter } from '@/data/developmentWarnings';
 import { loadUserProfile } from '@/data/profileStore';
+import { addSpecializedGlossaryListener } from '@/data/specializedGlossaryStore';
+import { startSyncLifecycle } from '@/data/supabaseSyncLifecycle';
+import PdfTextExtractorHost from '@/components/reader/PdfTextExtractorHost';
+import { installGlobalErrorHandlers } from '@/data/errorReporting';
+import { installWebAlert } from '@/data/webAlert';
+import { loadCrashReportPreference } from '@/data/crashReportPreference';
+import { installSentryReporter } from '@/data/sentryReporter';
+import { NATIVE_PDF_IMPORT_ENABLED } from '@/constants/featureFlags';
+import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useToken } from '@/hooks/use-token';
 
+// React Native Web's Alert.alert does nothing; route it to the browser's dialogs.
+if (Platform.OS === 'web' && typeof window !== 'undefined') installWebAlert(Alert, window);
+
 installDevelopmentWarningFilter();
+
+// Crash reports go to Sentry only when a DSN is configured and the learner opted in (D8).
+installSentryReporter(process.env.EXPO_PUBLIC_SENTRY_DSN, Sentry, __DEV__ ? 'development' : 'production');
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 type AppLockState = 'checking' | 'unlocked' | 'locked' | 'unsupported';
+
+// Expo Router renders this when any screen throws during render.
+export { default as ErrorBoundary } from '@/components/app/AppErrorScreen';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -58,6 +78,12 @@ export default function RootLayout() {
     }
   }, []);
 
+  // Errors outside rendering (native global handler, web window errors, unhandled rejections).
+  useEffect(() => installGlobalErrorHandlers(), []);
+  useEffect(() => {
+    loadCrashReportPreference().catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     unlockApp();
   }, [unlockApp]);
@@ -69,15 +95,34 @@ export default function RootLayout() {
       // Activity tracking should never block app entry.
     });
 
+    // Auto sync runs only for users who turned Cloud Sync on; otherwise each trigger just reports idle.
+    return startSyncLifecycle({
+      subscribeToForeground: (onForeground) => {
+        const subscription = AppState.addEventListener('change', (state) => {
+          if (state === 'active') onForeground();
+        });
+        return () => subscription.remove();
+      },
+      subscribeToLocalSaves: (onSave) => {
+        const unsubscribeUserData = addUserDataSavedListener(onSave);
+        const unsubscribeGlossaries = addSpecializedGlossaryListener(onSave);
+        return () => {
+          unsubscribeUserData();
+          unsubscribeGlossaries();
+        };
+      },
+    });
   }, [appLockState]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       {appLockState === 'unlocked' ? (
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        </Stack>
+        <>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+          {NATIVE_PDF_IMPORT_ENABLED && Platform.OS !== 'web' ? <PdfTextExtractorHost /> : null}
+        </>
       ) : (
         <AppLockScreen
           onContinue={() => setAppLockState('unlocked')}
@@ -114,14 +159,14 @@ function AppLockScreen({
             : 'Xác thực bằng sinh trắc học hoặc mã thiết bị để tiếp tục học.'}
         </Text>
         {isChecking ? <ActivityIndicator color={colors.accentPrimary} style={styles.lockSpinner} /> : null}
-        <TouchableOpacity
+        <Touchable
           activeOpacity={0.82}
           disabled={isChecking}
           onPress={isUnsupported ? onContinue : onRetry}
           style={[styles.lockButton, { backgroundColor: colors.accentPrimary }, isChecking && styles.lockButtonDisabled]}
         >
-          <Text style={styles.lockButtonText}>{isUnsupported ? 'Tiếp tục' : 'Mở khóa'}</Text>
-        </TouchableOpacity>
+          <Text style={[styles.lockButtonText, { color: colors.textOnAccent }]}>{isUnsupported ? 'Tiếp tục' : 'Mở khóa'}</Text>
+        </Touchable>
       </View>
     </View>
   );
@@ -172,7 +217,6 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   lockButtonText: {
-    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
   },

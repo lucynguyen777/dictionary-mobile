@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
   englishOfflinePackDevSource,
+  formatPackLanguageLabel,
   formatPackSizeRange,
   formatPackStatus,
   getOfflinePackRuntimeGate,
+  getOfflinePackDictionaryKey,
   getOfflinePackSummary,
+  isPairOfflinePack,
   offlineDictionaryPacks,
 } from '../data/offlineDictionaryPacks';
 
 describe('offlineDictionaryPacks', () => {
   it('tracks the Phase 1 English pack as builder-ready but not runtime-enabled', () => {
-    expect(offlineDictionaryPacks).toHaveLength(1);
+    expect(offlineDictionaryPacks).toHaveLength(2);
     expect(offlineDictionaryPacks[0]).toMatchObject({
       id: 'enwiktionary-en-offline-pack-v1',
       languageCode: 'en',
@@ -21,22 +24,41 @@ describe('offlineDictionaryPacks', () => {
     expect(offlineDictionaryPacks[0].downloadSource).toEqual(englishOfflinePackDevSource);
   });
 
+  it('lists the VI->FR pair pack as builder-ready with no download source until it is hosted (D9, D13)', () => {
+    const pair = offlineDictionaryPacks[1];
+    expect(pair).toMatchObject({
+      glossLanguageCode: 'fr',
+      id: 'frwiktionary-vi-fr-offline-pack-v1',
+      languageCode: 'vi',
+      license: 'CC-BY-SA-4.0/GFDL',
+      sourceName: 'frwiktionary',
+      status: 'builder_ready',
+    });
+    expect(pair.attribution).toContain('French Wiktionary');
+    expect(pair.attribution).toContain('related words also from English Wiktionary');
+    expect(getOfflinePackRuntimeGate(pair)).toMatchObject({ canDownload: false, reason: 'pack_source_pending' });
+    expect(getOfflinePackDictionaryKey(pair)).toBe('vi->fr');
+    expect(isPairOfflinePack(pair)).toBe(true);
+    expect(getOfflinePackDictionaryKey(offlineDictionaryPacks[0])).toBe('en');
+    expect(formatPackLanguageLabel(pair, (code) => ({ fr: 'Français', vi: 'Tiếng Việt' })[code] ?? code)).toBe('Tiếng Việt → Français');
+  });
+
   it('summarizes pack status for native runtime availability', () => {
     expect(getOfflinePackSummary()).toEqual({
-      builderReadyCount: 1,
+      builderReadyCount: 2,
       downloadableCount: 1,
-      packCount: 1,
-      runtimeBlockedCount: 0,
+      packCount: 2,
+      runtimeBlockedCount: 1,
       runtimePendingCount: 0,
     });
   });
 
   it('summarizes pack status without claiming web runtime availability', () => {
     expect(getOfflinePackSummary(offlineDictionaryPacks, { supportsSqliteRuntime: false })).toEqual({
-      builderReadyCount: 1,
+      builderReadyCount: 2,
       downloadableCount: 0,
-      packCount: 1,
-      runtimeBlockedCount: 1,
+      packCount: 2,
+      runtimeBlockedCount: 2,
       runtimePendingCount: 0,
     });
   });
@@ -114,5 +136,14 @@ describe('offlineDictionaryPacks', () => {
         },
       })
     ).toBe('25MB');
+  });
+});
+
+describe('sample packs', () => {
+  it('labels the development pack as a sample with its real entry count', async () => {
+    const { formatPackTitle, offlineDictionaryPacks } = await import('../data/offlineDictionaryPacks');
+    const english = offlineDictionaryPacks.find((pack) => pack.languageCode === 'en')!;
+    expect(formatPackTitle(english, 'English')).toBe('English · pack mẫu (2 mục từ)');
+    expect(formatPackTitle({ ...english, isSample: false }, 'English')).toBe('English');
   });
 });

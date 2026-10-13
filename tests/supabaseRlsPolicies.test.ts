@@ -115,3 +115,18 @@ describe('translation agent connection foreign key', () => {
     });
   });
 });
+
+describe('sync server cursor (migration 010)', () => {
+  it('stamps synced_at on insert and update regardless of client timestamps', async () => {
+    await asRole(db, 'authenticated', ALICE, async (tx) => {
+      await tx.query(`insert into public.library_folders (user_id, id, name, color, created_at, updated_at)
+        values ($1, 'f1', 'Folder', '#000', '2000-01-01', '2000-01-01')`, [ALICE]);
+      const inserted = await tx.query<{ synced_at: Date }>(`select synced_at from public.library_folders where id = 'f1'`);
+      expect(inserted.rows[0].synced_at.getFullYear()).toBeGreaterThan(2020);
+
+      await tx.query(`update public.library_folders set name = 'Renamed', synced_at = '2000-01-01' where id = 'f1'`);
+      const updated = await tx.query<{ synced_at: Date }>(`select synced_at from public.library_folders where id = 'f1'`);
+      expect(updated.rows[0].synced_at.getTime()).toBeGreaterThanOrEqual(inserted.rows[0].synced_at.getTime());
+    });
+  });
+});

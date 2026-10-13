@@ -1,5 +1,5 @@
 export const USER_DATABASE_NAME = 'dictionary-mobile-user.sqlite';
-export const USER_DATABASE_SCHEMA_VERSION = 2;
+export const USER_DATABASE_SCHEMA_VERSION = 3;
 export const USER_SYNC_DOMAINS = [
   'profile',
   'folders',
@@ -57,7 +57,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     sync_status TEXT NOT NULL DEFAULT 'clean',
     remote_version INTEGER,
     last_synced_at TEXT,
-    last_local_change_at TEXT
+    last_local_change_at TEXT,
+    last_pulled_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS folders (
     id TEXT PRIMARY KEY,
@@ -73,7 +74,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     sync_status TEXT NOT NULL DEFAULT 'clean',
     remote_version INTEGER,
     last_synced_at TEXT,
-    last_local_change_at TEXT
+    last_local_change_at TEXT,
+    last_pulled_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS saved_words (
     id TEXT PRIMARY KEY,
@@ -90,7 +92,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     sync_status TEXT NOT NULL DEFAULT 'clean',
     remote_version INTEGER,
     last_synced_at TEXT,
-    last_local_change_at TEXT
+    last_local_change_at TEXT,
+    last_pulled_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS saved_word_folders (
     word_id TEXT NOT NULL,
@@ -102,6 +105,7 @@ export const USER_DATABASE_SCHEMA_SQL = [
     remote_version INTEGER,
     last_synced_at TEXT,
     last_local_change_at TEXT,
+    last_pulled_at TEXT,
     PRIMARY KEY (word_id, folder_id)
   )`,
   `CREATE TABLE IF NOT EXISTS search_history (
@@ -115,7 +119,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     sync_status TEXT NOT NULL DEFAULT 'clean',
     remote_version INTEGER,
     last_synced_at TEXT,
-    last_local_change_at TEXT
+    last_local_change_at TEXT,
+    last_pulled_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS flashcards (
     id TEXT PRIMARY KEY,
@@ -136,7 +141,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     version INTEGER NOT NULL DEFAULT 1,
     deleted_at TEXT,
     remote_version INTEGER,
-    last_local_change_at TEXT
+    last_local_change_at TEXT,
+    last_pulled_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS flashcard_review_events (
     id TEXT PRIMARY KEY,
@@ -160,6 +166,7 @@ export const USER_DATABASE_SCHEMA_SQL = [
     remote_version INTEGER,
     last_synced_at TEXT,
     last_local_change_at TEXT,
+    last_pulled_at TEXT,
     PRIMARY KEY (entity_type, entity_id)
   )`,
   `CREATE TABLE IF NOT EXISTS reader_documents (
@@ -173,7 +180,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     sync_status TEXT NOT NULL DEFAULT 'clean',
     remote_version INTEGER,
     last_synced_at TEXT,
-    last_local_change_at TEXT
+    last_local_change_at TEXT,
+    last_pulled_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS reader_settings (
     id TEXT PRIMARY KEY,
@@ -185,7 +193,8 @@ export const USER_DATABASE_SCHEMA_SQL = [
     sync_status TEXT NOT NULL DEFAULT 'clean',
     remote_version INTEGER,
     last_synced_at TEXT,
-    last_local_change_at TEXT
+    last_local_change_at TEXT,
+    last_pulled_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS user_sync_cursors (
     domain TEXT PRIMARY KEY,
@@ -214,7 +223,22 @@ export const FIRST_SQLITE_ONLY_USER_DATABASE_SCHEMA_VERSION = 2;
 // rows (ALTER TABLE ... ADD COLUMN, CREATE TABLE/INDEX IF NOT EXISTS, backfill UPDATEs), never drop data.
 // When bumping USER_DATABASE_SCHEMA_VERSION, add the matching entry here and update the CREATE TABLE above.
 export type UserDatabaseUpgrades = Readonly<Record<number, readonly string[]>>;
-export const USER_DATABASE_UPGRADES: UserDatabaseUpgrades = {};
+export const SYNCED_LOCAL_TABLES = [
+  'user_profile',
+  'folders',
+  'saved_words',
+  'saved_word_folders',
+  'search_history',
+  'flashcards',
+  'deleted_entities',
+  'reader_documents',
+  'reader_settings',
+] as const;
+
+export const USER_DATABASE_UPGRADES: UserDatabaseUpgrades = {
+  // v3: when a row was last overwritten by a Cloud Sync pull, so stale in-memory snapshots cannot undo it.
+  3: SYNCED_LOCAL_TABLES.map((table) => `ALTER TABLE ${table} ADD COLUMN last_pulled_at TEXT`),
+};
 
 export type UserDatabaseMigrationPlan =
   | { kind: 'current' }

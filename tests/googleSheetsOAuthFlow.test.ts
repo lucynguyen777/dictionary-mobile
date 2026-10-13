@@ -185,3 +185,83 @@ describe('POST /proxy/google-sheets/revoke', () => {
     expect(saved.has('alice')).toBe(false);
   });
 });
+
+describe('POST /proxy/google-sheets/export-folder', () => {
+  function mockSheets() {
+    const realFetch = globalThis.fetch;
+    const calls: { body: unknown; method: string; url: string }[] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.startsWith('https://oauth2.googleapis.com/token')) {
+        calls.push({ body: Object.fromEntries(new URLSearchParams(String(init?.body))), method: String(init?.method), url });
+        return new Response(JSON.stringify({ access_token: 'fresh-at', expires_in: 3600 }));
+      }
+      if (url.startsWith('https://sheets.googleapis.com/')) {
+        calls.push({ body: JSON.parse(String(init?.body)), method: String(init?.method), url });
+        if (init?.method === 'POST') {
+          return new Response(JSON.stringify({ spreadsheetId: 'sheet 1', spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/sheet1' }));
+        }
+        return new Response('{}');
+      }
+      return realFetch(input, init);
+    });
+    return calls;
+  }
+
+  const exportRows = (baseUrl: string, body: unknown) => fetch(`${baseUrl}/proxy/google-sheets/export-folder`, {
+    body: JSON.stringify(body),
+    headers: { Authorization: 'Bearer alice-token', 'Content-Type': 'application/json' },
+    method: 'POST',
+  });
+
+  it('refreshes the stored token, creates a sheet and writes rows as raw values', async () => {
+    const { saved, store } = createStore();
+    saved.set('alice', 'stored-rt');
+    const calls = mockSheets();
+    const baseUrl = await start(store);
+    const rows = [
+      ['Word', 'IPA', 'Meaning', 'Example', 'Folder', 'Status', 'Created'],
+      ['articulate', '', '=HYPERLINK("https://evil.example")', '', 'IELTS', 'new', '2026-10-11'],
+    ];
+
+    const response = await exportRows(baseUrl, { rows, title: 'IELTS folder' });
+
+    const payload = await response.json();
+    expect(payload).toEqual({ spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/sheet1' });
+    expect(calls[0].body).toMatchObject({ grant_type: 'refresh_token', refresh_token: 'stored-rt' });
+    expect(calls[1]).toMatchObject({ body: { properties: { title: 'IELTS folder' } }, method: 'POST' });
+    expect(calls[2].url).toBe('https://sheets.googleapis.com/v4/spreadsheets/sheet%201/values/A1?valueInputOption=RAW');
+    expect(calls[2].body).toEqual({ majorDimension: 'ROWS', values: rows });
+  });
+
+  it('asks the user to connect first when no token is stored', async () => {
+    const { store } = createStore();
+    const calls = mockSheets();
+    const baseUrl = await start(store);
+
+    const response = await exportRows(baseUrl, { rows: [Array(7).fill('h'), Array(7).fill('v')] });
+
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe('google_connection_required');
+    expect(calls).toEqual([]);
+  });
+
+  it('reports a write failure without provider details', async () => {
+    const { saved, store } = createStore();
+    saved.set('alice', 'stored-rt');
+    const realFetch = globalThis.fetch;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.startsWith('https://oauth2.googleapis.com/token')) return new Response(JSON.stringify({ access_token: 'at', expires_in: 1 }));
+      if (url.endsWith('/spreadsheets')) return new Response(JSON.stringify({ spreadsheetId: 's', spreadsheetUrl: 'u' }));
+      if (url.startsWith('https://sheets.googleapis.com/')) return new Response('quota exceeded for project 123456', { status: 429 });
+      return realFetch(input, init);
+    });
+    const baseUrl = await start(store);
+
+    const response = await exportRows(baseUrl, { rows: [Array(7).fill('h'), Array(7).fill('v')] });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: { code: 'google_sheet_write_failed' } });
+  });
+});

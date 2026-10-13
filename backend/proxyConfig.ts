@@ -25,6 +25,7 @@ export type BackendProxyConfig =
 
 export type BackendProxyLimits = {
   dailyAiRequestLimitPerUser: number;
+  dailyPronunciationLimitPerUser: number;
   dailyTranslationCharacterLimitPerUser: number;
   maxGlossaryEntries: number;
   maxTextInputChars: number;
@@ -34,6 +35,8 @@ export type BackendProxyLimits = {
 
 const DEFAULT_LIMITS: BackendProxyLimits = {
   dailyAiRequestLimitPerUser: 25,
+  // Owner decision D6: 20 pronunciation scores per user per day.
+  dailyPronunciationLimitPerUser: 20,
   dailyTranslationCharacterLimitPerUser: 20_000,
   maxGlossaryEntries: 1_000,
   maxTextInputChars: 5_000,
@@ -43,6 +46,7 @@ const DEFAULT_LIMITS: BackendProxyLimits = {
 
 const LIMIT_ENV_KEYS: Record<keyof BackendProxyLimits, string> = {
   dailyAiRequestLimitPerUser: 'PROXY_DAILY_AI_REQUEST_LIMIT_PER_USER',
+  dailyPronunciationLimitPerUser: 'PROXY_DAILY_PRONUNCIATION_LIMIT_PER_USER',
   dailyTranslationCharacterLimitPerUser: 'PROXY_DAILY_TRANSLATION_CHARACTER_LIMIT_PER_USER',
   maxGlossaryEntries: 'PROXY_MAX_GLOSSARY_ENTRIES',
   maxTextInputChars: 'PROXY_MAX_TEXT_INPUT_CHARS',
@@ -118,9 +122,10 @@ export function redactProxyLogPayload(value: unknown): unknown {
   );
 }
 
-function readProxyLimits(env: BackendProxyEnv): BackendProxyLimits {
+export function readProxyLimits(env: BackendProxyEnv): BackendProxyLimits {
   return {
     dailyAiRequestLimitPerUser: readPositiveInteger(env, 'dailyAiRequestLimitPerUser'),
+    dailyPronunciationLimitPerUser: readPositiveInteger(env, 'dailyPronunciationLimitPerUser'),
     dailyTranslationCharacterLimitPerUser: readPositiveInteger(env, 'dailyTranslationCharacterLimitPerUser'),
     maxGlossaryEntries: readPositiveInteger(env, 'maxGlossaryEntries'),
     maxTextInputChars: readPositiveInteger(env, 'maxTextInputChars'),

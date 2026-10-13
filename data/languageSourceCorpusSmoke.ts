@@ -160,7 +160,7 @@ const smokeRows: SourceCorpusSmokeRow[] = [
         status: 'pass',
       },
       {
-        evidence: 'VI->FR remains separately source-gated; machine translation must not be used to fill dictionary gaps.',
+        evidence: 'VI->FR is not served by this FR->VI source: it uses its own French Wiktionary pair pack (D13); machine translation must not be used to fill dictionary gaps.',
         query: 'vi->fr',
         source: 'Language source gate policy',
         status: 'partial',

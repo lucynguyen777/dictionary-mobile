@@ -346,7 +346,11 @@ export type LanguageOption = (typeof languageOptions)[number];
 export type LanguageCode = LanguageOption['code'];
 
 export const supportedBilingualDictionaryPairs = ['en->vi', 'vi->en', 'fr->vi'] as const;
-export const blockedBilingualDictionaryPairs = ['vi->fr'] as const;
+// Pairs served only by an installed offline pair pack, never by a remote API or machine translation.
+// VI→FR: French Wiktionary's Vietnamese section (decision D13); the pack is built but not hosted yet (D9).
+export const offlinePackBilingualDictionaryPairs = ['vi->fr'] as const;
+// Pairs whose dictionary source is still undecided. VI→FR left this list when D13 approved its source.
+export const blockedBilingualDictionaryPairs: readonly string[] = [];
 
 export function getLanguageByCode(code: string | undefined, fallbackCode: LanguageCode) {
   return languageOptions.find((language) => language.code === code) ?? getFallbackLanguage(fallbackCode);
@@ -372,16 +376,24 @@ export function isSupportedBilingualDictionaryPair(sourceCode: string, targetCod
   return supportedBilingualDictionaryPairs.includes(pair as (typeof supportedBilingualDictionaryPairs)[number]);
 }
 
+export function isOfflinePackBilingualDictionaryPair(sourceCode: string, targetCode: string) {
+  const pair = getLanguagePairKey(sourceCode, targetCode);
+
+  return offlinePackBilingualDictionaryPairs.includes(pair as (typeof offlinePackBilingualDictionaryPairs)[number]);
+}
+
 export function isBlockedBilingualDictionaryPair(sourceCode: string, targetCode: string) {
   const pair = getLanguagePairKey(sourceCode, targetCode);
 
-  return blockedBilingualDictionaryPairs.includes(pair as (typeof blockedBilingualDictionaryPairs)[number]);
+  return blockedBilingualDictionaryPairs.includes(pair);
 }
 
 export function isSameLanguagePair(sourceCode: string, targetCode: string) {
   return sourceCode === targetCode;
 }
 
+// Offline-pack pairs (VI→FR) still count as "coming soon" here: no pack is installed by default. The Word
+// screen hides the notice once an installed pair pack answers.
 export function isTranslationComingSoonPair(sourceCode: string, targetCode: string) {
   if (isSameLanguagePair(sourceCode, targetCode)) return false;
 

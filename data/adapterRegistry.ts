@@ -2,75 +2,24 @@ import {
   ApiBilingualMeaningResult,
   ApiMeaningResult,
   ApiRelatedWords,
-  fetchAmharicMeaning,
-  fetchAmharicRelatedWords,
-  fetchArabicMeaning,
-  fetchArabicRelatedWords,
   fetchBilingualMeaning,
-  fetchBurmeseMeaning,
-  fetchBurmeseRelatedWords,
   fetchEnglishMeaning,
   fetchEnglishRelatedWords,
-  fetchEstonianMeaning,
-  fetchEstonianRelatedWords,
-  fetchFinnishMeaning,
-  fetchFinnishRelatedWords,
-  fetchHawaiianMeaning,
-  fetchHawaiianRelatedWords,
-  fetchHebrewMeaning,
-  fetchHebrewRelatedWords,
-  fetchHindiMeaning,
-  fetchHindiRelatedWords,
-  fetchHungarianMeaning,
-  fetchHungarianRelatedWords,
-  fetchIgboMeaning,
-  fetchIgboRelatedWords,
-  fetchJapaneseMeaning,
-  fetchJapaneseRelatedWords,
-  fetchJavaneseMeaning,
-  fetchJavaneseRelatedWords,
-  fetchKazakhMeaning,
-  fetchKazakhRelatedWords,
-  fetchKannadaMeaning,
-  fetchKannadaRelatedWords,
-  fetchKoreanMeaning,
-  fetchKoreanRelatedWords,
-  fetchMalayalamMeaning,
-  fetchMalayalamRelatedWords,
-  fetchMandarinMeaning,
-  fetchMandarinRelatedWords,
   fetchMinhQndMonolingualMeaning,
   fetchMinhQndRelatedWords,
   fetchMonolingualMeaning,
   fetchRelatedWords,
-  fetchRussianMeaning,
-  fetchRussianRelatedWords,
-  fetchSomaliMeaning,
-  fetchSomaliRelatedWords,
-  fetchSwahiliMeaning,
-  fetchSwahiliRelatedWords,
-  fetchTagalogMeaning,
-  fetchTagalogRelatedWords,
-  fetchTamilMeaning,
-  fetchTamilRelatedWords,
-  fetchTeluguMeaning,
-  fetchTeluguRelatedWords,
-  fetchTibetanMeaning,
-  fetchTibetanRelatedWords,
-  fetchTurkishMeaning,
-  fetchTurkishRelatedWords,
-  fetchUzbekMeaning,
-  fetchUzbekRelatedWords,
   fetchVietnameseSuggestions,
   fetchWiktApiMonolingualMeaning,
   fetchWiktApiRelatedWords,
-  fetchYorubaMeaning,
-  fetchYorubaRelatedWords,
-  fetchZuluMeaning,
-  fetchZuluRelatedWords,
 } from './dictionaryApi';
-import { languageOptions } from './languages';
-import { fetchOfflineMonolingualMeaning, fetchOfflineRelatedWords } from './offlineDictionaryRuntimeLookup';
+import { LOCAL_PACK_SOURCES, lookupLocalPackMeaning, lookupLocalPackRelatedWords } from './localPackDictionarySources';
+import { getLanguageByCode, isOfflinePackBilingualDictionaryPair, languageOptions } from './languages';
+import {
+  fetchOfflineBilingualMeaning,
+  fetchOfflineMonolingualMeaning,
+  fetchOfflineRelatedWords,
+} from './offlineDictionaryRuntimeLookup';
 
 export type LanguageAdapter = {
   key: string;
@@ -81,6 +30,16 @@ export type LanguageAdapter = {
   fetchBilingualMeaning?: (word: string, sourceLang: string, targetLang: string) => Promise<ApiBilingualMeaningResult>;
   fetchSuggestions?: (query: string) => Promise<string[]>;
 };
+
+function createLocalPackAdapter(languageCode: string): LanguageAdapter {
+  return {
+    key: languageCode,
+    supportsMonolingual: true,
+    supportsBilingual: false,
+    fetchMonolingualMeaning: (word: string) => lookupLocalPackMeaning(languageCode, word),
+    fetchRelatedWords: (word: string) => lookupLocalPackRelatedWords(languageCode, word),
+  };
+}
 
 const adapters: Record<string, LanguageAdapter> = {
   en: {
@@ -122,202 +81,8 @@ const adapters: Record<string, LanguageAdapter> = {
     fetchMonolingualMeaning: (word: string) => fetchWiktApiMonolingualMeaning(word, 'ms'),
     fetchRelatedWords: (word: string) => fetchWiktApiRelatedWords(word, 'ms'),
   },
-  fi: {
-    key: 'fi',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchFinnishMeaning(word),
-    fetchRelatedWords: (word: string) => fetchFinnishRelatedWords(word),
-  },
-  et: {
-    key: 'et',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchEstonianMeaning(word),
-    fetchRelatedWords: (word: string) => fetchEstonianRelatedWords(word),
-  },
-  hi: {
-    key: 'hi',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchHindiMeaning(word),
-    fetchRelatedWords: (word: string) => fetchHindiRelatedWords(word),
-  },
-  tr: {
-    key: 'tr',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchTurkishMeaning(word),
-    fetchRelatedWords: (word: string) => fetchTurkishRelatedWords(word),
-  },
-  uz: {
-    key: 'uz',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchUzbekMeaning(word),
-    fetchRelatedWords: (word: string) => fetchUzbekRelatedWords(word),
-  },
-  kk: {
-    key: 'kk',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchKazakhMeaning(word),
-    fetchRelatedWords: (word: string) => fetchKazakhRelatedWords(word),
-  },
-  ja: {
-    key: 'ja',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchJapaneseMeaning(word),
-    fetchRelatedWords: (word: string) => fetchJapaneseRelatedWords(word),
-  },
-  ko: {
-    key: 'ko',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchKoreanMeaning(word),
-    fetchRelatedWords: (word: string) => fetchKoreanRelatedWords(word),
-  },
-  sw: {
-    key: 'sw',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchSwahiliMeaning(word),
-    fetchRelatedWords: (word: string) => fetchSwahiliRelatedWords(word),
-  },
-  hu: {
-    key: 'hu',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchHungarianMeaning(word),
-    fetchRelatedWords: (word: string) => fetchHungarianRelatedWords(word),
-  },
-  ar: {
-    key: 'ar',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchArabicMeaning(word),
-    fetchRelatedWords: (word: string) => fetchArabicRelatedWords(word),
-  },
-  he: {
-    key: 'he',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchHebrewMeaning(word),
-    fetchRelatedWords: (word: string) => fetchHebrewRelatedWords(word),
-  },
-  tl: {
-    key: 'tl',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchTagalogMeaning(word),
-    fetchRelatedWords: (word: string) => fetchTagalogRelatedWords(word),
-  },
-  am: {
-    key: 'am',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchAmharicMeaning(word),
-    fetchRelatedWords: (word: string) => fetchAmharicRelatedWords(word),
-  },
-  ru: {
-    key: 'ru',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchRussianMeaning(word),
-    fetchRelatedWords: (word: string) => fetchRussianRelatedWords(word),
-  },
-  zh: {
-    key: 'zh',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchMandarinMeaning(word),
-    fetchRelatedWords: (word: string) => fetchMandarinRelatedWords(word),
-  },
-  jv: {
-    key: 'jv',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchJavaneseMeaning(word),
-    fetchRelatedWords: (word: string) => fetchJavaneseRelatedWords(word),
-  },
-  so: {
-    key: 'so',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchSomaliMeaning(word),
-    fetchRelatedWords: (word: string) => fetchSomaliRelatedWords(word),
-  },
-  my: {
-    key: 'my',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchBurmeseMeaning(word),
-    fetchRelatedWords: (word: string) => fetchBurmeseRelatedWords(word),
-  },
-  bo: {
-    key: 'bo',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchTibetanMeaning(word),
-    fetchRelatedWords: (word: string) => fetchTibetanRelatedWords(word),
-  },
-  yo: {
-    key: 'yo',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchYorubaMeaning(word),
-    fetchRelatedWords: (word: string) => fetchYorubaRelatedWords(word),
-  },
-  zu: {
-    key: 'zu',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchZuluMeaning(word),
-    fetchRelatedWords: (word: string) => fetchZuluRelatedWords(word),
-  },
-  ig: {
-    key: 'ig',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchIgboMeaning(word),
-    fetchRelatedWords: (word: string) => fetchIgboRelatedWords(word),
-  },
-  haw: {
-    key: 'haw',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchHawaiianMeaning(word),
-    fetchRelatedWords: (word: string) => fetchHawaiianRelatedWords(word),
-  },
-  ta: {
-    key: 'ta',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchTamilMeaning(word),
-    fetchRelatedWords: (word: string) => fetchTamilRelatedWords(word),
-  },
-  te: {
-    key: 'te',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchTeluguMeaning(word),
-    fetchRelatedWords: (word: string) => fetchTeluguRelatedWords(word),
-  },
-  kn: {
-    key: 'kn',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchKannadaMeaning(word),
-    fetchRelatedWords: (word: string) => fetchKannadaRelatedWords(word),
-  },
-  ml: {
-    key: 'ml',
-    supportsMonolingual: true,
-    supportsBilingual: false,
-    fetchMonolingualMeaning: (word: string) => fetchMalayalamMeaning(word),
-    fetchRelatedWords: (word: string) => fetchMalayalamRelatedWords(word),
-  },
+  // One adapter per bundled local pack, generated from the declarative source registry.
+  ...Object.fromEntries(Object.keys(LOCAL_PACK_SOURCES).map((code) => [code, createLocalPackAdapter(code)])),
   // Source-specific adapters (registered by key) — these make it explicit which upstream source is used.
   minhqnd: {
     key: 'minhqnd',
@@ -393,10 +158,24 @@ export async function lookupRelatedWords(word: string, languageCode: string) {
   return adapter.fetchRelatedWords(word);
 }
 
+// Installed pair packs answer first. Offline-only pairs (VI→FR) have no remote fallback: without an
+// installed pack the lookup fails with an honest message instead of reaching another source.
 export async function lookupBilingual(word: string, sourceLang: string, targetLang: string) {
+  const offlineMeaning = await fetchOfflineBilingualMeaning(word, sourceLang, targetLang);
+  if (offlineMeaning) return offlineMeaning;
+  if (isOfflinePackBilingualDictionaryPair(sourceLang, targetLang)) {
+    throw new Error(getOfflinePairPackMissingMessage(sourceLang, targetLang));
+  }
+
   const adapter = getAdapterForPair(sourceLang, targetLang);
   if (!adapter.fetchBilingualMeaning) throw new Error(`No bilingual adapter for ${sourceLang}->${targetLang}`);
   return adapter.fetchBilingualMeaning(word, sourceLang, targetLang);
+}
+
+export function getOfflinePairPackMissingMessage(sourceLang: string, targetLang: string) {
+  const source = getLanguageByCode(sourceLang, 'vi').label;
+  const target = getLanguageByCode(targetLang, 'fr').label;
+  return `Từ điển ${source} → ${target} dùng gói offline từ Wiktionary (CC BY-SA 4.0). Gói chưa được phát hành để tải, hoặc chưa cài trên máy này, hoặc gói không có từ này.`;
 }
 
 export default {

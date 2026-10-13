@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Dimensions, LayoutChangeEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { LayoutChangeEvent, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import Touchable from '@/components/app/Touchable';
 
 import { useToken } from '@/hooks/use-token';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type Props = {
   tabs: string[];
@@ -18,6 +17,7 @@ type TabLayout = {
 
 export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
   const { colors } = useToken();
+  const { width: screenWidth } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const tabLayouts = useRef<TabLayout[]>([]);
 
@@ -26,14 +26,15 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
     if (!layout || !scrollRef.current) return;
 
     scrollRef.current.scrollTo({
-      x: Math.max(0, layout.x + layout.width / 2 - SCREEN_WIDTH / 2),
+      x: Math.max(0, layout.x + layout.width / 2 - screenWidth / 2),
       animated: true,
     });
-  }, [activeIndex]);
+  }, [activeIndex, screenWidth]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.canvasAlt }]}>
       <ScrollView
+        accessibilityRole="tablist"
         ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -42,8 +43,10 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
           const isActive = index === activeIndex;
 
           return (
-            <TouchableOpacity
+            <Touchable
               key={tab}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
               onPress={() => onTabPress(index)}
               onLayout={(e: LayoutChangeEvent) => {
                 tabLayouts.current[index] = {
@@ -56,7 +59,7 @@ export default function StickyTabBar({ tabs, activeIndex, onTabPress }: Props) {
                 {tab}
               </Text>
               <View style={[styles.indicator, isActive && { backgroundColor: colors.accentPrimary }]} />
-            </TouchableOpacity>
+            </Touchable>
           );
         })}
       </ScrollView>

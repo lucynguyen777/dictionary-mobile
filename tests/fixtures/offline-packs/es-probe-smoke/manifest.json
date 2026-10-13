@@ -1,0 +1,12 @@
+{
+  "entryCount": 126,
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "input": "es-probes.jsonl",
+  "langCode": "es",
+  "license": "CC-BY-SA-4.0/GFDL",
+  "packId": "eswiktionary-es-offline-pack-v1",
+  "schemaVersion": 1,
+  "sourceName": "eswiktionary",
+  "sourceUrl": "https://kaikki.org/eswiktionary/Espa%C3%B1ol/kaikki.org-dictionary-Espa%C3%B1ol.jsonl",
+  "sourceRevision": "2026-10-02"
+}

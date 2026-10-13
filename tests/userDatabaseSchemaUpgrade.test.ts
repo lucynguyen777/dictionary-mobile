@@ -27,7 +27,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getDefaultLibraryState, type Folder } from '../data/libraryStore';
 import { loadLibraryStateFromUserDatabase, saveLibraryStateToUserDatabase } from '../data/userDatabaseRuntime';
-import { planUserDatabaseMigration } from '../data/userDatabaseSchema';
+import { planUserDatabaseMigration, SYNCED_LOCAL_TABLES, USER_DATABASE_SCHEMA_VERSION } from '../data/userDatabaseSchema';
 import { createNodeSqliteUserDatabase } from './helpers/nodeSqliteUserDatabase';
 
 const marker: Folder = {
@@ -36,12 +36,15 @@ const marker: Folder = {
   name: 'Upgrade marker',
 };
 
-async function seedVersion2Database() {
+const CURRENT = USER_DATABASE_SCHEMA_VERSION;
+const NEXT = CURRENT + 1;
+
+async function seedCurrentDatabase() {
   const harness = createNodeSqliteUserDatabase();
   const library = getDefaultLibraryState();
   await saveLibraryStateToUserDatabase(
     { ...library, folders: [...library.folders, marker] },
-    { openDatabase: harness.openDatabase, schemaVersion: 2 }
+    { openDatabase: harness.openDatabase }
   );
   // Simulate legacy cleanup: AsyncStorage no longer holds a copy of the data.
   storage.clear();
@@ -72,54 +75,71 @@ describe('planUserDatabaseMigration', () => {
 
 describe('user database schema upgrades', () => {
   it('upgrades in place without re-importing from emptied AsyncStorage', async () => {
-    const harness = await seedVersion2Database();
+    const harness = await seedCurrentDatabase();
 
     const library = await loadLibraryStateFromUserDatabase({
       openDatabase: harness.openDatabase,
-      schemaVersion: 3,
-      upgrades: { 3: ['ALTER TABLE folders ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0'] },
+      schemaVersion: NEXT,
+      upgrades: { [NEXT]: ['ALTER TABLE folders ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0'] },
     });
 
     expect(library.folders.map((folder) => folder.id)).toContain(marker.id);
-    expect(schemaVersion(harness)).toBe('3');
+    expect(schemaVersion(harness)).toBe(String(NEXT));
     const columns = harness.database.prepare('PRAGMA table_info(folders)').all() as { name: string }[];
     expect(columns.map((column) => column.name)).toContain('sort_order');
   });
 
   it('refuses to upgrade when a step is missing and leaves data untouched', async () => {
-    const harness = await seedVersion2Database();
+    const harness = await seedCurrentDatabase();
 
     await expect(loadLibraryStateFromUserDatabase({
       openDatabase: harness.openDatabase,
-      schemaVersion: 3,
+      schemaVersion: NEXT,
       upgrades: {},
-    })).rejects.toThrow('Missing user database upgrade to schema version 3');
+    })).rejects.toThrow(`Missing user database upgrade to schema version ${NEXT}`);
 
-    expect(schemaVersion(harness)).toBe('2');
-    const library = await loadLibraryStateFromUserDatabase({ openDatabase: harness.openDatabase, schemaVersion: 2 });
+    expect(schemaVersion(harness)).toBe(String(CURRENT));
+    const library = await loadLibraryStateFromUserDatabase({ openDatabase: harness.openDatabase });
     expect(library.folders.map((folder) => folder.id)).toContain(marker.id);
   });
 
   it('rolls back a failing upgrade step', async () => {
-    const harness = await seedVersion2Database();
+    const harness = await seedCurrentDatabase();
 
     await expect(loadLibraryStateFromUserDatabase({
       openDatabase: harness.openDatabase,
-      schemaVersion: 3,
-      upgrades: { 3: ['ALTER TABLE folders ADD COLUMN extra TEXT', 'ALTER TABLE missing_table ADD COLUMN x TEXT'] },
+      schemaVersion: NEXT,
+      upgrades: { [NEXT]: ['ALTER TABLE folders ADD COLUMN extra TEXT', 'ALTER TABLE missing_table ADD COLUMN x TEXT'] },
     })).rejects.toThrow();
 
-    expect(schemaVersion(harness)).toBe('2');
+    expect(schemaVersion(harness)).toBe(String(CURRENT));
     const columns = harness.database.prepare('PRAGMA table_info(folders)').all() as { name: string }[];
     expect(columns.map((column) => column.name)).not.toContain('extra');
   });
 
   it('does not touch a database written by a newer app version', async () => {
-    const harness = await seedVersion2Database();
+    const harness = await seedCurrentDatabase();
 
-    await expect(loadLibraryStateFromUserDatabase({ openDatabase: harness.openDatabase, schemaVersion: 1 }))
+    await expect(loadLibraryStateFromUserDatabase({ openDatabase: harness.openDatabase, schemaVersion: CURRENT - 1 }))
       .rejects.toThrow('newer than this app');
 
-    expect(schemaVersion(harness)).toBe('2');
+    expect(schemaVersion(harness)).toBe(String(CURRENT));
+  });
+
+  it('upgrades a real v2 database to v3 by adding last_pulled_at to every synced table', async () => {
+    const harness = await seedCurrentDatabase();
+    for (const table of SYNCED_LOCAL_TABLES) {
+      harness.database.exec(`ALTER TABLE ${table} DROP COLUMN last_pulled_at`);
+    }
+    harness.database.exec(`UPDATE user_database_meta SET value = '2' WHERE key = 'schema_version'`);
+
+    const library = await loadLibraryStateFromUserDatabase({ openDatabase: harness.openDatabase, schemaVersion: 3 });
+
+    expect(library.folders.map((folder) => folder.id)).toContain(marker.id);
+    expect(schemaVersion(harness)).toBe('3');
+    for (const table of SYNCED_LOCAL_TABLES) {
+      const columns = harness.database.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+      expect(columns.map((column) => column.name)).toContain('last_pulled_at');
+    }
   });
 });

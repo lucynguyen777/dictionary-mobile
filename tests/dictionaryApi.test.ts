@@ -7,7 +7,11 @@ import {
   fetchMonolingualMeaning,
   fetchRelatedWords,
 } from '../data/dictionaryApi';
-import { isSupportedBilingualDictionaryPair, isTranslationComingSoonPair } from '../data/languages';
+import {
+  isOfflinePackBilingualDictionaryPair,
+  isSupportedBilingualDictionaryPair,
+  isTranslationComingSoonPair,
+} from '../data/languages';
 
 describe('dictionaryApi bilingual source selection', () => {
   it('allows French to Vietnamese because MinhQnd has lexical dictionary data', () => {
@@ -17,10 +21,13 @@ describe('dictionaryApi bilingual source selection', () => {
     expect(isTranslationComingSoonPair('fr', 'vi')).toBe(false);
   });
 
-  it('keeps Vietnamese to French blocked until a dictionary source is selected', () => {
-    expect(isBlockedBilingualDictionaryPair('vi', 'fr')).toBe(true);
+  it('serves Vietnamese to French only from the approved offline pair pack (D13), never the remote API', () => {
+    expect(isBlockedBilingualDictionaryPair('vi', 'fr')).toBe(false);
+    expect(isOfflinePackBilingualDictionaryPair('vi', 'fr')).toBe(true);
+    expect(isOfflinePackBilingualDictionaryPair('fr', 'vi')).toBe(false);
     expect(canUseBilingualDictionaryApi('vi', 'fr')).toBe(false);
     expect(isSupportedBilingualDictionaryPair('vi', 'fr')).toBe(false);
+    // No pack is installed by default, so the pair still shows the coming-soon notice until one answers.
     expect(isTranslationComingSoonPair('vi', 'fr')).toBe(true);
   });
 
@@ -1177,5 +1184,16 @@ describe('Uzbek monolingual baseline and morphology', () => {
 
     const related2 = await fetchRelatedWords('uylardan', 'uz');
     expect(related2.synonyms).toContain('turarjoy');
+  });
+});
+
+describe('monolingual lookup availability comes from the source registry (plan 6.1)', () => {
+  it('covers remote sources and every local pack language', async () => {
+    const { canUseMonolingualDictionaryApi } = await import('../data/dictionaryApi');
+    const { LOCAL_PACK_SOURCES } = await import('../data/localPackDictionarySources');
+    for (const code of ['en', 'vi', 'fr', 'es', 'ms', ...Object.keys(LOCAL_PACK_SOURCES)]) {
+      expect(canUseMonolingualDictionaryApi(code), code).toBe(true);
+    }
+    expect(canUseMonolingualDictionaryApi('xx')).toBe(false);
   });
 });

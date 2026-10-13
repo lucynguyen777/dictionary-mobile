@@ -50,6 +50,20 @@ type UserDataSnapshot = {
   reader: ReaderState;
 };
 
+// Marks when a state object was read from SQLite. Object spread copies symbol keys, so store mutations
+// ({ ...state, ... }) keep the stamp, while JSON serialization (AsyncStorage) ignores it.
+export const SNAPSHOT_LOADED_AT = Symbol.for('dictionary-mobile.snapshotLoadedAt');
+
+type Stamped = { [SNAPSHOT_LOADED_AT]?: string };
+
+function stampLoadedAt<T extends object>(state: T, loadedAt: string): T {
+  return Object.assign(state, { [SNAPSHOT_LOADED_AT]: loadedAt });
+}
+
+function readLoadedAt(state: object) {
+  return (state as Stamped)[SNAPSHOT_LOADED_AT] ?? null;
+}
+
 const SELECT_PROFILE_SQL = 'SELECT * FROM user_profile WHERE id = ? LIMIT 1';
 const SELECT_META_SQL = 'SELECT value FROM user_database_meta WHERE key = ? LIMIT 1';
 const SELECT_FOLDERS_SQL = 'SELECT * FROM folders ORDER BY created_at DESC';
@@ -64,6 +78,17 @@ const SELECT_READER_DOCUMENTS_SQL = 'SELECT * FROM reader_documents ORDER BY upd
 const SELECT_READER_SETTINGS_SQL = 'SELECT * FROM reader_settings WHERE id = ? LIMIT 1';
 
 let runtimeOptions: UserDatabaseRuntimeOptions = {};
+
+type UserDataSavedListener = () => void;
+const userDataSavedListeners = new Set<UserDataSavedListener>();
+
+// Lets Cloud Sync schedule a push after local edits without the stores knowing about sync.
+export function addUserDataSavedListener(listener: UserDataSavedListener) {
+  userDataSavedListeners.add(listener);
+  return () => {
+    userDataSavedListeners.delete(listener);
+  };
+}
 
 export function configureUserDatabaseRuntime(options: UserDatabaseRuntimeOptions = {}) {
   runtimeOptions = options;
@@ -118,12 +143,14 @@ export async function clearReaderStateFromUserDatabase(options: UserDatabaseRunt
 export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabaseRuntimeOptions = {}): Promise<UserDataSnapshot> {
   const {
     databaseName = USER_DATABASE_NAME,
+    now = () => new Date().toISOString(),
     openDatabase = openExpoUserDatabase,
   } = resolveRuntimeOptions(options);
 
   await ensureUserDatabaseMigrated(options);
 
   const database = await openDatabase(databaseName);
+  const loadedAt = now();
   try {
     const [
       profileRow,
@@ -157,7 +184,7 @@ export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabase
       ]);
 
     return {
-      library: parseLibraryStateFromSqliteRows({
+      library: stampLoadedAt(parseLibraryStateFromSqliteRows({
         deletedEntities,
         flashcardLearningSettings,
         flashcardReviewEvents,
@@ -166,9 +193,9 @@ export async function loadUserDataSnapshotFromUserDatabase(options: UserDatabase
         savedWordFolders,
         savedWords,
         searchHistory,
-      }),
-      profile: profileRow ? parseUserProfileFromSqliteRow(profileRow) : getDefaultProfile(),
-      reader: parseReaderStateFromSqliteRows({ documents, settings }),
+      }), loadedAt),
+      profile: stampLoadedAt(profileRow ? parseUserProfileFromSqliteRow(profileRow) : getDefaultProfile(), loadedAt),
+      reader: stampLoadedAt(parseReaderStateFromSqliteRows({ documents, settings }), loadedAt),
     };
   } finally {
     await database.closeAsync?.();
@@ -190,18 +217,28 @@ export async function saveUserDataSnapshotToUserDatabase(
 
   const database = await openDatabase(databaseName);
   try {
+    const savedAt = now();
     const rows = serializeUserDataForSqlite(snapshot, {
-      migratedAt: now(),
+      migratedAt: savedAt,
       schemaVersion,
     });
 
     await ensureUserDatabaseSchema(database);
     await database.withTransactionAsync(async () => {
-      await replaceUserDatabaseRows(database, rows);
+      await replaceUserDatabaseRows(database, rows, {
+        loadedAt: {
+          library: readLoadedAt(snapshot.library),
+          profile: readLoadedAt(snapshot.profile),
+          reader: readLoadedAt(snapshot.reader),
+        },
+        now: savedAt,
+      });
     });
   } finally {
     await database.closeAsync?.();
   }
+
+  userDataSavedListeners.forEach((listener) => listener());
 }
 
 // Brings the SQLite database to the app's schema version without ever replacing existing SQLite data.
@@ -209,6 +246,7 @@ export async function saveUserDataSnapshotToUserDatabase(
 async function ensureUserDatabaseMigrated(options: UserDatabaseRuntimeOptions = {}) {
   const {
     databaseName = USER_DATABASE_NAME,
+    now,
     openDatabase = openExpoUserDatabase,
     schemaVersion = USER_DATABASE_SCHEMA_VERSION,
     upgrades = USER_DATABASE_UPGRADES,
@@ -234,7 +272,7 @@ async function ensureUserDatabaseMigrated(options: UserDatabaseRuntimeOptions = 
     );
   }
   if (plan.kind === 'import-legacy') {
-    await migrateAsyncStorageToUserDatabase({ databaseName, openDatabase });
+    await migrateAsyncStorageToUserDatabase({ databaseName, now, openDatabase });
   }
 }
 

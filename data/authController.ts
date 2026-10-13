@@ -53,6 +53,12 @@ export type AuthControllerClient = {
         message: string;
       } | null;
     }>;
+    updateUser?: (attributes: { password: string }) => Promise<{
+      data: unknown;
+      error: {
+        message: string;
+      } | null;
+    }>;
     exchangeCodeForSession: (code: string) => Promise<{
       data: {
         session: AuthSession | null;
@@ -110,6 +116,8 @@ export function getAuthCallbackUrl(webOrigin?: string) {
 
 export type AuthCallbackParams = {
   code?: string | string[];
+  // Set on password-reset links we send, so the callback can ask for a new password.
+  flow?: string | string[];
   error?: string | string[];
   error_description?: string | string[];
   token_hash?: string | string[];
@@ -246,7 +254,7 @@ export async function sendPasswordRecoveryEmail(
   }
 
   const { error } = await result.client.auth.resetPasswordForEmail(email, {
-    redirectTo: getAuthCallbackUrl(),
+    redirectTo: `${getAuthCallbackUrl()}?flow=recovery`,
   });
 
   if (error) {
@@ -282,12 +290,15 @@ export async function completeAuthCallback(
   const code = getFirstParamValue(params.code);
   const tokenHash = getFirstParamValue(params.token_hash);
   const callbackType = getFirstParamValue(params.type);
+  const sessionEvent = callbackType === 'recovery' || getFirstParamValue(params.flow) === 'recovery'
+    ? 'password-recovery'
+    : 'recovery';
 
   if (tokenHash && result.client.auth.verifyOtp) {
     const type = callbackType === 'recovery' || callbackType === 'email' ? callbackType : 'signup';
     const { data, error } = await result.client.auth.verifyOtp({ token_hash: tokenHash, type });
     if (error) return mapAuthErrorToSnapshot(error.message, 'recovery');
-    if (data.session) return mapSupabaseSessionToAuthSnapshot(data.session, 'recovery');
+    if (data.session) return mapSupabaseSessionToAuthSnapshot(data.session, sessionEvent);
     return mapSupabaseUserToAuthSnapshot(data.user, 'recovery');
   }
 
@@ -308,7 +319,51 @@ export async function completeAuthCallback(
     return mapAuthErrorToSnapshot(error.message, 'recovery');
   }
 
-  return mapSupabaseSessionToAuthSnapshot(data.session, 'recovery');
+  return mapSupabaseSessionToAuthSnapshot(data.session, sessionEvent);
+}
+
+export const MIN_PASSWORD_LENGTH = 8;
+// bcrypt, which Supabase Auth uses, ignores bytes past 72.
+export const MAX_PASSWORD_LENGTH = 72;
+
+export function validateNewPassword(password: string, confirmation: string): string | null {
+  if (password.length < MIN_PASSWORD_LENGTH) return `Mật khẩu cần ít nhất ${MIN_PASSWORD_LENGTH} ký tự.`;
+  if (new TextEncoder().encode(password).length > MAX_PASSWORD_LENGTH) return 'Mật khẩu quá dài (tối đa 72 byte).';
+  if (password !== confirmation) return 'Hai mật khẩu chưa khớp.';
+  return null;
+}
+
+export type UpdatePasswordResult = { ok: true } | { ok: false; message: string };
+
+// Changes the signed-in user's password (also used after opening a password-reset link).
+export async function updateAuthPassword(
+  password: string,
+  confirmation: string,
+  createClient: CreateAuthControllerClient = getSharedSupabaseAuthClient
+): Promise<UpdatePasswordResult> {
+  const validationError = validateNewPassword(password, confirmation);
+  if (validationError) return { ok: false, message: validationError };
+
+  const result = createClient();
+  if (result.status === 'unconfigured' || !result.client.auth.updateUser) {
+    return { ok: false, message: 'Đăng nhập cloud chưa được cấu hình trên bản cài đặt này.' };
+  }
+
+  const { data: sessionData } = await result.client.auth.getSession();
+  if (!sessionData.session) {
+    return { ok: false, message: 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại hoặc mở lại liên kết đặt lại mật khẩu.' };
+  }
+
+  const { error } = await result.client.auth.updateUser({ password });
+  if (error) return { ok: false, message: describePasswordUpdateError(error.message) };
+  return { ok: true };
+}
+
+function describePasswordUpdateError(message: string) {
+  if (/same.*password|different from the old/i.test(message)) return 'Mật khẩu mới phải khác mật khẩu hiện tại.';
+  if (/weak|strength|characters/i.test(message)) return 'Mật khẩu chưa đủ mạnh theo yêu cầu của máy chủ.';
+  if (/reauthenticat|recent/i.test(message)) return 'Vì an toàn, hãy đăng nhập lại rồi đổi mật khẩu.';
+  return 'Không thể đổi mật khẩu lúc này. Thử lại sau.';
 }
 
 export function subscribeToAuthSessionChanges(

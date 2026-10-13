@@ -1,0 +1,12 @@
+{
+  "entryCount": 98,
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "input": "ko-probes.jsonl",
+  "langCode": "ko",
+  "license": "CC-BY-SA-4.0/GFDL",
+  "packId": "kowiktionary-ko-offline-pack-v1",
+  "schemaVersion": 1,
+  "sourceName": "kowiktionary",
+  "sourceUrl": "https://kaikki.org/kowiktionary/%ED%95%9C%EA%B5%AD%EC%96%B4/kaikki.org-dictionary-%ED%95%9C%EA%B5%AD%EC%96%B4.jsonl",
+  "sourceRevision": "2026-10"
+}

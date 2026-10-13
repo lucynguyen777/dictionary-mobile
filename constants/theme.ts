@@ -1,36 +1,11 @@
 /**
  * Design system & tokens: Minimalism + Futuristic style
  * Organized by category: Colors (theme-aware), Typography, Spacing, Radius, Motion, Shadows
- * Usage: import { DesignSystem, Colors, Fonts } from '@/constants/theme'
+ * Usage: import { DesignSystem, Fonts } from '@/constants/theme'
  *        const token = DesignSystem.light.colors.accentNeo
  */
 
 import { Platform } from 'react-native';
-
-// ============================================================================
-// LEGACY COLORS (backward compatibility; prefer DesignSystem.colors)
-// ============================================================================
-const tintColorLight = '#7c3aed';
-const tintColorDark = '#a78bfa';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#ffffff',
-    tint: tintColorLight,
-    icon: '#6b7280',
-    tabIconDefault: '#6b7280',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#101114',
-    tint: tintColorDark,
-    icon: '#a1a1aa',
-    tabIconDefault: '#a1a1aa',
-    tabIconSelected: tintColorDark,
-  },
-};
 
 // ============================================================================
 // FONTS (unchanged)
@@ -166,6 +141,20 @@ export const DesignSystem = {
       surfaceGlass: 'rgba(255, 255, 255, 0.84)',
       surfaceHero: '#1F1B2E',
       surfaceHeroAlt: '#241B36',
+      // Controls, rules and data marks drawn on hero surfaces (dark in both themes).
+      surfaceOnHero: '#2A2636',
+      surfaceOnHeroPressed: '#353042',
+      surfaceOnHeroActive: '#706E78',
+      borderOnHero: '#3A3646',
+      accentOnHero: '#A998F4',
+      accentOnHeroMuted: '#5B5278',
+      successOnHero: '#B6FF4D',
+      // Activity heatmap scale (none -> most), shown on hero surfaces.
+      heatmapLevel0: '#161B22',
+      heatmapLevel1: '#0E4429',
+      heatmapLevel2: '#006D32',
+      heatmapLevel3: '#26A641',
+      heatmapLevel4: '#39D353',
 
       // Text hierarchy
       textPrimary: '#11181C',
@@ -175,6 +164,8 @@ export const DesignSystem = {
       textOnAccent: '#ffffff',
       textOnHero: '#ffffff',
       textOnHeroMuted: '#d7e3f1',
+      // Ink for content placed on user-chosen pastel colors (folder colors), which stay light in both themes.
+      textOnPastel: '#0f172a',
 
       // Accent colors (minimalist + futuristic)
       accentPrimary: '#7c3aed', // Electric purple for primary actions
@@ -206,6 +197,14 @@ export const DesignSystem = {
       statusWarning: '#fef3c7',
       statusError: '#fee2e2',
       statusInfo: '#cffafe',
+      // Readable text/icon ink on the status backgrounds above.
+      statusSuccessText: '#047857',
+      statusWarningText: '#b45309',
+      statusErrorText: '#b91c1c',
+      statusInfoText: '#0e7490',
+
+      // Scrim behind modals, sheets and drawers.
+      backdrop: 'rgba(15, 23, 42, 0.4)',
     },
     shadows: {
       none: {
@@ -267,15 +266,32 @@ export const DesignSystem = {
       surfaceGlass: 'rgba(24, 24, 27, 0.86)',
       surfaceHero: '#17131F',
       surfaceHeroAlt: '#20182D',
+      // Controls, rules and data marks drawn on hero surfaces (dark in both themes).
+      surfaceOnHero: '#2A2636',
+      surfaceOnHeroPressed: '#353042',
+      surfaceOnHeroActive: '#706E78',
+      borderOnHero: '#3A3646',
+      accentOnHero: '#A998F4',
+      accentOnHeroMuted: '#5B5278',
+      successOnHero: '#B6FF4D',
+      // Activity heatmap scale (none -> most), shown on hero surfaces.
+      heatmapLevel0: '#161B22',
+      heatmapLevel1: '#0E4429',
+      heatmapLevel2: '#006D32',
+      heatmapLevel3: '#26A641',
+      heatmapLevel4: '#39D353',
 
       // Text hierarchy
       textPrimary: '#ECEDEE',
       textSecondary: '#a1a1aa',
       textTertiary: '#71717a',
       textInverse: '#11181C',
-      textOnAccent: '#ffffff',
+      // Dark ink: the dark-theme accents (#a78bfa, #22d3ee) are light, so white text on them is ~2.7:1;
+      // this ink gives ~6.7:1 on accentPrimary and ~10:1 on accentNeo (WCAG AA).
+      textOnAccent: '#1c1033',
       textOnHero: '#f8fafc',
       textOnHeroMuted: '#c7c7d1',
+      textOnPastel: '#0f172a',
 
       // Accent colors
       accentPrimary: '#a78bfa',
@@ -307,6 +323,14 @@ export const DesignSystem = {
       statusWarning: '#78350f',
       statusError: '#7c2d12',
       statusInfo: '#164e63',
+      // Readable text/icon ink on the status backgrounds above.
+      statusSuccessText: '#6ee7b7',
+      statusWarningText: '#fcd34d',
+      statusErrorText: '#fca5a5',
+      statusInfoText: '#67e8f9',
+
+      // Scrim behind modals, sheets and drawers.
+      backdrop: 'rgba(0, 0, 0, 0.6)',
     },
     shadows: {
       none: {

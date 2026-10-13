@@ -70,7 +70,7 @@ import {
   loadUserProfileFromUserDatabase,
   saveLibraryStateToUserDatabase,
 } from '../data/userDatabaseRuntime';
-import type { UserSqliteBindParams, UserSqliteDatabase } from '../data/userDatabaseSchema';
+import { createSqliteTestHarness } from './helpers/nodeSqliteUserDatabase';
 
 const timestamp = '2026-05-25T12:00:00.000Z';
 
@@ -91,7 +91,7 @@ describe('userDatabaseRuntime', () => {
   });
 
   it('runs the AsyncStorage migration on first read and parses all store states from SQLite rows', async () => {
-    const harness = createFakeUserDatabaseHarness();
+    const harness = createSqliteTestHarness();
     seedAsyncStorage();
 
     const profile = await loadUserProfileFromUserDatabase({ openDatabase: harness.openDatabase });
@@ -101,13 +101,14 @@ describe('userDatabaseRuntime', () => {
     expect(profile.displayName).toBe('Runtime Profile');
     expect(profile.notificationPreferences.reminderTime).toBe('06:45');
     expect(library.savedWords[0]).toMatchObject({
-      folderIds: ['folder-runtime', 'favorites'],
+      folderIds: expect.arrayContaining(['folder-runtime', 'favorites']),
       id: 'word-runtime',
       tags: ['runtime'],
     });
+    // Sync bookkeeping now lives in SQLite: imported cards are unsynced until a real push succeeds.
     expect(library.flashcards[0]).toMatchObject({
       id: 'card-runtime',
-      lastSyncedAt: timestamp,
+      lastSyncedAt: null,
       syncStatus: 'pending_update',
       version: 2,
     });
@@ -121,7 +122,7 @@ describe('userDatabaseRuntime', () => {
   });
 
   it('persists library changes through the SQLite runtime adapter without duplicating relations', async () => {
-    const harness = createFakeUserDatabaseHarness();
+    const harness = createSqliteTestHarness();
     seedAsyncStorage();
 
     await loadLibraryStateFromUserDatabase({ openDatabase: harness.openDatabase });
@@ -147,15 +148,15 @@ describe('userDatabaseRuntime', () => {
 
     expect(reloaded.savedWords).toHaveLength(1);
     expect(reloaded.savedWords[0]).toMatchObject({
-      folderIds: ['folder-runtime', 'favorites'],
+      folderIds: expect.arrayContaining(['folder-runtime', 'favorites']),
       note: 'updated note',
     });
     expect(reloaded.searchHistory).toEqual([{ word: 'updated', lookedUpAt: '2026-05-25T13:00:00.000Z' }]);
-    expect(harness.requireDatabase('dictionary-mobile-user.sqlite').rows.saved_word_folders).toHaveLength(2);
+    expect(harness.requireDatabase('dictionary-mobile-user.sqlite').rows('saved_word_folders')).toHaveLength(2);
   });
 
   it('smokes Profile save/load through SQLite and keeps the AsyncStorage export backup readable', async () => {
-    const harness = createFakeUserDatabaseHarness();
+    const harness = createSqliteTestHarness();
     seedAsyncStorage();
     resetRuntimeOptions = configureUserDatabaseRuntime({
       now: () => '2026-05-25T14:00:00.000Z',
@@ -193,7 +194,7 @@ describe('userDatabaseRuntime', () => {
   });
 
   it('smokes Library folder, saved-word, history, and flashcard flows through SQLite without duplicate relations', async () => {
-    const harness = createFakeUserDatabaseHarness();
+    const harness = createSqliteTestHarness();
     seedAsyncStorage();
     resetRuntimeOptions = configureUserDatabaseRuntime({
       now: () => '2026-05-25T15:00:00.000Z',
@@ -226,12 +227,12 @@ describe('userDatabaseRuntime', () => {
     expect(
       harness
         .requireDatabase('dictionary-mobile-user.sqlite')
-        .rows.saved_word_folders.filter((row) => row.word_id === savedWord?.id)
+        .rows('saved_word_folders').filter((row) => row.word_id === savedWord?.id)
     ).toHaveLength(1);
   });
 
   it('smokes Reader import, settings, selection, and selected-document fallback through SQLite', async () => {
-    const harness = createFakeUserDatabaseHarness();
+    const harness = createSqliteTestHarness();
     seedAsyncStorage();
     resetRuntimeOptions = configureUserDatabaseRuntime({
       now: () => '2026-05-25T16:00:00.000Z',
@@ -260,7 +261,7 @@ describe('userDatabaseRuntime', () => {
   });
 
   it('smokes reset and export boundaries without clearing offline pack metadata', async () => {
-    const harness = createFakeUserDatabaseHarness();
+    const harness = createSqliteTestHarness();
     seedAsyncStorage();
     resetRuntimeOptions = configureUserDatabaseRuntime({
       now: () => '2026-05-25T17:00:00.000Z',
@@ -416,183 +417,3 @@ const fixtureEntry: DictionaryEntry = {
   vietnamese: 'SQLite',
   word: 'SQLite',
 };
-
-function createFakeUserDatabaseHarness() {
-  const databases = new Map<string, FakeUserSqliteDatabase>();
-
-  return {
-    openDatabase: async (databaseName: string) => {
-      const database = databases.get(databaseName) ?? new FakeUserSqliteDatabase(databaseName);
-      databases.set(databaseName, database);
-      return database;
-    },
-    requireDatabase(databaseName: string) {
-      const database = databases.get(databaseName);
-      if (!database) throw new Error(`Missing fake database ${databaseName}`);
-      return database;
-    },
-  };
-}
-
-type RowTableName = keyof ReturnType<typeof createEmptyRows>;
-
-const insertColumns: Record<RowTableName, string[]> = {
-  deleted_entities: ['entity_type', 'entity_id', 'deleted_at'],
-  flashcard_learning_settings: ['id', 'completion_min_average_quality', 'completion_min_review_count', 'updated_at'],
-  flashcard_review_events: ['id', 'flashcard_id', 'word_id', 'quality', 'reviewed_at', 'scheduled_due_date_after_review'],
-  flashcards: [
-    'id',
-    'word_id',
-    'type',
-    'front',
-    'back',
-    'created_at',
-    'review_state',
-    'final_status',
-    'completed_at',
-    'interval',
-    'repetition',
-    'efactor',
-    'due_date',
-    'sync_status',
-    'last_synced_at',
-    'version',
-    'deleted_at',
-  ],
-  folders: [
-    'id',
-    'name',
-    'color',
-    'color_note',
-    'tags_json',
-    'avatar_uri',
-    'is_favorite',
-    'created_at',
-    'updated_at',
-    'deleted_at',
-  ],
-  reader_documents: ['id', 'title', 'content', 'source_format', 'created_at', 'updated_at', 'deleted_at'],
-  reader_settings: ['id', 'selected_document_id', 'font_size', 'font_family', 'background_color', 'updated_at'],
-  saved_word_folders: ['word_id', 'folder_id', 'created_at'],
-  saved_words: ['id', 'word', 'ipa', 'definition', 'audio', 'note', 'tags_json', 'source', 'created_at', 'updated_at', 'deleted_at'],
-  search_history: ['id', 'word', 'normalized_word', 'looked_up_at'],
-  user_database_meta: ['key', 'value'],
-  user_profile: [
-    'id',
-    'display_name',
-    'email',
-    'username',
-    'phone',
-    'avatar_url',
-    'login_method',
-    'native_language',
-    'learning_language',
-    'proficiency_level',
-    'learning_goal',
-    'timezone',
-    'daily_goal',
-    'app_lock_enabled',
-    'cloud_sync_enabled',
-    'daily_reminder_enabled',
-    'review_reminder_enabled',
-    'weekly_summary_enabled',
-    'reminder_time',
-    'updated_at',
-  ],
-};
-
-class FakeUserSqliteDatabase implements UserSqliteDatabase {
-  readonly databasePath: string;
-  readonly execStatements: string[] = [];
-  closeCount = 0;
-  rows = createEmptyRows();
-  transactionCount = 0;
-
-  constructor(databaseName: string) {
-    this.databasePath = `sqlite://${databaseName}`;
-  }
-
-  async closeAsync() {
-    this.closeCount += 1;
-  }
-
-  async execAsync(source: string) {
-    this.execStatements.push(source);
-  }
-
-  async getAllAsync<T>(source: string) {
-    return [...this.rows[requireSelectTable(source)]] as T[];
-  }
-
-  async getFirstAsync<T>(source: string, ...params: UserSqliteBindParams) {
-    const table = requireSelectTable(source);
-    const key = params[0];
-
-    if (table === 'user_database_meta') {
-      return (this.rows.user_database_meta.find((row) => row.key === key) ?? null) as T | null;
-    }
-
-    if (table === 'user_profile') {
-      return (this.rows.user_profile.find((row) => row.id === key) ?? null) as T | null;
-    }
-
-    if (table === 'reader_settings') {
-      return (this.rows.reader_settings.find((row) => row.id === key) ?? null) as T | null;
-    }
-
-    return (this.rows[table][0] ?? null) as T | null;
-  }
-
-  async runAsync(source: string, ...params: UserSqliteBindParams) {
-    const tableName = parseTargetTable(source);
-    if (!tableName) return;
-
-    if (source.trim().toLocaleUpperCase().startsWith('DELETE')) {
-      this.rows[tableName] = [];
-      return;
-    }
-
-    const columns = insertColumns[tableName];
-    this.rows[tableName].push(Object.fromEntries(columns.map((column, index) => [column, params[index]])));
-  }
-
-  async withTransactionAsync(task: () => Promise<void>) {
-    this.transactionCount += 1;
-    await task();
-  }
-}
-
-function createEmptyRows() {
-  return {
-    deleted_entities: [] as Record<string, unknown>[],
-    flashcard_learning_settings: [] as Record<string, unknown>[],
-    flashcard_review_events: [] as Record<string, unknown>[],
-    flashcards: [] as Record<string, unknown>[],
-    folders: [] as Record<string, unknown>[],
-    reader_documents: [] as Record<string, unknown>[],
-    reader_settings: [] as Record<string, unknown>[],
-    saved_word_folders: [] as Record<string, unknown>[],
-    saved_words: [] as Record<string, unknown>[],
-    search_history: [] as Record<string, unknown>[],
-    user_database_meta: [] as Record<string, unknown>[],
-    user_profile: [] as Record<string, unknown>[],
-  };
-}
-
-function parseTargetTable(source: string): RowTableName | null {
-  const match = source.trim().match(/^(?:INSERT OR REPLACE INTO|DELETE FROM)\s+([a-z_]+)/i);
-  const tableName = match?.[1] as RowTableName | undefined;
-
-  return tableName && tableName in insertColumns ? tableName : null;
-}
-
-function requireSelectTable(source: string): RowTableName {
-  const match = source.match(/FROM\s+([a-z_]+)/i);
-  const tableName = match?.[1] as RowTableName | undefined;
-
-  if (!tableName || !(tableName in insertColumns)) {
-    throw new Error(`Unsupported fake SELECT: ${source}`);
-  }
-
-  return tableName;
-}

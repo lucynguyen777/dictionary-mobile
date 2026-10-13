@@ -14,7 +14,7 @@ const dashboardRows = [
   'Offline Dictionary | 85%',
   'Multilingual Architecture | 88%',
   'Supabase Auth | 75%',
-  'Cloud Sync | 40%',
+  'Cloud Sync | 80%',
   'AI Infrastructure | 70%',
   'OCR Infrastructure | 70%',
   'Real OCR Engine | 30%',

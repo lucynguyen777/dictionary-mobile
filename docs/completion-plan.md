@@ -199,11 +199,41 @@ Mỗi phase là một hoặc vài module trong `docs/product-progress.md`. Các 
 5. Azure Speech resource (khi bắt đầu Phase 4.6).
 6. Hosting cho Chandra OCR và CDN cho offline pack.
 
-## 7. Next Work Module đề xuất
+## 7. Progress status (updated 2026-10-11)
 
-**Module: v1.4.0 Security And Data Integrity Hardening**
-- [ ] TODO [HARD]: 0.1 Server-only tables RLS migration + Supabase-local RLS tests.
-- [ ] TODO [MEDIUM]: 0.2 Google OAuth state binding + open-redirect fix + Google revoke.
-- [ ] TODO [MEDIUM]: 0.3 AI proxy system-role, error redaction, CORS, DeepL header.
-- [ ] TODO [HARD]: 0.6 SQLite incremental schema migration without legacy re-migration.
-- [ ] TODO [EASY]: 1.6 Correct Cloud Sync/AI/OCR status in progress docs.
+Branches stack in order: `claude/v1.4.1-product-truth` → `claude/v1.5.0-cloud-sync` → `claude/v1.6.0-design-system` → `claude/v1.7.0-account-features` (PR #3 merged v1.4.0). Details per task live in `docs/product-progress.md`.
+
+| Phase | Done | Open (and why) |
+| --- | --- | --- |
+| 0 Stability/security | 0.1, 0.2, 0.3, 0.4 durable quota (migration 011), 0.5 Chandra hardening, 0.6, 0.7 fetch timeouts (`data/http.ts`), 0.8 session in chunked SecureStore entries (`data/chunkedSecureStorage.ts`) | Migrations 009–011 not applied (D2) |
+| 1 Product truth | 1.1–1.6 | — |
+| 2 Cloud Sync | 2.0–2.5 (two-device test on Postgres + RLS); 2.6 account deletion built in both D3 modes (off by default, migration 012) | 2.6 choose the mode (D3) and apply migration 012 (D2); production smoke (D2) |
+| 3 Design system/UI | 3.1–3.9 (3.5 shared Touchable primitive + lint guard; 3.3 every screen under 600 lines; 3.2 hex-literal lint guard; 3.7 icon-button label guard; 3.8 virtualized Reader, 1 MB document test) | Library/Training/Profile stylesheet palette → tokens, including switching their buttons to `AppButton`/`Surface` (3.5 remainder), both part of D7 |
+| 4 Providers | 4.1 AI streaming, 4.3 feedback form, 4.4 password change/reset, 4.5 specialized translation (glossary and sentence memory per domain, CSV/TSV/DOCX/PDF import, up to 3 agent presets, account sync), Sheets export fake-API tests | 4.1/4.2 production smoke (keys); 4.3 legal/help + Resend (D5); 4.5 free-text agent instructions (D10), DeepL glossaries (D15); 4.6 Azure scoring (D6) |
+| 5 Native recognition | 5.2 camera OCR, 5.3 voice search and 5.4 native PDF (WebView pdf.js) integrated with fallbacks and tests, enabled in dev-client builds only | 5.1 device smoke (EAS account + devices) before enabling in production; 5.5 Chandra stack ready to deploy, host choice (D9) |
+| 6 Languages/offline | 6.1 declarative local-pack registry, 6.2 pack pipeline + import validation (`--lemmas-only`, `--rank-by richness`), 6.3 catalog tooling + app catalog loading, French/Spanish pack and web UI smoke, full-size pack sizing (`docs/offline-pack-sizing.md`), 6.5 Vietnamese pack source passes | 6.3/6.5 need CDN hosting; 6.4 French, Spanish, Russian, Korean and Turkish source gates and pack smoke pass, pack scope/host (D9); Japanese examples need D12; Chinese exact-lookup gap is missing content in the Chinese Wiktionary itself (D16); Malay needs D11; 6.6 VI→FR source probed and passing (`docs/vi-fr-source-gate.md`), approval D13; Basque probed and failing on open data (`docs/basque-source-gate.md`, D14); Uyghur, Cantonese, Nahuatl, Quechua, Ainu, Guarani have no open source above 5,000 entries (`docs/language-source-gates.md`) |
+| 7 Release v2.0 | 7.5 release checklist (`docs/release-checklist-v2.md`); 7.2 expo-updates, runtime version and channels configured; 7.1 error boundary + provider-neutral redacting reporter; 7.3 privacy-label draft from a network inventory (`docs/store-privacy-answers-draft.md`) | 7.1 choose and plug in the provider (D8); 7.2 project link and 7.3 store listing need the Expo/store accounts, D3, D5 |
+
+## 8. Owner decisions (answered 2026-10-13)
+
+The owner answered every open decision. The table records each answer, what is done, and what still needs the owner (accounts, credentials, content). The full question text and options are in the 2026-10-12 decision list in this file's history.
+
+| # | Answer | Done | Still needs the owner |
+| --- | --- | --- | --- |
+| D1 | Open stacked PRs | PRs #4 (v1.4.1), #5 (v1.5.0), #6 (v1.6.0), #7 (v1.7.0), merge in that order | Review and merge |
+| D2 | Restore Supabase and apply migrations | Project restored; migration 008 applied | Approve 009–013: the Supabase tool asks for a person's confirmation on `drop`/`revoke` statements, so they could not run unattended. Run them in the SQL editor or approve them in a session |
+| D3 | Scheduled deletion, 30-day grace | `ACCOUNT_DELETION_MODE` defaults to `scheduled`; daily Vercel cron purges due requests | `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` on Vercel; migration 012 |
+| D4 | Allow more web domains | — | List of domains for `BACKEND_PROXY_ALLOWED_ORIGINS` |
+| D5 | Claude drafts; owner hosts on their own site | Drafts in `docs/legal/`; Profile opens `EXPO_PUBLIC_PRIVACY_POLICY_URL`, `EXPO_PUBLIC_TERMS_URL`, `EXPO_PUBLIC_HELP_CENTER_URL` | Legal review, operator details, hosting, support inbox and Resend domain |
+| D6 | No audio retention; 20 scores/day | `/proxy/pronunciation/assess` (in-memory ffmpeg transcode → Azure), Pronunciation tab UI, migration 013 | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` on Vercel; migration 013; first-language smoke |
+| D7 | Redesign the whole UI with Figma | Step 1 done: Library, Training and Profile run on the shared theme tokens (661 hex literals removed, lint guard covers every screen), new status-text/backdrop/hero tokens, folder pastels in `constants/pastels.ts`, dark-mode text on accent buttons raised to WCAG AA | Connect the Figma connector in claude.ai and share the design file (or say to design from scratch) for the full redesign |
+| D8 | Sentry, opt-in | `data/sentryReporter.ts`: SDK starts only after opt-in, events scrubbed | Sentry project and `EXPO_PUBLIC_SENTRY_DSN` |
+| D9 | Supabase Storage; ~50k lemma packs | Nine packs hosted in the public bucket `offline-packs` (en, es, fr, ja, ko, ru, tr, vi, vi→fr) with `catalog.json`, MD5-verified | Optionally drop the expired temporary upload policies `offline_packs_temporary_*_20261013` on `storage.objects` |
+| D10 | Presets only, no free-text instructions | Already the shipped behaviour | — |
+| D11 | Malay stays preview | — | — |
+| D12 | Show English-Wiktionary Japanese examples, credited, English translation as an aid | Builder `--helper-examples`; examples carry their translation language and the Meaning tab labels English aids; Japanese example gate passes with the helper (86%) | — (Japanese pack hosted, 96% of probes; UI smoke left) |
+| D13 | Approve French Wiktionary's Vietnamese section for VI→FR | VI→FR pair pack (15,336 entries, 1.2 MB) hosted in `offline-packs`; Word uses it for vi→fr without machine translation; 98% of probes | — |
+| D14 | Basque out of scope | Basque stays source-gated | — |
+| D15 | Glossaries for specialized translation only | Already the shipped behaviour | — |
+| D16 | Chinese stays preview | — | — |
+| D17 | Owner runs `eas init` | Channels and runtime version configured | Run `eas init` with the owner's Expo account |

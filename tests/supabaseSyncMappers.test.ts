@@ -167,6 +167,7 @@ describe('supabase sync mappers', () => {
       word_id: 'word-1',
       folder_id: 'folder-1',
       created_at: '2026-05-01T00:00:00.000Z',
+      deleted_at: null,
     });
     expect(history.created_at).toBe(history.looked_up_at);
     expect(mapSearchHistoryFromRemote(history).normalized_word).toBe('hello');

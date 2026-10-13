@@ -92,3 +92,12 @@ test('buildAgentPrompt appends glossary properly', () => {
   expect(prompt).toContain('IMPORTANT GLOSSARY TERMS TO USE:');
   expect(prompt).toContain('- "MRI" -> "cộng hưởng từ"');
 });
+test('marks a phrase with two different translations as a conflict', () => {
+    const entry = (id: string, sourceText: string, targetText: string) => ({ confidence: 1, datasetId: 'd', id, sourceText, tags: [], targetText, type: 'term' as const });
+    const spans = findDatasetMatches('The MRI and the CT scan', [
+      entry('a', 'MRI', 'cộng hưởng từ'),
+      entry('b', 'mri', 'chụp cộng hưởng từ'),
+      entry('c', 'CT scan', 'chụp cắt lớp'),
+    ]);
+    expect(spans.map((span) => [span.sourceText.toLowerCase(), span.type])).toEqual([['mri', 'conflict'], ['ct scan', 'match']]);
+});

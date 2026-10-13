@@ -197,3 +197,15 @@ function restoreEnv(key: string, value: string | undefined) {
 
   process.env[key] = value;
 }
+
+describe('Reader table text', () => {
+  it('keeps each table row on one line even when cells contain paragraphs', async () => {
+    const { extractReaderDocument } = await import('../data/readerImport');
+    const result = await extractReaderDocument(
+      'terms.html',
+      '<table><tr><td><p>plaintiff</p></td><td><p>nguyên đơn</p></td></tr><tr><td><p>defendant</p></td><td><p>bị đơn</p></td></tr></table>',
+      'text/html'
+    );
+    expect(result.content.split('\n').filter(Boolean)).toEqual(['plaintiff | nguyên đơn', 'defendant | bị đơn']);
+  });
+});

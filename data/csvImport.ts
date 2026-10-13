@@ -129,6 +129,11 @@ function parseColumnOrientedCsvRows(rows: string[][], options: VocabularyImportO
   return { ...finalizeParseResult(vocabularyRows, errors), headers };
 }
 
+// Splits CSV/TSV text (delimiter auto-detected, quoted cells supported) into non-empty rows.
+export function parseDelimitedRows(text: string) {
+  return parseCsvRows(text);
+}
+
 function parseCsvRows(csv: string) {
   const delimiter = detectDelimiter(csv);
   const rows: string[][] = [];

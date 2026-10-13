@@ -74,6 +74,15 @@ export function findDatasetMatches(sourceText: string, datasetEntries: DatasetEn
   const spans: MatchSpan[] = [];
   const coveredIndices = new Set<number>();
 
+  // A source phrase with more than one distinct translation is a conflict the learner should resolve.
+  const translationsBySource = new Map<string, Set<string>>();
+  for (const entry of datasetEntries) {
+    const key = entry.sourceText.trim().toLowerCase();
+    const translations = translationsBySource.get(key) ?? new Set<string>();
+    translations.add(entry.targetText.trim().toLowerCase());
+    translationsBySource.set(key, translations);
+  }
+
   // Sort entries by length descending to prefer longer phrases over single words
   const sortedEntries = [...datasetEntries].sort((a, b) => b.sourceText.length - a.sourceText.length);
 
@@ -108,7 +117,7 @@ export function findDatasetMatches(sourceText: string, datasetEntries: DatasetEn
           start: startIndex,
           end: endIndex,
           entryId: entry.id,
-          type: 'match', // TODO: detect conflicts if needed
+          type: (translationsBySource.get(entry.sourceText.trim().toLowerCase())?.size ?? 0) > 1 ? 'conflict' : 'match',
           sourceText: entry.sourceText,
           targetText: entry.targetText,
         });

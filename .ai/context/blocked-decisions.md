@@ -34,7 +34,7 @@ Accepted:
 ---
 
 ## Supabase Cloud Sync MVP
-Status: Partially implemented (2026-10 audit). Manual runner, SQLite ports, tombstones, RLS, and mappers exist, but push upserts only `{id, user_id}` because dirty rows are never mapped to `remoteRow`, and pull applies only tombstones. Lifecycle start/stop are no-ops. Do not describe sync as working until plan Phase 2 (`docs/completion-plan.md`) lands.
+Status: Implemented in v1.5.0 (two-way, automatic when enabled) and proven by `tests/cloudSyncTwoDevices.test.ts` against Postgres+RLS. Production still needs migrations 009/010 applied and a real two-device smoke. Account deletion is pending an owner decision.
 
 Accepted:
 - Supabase backend architecture
@@ -140,7 +140,7 @@ Acceptance gate:
 ---
 
 ## Speech Scoring
-Status: Azure AI Speech Pronunciation Assessment is accepted in `.docs/decisions/speech-scoring-engine.md`; implementation is staged until backend/privacy/quota/testing gates are defined.
+Status: Built (2026-10-13). Owner decision D6: raw audio is transcoded in memory, sent to Azure and never stored; 20 scores per user per day. Route `/proxy/pronunciation/assess`, fake-provider tests in `tests/pronunciationAssessment.test.ts`. Production needs `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` and migration 013.
 
 Staged implementation:
 - Azure-backed IPA comparison when provider output can be aligned with source-backed IPA.
@@ -168,7 +168,6 @@ Status: Source-gate paths are accepted in `docs/language-source-gates.md`; produ
 Still blocked implementation:
 - Cantonese monolingual definitions
 - Uyghur monolingual baseline implementation
-- VI->FR bilingual dictionary source
 - Basque/Ainu/Amerind-family language implementation without source research
 - Any bilingual dictionary that would rely on machine translation as dictionary data
 
@@ -182,6 +181,34 @@ Allowed preparatory work:
 
 Acceptance gate:
 - The specific language or pair has an approved full-definition or bilingual lexical source.
+
+---
+
+## D12: Japanese Example Sentences From English Wiktionary
+Status: Approved by the product owner (2026-10-12) and implemented in the pack builder and Meaning tab.
+
+Accepted:
+- Japanese entries with no example sentence of their own may show Japanese example sentences from English Wiktionary's Japanese section, credited to English Wiktionary (`build-offline-pack.mjs --helper-examples`).
+- Their English translations are shown only as an English aid: marked `translationLanguage: 'en'` in the pack and labelled "EN · … / Bản dịch tiếng Anh" in the UI, never presented as a Vietnamese translation.
+- Measured coverage: Japanese Wiktionary examples 36.7% of probes; 86% with English Wiktionary examples (`docs/native-wiktionary-source-measurements.md`), above the 40% gate.
+
+Still blocked:
+- English Wiktionary definitions for Japanese (helper data is relations and example sentences only).
+- Japanese promotion: pack scope/host (D9), probe-scoped pack smoke (Japanese Wiktionary headwords are kana with kanji in `forms`, which the offline lookup does not index yet) and UI smoke are pending.
+
+---
+
+## D13: VI->FR Source
+Status: Approved by the product owner (2026-10-12). The pair pack builder, runtime lookup and probe-scoped pack smoke are implemented; the pack is builder-ready, not hosted.
+
+Accepted:
+- French Wiktionary's Vietnamese section via Kaikki/Wiktextract (`https://kaikki.org/frwiktionary/Vietnamien/kaikki.org-dictionary-Vietnamien.jsonl`, CC BY-SA 4.0/GFDL) as the VI->FR dictionary source.
+- English Wiktionary's Vietnamese relations as a credited related-words helper (never English definitions).
+- Pair pack `frwiktionary-vi-fr-offline-pack-v1` (`--lang vi --gloss-lang fr`), keyed `vi->fr` so it never replaces the VI-VI pack. Senses glossed in Vietnamese (cross-references such as "Xem …", "Như …", "Nói tắt của …") are dropped.
+
+Still blocked:
+- Hosting and default installation: the pack is uploaded only with D9 (Supabase Storage). Until then VI->FR lookups explain that the pack is not available; they never fall back to MinhQnd, DeepL/OpenAI or any machine translation.
+- UI smoke and native-device pack smoke.
 
 ---
 

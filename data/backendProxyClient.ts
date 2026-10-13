@@ -6,7 +6,15 @@
  */
 
 import { Platform } from 'react-native';
+import { fetch as streamingFetch } from 'expo/fetch';
+
+import type { FeedbackCategory } from './feedback';
+import { fetchWithTimeout } from './http';
+import { readSseStream } from './sseParser';
 import { getSharedSupabaseAuthClient } from './supabaseAuthClient';
+
+// AI replies can take a while; anything longer than this is treated as a stalled request.
+const PROXY_FETCH_TIMEOUT_MS = 60_000;
 
 export type AiChatGoal = 'conversation' | 'correction' | 'explanation' | 'roleplay';
 
@@ -47,9 +55,17 @@ export interface TranslateTextResponse {
   warnings: string[];
 }
 
+// Mirrors `QuotaTracker.getState` in backend/quotaTracker.ts (UTC day and month windows).
+export interface QuotaUsage {
+  daily: number;
+  dailyLimit: number;
+  monthly: number;
+  monthlyLimit: number;
+}
+
 export interface QuotaState {
-  translation: { used: number; limit: number } | null;
-  aiChat: { used: number; limit: number } | null;
+  translation: QuotaUsage | null;
+  aiChat: QuotaUsage | null;
 }
 
 export interface GoogleSheetsStatus {
@@ -76,10 +92,7 @@ const PROXY_PREFIX = '/backend-proxy';
 
 // --- Helpers ---
 
-async function proxyFetch<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function buildProxyRequest(path: string, options: RequestInit) {
   if (BASE === null) {
     throw new BackendProxyError(
       503,
@@ -105,24 +118,35 @@ async function proxyFetch<T>(
     // Signed-out requests still go out; the proxy answers 401 for routes that need a session.
   }
 
-  const res = await fetch(url, {
+  return { headers, url };
+}
+
+async function toBackendProxyError(res: { json: () => Promise<unknown>; status: number; text: () => Promise<string> }) {
+  let errorBody: unknown;
+  try {
+    errorBody = await res.json();
+  } catch {
+    errorBody = await res.text().catch(() => 'Unknown error');
+  }
+  return new BackendProxyError(
+    res.status,
+    (errorBody as { error?: { code?: string; message?: string } })?.error?.message ?? String(errorBody),
+    (errorBody as { error?: { code?: string } })?.error?.code,
+  );
+}
+
+async function proxyFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const { headers, url } = await buildProxyRequest(path, options);
+  const res = await fetchWithTimeout(url, {
     ...options,
     headers,
+    timeoutMs: PROXY_FETCH_TIMEOUT_MS,
   });
 
-  if (!res.ok) {
-    let errorBody: unknown;
-    try {
-      errorBody = await res.json();
-    } catch {
-      errorBody = await res.text().catch(() => 'Unknown error');
-    }
-    throw new BackendProxyError(
-      res.status,
-      (errorBody as { error?: { code?: string; message?: string } })?.error?.message ?? String(errorBody),
-      (errorBody as { error?: { code?: string } })?.error?.code,
-    );
-  }
+  if (!res.ok) throw await toBackendProxyError(res);
 
   return res.json() as Promise<T>;
 }
@@ -162,6 +186,58 @@ export async function aiChat(req: AiChatRequest): Promise<AiChatResponse> {
   });
 }
 
+export type AiChatStreamHandlers = {
+  onDelta: (text: string) => void;
+  signal?: AbortSignal;
+};
+
+// Streams an AI Tutor reply: `onDelta` receives text as it arrives and the promise resolves with the
+// full reply. Uses expo/fetch because React Native's built-in fetch cannot read response bodies
+// incrementally; on web it is the browser fetch. A proxy that answers with plain JSON still works.
+export async function aiChatStream(req: AiChatRequest, { onDelta, signal }: AiChatStreamHandlers): Promise<AiChatResponse> {
+  const { headers, url } = await buildProxyRequest('/proxy/ai/chat', {});
+  const res = await streamingFetch(url, {
+    body: JSON.stringify({ ...req, stream: true }),
+    headers: { ...headers, Accept: 'text/event-stream' },
+    method: 'POST',
+    signal,
+  });
+
+  if (!res.ok) throw await toBackendProxyError(res);
+
+  if (!res.headers.get('content-type')?.includes('text/event-stream') || !res.body) {
+    const reply = await res.json() as AiChatResponse;
+    if (reply.content) onDelta(reply.content);
+    return reply;
+  }
+
+  let content = '';
+  let finished: AiChatResponse | null = null;
+  let streamError: BackendProxyError | null = null;
+  await readSseStream(res.body, (data) => {
+    if (finished || streamError) return;
+    const event = JSON.parse(data) as {
+      delta?: string;
+      done?: boolean;
+      error?: { code?: string; message?: string };
+      provider?: 'openai';
+      totalTokens?: number;
+    };
+    if (event.error) {
+      streamError = new BackendProxyError(502, event.error.message ?? 'AI provider is unavailable.', event.error.code);
+    } else if (event.done) {
+      finished = { content, provider: event.provider ?? 'openai', totalTokens: event.totalTokens ?? 0 };
+    } else if (event.delta) {
+      content += event.delta;
+      onDelta(event.delta);
+    }
+  });
+
+  if (streamError) throw streamError;
+  if (!finished) throw new BackendProxyError(502, 'Kết nối AI bị ngắt giữa chừng.', 'ai_stream_interrupted');
+  return finished;
+}
+
 // --- Quota API ---
 
 export async function getQuota(): Promise<QuotaState> {
@@ -183,13 +259,115 @@ export async function getGoogleSheetsStatus(): Promise<GoogleSheetsStatus> {
   return proxyFetch<GoogleSheetsStatus>('/proxy/google-sheets/status');
 }
 
-export async function exportFolderToGoogleSheets(rows: string[][]) {
+export async function exportFolderToGoogleSheets(rows: string[][], title?: string) {
   return proxyFetch<{ spreadsheetUrl: string }>('/proxy/google-sheets/export-folder', {
-    body: JSON.stringify({ rows }),
+    body: JSON.stringify({ rows, title }),
     method: 'POST',
   });
 }
 
 export async function revokeGoogleSheets() {
   return proxyFetch<{ connected: false }>('/proxy/google-sheets/revoke', { method: 'POST' });
+}
+
+// --- Feedback API ---
+
+export async function submitFeedback(input: { category: FeedbackCategory; context: string; message: string }) {
+  return proxyFetch<{ id: string; status: 'received' }>('/proxy/feedback', {
+    body: JSON.stringify({ category: input.category, context: input.context, message: input.message.trim() }),
+    method: 'POST',
+  });
+}
+
+// --- Specialized translation API ---
+
+export interface SpecializedTranslateRequest {
+  domainId: 'general' | 'medical' | 'legal' | 'tech' | 'academic';
+  // Up to 5 similar pairs from the user's sentence memory (data/sentenceMemory.ts).
+  examples?: { source: string; target: string }[];
+  glossary: { sourceTerm: string; targetTerm: string }[];
+  sourceLang: string;
+  sourceText: string;
+  targetLang: string;
+  // Fixed tone from an agent preset; the server rejects anything else.
+  tone?: 'neutral' | 'formal' | 'plain';
+}
+
+export interface SpecializedTranslateResponse {
+  appliedTerms: { sourceTerm: string; targetTerm: string }[];
+  characterCount: number;
+  examplesUsed?: number;
+  provider: 'openai';
+  translatedText: string;
+}
+
+export async function translateSpecialized(req: SpecializedTranslateRequest): Promise<SpecializedTranslateResponse> {
+  return proxyFetch<SpecializedTranslateResponse>('/proxy/translate/specialized', {
+    body: JSON.stringify(req),
+    method: 'POST',
+  });
+}
+
+// --- Account deletion (plan 2.6; mode chosen by owner decision D3 on the server) ---
+
+export type AccountDeletionStatus = {
+  graceDays: number;
+  mode: 'immediate' | 'scheduled' | null;
+  scheduled: { purgeAfter: string } | null;
+};
+
+export function getAccountDeletionStatus() {
+  return proxyFetch<AccountDeletionStatus>('/proxy/account/deletion', { method: 'GET' });
+}
+
+export function requestAccountDeletion() {
+  return proxyFetch<{ status: 'deleted' } | { purgeAfter: string; status: 'scheduled' }>('/proxy/account/deletion', {
+    body: JSON.stringify({ confirm: 'DELETE' }),
+    method: 'POST',
+  });
+}
+
+export function cancelAccountDeletion() {
+  return proxyFetch<{ scheduled: null }>('/proxy/account/deletion', { method: 'DELETE' });
+}
+
+// --- Pronunciation scoring (plan 4.6, owner decision D6) ---
+// The recording goes to the proxy, which transcodes it in memory and sends it to Azure; nothing is stored.
+
+export type PronunciationResult = {
+  accuracyScore: number;
+  completenessScore: number;
+  fluencyScore: number;
+  locale: string;
+  overallScore: number;
+  phonemes: { phoneme: string; score: number }[];
+  recognizedText: string;
+  words: { accuracy: number; error?: string; text: string }[];
+};
+
+const AUDIO_TYPES_BY_EXTENSION: Record<string, string> = {
+  '3gp': 'audio/3gpp',
+  aac: 'audio/aac',
+  m4a: 'audio/mp4',
+  mp4: 'audio/mp4',
+  ogg: 'audio/ogg',
+  wav: 'audio/wav',
+  webm: 'audio/webm',
+};
+
+export function audioContentType(uri: string, blobType = '') {
+  const type = blobType.split(';')[0].trim().toLowerCase();
+  if (type.startsWith('audio/')) return type;
+  const extension = uri.split(/[?#]/)[0].split('.').pop()?.toLowerCase() ?? '';
+  return AUDIO_TYPES_BY_EXTENSION[extension] ?? 'audio/mp4';
+}
+
+export async function assessPronunciation(input: { audioUri: string; language: string; referenceText: string }) {
+  const audio = await (await fetch(input.audioUri)).blob();
+  const query = `language=${encodeURIComponent(input.language)}&text=${encodeURIComponent(input.referenceText)}`;
+  return proxyFetch<PronunciationResult>(`/proxy/pronunciation/assess?${query}`, {
+    body: audio,
+    headers: { 'Content-Type': audioContentType(input.audioUri, audio.type) },
+    method: 'POST',
+  });
 }

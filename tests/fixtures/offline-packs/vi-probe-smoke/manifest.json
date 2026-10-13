@@ -1,0 +1,12 @@
+{
+  "entryCount": 101,
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "input": "vi-probes.jsonl",
+  "langCode": "vi",
+  "license": "CC-BY-SA-4.0/GFDL",
+  "packId": "viwiktionary-vi-offline-pack-v1",
+  "schemaVersion": 1,
+  "sourceName": "viwiktionary",
+  "sourceUrl": "https://kaikki.org/viwiktionary/Ti%E1%BA%BFng%20Vi%E1%BB%87t/kaikki.org-dictionary-Ti%E1%BA%BFngVi%E1%BB%87t.jsonl",
+  "sourceRevision": "2026-10"
+}

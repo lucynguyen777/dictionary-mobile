@@ -73,6 +73,7 @@ export type SavedWordFolderRow = {
   word_id: string;
   folder_id: string;
   created_at: string;
+  deleted_at?: string | null;
 };
 
 export type SearchHistoryRow = {
@@ -80,6 +81,7 @@ export type SearchHistoryRow = {
   word: string;
   normalized_word: string;
   looked_up_at: string;
+  deleted_at?: string | null;
 };
 
 export type FlashcardRow = {
@@ -316,7 +318,8 @@ export function parseLibraryStateFromSqliteRows(rows: {
   savedWords: SavedWordRow[];
   searchHistory: SearchHistoryRow[];
 }): LibraryState {
-  const folderIdsByWordId = rows.savedWordFolders.reduce((acc, row) => {
+  // Soft-deleted rows only exist so a deletion can sync; the app never shows them.
+  const folderIdsByWordId = rows.savedWordFolders.filter((row) => !row.deleted_at).reduce((acc, row) => {
     const folderIds = acc.get(row.word_id) ?? [];
     folderIds.push(row.folder_id);
     acc.set(row.word_id, folderIds);
@@ -328,7 +331,7 @@ export function parseLibraryStateFromSqliteRows(rows: {
       .filter((row) => row.entity_type === 'folder')
       .map((row) => row.entity_id),
     flashcards: rows.flashcards
-      .filter((row) => !row.deleted_at || row.sync_status === 'pending_delete')
+      .filter((row) => !row.deleted_at)
       .map((row) => ({
         back: row.back,
         createdAt: row.created_at,
@@ -342,7 +345,7 @@ export function parseLibraryStateFromSqliteRows(rows: {
         lastSyncedAt: row.last_synced_at,
         repetition: row.repetition,
         reviewState: row.review_state as LibraryState['flashcards'][number]['reviewState'],
-        syncStatus: row.sync_status as LibraryState['flashcards'][number]['syncStatus'],
+        syncStatus: toFlashcardSyncStatus(row.sync_status),
         type: row.type as LibraryState['flashcards'][number]['type'],
         version: row.version,
         wordId: row.word_id,
@@ -389,7 +392,7 @@ export function parseLibraryStateFromSqliteRows(rows: {
         updatedAt: row.updated_at,
         word: row.word,
       })),
-    searchHistory: rows.searchHistory.map((row) => ({
+    searchHistory: rows.searchHistory.filter((row) => !row.deleted_at).map((row) => ({
       lookedUpAt: row.looked_up_at,
       word: row.word,
     })),
@@ -496,4 +499,11 @@ function parseJsonStringArray(value: string): string[] {
   } catch {
     return [];
   }
+}
+
+// SQLite tracks sync as clean/dirty; the in-memory flashcard model predates that and uses its own labels.
+function toFlashcardSyncStatus(value: string | null): LibraryState['flashcards'][number]['syncStatus'] {
+  if (value === 'clean') return 'synced';
+  if (value === 'dirty') return 'pending_update';
+  return (value || undefined) as LibraryState['flashcards'][number]['syncStatus'];
 }

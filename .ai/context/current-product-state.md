@@ -86,7 +86,7 @@
 
 ### Auth & Cloud Sync
 - Supabase Authentication (email registration, login, secure token management via SecureStore, and session refresh callbacks) when public Supabase env vars are configured.
-- Manual beta cloud sync runner for user profiles, library folders, saved words, word memberships, search history, flashcards, Reader documents, Reader settings, and tombstones. **Data path incomplete (2026-10 audit):** push sends only ids and pull applies only deletions; see `docs/completion-plan.md` Phase 2.
+- Manual beta cloud sync runner for user profiles, library folders, saved words, word memberships, search history, flashcards, Reader documents, Reader settings, and tombstones. v1.5.0: real two-way sync (dirty tracking, full-row push, last-writer-wins pull, server cursor) and automatic sync when enabled; production needs migrations 009/010 applied.
 - Soft-deleted record tracking with tombstones and cursor-based sync polling.
 - No automatic foreground/background/realtime sync in v1.3.4; users must explicitly enable beta sync and tap "Đồng bộ ngay".
 
@@ -97,7 +97,7 @@
 - Monthly/daily usage quotas and event logging tracking character counts; production provider calls require Vercel provider env vars.
 
 ## In Progress
-- v1.4.0 Security And Data Integrity Hardening is done locally (RLS migration 009, Google OAuth binding, proxy hardening, safe SQLite upgrades); migration 009 still needs to be applied to the paused Supabase project. v1.4.1 Product Truth Fixes is done (real Home stats, native proxy URL, AI Tutor entry, pair-aware translation, no fixture OCR). Next: v1.5.0 Cloud Sync Data Path.
+- v1.4.0 Security And Data Integrity Hardening is done locally (RLS migration 009, Google OAuth binding, proxy hardening, safe SQLite upgrades); migration 009 still needs to be applied to the paused Supabase project. v1.4.1 Product Truth Fixes is done (real Home stats, native proxy URL, AI Tutor entry, pair-aware translation, no fixture OCR). v1.5.0 Cloud Sync Data Path is done in code. v1.6.0 Design System And UI Quality is done (template cleanup, theming, shared LanguageSelect/FutureFeature, a11y, faster Reader, screens split into components, 12 E2E specs). Next: Phase 4 provider features that need no new credentials (password change UI, feedback form), then Phase 6 language/offline work.
 - Current deployable release remains the v1.3.8 product-readiness Reader OCR wiring release.
 - v1.3.11 blocker-resolution audit is complete in `docs/blocked-feature-resolution-playbook.md`; the next implementation module should be selected from its recommended execution order.
 - v1.3.7 Supabase Auth And Cloud Sync Production Smoke has a verified connection, configured local/Vercel Production/Development Expo env, applied remote migrations, and passing cross-user RLS probes; redirect/callback, Preview-branch setup, and two-device sync sessions remain.

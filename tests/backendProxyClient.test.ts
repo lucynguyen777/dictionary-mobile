@@ -1,7 +1,14 @@
 const platform = vi.hoisted(() => ({ OS: 'ios' }));
 vi.mock('react-native', () => ({ Platform: platform }));
+vi.mock('expo/fetch', () => ({ fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args) }));
+const authClient = vi.hoisted(() => ({ accessToken: null as string | null }));
 vi.mock('../data/supabaseAuthClient', () => ({
-  getSharedSupabaseAuthClient: () => ({ status: 'unconfigured' }),
+  getSharedSupabaseAuthClient: () => authClient.accessToken
+    ? {
+      client: { auth: { getSession: async () => ({ data: { session: { access_token: authClient.accessToken } } }) } },
+      status: 'configured',
+    }
+    : { status: 'unconfigured' },
 }));
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +16,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { resolveBackendProxyBaseUrl } from '../data/backendProxyClient';
 
 afterEach(() => {
+  authClient.accessToken = null;
   vi.unstubAllEnvs();
   vi.resetModules();
   vi.restoreAllMocks();
@@ -46,5 +54,189 @@ describe('proxy requests on native', () => {
 
     await getQuota();
     expect(fetchSpy).toHaveBeenCalledWith('https://api.example/backend-proxy/proxy/quota', expect.anything());
+  });
+});
+
+describe('submitFeedback', () => {
+  it('posts the trimmed message to the feedback route', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 'f1', status: 'received' }), { status: 201 })
+    );
+    const { submitFeedback } = await import('../data/backendProxyClient');
+
+    await expect(submitFeedback({ category: 'bug', context: 'app 1.7.0 · ios', message: '  Nút lưu không phản hồi  ' }))
+      .resolves.toEqual({ id: 'f1', status: 'received' });
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe('https://api.example/backend-proxy/proxy/feedback');
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(String(init?.body))).toEqual({ category: 'bug', context: 'app 1.7.0 · ios', message: 'Nút lưu không phản hồi' });
+  });
+
+  it('surfaces the rate-limit code from the proxy', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'feedback_rate_limited' } }), { status: 429 })
+    );
+    const { submitFeedback } = await import('../data/backendProxyClient');
+
+    await expect(submitFeedback({ category: 'other', context: '', message: 'Một phản hồi đủ dài' }))
+      .rejects.toMatchObject({ code: 'feedback_rate_limited', status: 429 });
+  });
+});
+
+function sseResponse(chunks: string[]) {
+  const encoder = new TextEncoder();
+  return new Response(new ReadableStream<Uint8Array>({
+    start(controller) {
+      chunks.forEach((chunk) => controller.enqueue(encoder.encode(chunk)));
+      controller.close();
+    },
+  }), { headers: { 'content-type': 'text/event-stream; charset=utf-8' }, status: 200 });
+}
+
+const chatRequest = { goal: 'conversation' as const, learningLanguage: 'EN', messages: [{ content: 'Hi', role: 'user' as const }] };
+
+describe('aiChatStream', () => {
+  it('emits deltas as they arrive and resolves with the full reply', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(sseResponse([
+      'data: {"delta":"Hel"}\n\ndata: {"del',
+      'ta":"lo!"}\n\n',
+      'data: {"done":true,"provider":"openai","totalTokens":12}\n\n',
+    ]));
+    const { aiChatStream } = await import('../data/backendProxyClient');
+    const deltas: string[] = [];
+
+    await expect(aiChatStream(chatRequest, { onDelta: (text) => deltas.push(text) }))
+      .resolves.toEqual({ content: 'Hello!', provider: 'openai', totalTokens: 12 });
+    expect(deltas).toEqual(['Hel', 'lo!']);
+    const [, init] = fetchSpy.mock.calls[0];
+    expect(JSON.parse(String(init?.body))).toMatchObject({ stream: true });
+    expect((init?.headers as Record<string, string>).Accept).toBe('text/event-stream');
+  });
+
+  it('rejects with the provider error sent mid-stream', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(sseResponse([
+      'data: {"delta":"Par"}\n\n',
+      'data: {"error":{"code":"provider_error","message":"AI provider is unavailable."}}\n\n',
+    ]));
+    const { aiChatStream } = await import('../data/backendProxyClient');
+
+    await expect(aiChatStream(chatRequest, { onDelta: () => undefined }))
+      .rejects.toMatchObject({ code: 'provider_error', status: 502 });
+  });
+
+  it('treats a stream without a done event as interrupted', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(sseResponse(['data: {"delta":"Par"}\n\n']));
+    const { aiChatStream } = await import('../data/backendProxyClient');
+
+    await expect(aiChatStream(chatRequest, { onDelta: () => undefined }))
+      .rejects.toMatchObject({ code: 'ai_stream_interrupted' });
+  });
+
+  it('falls back to a JSON reply from a proxy that does not stream', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(
+      JSON.stringify({ content: 'Whole reply', provider: 'openai', totalTokens: 9 }),
+      { headers: { 'content-type': 'application/json' }, status: 200 },
+    ));
+    const { aiChatStream } = await import('../data/backendProxyClient');
+    const deltas: string[] = [];
+
+    await expect(aiChatStream(chatRequest, { onDelta: (text) => deltas.push(text) }))
+      .resolves.toMatchObject({ content: 'Whole reply' });
+    expect(deltas).toEqual(['Whole reply']);
+  });
+
+  it('maps quota errors before the stream starts', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(
+      JSON.stringify({ error: { code: 'quota_exceeded', message: 'Daily AI limit reached.' } }),
+      { status: 429 },
+    ));
+    const { aiChatStream } = await import('../data/backendProxyClient');
+
+    await expect(aiChatStream(chatRequest, { onDelta: () => undefined }))
+      .rejects.toMatchObject({ code: 'quota_exceeded', status: 429 });
+  });
+});
+
+describe('getQuota', () => {
+  it('reads the usage shape the proxy actually returns', async () => {
+    const { createServer } = await import('../backend/server');
+    const { app } = createServer({
+      env: { DEEPL_API_BASE_URL: 'https://api-free.deepl.com', DEEPL_API_KEY: 'k', OPENAI_API_KEY: 'k', OPENAI_TEXT_MODEL: 'gpt-4.1-mini' },
+      verifyAuth: async () => ({ userId: 'u1' }),
+    });
+    // Same path layout as the Vercel rewrite: /backend-proxy/<route>.
+    const { default: express } = await import('express');
+    const host = express().use('/backend-proxy', app);
+    const server = await new Promise<import('http').Server>((resolve) => {
+      const listening = host.listen(0, () => resolve(listening));
+    });
+    const { port } = server.address() as import('net').AddressInfo;
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', `http://localhost:${port}`);
+    authClient.accessToken = 'session-token';
+    try {
+      const { getQuota } = await import('../data/backendProxyClient');
+      const quota = await getQuota();
+      expect(quota.aiChat).toEqual({ daily: 0, dailyLimit: expect.any(Number), monthly: 0, monthlyLimit: expect.any(Number) });
+      expect(quota.translation?.dailyLimit).toBeGreaterThan(0);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+});
+
+describe('account deletion client', () => {
+  it('reads status, requests deletion with the explicit confirmation, and cancels', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://api.example');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ graceDays: 30, mode: 'scheduled', scheduled: null }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ purgeAfter: '2026-11-10T00:00:00.000Z', status: 'scheduled' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ scheduled: null }), { status: 200 }));
+    const { cancelAccountDeletion, getAccountDeletionStatus, requestAccountDeletion } = await import('../data/backendProxyClient');
+
+    await expect(getAccountDeletionStatus()).resolves.toMatchObject({ mode: 'scheduled' });
+    await expect(requestAccountDeletion()).resolves.toMatchObject({ status: 'scheduled' });
+    await expect(cancelAccountDeletion()).resolves.toEqual({ scheduled: null });
+
+    const calls = fetchSpy.mock.calls.map(([url, init]) => [url, init?.method, init?.body ? JSON.parse(String(init.body)) : undefined]);
+    expect(calls).toEqual([
+      ['https://api.example/backend-proxy/proxy/account/deletion', 'GET', undefined],
+      ['https://api.example/backend-proxy/proxy/account/deletion', 'POST', { confirm: 'DELETE' }],
+      ['https://api.example/backend-proxy/proxy/account/deletion', 'DELETE', undefined],
+    ]);
+  });
+});
+
+describe('assessPronunciation', () => {
+  it('labels recordings with an audio type the proxy accepts', async () => {
+    const { audioContentType } = await import('../data/backendProxyClient');
+    expect(audioContentType('file:///rec/abc.m4a')).toBe('audio/mp4');
+    expect(audioContentType('file:///rec/abc.wav?x=1')).toBe('audio/wav');
+    expect(audioContentType('blob:https://app/123', 'audio/webm;codecs=opus')).toBe('audio/webm');
+    expect(audioContentType('blob:https://app/123', '')).toBe('audio/mp4');
+  });
+
+  it('posts the recording as the raw body with the word and language in the query', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://proxy.example');
+    authClient.accessToken = 'jwt';
+    const calls: [string, RequestInit][] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.startsWith('file:')) return new Response(new Blob(['audio'], { type: '' }));
+      calls.push([url, init ?? {}]);
+      return new Response(JSON.stringify({ overallScore: 80 }), { status: 200 });
+    });
+    const { assessPronunciation } = await import('../data/backendProxyClient');
+    await expect(assessPronunciation({ audioUri: 'file:///rec/a.m4a', language: 'en', referenceText: 'ice cream' })).resolves.toEqual({ overallScore: 80 });
+    expect(calls[0][0]).toBe('https://proxy.example/backend-proxy/proxy/pronunciation/assess?language=en&text=ice%20cream');
+    const headers = calls[0][1].headers as Record<string, string>;
+    expect(headers['Content-Type']).toBe('audio/mp4');
+    expect(headers.Authorization).toBe('Bearer jwt');
   });
 });

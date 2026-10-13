@@ -20,6 +20,9 @@ export const SUPABASE_SYNC_TABLE_BY_DOMAIN: Record<SupabaseSyncDomain, string> =
   tombstones: 'deleted_entities',
 };
 
+const PULL_PAGE_SIZE = 500;
+const PUSH_CHUNK_SIZE = 200;
+
 type SupabaseQueryResult<TRow> = {
   data: TRow[] | null;
   error: { message: string } | null;
@@ -45,15 +48,19 @@ export type SupabaseSyncRuntimeClient = {
   };
   from: (table: string) => {
     select: (columns?: string) => {
-      gt: (column: string, value: string) => {
-        order: (column: string, options?: { ascending?: boolean }) => Promise<SupabaseQueryResult<Record<string, unknown>>>;
+      gte: (column: string, value: string) => {
+        order: (column: string, options?: { ascending?: boolean }) => {
+          limit: (count: number) => PromiseLike<SupabaseQueryResult<Record<string, unknown>>>;
+        };
       };
-      order: (column: string, options?: { ascending?: boolean }) => Promise<SupabaseQueryResult<Record<string, unknown>>>;
+      order: (column: string, options?: { ascending?: boolean }) => {
+        limit: (count: number) => PromiseLike<SupabaseQueryResult<Record<string, unknown>>>;
+      };
     };
     upsert: (
       rows: Record<string, unknown>[],
       options?: { onConflict?: string }
-    ) => Promise<SupabaseMutationResult<Record<string, unknown>>>;
+    ) => PromiseLike<SupabaseMutationResult<Record<string, unknown>>>;
   };
 };
 
@@ -126,20 +133,39 @@ export function createSupabaseSyncRuntimeAdapter({
       }
     },
 
+    // Pages by the server-assigned synced_at. The cursor is inclusive (gte) so rows sharing a timestamp
+    // are never skipped; re-delivered rows are idempotent for the local port.
     async loadRemoteChanges(domain: SupabaseSyncDomain, cursor: SupabaseSyncCursor | null) {
       const { client } = await requireConfiguredClient();
       const table = SUPABASE_SYNC_TABLE_BY_DOMAIN[domain];
-      const query = client.from(table).select('*');
-      const result = cursor?.lastPullCursor
-        ? await query.gt('updated_at', cursor.lastPullCursor).order('updated_at', { ascending: true })
-        : await query.order('updated_at', { ascending: true });
+      const rowsByKey = new Map<string, Record<string, unknown>>();
+      let since = cursor?.lastPullCursor ?? null;
 
-      if (result.error) throw new Error(result.error.message);
+      for (;;) {
+        const query = client.from(table).select('*');
+        const result = since
+          ? await query.gte('synced_at', since).order('synced_at', { ascending: true }).limit(PULL_PAGE_SIZE)
+          : await query.order('synced_at', { ascending: true }).limit(PULL_PAGE_SIZE);
+        if (result.error) throw new Error(result.error.message);
 
-      const rows = (result.data ?? []).map(mapRemoteChange);
+        const page = result.data ?? [];
+        for (const row of page) rowsByKey.set(getRemoteRowKey(domain, row), row);
+
+        const lastSyncedAt = getSyncedAt(page.at(-1));
+        // Stop on a short page, or when a full page cannot advance the cursor (all rows share one timestamp).
+        if (page.length < PULL_PAGE_SIZE || !lastSyncedAt || lastSyncedAt === since) break;
+        since = lastSyncedAt;
+      }
+
+      const rows = Array.from(rowsByKey.values());
+      const latest = rows.reduce<string | null>((max, row) => {
+        const syncedAt = getSyncedAt(row);
+        return syncedAt && (!max || syncedAt > max) ? syncedAt : max;
+      }, cursor?.lastPullCursor ?? null);
+
       return {
-        nextCursor: getLastUpdatedAt(result.data),
-        rows,
+        nextCursor: latest,
+        rows: rows.map((row) => mapRemoteChange(domain, row)),
       };
     },
 
@@ -150,17 +176,23 @@ export function createSupabaseSyncRuntimeAdapter({
 
       const { client, userId } = await requireConfiguredClient();
       const table = SUPABASE_SYNC_TABLE_BY_DOMAIN[domain];
-      const remoteRows = rows.map((row) => ({
-        ...(row.remoteRow ?? { id: row.id }),
-        user_id: userId,
-      }));
-      const result = await client.from(table).upsert(remoteRows, { onConflict: getUpsertConflictTarget(domain) });
+      const pushedRowIds: string[] = [];
 
-      if (result.error) throw new Error(result.error.message);
+      for (let start = 0; start < rows.length; start += PUSH_CHUNK_SIZE) {
+        const chunk = rows.slice(start, start + PUSH_CHUNK_SIZE);
+        const remoteRows = chunk.map((row) => {
+          // synced_at is server-owned; never send a client value for it.
+          const { synced_at: _ignored, ...remoteRow } = row.remoteRow;
+          return { ...remoteRow, user_id: userId };
+        });
+        const result = await client.from(table).upsert(remoteRows, { onConflict: getUpsertConflictTarget(domain) });
+        if (result.error) throw new Error(result.error.message);
+        pushedRowIds.push(...chunk.map((row) => row.id));
+      }
 
       return {
-        nextCursor: getLastUpdatedAt(result.data) ?? getLatestLocalChangeAt(rows),
-        pushedRowIds: rows.map((row) => row.id),
+        nextCursor: getLatestLocalChangeAt(rows),
+        pushedRowIds,
       };
     },
   };
@@ -175,30 +207,53 @@ class SupabaseSyncUnavailableError extends Error {
   }
 }
 
-function mapRemoteChange(row: Record<string, unknown>): SupabaseSyncRemoteChange {
+// Postgres returns timestamptz as e.g. "2026-10-01T10:00:00+00:00" while the app writes toISOString()
+// ("...00.000Z"). Normalizing lets conflict checks and unchanged-row checks compare like with like.
+const TIMESTAMP_COLUMNS = ['completed_at', 'created_at', 'deleted_at', 'due_date', 'looked_up_at', 'synced_at', 'updated_at'];
+
+function normalizeRemoteTimestamps(row: Record<string, unknown>) {
+  const normalized = { ...row };
+  for (const column of TIMESTAMP_COLUMNS) {
+    const value = normalized[column];
+    if (value instanceof Date) normalized[column] = value.toISOString();
+    else if (typeof value === 'string' && value) {
+      const time = Date.parse(value);
+      if (Number.isFinite(time)) normalized[column] = new Date(time).toISOString();
+    }
+  }
+  return normalized;
+}
+
+function mapRemoteChange(domain: SupabaseSyncDomain, rawRow: Record<string, unknown>): SupabaseSyncRemoteChange {
+  const row = normalizeRemoteTimestamps(rawRow);
   return {
     deletedAt: typeof row.deleted_at === 'string' ? row.deleted_at : null,
-    id: getRemoteRowId(row),
-    table: typeof row.table === 'string' ? row.table : '',
+    id: getRemoteRowKey(domain, row),
+    row,
+    table: SUPABASE_SYNC_TABLE_BY_DOMAIN[domain],
     version: typeof row.version === 'number' ? row.version : undefined,
   };
 }
 
-function getRemoteRowId(row: Record<string, unknown>) {
-  if (typeof row.id === 'string') return row.id;
-
-  const entityType = typeof row.entity_type === 'string' ? row.entity_type : '';
-  const entityId = typeof row.entity_id === 'string' ? row.entity_id : '';
-  if (entityType && entityId) return `${entityType}:${entityId}`;
-
-  if (typeof row.user_id === 'string') return row.user_id;
-
-  return '';
+function getRemoteRowKey(domain: SupabaseSyncDomain, row: Record<string, unknown>) {
+  switch (domain) {
+    case 'profile':
+    case 'reader_settings':
+      return String(row.user_id ?? '');
+    case 'saved_word_folders':
+      return `${String(row.word_id ?? '')}:${String(row.folder_id ?? '')}`;
+    case 'tombstones':
+      return `${String(row.entity_type ?? '')}:${String(row.entity_id ?? '')}`;
+    default:
+      return String(row.id ?? '');
+  }
 }
 
-function getLastUpdatedAt(rows: Record<string, unknown>[] | null) {
-  const updatedAt = rows?.at(-1)?.updated_at;
-  return typeof updatedAt === 'string' ? updatedAt : null;
+// PostgREST returns timestamptz as ISO strings; tests may hand back Date objects.
+function getSyncedAt(row: Record<string, unknown> | undefined) {
+  const value = row?.synced_at;
+  if (value instanceof Date) return value.toISOString();
+  return typeof value === 'string' ? value : null;
 }
 
 function getLatestLocalChangeAt(rows: SupabaseSyncDirtyRow[]) {
@@ -226,6 +281,7 @@ function defaultIsOnline() {
   return typeof navigator === 'undefined' || navigator.onLine !== false;
 }
 
+// Callers pass the app's shared client (see supabaseSyncLifecycle); this module stays free of React Native imports.
 function createMissingRuntimeClient(): SupabaseAuthClientResult<SupabaseSyncRuntimeClient> {
   return {
     config: {
