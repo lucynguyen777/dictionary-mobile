@@ -1,0 +1,19 @@
+{
+  "entryCount": 98,
+  "generatedAt": "2026-10-12T00:00:00.000Z",
+  "glossLangCode": "fr",
+  "input": "vi-fr-probes.jsonl",
+  "langCode": "vi",
+  "license": "CC-BY-SA-4.0/GFDL",
+  "packId": "frwiktionary-vi-fr-offline-pack-v1",
+  "schemaVersion": 1,
+  "sourceName": "frwiktionary",
+  "sourceUrl": "https://kaikki.org/frwiktionary/Vietnamien/kaikki.org-dictionary-Vietnamien.jsonl",
+  "sourceRevision": "2026-10-02",
+  "helperSources": [
+    {
+      "name": "enwiktionary",
+      "use": "related-words"
+    }
+  ]
+}

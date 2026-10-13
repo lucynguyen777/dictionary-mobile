@@ -212,3 +212,31 @@ describe('account deletion client', () => {
     ]);
   });
 });
+
+describe('assessPronunciation', () => {
+  it('labels recordings with an audio type the proxy accepts', async () => {
+    const { audioContentType } = await import('../data/backendProxyClient');
+    expect(audioContentType('file:///rec/abc.m4a')).toBe('audio/mp4');
+    expect(audioContentType('file:///rec/abc.wav?x=1')).toBe('audio/wav');
+    expect(audioContentType('blob:https://app/123', 'audio/webm;codecs=opus')).toBe('audio/webm');
+    expect(audioContentType('blob:https://app/123', '')).toBe('audio/mp4');
+  });
+
+  it('posts the recording as the raw body with the word and language in the query', async () => {
+    vi.stubEnv('EXPO_PUBLIC_BACKEND_PROXY_URL', 'https://proxy.example');
+    authClient.accessToken = 'jwt';
+    const calls: [string, RequestInit][] = [];
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.startsWith('file:')) return new Response(new Blob(['audio'], { type: '' }));
+      calls.push([url, init ?? {}]);
+      return new Response(JSON.stringify({ overallScore: 80 }), { status: 200 });
+    });
+    const { assessPronunciation } = await import('../data/backendProxyClient');
+    await expect(assessPronunciation({ audioUri: 'file:///rec/a.m4a', language: 'en', referenceText: 'ice cream' })).resolves.toEqual({ overallScore: 80 });
+    expect(calls[0][0]).toBe('https://proxy.example/backend-proxy/proxy/pronunciation/assess?language=en&text=ice%20cream');
+    const headers = calls[0][1].headers as Record<string, string>;
+    expect(headers['Content-Type']).toBe('audio/mp4');
+    expect(headers.Authorization).toBe('Bearer jwt');
+  });
+});

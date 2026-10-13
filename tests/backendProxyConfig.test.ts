@@ -59,6 +59,7 @@ describe('backend proxy config', () => {
       deeplApiKey: 'deepl-key',
       limits: {
         dailyAiRequestLimitPerUser: 50,
+        dailyPronunciationLimitPerUser: 20,
         dailyTranslationCharacterLimitPerUser: 20000,
         maxGlossaryEntries: 1000,
         maxTextInputChars: 12000,

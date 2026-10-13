@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, AppState, Image, Linking, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Touchable from '@/components/app/Touchable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '@/components/app/Screen';
@@ -30,24 +30,28 @@ import OfflinePackSettings from '@/components/profile/OfflinePackSettings';
 import ProfileFields from '@/components/profile/ProfileFields';
 import PrivacySettings from '@/components/profile/PrivacySettings';
 import { DataStat, ProfileMetric } from '@/components/profile/Metrics';
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
 import { clearAllLocalData } from '@/data/clearLocalData';
 import DeleteAccountForm from '@/components/profile/DeleteAccountForm';
+import { legalUrls } from '@/data/legalLinks';
 
 
 const legalLinks = [
   {
     icon: 'document-text-outline' as const,
-    message: 'Điều khoản sử dụng sẽ được hoàn thiện trước khi phát hành công khai. Hiện app đang chạy local-first.',
+    message: 'Dữ liệu học tập nằm trên thiết bị của bạn. Các tính năng cloud (đồng bộ, dịch, AI, chấm phát âm) cần đăng nhập và có giới hạn sử dụng hằng ngày.',
     title: 'Điều khoản',
+    url: legalUrls.terms,
   },
   {
     icon: 'shield-checkmark-outline' as const,
-    message: 'Dictionary Mobile hiện lưu dữ liệu học tập trên thiết bị. Đồng bộ cloud và chia sẻ dữ liệu sẽ cần xác nhận riêng.',
+    message: 'Dữ liệu học tập nằm trên thiết bị. Chỉ khi bạn bật Đồng bộ cloud, dùng dịch/AI hoặc gửi bản ghi để chấm điểm thì dữ liệu tương ứng mới được gửi lên máy chủ. Bản ghi âm không được lưu.',
     title: 'Chính sách riêng tư',
+    url: legalUrls.privacyPolicy,
   },
   {
     icon: 'information-circle-outline' as const,
+    url: null,
     message: 'Ứng dụng dùng Expo, React Native và các nguồn dữ liệu/adapter từ điển được tách theo giấy phép tương ứng. Offline dictionary pack sẽ ghi rõ nguồn Wiktionary/Kaikki và giấy phép CC BY-SA/GFDL trước khi cho tải hoặc hiển thị dữ liệu.',
     title: 'Ghi nhận',
   },
@@ -63,46 +67,9 @@ const initialAuthSession: AuthSessionSnapshot = {
 };
 
 export default function ProfileScreen() {
-  const { colors, radius, shadows } = useToken();
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   const insets = useSafeAreaInsets();
-  const themed = useMemo(
-    () =>
-      StyleSheet.create({
-        card: {
-          backgroundColor: colors.surfaceRaised,
-          borderColor: colors.borderDefault,
-        },
-        guestAvatar: {
-          backgroundColor: colors.accentSoft,
-          borderColor: colors.focusRing,
-        },
-        hero: {
-          backgroundColor: colors.surfaceRaised,
-          borderColor: colors.borderDefault,
-          borderRadius: radius.lg,
-          ...shadows.sm,
-        },
-        iconButton: {
-          backgroundColor: colors.surfaceMuted,
-          borderColor: colors.borderDefault,
-        },
-        mutedText: {
-          color: colors.textSecondary,
-        },
-        primaryText: {
-          color: colors.textPrimary,
-        },
-        softBadge: {
-          backgroundColor: colors.accentSoft,
-          borderColor: colors.focusRing,
-        },
-        warningBadge: {
-          backgroundColor: colors.statusWarning,
-          borderColor: colors.accentWarning,
-        },
-      }),
-    [colors, radius.lg, shadows.sm]
-  );
   const [profile, setProfile] = useState<UserProfile>(getDefaultProfile());
   const [activityState, setActivityState] = useState<ActivityState>(getDefaultActivityState());
   const [libraryState, setLibraryState] = useState<LibraryState>(getDefaultLibraryState());
@@ -269,24 +236,24 @@ export default function ProfileScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.profileHero, themed.hero]}>
+        <View style={styles.profileHero}>
           <View style={styles.heroTopRow}>
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.heroAvatar} />
             ) : (
-              <View style={[styles.heroGuestAvatar, themed.guestAvatar]}>
+              <View style={styles.heroGuestAvatar}>
                 <Ionicons name="person-outline" size={26} color={colors.accentPrimary} />
               </View>
             )}
             <View style={styles.heroIdentity}>
-              <Text style={[styles.heroEyebrow, themed.mutedText]}>Hồ sơ học tập</Text>
-              <Text style={[styles.heroName, themed.primaryText]} numberOfLines={1}>{profile.displayName}</Text>
-              <Text style={[styles.heroMeta, themed.mutedText]} numberOfLines={2}>
+              <Text style={styles.heroEyebrow}>Hồ sơ học tập</Text>
+              <Text style={styles.heroName} numberOfLines={1}>{profile.displayName}</Text>
+              <Text style={styles.heroMeta} numberOfLines={2}>
                 {isDefaultGuestProfile
                   ? 'Chưa thiết lập hồ sơ · dữ liệu học tập chỉ lưu local'
                   : `${nativeLanguage?.label ?? profile.nativeLanguage} → ${learningLanguage?.label ?? profile.learningLanguage} · ${profile.proficiencyLevel}`}
               </Text>
-              <View style={[styles.heroAuthBadge, themed.softBadge]}>
+              <View style={styles.heroAuthBadge}>
                 <Ionicons
                   name={authSession.status === 'authenticated' || authSession.status === 'needs_verification' ? 'cloud-done-outline' : 'phone-portrait-outline'}
                   size={13}
@@ -306,7 +273,7 @@ export default function ProfileScreen() {
                   accessibilityRole="button"
                   onPress={handleAuthEntry}
                   style={({ pressed }) => [styles.heroAuthButton, pressed && styles.settingsButtonPressed]}>
-                  <Ionicons name="log-in-outline" size={17} color="#FFFFFF" />
+                  <Ionicons name="log-in-outline" size={17} color={colors.textOnAccent} />
                   <Text style={styles.heroAuthButtonText}>Đăng nhập</Text>
                 </Pressable>
               ) : null}
@@ -314,22 +281,22 @@ export default function ProfileScreen() {
                 accessibilityLabel="Mở cài đặt"
                 accessibilityRole="button"
                 onPress={() => openSidebarSection()}
-                style={({ pressed }) => [styles.heroIconButton, themed.iconButton, pressed && styles.settingsButtonPressed]}>
+                style={({ pressed }) => [styles.heroIconButton, pressed && styles.settingsButtonPressed]}>
                 <Ionicons name="settings-outline" size={20} color={colors.textPrimary} />
               </Pressable>
             </View>
           </View>
 
           {!isDefaultGuestProfile ? (
-            <View style={[styles.heroGoalRow, themed.warningBadge]}>
+            <View style={styles.heroGoalRow}>
               <View style={styles.goalBadge}>
-                <Ionicons name="flame-outline" size={16} color="#EA580C" />
+                <Ionicons name="flame-outline" size={16} color={colors.statusWarningText} />
                 <Text style={styles.goalBadgeText} numberOfLines={1}>{profile.dailyGoal}</Text>
               </View>
               <Text style={styles.goalText} numberOfLines={2}>{profile.learningGoal}</Text>
             </View>
           ) : (
-            <View style={[styles.guestSetupNotice, themed.softBadge]}>
+            <View style={styles.guestSetupNotice}>
               <Ionicons name="information-circle-outline" size={16} color={colors.accentPrimary} />
               <Text style={[styles.guestSetupText, { color: colors.accentPrimary }]}>Khách chưa có hồ sơ cá nhân. Bạn vẫn có thể học local, hoặc mở cài đặt để đăng nhập/thiết lập hồ sơ.</Text>
             </View>
@@ -343,11 +310,11 @@ export default function ProfileScreen() {
           {saveMessage ? <Text style={styles.saveMessage}>{saveMessage}</Text> : null}
         </View>
 
-        <View style={[styles.card, themed.card]}>
+        <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderCopy}>
-              <Text style={[styles.cardTitle, themed.primaryText]}>Tổng quan học tập</Text>
-              <Text style={[styles.cardSubtitle, themed.mutedText]}>Các chỉ số chính từ dữ liệu local trên thiết bị.</Text>
+              <Text style={styles.cardTitle}>Tổng quan học tập</Text>
+              <Text style={styles.cardSubtitle}>Các chỉ số chính từ dữ liệu local trên thiết bị.</Text>
             </View>
           </View>
           <View style={styles.compactDataRow}>
@@ -420,14 +387,14 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 onPress={() => setSidebarOpen(false)}
                 style={({ pressed }) => [styles.sidebarCloseButton, pressed && styles.sidebarCloseButtonPressed]}>
-                <Ionicons name="close" size={20} color="#5D5B54" />
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
               </Pressable>
             </View>
             <View style={styles.sidebarProfileCard}>
               {avatarUri ? (
                 <Image source={{ uri: avatarUri }} style={styles.sidebarProfileAvatar} />
               ) : (
-                <View style={[styles.sidebarProfileAvatar, styles.avatarPlaceholder, themed.guestAvatar]}>
+                <View style={[styles.sidebarProfileAvatar, styles.avatarPlaceholder]}>
                   <Ionicons name="person-outline" size={22} color={colors.accentPrimary} />
                 </View>
               )}
@@ -440,7 +407,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.releaseStatusPanel}>
               <View style={styles.releaseStatusIcon}>
-                <Ionicons name="rocket-outline" size={14} color="#5645D4" />
+                <Ionicons name="rocket-outline" size={14} color={colors.accentPrimary} />
               </View>
               <View style={styles.releaseStatusCopy}>
                 <Text style={styles.releaseStatusTitle} numberOfLines={1}>{getAppReleaseSummary()}</Text>
@@ -455,7 +422,7 @@ export default function ProfileScreen() {
                   accessibilityRole="button"
                   onPress={() => setSidebarSection(null)}
                   style={({ pressed }) => [styles.sidebarBackButton, pressed && styles.sidebarBackButtonPressed]}>
-                  <Ionicons name="chevron-back" size={18} color="#0075DE" />
+                  <Ionicons name="chevron-back" size={18} color={colors.accentPrimary} />
                 </Pressable>
                 <Text style={styles.sidebarDetailTitle} numberOfLines={1}>{activeSidebarItem.label}</Text>
               </View>
@@ -473,11 +440,11 @@ export default function ProfileScreen() {
                         styles.sidebarNavItem,
                         pressed && styles.sidebarNavItemPressed,
                       ]}>
-                      <Ionicons name={item.icon} size={15} color="#5D5B54" />
+                      <Ionicons name={item.icon} size={15} color={colors.textSecondary} />
                       <Text numberOfLines={1} style={styles.sidebarNavItemText}>
                         {item.label}
                       </Text>
-                      <Ionicons name="chevron-forward" size={14} color="#CBD5E1" />
+                      <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
                     </Pressable>
                   ))}
                 </View>
@@ -496,13 +463,12 @@ export default function ProfileScreen() {
                   onSignOutPress={handleSignOutAuth}
                 />
                 <ProfileFields
-                  avatarPlaceholderStyle={themed.guestAvatar}
                   isCloudSignedIn={authSession.status === 'authenticated'}
                   onChange={updateProfile}
                   profile={profile}
                 />
                 <Touchable activeOpacity={0.82} onPress={handleSaveProfile} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
-                  <Ionicons name="save-outline" size={16} color="#0075DE" />
+                  <Ionicons name="save-outline" size={16} color={colors.accentPrimary} />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Lưu thay đổi</Text>
                 </Touchable>
               </SidebarSection>
@@ -517,11 +483,11 @@ export default function ProfileScreen() {
                   profile={profile}
                 />
                 <Touchable activeOpacity={0.82} onPress={handleExportAllData} style={[styles.saveProfileButton, styles.sidebarPrimaryAction]}>
-                  <Ionicons name="cloud-upload-outline" size={16} color="#0075DE" />
+                  <Ionicons name="cloud-upload-outline" size={16} color={colors.accentPrimary} />
                   <Text style={styles.saveProfileText} numberOfLines={1}>Xuất dữ liệu local</Text>
                 </Touchable>
                 <Touchable activeOpacity={0.82} onPress={handleClearAllData} style={[styles.clearDataButton, styles.sidebarPrimaryAction]}>
-                  <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                  <Ionicons name="trash-outline" size={16} color={colors.statusErrorText} />
                   <Text style={styles.clearDataText} numberOfLines={1}>Xóa tất cả dữ liệu local</Text>
                 </Touchable>
                 <OfflinePackSettings
@@ -537,7 +503,9 @@ export default function ProfileScreen() {
                 <SidebarActionRow
                   icon="book-outline"
                   label="Trung tâm trợ giúp"
-                  onPress={() => Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp sẽ mở khi chọn kênh hỗ trợ chính thức.', [{ text: 'OK' }])}
+                  onPress={() => (legalUrls.helpCenter
+                    ? Linking.openURL(legalUrls.helpCenter).catch(() => undefined)
+                    : Alert.alert('Trung tâm trợ giúp', 'Trang trợ giúp chưa được xuất bản. Bạn có thể dùng "Gửi phản hồi" để hỏi trực tiếp.', [{ text: 'OK' }]))}
                 />
                 <SidebarActionRow
                   badge={authSession.status === 'authenticated' ? undefined : authSession.status === 'unconfigured' ? 'Chưa cấu hình' : 'Cần đăng nhập'}
@@ -602,9 +570,9 @@ export default function ProfileScreen() {
                   <Pressable
                     accessibilityRole="button"
                     key={item.title}
-                    onPress={() => Alert.alert(item.title, item.message, [{ text: 'OK' }])}
+                    onPress={() => (item.url ? Linking.openURL(item.url).catch(() => Alert.alert(item.title, item.message)) : Alert.alert(item.title, item.message, [{ text: 'OK' }]))}
                     style={({ pressed }) => [styles.sidebarLegalLink, pressed && styles.sidebarLegalLinkPressed]}>
-                    <Ionicons name={item.icon} size={15} color="#5D5B54" />
+                    <Ionicons name={item.icon} size={15} color={colors.textSecondary} />
                     <Text style={styles.sidebarLegalLinkText}>{item.title}</Text>
                   </Pressable>
                 ))}

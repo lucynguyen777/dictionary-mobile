@@ -79,7 +79,8 @@ export function mergeLookupEntry(
       word: apiBilingualMeaning.word,
       ipa: apiBilingualMeaning.ipa || apiMeaning?.ipa || (hasLocalEntry ? fallbackEntry.ipa : ''),
       audio: apiBilingualMeaning.audio || apiMeaning?.audio || (hasLocalEntry ? fallbackEntry.audio : ''),
-      level: hasLocalEntry ? fallbackEntry.level : 'EN-VI',
+      // Every bilingual pair lands here (EN→VI, FR→VI, VI→FR), so the label names no specific pair.
+      level: hasLocalEntry ? fallbackEntry.level : 'Song ngữ',
       topic: 'Bilingual dictionary',
       vietnamese: apiBilingualMeaning.definitions[0]?.meaning ?? fallbackEntry.vietnamese,
       shortDefinition: apiBilingualMeaning.definitions[0]?.meaning ?? fallbackEntry.shortDefinition,

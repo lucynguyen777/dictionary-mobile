@@ -94,7 +94,7 @@ export default function TabPager({
       case 'Etymology':
         return <EtymologyTab entry={entry} />;
       case 'Pronunciation':
-        return <PronunciationTab entry={entry} />;
+        return <PronunciationTab entry={entry} language={sourceLang} />;
       default:
         return null;
     }

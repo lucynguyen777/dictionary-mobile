@@ -6,7 +6,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-nati
 import Touchable from '@/components/app/Touchable';
 
 import { FilterChip } from '@/components/training/shared';
-import { styles } from '@/components/training/styles';
+import { useTrainingStyles } from '@/components/training/styles';
 import { translateSpecialized, type SpecializedTranslateRequest, type SpecializedTranslateResponse } from '@/data/backendProxyClient';
 import { glossaryLinesFromFile, mergeGlossaryText } from '@/data/glossaryImport';
 import { findGlossaryMatches, parseGlossaryText } from '@/data/glossaryMatching';
@@ -61,6 +61,7 @@ export function describeSpecializedTranslationError(error: unknown) {
 }
 
 export function SpecializedTranslationToolPanel() {
+  const styles = useTrainingStyles();
   const { colors } = useToken();
   const [domainId, setDomainId] = useState<SpecializedTranslateRequest['domainId']>('general');
   const [pairId, setPairId] = useState<TranslationAgentPair>(languagePairs[0].id);

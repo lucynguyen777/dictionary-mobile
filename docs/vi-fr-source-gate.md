@@ -28,12 +28,32 @@ The helper is English Wiktionary's Vietnamese section (`https://kaikki.org/dicti
 ## Quality notes
 
 - 8.3% of senses (outside character entries) are glossed in Vietnamese rather than French, mostly cross-references such as "Nói tắt của nha_lại." (short for …). A pack should keep them as cross-references or drop senses without a French gloss; they are not translations to show as French definitions.
-- The two missing probes are common adjectives (`nóng` hot, `sáng` bright/morning). They appear only as paronyms of other entries. Missing words fall back to the hosted path like other offline packs.
+- The two missing probes are common adjectives (`nóng` hot, `sáng` bright/morning). They appear only as paronyms of other entries. VI→FR has no other approved source, so missing words show the not-found message rather than a fallback.
 - Coverage is 16k headwords, about a third of the English edition's Vietnamese section. It is enough for common vocabulary, not for a comprehensive dictionary.
 
 ## Verdict
 
-The path passes the corpus, headword and example gates, and the related-words gate with helper relations. It needs the owner's approval as the VI→FR source (completion plan D13) before implementation. Implementation would add a pair pack (`vi` headwords, French definitions) to the offline pack pipeline and the probe-scoped pack smoke, then the UI smoke.
+The path passes the corpus, headword and example gates, and the related-words gate with helper relations. The owner approved it as the VI→FR source on 2026-10-12 (completion plan D13).
+
+## Implementation (2026-10-12)
+
+- **Builder**: `scripts/build-offline-pack.mjs --lang vi --gloss-lang fr` builds a pair pack. The manifest records `glossLangCode: "fr"`, the pack id is `frwiktionary-vi-fr-offline-pack-v1`, entries carry `glossLangCode`, and example translations are marked `translationLanguage: "fr"`. Monolingual packs are unchanged (no new fields, same ids).
+- **Vietnamese-glossed senses are dropped**, not shown as French definitions: glosses that start with a Vietnamese cross-reference ("Xem …", "Như …", "Nói tắt của …", "Cũng nói/viết …") or where at least half the words outside parentheses are Vietnamese (Vietnamese-only diacritics or function words). French glosses that cite a Vietnamese word, such as "Famille (xem gia đình)." or "Abréviation de bến xe", are kept. On the full 2026-10-02 dump this dropped 447 glosses, and 221 headwords that had only Vietnamese glosses are left out (16,002 → 15,781 entries; they get the not-found message). This classifier finds fewer Vietnamese glosses (about 2% outside character entries) than the 8.3% first estimate above, which counted any gloss containing Vietnamese words; a manual review of the remaining glosses with Vietnamese letters found French glosses citing Vietnamese terms.
+- **Helper**: `--helper-input <enwiktionary Vietnamese> --helper-source enwiktionary` merges only synonyms/antonyms and credits them in the entry attribution and manifest `helperSources`.
+- **Full build**: 15,781 entries, 1.21 MB gzipped (`entries.json.gz`), 2,153 entries enriched with helper relations. Probe coverage of the built pack: 98% headwords (missing `nóng`, `sáng`), examples 67.3%, related words 65.3%.
+- **App**: `OfflineDictionaryPack.glossLanguageCode` marks pair packs; `getOfflinePackDictionaryKey` keys them `vi->fr`, so a hosted VI-VI pack and the pair pack never replace each other in the catalog merge, and monolingual Vietnamese lookups never read French definitions. The catalog (`scripts/build-pack-catalog.mjs`, `data/offlinePackCatalog.ts`) carries `glossLanguageCode`. `lookupBilingual` answers `vi->fr` from an installed pair pack only; without one it says the pack is not available and never falls back to MinhQnd, DeepL/OpenAI or machine translation.
+- **Status**: the pair pack is listed as `builder_ready` with no download source. Hosting is decision D9 (Supabase Storage) and has not happened, so nothing is installed by default and the Word screen keeps its "coming soon" notice for VI→FR until an installed pack answers.
+- **Smoke**: `tests/fixtures/offline-packs/vi-fr-probe-smoke` (98 entries, 32 KB) passes validation → SQLite import → probe lookup (≥95% headwords) → delete in `tests/offlinePackProbeSmoke.test.ts`, and checks that no definition is a Vietnamese cross-reference.
+- **Remaining**: upload the pack and catalog (D9), then the native-device pack smoke and the Word/Reader/Library UI smoke.
+
+Build the pair pack:
+
+```bash
+node scripts/build-offline-pack.mjs --input kaikki.org-dictionary-Vietnamien.jsonl --lang vi --gloss-lang fr \
+  --source frwiktionary --source-url 'https://kaikki.org/frwiktionary/Vietnamien/kaikki.org-dictionary-Vietnamien.jsonl' \
+  --source-revision 2026-10-02 --generated-at 2026-10-12T00:00:00.000Z \
+  --helper-input kaikki.org-dictionary-Vietnamese.jsonl --helper-source enwiktionary --out tmp/offline-packs/vi-fr-v1
+```
 
 Reproduce:
 

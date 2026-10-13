@@ -1,9 +1,10 @@
 import { Text, View } from 'react-native';
 import { useToken } from '@/hooks/use-token';
 
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
 
 export function ProfileMetric({ label, value }: { label: string; value: number }) {
+  const styles = useProfileStyles();
   const { colors } = useToken();
 
   return (
@@ -15,6 +16,7 @@ export function ProfileMetric({ label, value }: { label: string; value: number }
 }
 
 export function DataStat({ label, value }: { label: string; value: number }) {
+  const styles = useProfileStyles();
   const { colors } = useToken();
 
   return (
@@ -26,6 +28,7 @@ export function DataStat({ label, value }: { label: string; value: number }) {
 }
 
 export function DarkDataStat({ compact, label, value }: { compact?: boolean; label: string; value: number }) {
+  const styles = useProfileStyles();
   return (
     <View style={[styles.darkDataStat, compact && styles.darkDataStatCompact]}>
       <Text style={styles.darkDataStatValue}>{value}</Text>

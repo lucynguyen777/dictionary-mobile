@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getBilingualCoverageInventoryRows, getFutureSourceGateRows } from '../data/languageCoverageInventory';
-import { LANGUAGE_PRODUCTION_SHARED_GATES, languageProductionRoadmap } from '../data/languageProductionRoadmap';
+import { getHelperSourceGate, LANGUAGE_PRODUCTION_SHARED_GATES, languageProductionRoadmap } from '../data/languageProductionRoadmap';
 import { languageOptions } from '../data/languages';
 
 describe('language production roadmap', () => {
@@ -28,5 +28,15 @@ describe('language production roadmap', () => {
       'attributed-corpus-minimum-5000',
       'offline-pack-import-delete-lookup-smoke',
     ]));
+  });
+
+  it('moves VI->FR from source-gated to an approved source with pack hosting still pending (D13)', () => {
+    const viFr = languageProductionRoadmap.find((target) => target.code === 'vi->fr');
+    expect(viFr).toMatchObject({ state: 'preview-promotion' });
+    expect(viFr?.sourcePlan).toContain('D13');
+    expect(viFr?.sourcePlan).toContain('pack host (D9) and UI smoke pending');
+    expect(viFr?.specialWork).toContain('never substitute machine translation');
+    expect(getHelperSourceGate('vi->fr', 'related-words')).toMatchObject({ passesNatively: false, passesWithHelper: true });
+    expect(getHelperSourceGate('vi->fr', 'examples')).toBeNull();
   });
 });

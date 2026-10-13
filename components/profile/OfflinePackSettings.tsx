@@ -4,9 +4,10 @@ import { Alert, Platform, Text, View } from 'react-native';
 
 import Touchable from '@/components/app/Touchable';
 import { DataStat } from '@/components/profile/Metrics';
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
 import { languageOptions } from '@/data/languages';
 import { deleteInstalledOfflineDictionaryPack, installOfflineDictionaryPackFromSource } from '@/data/offlineDictionaryPackActions';
+import { useToken } from '@/hooks/use-token';
 import {
   type OfflinePackInstallState,
   formatOfflinePackInstallStatus,
@@ -15,6 +16,7 @@ import {
   getOfflinePackInstallSummary,
 } from '@/data/offlineDictionaryPackStore';
 import {
+  formatPackLanguageLabel,
   formatPackSizeRange,
   formatPackStatus,
   formatPackTitle,
@@ -31,6 +33,8 @@ type Props = {
 
 // Offline dictionary packs in the Profile privacy & data drawer: install, reinstall and delete.
 export default function OfflinePackSettings({ installState, onInstallStateChange, packs }: Props) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   const [busyId, setBusyId] = useState<string | null>(null);
   const offlinePackRuntimeOptions = { supportsSqliteRuntime: Platform.OS !== 'web' };
   const offlinePackSummary = getOfflinePackSummary(packs, offlinePackRuntimeOptions);
@@ -94,7 +98,10 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
         <DataStat label="Đã cài" value={offlinePackInstallSummary.readyCount} />
       </View>
       {packs.map((pack) => {
-        const language = languageOptions.find((item) => item.code === pack.languageCode);
+        const packLanguageLabel = formatPackLanguageLabel(
+          pack,
+          (code) => languageOptions.find((item) => item.code === code)?.label ?? code
+        );
         const runtimeGate = getOfflinePackRuntimeGate(pack, offlinePackRuntimeOptions);
         const installRecord = getOfflinePackInstallRecord(installState, pack);
         const installStatus = formatOfflinePackInstallStatus(installRecord.status);
@@ -107,7 +114,7 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
         return (
           <View key={pack.id} style={styles.offlinePackRow}>
             <View style={styles.securityCopy}>
-              <Text style={styles.securityTitle}>{formatPackTitle(pack, language?.label ?? pack.languageCode)}</Text>
+              <Text style={styles.securityTitle}>{formatPackTitle(pack, packLanguageLabel)}</Text>
               <Text style={styles.securityText}>
                 {pack.sourceName} · {formatPackSizeRange(pack)} · {pack.license}
               </Text>
@@ -119,26 +126,26 @@ export default function OfflinePackSettings({ installState, onInstallStateChange
               <Text style={styles.offlinePackRuntimeText}>{runtimeGate.actionLabel}</Text>
               <View style={styles.offlinePackActionRow}>
                 <Touchable
-                  accessibilityLabel={`Tải ${language?.label ?? pack.languageCode} offline pack`}
+                  accessibilityLabel={`Tải ${packLanguageLabel} offline pack`}
                   accessibilityRole="button"
                   activeOpacity={0.82}
                   disabled={!canInstall}
                   onPress={() => handleInstallOfflinePack(pack)}
                   style={[styles.offlinePackActionButton, !canInstall && styles.offlinePackActionButtonDisabled]}>
-                  <Ionicons name="download-outline" size={14} color={canInstall ? '#0075DE' : '#A4A097'} />
+                  <Ionicons name="download-outline" size={14} color={canInstall ? colors.accentPrimary : colors.disabledText} />
                   <Text style={[styles.offlinePackActionText, !canInstall && styles.offlinePackActionTextDisabled]}>
                     {isBusy ? 'Đang xử lý' : installRecord.status === 'ready' ? 'Cài lại' : 'Tải pack'}
                   </Text>
                 </Touchable>
                 {hasInstallRecord ? (
                   <Touchable
-                    accessibilityLabel={`Xóa ${language?.label ?? pack.languageCode} offline pack`}
+                    accessibilityLabel={`Xóa ${packLanguageLabel} offline pack`}
                     accessibilityRole="button"
                     activeOpacity={0.82}
                     disabled={isBusy}
                     onPress={() => handleDeleteOfflinePack(pack)}
                     style={[styles.offlinePackDeleteButton, isBusy && styles.offlinePackActionButtonDisabled]}>
-                    <Ionicons name="trash-outline" size={14} color={isBusy ? '#94A3B8' : '#DC2626'} />
+                    <Ionicons name="trash-outline" size={14} color={isBusy ? colors.textTertiary : colors.statusErrorText} />
                     <Text style={[styles.offlinePackDeleteText, isBusy && styles.offlinePackActionTextDisabled]}>
                       Xóa
                     </Text>

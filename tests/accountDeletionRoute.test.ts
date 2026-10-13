@@ -40,9 +40,14 @@ const request = (baseUrl: string, method: string, body?: unknown) =>
   fetch(`${baseUrl}/proxy/account/deletion`, { body: body ? JSON.stringify(body) : undefined, headers: auth, method });
 
 describe('account deletion route', () => {
-  it('is off until the owner picks a mode (D3)', async () => {
+  it('defaults to scheduled deletion with a 30-day grace period (D3)', async () => {
+    const baseUrl = await start({}, fakeStore());
+    expect(await (await request(baseUrl, 'GET')).json()).toEqual({ graceDays: 30, mode: 'scheduled', scheduled: null });
+  });
+
+  it('can be turned off', async () => {
     const store = fakeStore();
-    const baseUrl = await start({}, store);
+    const baseUrl = await start({ ACCOUNT_DELETION_MODE: 'off' }, store);
     expect(await (await request(baseUrl, 'GET')).json()).toEqual({ graceDays: 30, mode: null, scheduled: null });
     const response = await request(baseUrl, 'POST', { confirm: 'DELETE' });
     expect(response.status).toBe(503);
@@ -92,6 +97,9 @@ describe('account deletion route', () => {
     const purge = (secret?: string) =>
       fetch(`${baseUrl}/admin/purge-account-deletions`, { headers: secret ? { Authorization: `Bearer ${secret}` } : {}, method: 'POST' });
     expect((await purge()).status).toBe(401);
+    // Vercel cron jobs call with GET.
+    const cron = await fetch(`${baseUrl}/admin/purge-account-deletions`, { headers: { Authorization: 'Bearer cron-secret' } });
+    expect(cron.status).toBe(200);
     expect((await purge('valid')).status).toBe(401);
     const response = await purge('cron-secret');
     expect(await response.json()).toEqual({ purged: 2 });

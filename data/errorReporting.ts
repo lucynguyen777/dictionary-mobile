@@ -1,11 +1,13 @@
-// Provider-neutral error reporting (plan 7.1). The crash-reporting service is owner decision D8
-// (Sentry or EAS Observe, opt-in or not); whichever is chosen plugs in with setErrorReporter().
-// Until then errors are only kept in memory for this session and logged in development.
+// Provider-neutral error reporting (plan 7.1). Owner decision D8: Sentry, opt-in. The Sentry adapter
+// (data/sentryReporter.ts) plugs in with setErrorReporter() when a DSN is configured; without one,
+// errors are only kept in memory for this session and logged in development.
 
 export type ErrorContext = { source: 'render' | 'global' | 'promise' | 'manual'; [key: string]: unknown };
 
 export type ErrorReporter = {
   captureException: (error: { message: string; name: string; stack?: string }, context: ErrorContext) => void;
+  // Told whenever reporting turns on or off, so the provider SDK only runs after consent.
+  setEnabled?: (enabled: boolean) => void;
 };
 
 export type RecordedError = { at: string; context: ErrorContext; message: string; name: string };
@@ -13,8 +15,7 @@ export type RecordedError = { at: string; context: ErrorContext; message: string
 const MAX_RECENT = 20;
 const SAME_ERROR_WINDOW_MS = 10_000;
 
-// Owner decision D8: whether reports are sent before the learner chooses (on by default or opt-in).
-// Until then the build default is opt-in.
+// Owner decision D8: opt-in. Nothing is sent until the learner turns on "Gửi báo cáo lỗi".
 export const CRASH_REPORTS_DEFAULT_ON = false;
 
 let reporter: ErrorReporter | null = null;
@@ -22,8 +23,17 @@ let consent: boolean | null = null;
 const recent: RecordedError[] = [];
 const lastSeen = new Map<string, number>();
 
+function notifyEnabled() {
+  try {
+    reporter?.setEnabled?.(isErrorReportingEnabled());
+  } catch {
+    // A failing reporter must never crash the app it is reporting on.
+  }
+}
+
 export function setErrorReporter(next: ErrorReporter | null) {
   reporter = next;
+  notifyEnabled();
 }
 
 export function hasErrorReporter() {
@@ -33,6 +43,7 @@ export function hasErrorReporter() {
 // The learner's choice from Profile (null = not chosen yet, CRASH_REPORTS_DEFAULT_ON applies).
 export function setErrorReportingConsent(choice: boolean | null) {
   consent = choice;
+  notifyEnabled();
 }
 
 export function isErrorReportingEnabled() {

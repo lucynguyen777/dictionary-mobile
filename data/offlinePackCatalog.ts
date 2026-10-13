@@ -1,14 +1,25 @@
-// Remote catalog of hosted offline dictionary packs (plan 6.3). Once packs are hosted (owner
-// decision D9), setting EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL is all the app needs: Profile refreshes
-// the catalog, and the last valid copy is cached so installed packs keep working offline.
+// Remote catalog of hosted offline dictionary packs (plan 6.3). Owner decision D9: packs live in the
+// public Supabase Storage bucket `offline-packs`, so the catalog URL follows from the Supabase project
+// URL; EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL overrides it. Profile refreshes the catalog, and the last
+// valid copy is cached so installed packs keep working offline.
 // The catalog is built by scripts/build-pack-catalog.mjs from builder output.
 import { languageOptions, type LanguageCode } from './languages';
-import { offlineDictionaryPacks, type OfflineDictionaryPack } from './offlineDictionaryPacks';
+import { getOfflinePackDictionaryKey, offlineDictionaryPacks, type OfflineDictionaryPack } from './offlineDictionaryPacks';
 import { getStoredItem, setStoredItem } from './storageAdapter';
 
 export const OFFLINE_PACK_CATALOG_STORAGE_KEY = 'dictionary-mobile.offline-pack-catalog.v1';
 // Expo inlines EXPO_PUBLIC_* only for direct property access.
-export const OFFLINE_PACK_CATALOG_URL = process.env.EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL?.trim() ?? '';
+export function resolveOfflinePackCatalogUrl(configuredUrl: string | undefined, supabaseUrl: string | undefined) {
+  const configured = configuredUrl?.trim();
+  if (configured) return configured;
+  const project = supabaseUrl?.trim().replace(/\/+$/, '');
+  return project ? `${project}/storage/v1/object/public/offline-packs/catalog.json` : '';
+}
+
+export const OFFLINE_PACK_CATALOG_URL = resolveOfflinePackCatalogUrl(
+  process.env.EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL,
+  process.env.EXPO_PUBLIC_SUPABASE_URL
+);
 
 const MD5 = /^[a-f0-9]{32}$/;
 const KNOWN_LANGUAGES = new Set<string>(languageOptions.map((language) => language.code));
@@ -36,6 +47,14 @@ export function parseOfflinePackCatalog(value: unknown, catalogUrl: string): Off
     const manifestUrl = resolveUrl(raw.manifestUrl, catalogUrl);
     const entryCount = Number(raw.entryCount);
     const sizeBytes = Number(raw.compressedSizeBytes);
+    // Pair packs (e.g. VI→FR) name the language their definitions are written in.
+    const glossLanguageCode = raw.glossLanguageCode;
+    if (
+      glossLanguageCode !== undefined
+      && (typeof glossLanguageCode !== 'string' || !KNOWN_LANGUAGES.has(glossLanguageCode) || glossLanguageCode === raw.languageCode)
+    ) {
+      return [];
+    }
     if (
       typeof raw.id !== 'string' || !raw.id.trim()
       || typeof raw.languageCode !== 'string' || !KNOWN_LANGUAGES.has(raw.languageCode)
@@ -58,6 +77,7 @@ export function parseOfflinePackCatalog(value: unknown, catalogUrl: string): Off
         ...(manifestUrl ? { manifestMd5: raw.manifestMd5 as string, manifestUrl } : {}),
       },
       estimatedCompressedSizeMb: { max: sizeMb, min: sizeMb },
+      ...(typeof glossLanguageCode === 'string' ? { glossLanguageCode: glossLanguageCode as LanguageCode } : {}),
       id: raw.id.trim(),
       languageCode: raw.languageCode as LanguageCode,
       license: 'CC-BY-SA-4.0/GFDL',
@@ -67,10 +87,11 @@ export function parseOfflinePackCatalog(value: unknown, catalogUrl: string): Off
   });
 }
 
-// A hosted pack replaces the bundled pack of the same language (e.g. the English sample pack).
+// A hosted pack replaces the bundled pack of the same dictionary (e.g. the English sample pack). Pair packs
+// have their own key ("vi->fr"), so a hosted Vietnamese pack does not replace the VI→FR pair pack.
 export function mergeOfflinePacks(base: OfflineDictionaryPack[], catalogPacks: OfflineDictionaryPack[]) {
-  const hostedLanguages = new Set(catalogPacks.map((pack) => pack.languageCode));
-  return [...base.filter((pack) => !hostedLanguages.has(pack.languageCode)), ...catalogPacks];
+  const hostedDictionaries = new Set(catalogPacks.map(getOfflinePackDictionaryKey));
+  return [...base.filter((pack) => !hostedDictionaries.has(getOfflinePackDictionaryKey(pack))), ...catalogPacks];
 }
 
 type CachedCatalog = { catalog: unknown; catalogUrl: string };

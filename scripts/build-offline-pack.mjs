@@ -14,8 +14,12 @@ if (!args.input || !args.lang || !args.source || !args.out) {
       + ' [--source-url <url>] [--source-revision <dump date or id>] [--generated-at <ISO time>] [--limit <entries>]'
       + ' [--public-base-url <url prefix where the pack is hosted>]'
       + ' [--helper-input <jsonl> --helper-source <name>]  (related words only, e.g. from another Wiktionary edition)'
+      + ' [--helper-examples [--helper-gloss-lang <code>]]  (also take helper example sentences for entries without native ones;'
+      + ' their translations are marked with the helper edition language, default en)'
+      + ' [--gloss-lang <code>]  (pair pack: --lang headwords defined in another language, e.g. --lang vi --gloss-lang fr)'
       + ' [--lemmas-only]  (skip inflected-form entries; the app resolves inflections with its morphology)'
       + ' [--rank-by richness]  (with --limit: keep the best-documented entries instead of the first ones in the dump)'
+      + ' [--index-kanji-forms]  (Japanese: also index entries under the kanji spellings Wiktionary lists in `forms`)'
   );
   process.exit(1);
 }
@@ -28,13 +32,35 @@ if (args.rankBy !== undefined && args.rankBy !== 'richness') {
   process.exit(1);
 }
 const rankByRichness = args.rankBy === 'richness';
+// A pair pack (e.g. Vietnamese headwords with French definitions) records its definition language;
+// a monolingual pack keeps the original manifest shape.
+const glossLang = typeof args.glossLang === 'string' && args.glossLang !== args.lang ? args.glossLang : '';
+if (args.glossLang === true) {
+  console.error('--gloss-lang needs a language code.');
+  process.exit(1);
+}
+const helperExamples = args.helperExamples === true;
+const indexKanjiForms = args.indexKanjiForms === true;
+const kanjiFormsById = new Map();
+if (helperExamples && !(args.helperInput && args.helperSource)) {
+  console.error('--helper-examples needs --helper-input and --helper-source.');
+  process.exit(1);
+}
+// Example translations in a helper edition are written in that edition's language (English Wiktionary: English).
+const helperGlossLang = typeof args.helperGlossLang === 'string' ? args.helperGlossLang : 'en';
 const MAX_DEFINITIONS_PER_ENTRY = 16;
 const MAX_EXAMPLES_PER_ENTRY = 8;
 const MAX_RELATIONS = 24;
 const MAX_TEXT_CHARS = 1_000;
+// Only Vietnamese has a detector so far (the VI→FR pair pack). A gloss counts as Vietnamese when, outside
+// parentheses, at least half of its words carry Vietnamese-only diacritics (hook, horn, breve, dot below,
+// tilde, đ, or marks French never puts on that vowel) or are common Vietnamese function words.
+const VIETNAMESE_FUNCTION_WORDS = new Set(['các', 'cho', 'có', 'của', 'cũng', 'dạng', 'được', 'khác', 'không', 'một', 'như', 'những', 'nói', 'tắt', 'trong', 'từ', 'và', 'với', 'xem']);
+const VIETNAMESE_CROSS_REFERENCE = /^(xem|như|nói tắt|cũng (nói|viết|đọc|gọi))(\s|$)/iu;
+const FRENCH_COMBINING_MARKS = { '\u0300': 'aeu', '\u0301': 'e', '\u0302': 'aeiou', '\u0308': 'eiuy', '\u0327': 'c' };
 const entriesByKey = new Map();
 const lemmasOnly = args.lemmasOnly === true;
-const stats = { formOfEntriesSkipped: 0, mergedEntries: 0, otherLanguageSections: 0, scannedLines: 0, withoutDefinitions: 0 };
+const stats = { formOfEntriesSkipped: 0, mergedEntries: 0, otherLanguageSections: 0, scannedLines: 0, withoutDefinitions: 0, ...(glossLang ? { headwordLanguageGlossesDropped: 0 } : {}) };
 // As in scripts/measure-kaikki-dump.mjs, an entry is a lemma if any sense is not a form-of sense.
 // Entries without senses are left to the definitions check below.
 const isLemmaEntry = (entry) => !(entry.senses ?? []).length
@@ -56,6 +82,18 @@ for await (const line of reader) {
     stats.otherLanguageSections += 1;
     continue;
   }
+  // Japanese Wiktionary also writes kanji spellings as their own form-of entries (飲む → のむ). Those
+  // become kanji aliases of the kana lemma instead of separate entries.
+  if (indexKanjiForms) {
+    const spelling = getString(rawEntry.word);
+    const lemmas = (rawEntry.senses ?? []).flatMap((sense) => (Array.isArray(sense.form_of) ? sense.form_of : [])).map((item) => getString(item?.word)).filter(Boolean);
+    if (spelling && lemmas.length && !isLemmaEntry(rawEntry)) {
+      for (const lemma of lemmas) {
+        const lemmaId = `${args.lang}:${normalizeLookupKey(lemma)}`;
+        kanjiFormsById.set(lemmaId, unique([...(kanjiFormsById.get(lemmaId) ?? []), spelling]));
+      }
+    }
+  }
   if (lemmasOnly && !isLemmaEntry(rawEntry)) {
     stats.formOfEntriesSkipped += 1;
     continue;
@@ -64,6 +102,13 @@ for await (const line of reader) {
   if (!normalizedEntry) {
     stats.withoutDefinitions += 1;
     continue;
+  }
+  if (indexKanjiForms) {
+    const kanji = (Array.isArray(rawEntry.forms) ? rawEntry.forms : [])
+      .filter((form) => Array.isArray(form?.tags) && form.tags.includes('kanji'))
+      .map((form) => getString(form.form))
+      .filter((form) => form && form !== normalizedEntry.word);
+    if (kanji.length) kanjiFormsById.set(normalizedEntry.id, unique([...(kanjiFormsById.get(normalizedEntry.id) ?? []), ...kanji]));
   }
   const existing = entriesByKey.get(normalizedEntry.id);
   if (existing) {
@@ -74,10 +119,15 @@ for await (const line of reader) {
   }
 }
 
-// Helper source: only synonyms/antonyms of headwords already in the pack are taken, never definitions,
-// and the helper is credited in each enriched entry's attribution.
+// Helper source: only synonyms/antonyms (and, with --helper-examples, example sentences) of headwords
+// already in the pack are taken, never definitions, and the helper is credited in each enriched entry's attribution.
 if (args.helperInput && args.helperSource) {
   stats.helperEnrichedEntries = 0;
+  const relatedCredit = `related words also from ${args.helperSource} (CC-BY-SA-4.0/GFDL)`;
+  const examplesCredit = `examples also from ${args.helperSource} (CC-BY-SA-4.0/GFDL)`;
+  // Helper examples only fill entries that have no example sentence of their own.
+  const withoutNativeExamples = new Set(helperExamples ? [...entriesByKey.values()].filter((entry) => !entry.examples.length) : []);
+  if (helperExamples) stats.helperExampleEntries = 0;
   const helperReader = createInterface({ crlfDelay: Infinity, input: createReadStream(args.helperInput, { encoding: 'utf8' }) });
   for await (const line of helperReader) {
     if (!line.trim()) continue;
@@ -91,9 +141,25 @@ if (args.helperInput && args.helperSource) {
       antonyms: unique([...target.relations.antonyms, ...relations.antonyms]),
       synonyms: unique([...target.relations.synonyms, ...relations.synonyms]),
     };
-    if (target.relations.synonyms.length + target.relations.antonyms.length > before && !target.attribution.includes(args.helperSource)) {
-      target.attribution = `${target.attribution}; related words also from ${args.helperSource} (CC-BY-SA-4.0/GFDL)`;
+    if (target.relations.synonyms.length + target.relations.antonyms.length > before && !target.attribution.includes(relatedCredit)) {
+      target.attribution = `${target.attribution}; ${relatedCredit}`;
       stats.helperEnrichedEntries += 1;
+    }
+    if (withoutNativeExamples.has(target) && target.examples.length < MAX_EXAMPLES_PER_ENTRY) {
+      const examples = normalizeExamples(helperEntry)
+        .slice(0, MAX_EXAMPLES_PER_ENTRY - target.examples.length)
+        .map((example) => ({
+          ...example,
+          helperSource: args.helperSource,
+          ...(example.translation ? { translationLanguage: helperGlossLang } : {}),
+        }));
+      if (examples.length) {
+        target.examples.push(...examples);
+        if (!target.attribution.includes(examplesCredit)) {
+          target.attribution = `${target.attribution}; ${examplesCredit}`;
+          stats.helperExampleEntries += 1;
+        }
+      }
     }
   }
 }
@@ -119,24 +185,49 @@ if (rankByRichness && selected.length > limit) {
     .map(({ entry }) => entry);
 }
 
+// Japanese Wiktionary keys many words by their kana reading and lists the kanji spelling in `forms`
+// (みず → 水). Learners look words up in kanji, so each selected entry is also stored under its kanji
+// spellings, unless the pack already has an entry for that spelling. The alias keeps the kana
+// headword in `word`, so the result still shows the reading.
+if (indexKanjiForms) {
+  stats.kanjiAliasEntries = 0;
+  const taken = new Set(selected.map((entry) => entry.id));
+  for (const entry of [...selected]) {
+    for (const form of kanjiFormsById.get(entry.id) ?? []) {
+      const id = `${args.lang}:${normalizeLookupKey(form)}`;
+      if (taken.has(id)) continue;
+      taken.add(id);
+      selected.push({ ...entry, id, normalizedWord: normalizeLookupKey(form) });
+      stats.kanjiAliasEntries += 1;
+    }
+  }
+}
+
 const entries = selected
   .map(capEntry)
   .sort((a, b) => (a.normalizedWord < b.normalizedWord ? -1 : a.normalizedWord > b.normalizedWord ? 1 : 0));
 
 mkdirSync(args.out, { recursive: true });
 
+const helperSources = args.helperSource
+  ? [
+      { name: args.helperSource, use: 'related-words' },
+      ...(helperExamples ? [{ name: args.helperSource, translationLanguage: helperGlossLang, use: 'examples' }] : []),
+    ]
+  : [];
 const manifest = {
   entryCount: entries.length,
   generatedAt,
+  ...(glossLang ? { glossLangCode: glossLang } : {}),
   input: basename(args.input),
   langCode: args.lang,
   license: 'CC-BY-SA-4.0/GFDL',
-  packId: `${args.source}-${args.lang}-offline-pack-v1`,
+  packId: glossLang ? `${args.source}-${args.lang}-${glossLang}-offline-pack-v1` : `${args.source}-${args.lang}-offline-pack-v1`,
   schemaVersion: 1,
   sourceName: args.source,
   sourceUrl: args.sourceUrl ?? '',
   sourceRevision: args.sourceRevision ?? '',
-  ...(args.helperSource ? { helperSources: [{ name: args.helperSource, use: 'related-words' }] } : {}),
+  ...(helperSources.length ? { helperSources } : {}),
 };
 
 const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
@@ -209,7 +300,11 @@ function normalizeEntry(rawEntry, langCode, sourceName, sourceUrl, updatedAt) {
   const word = getString(rawEntry.word);
   if (!word) return null;
 
-  const definitions = normalizeDefinitions(rawEntry);
+  const allDefinitions = normalizeDefinitions(rawEntry);
+  // In a pair pack, senses glossed in the headword language (e.g. Vietnamese cross-references such as
+  // "Nói tắt của nha_lại." in French Wiktionary) are not definitions in the gloss language: drop them.
+  const definitions = glossLang ? allDefinitions.filter((definition) => !isHeadwordLanguageGloss(definition.gloss, langCode)) : allDefinitions;
+  if (glossLang) stats.headwordLanguageGlossesDropped += allDefinitions.length - definitions.length;
   if (!definitions.length) return null;
 
   return {
@@ -221,7 +316,10 @@ function normalizeEntry(rawEntry, langCode, sourceName, sourceUrl, updatedAt) {
       || (Array.isArray(rawEntry.etymology_texts) ? rawEntry.etymology_texts.map(getString).filter(Boolean).join(' ') : '')
       || getString(rawEntry.etymology)
       || '',
-    examples: normalizeExamples(rawEntry),
+    examples: glossLang
+      ? normalizeExamples(rawEntry).map((example) => (example.translation ? { ...example, translationLanguage: glossLang } : example))
+      : normalizeExamples(rawEntry),
+    ...(glossLang ? { glossLangCode: glossLang } : {}),
     id: `${langCode}:${normalizeLookupKey(word)}`,
     ipa: normalizeIpa(rawEntry),
     langCode,
@@ -249,6 +347,31 @@ function normalizeDefinitions(rawEntry) {
       }));
     })
     .filter((definition) => definition.gloss);
+}
+
+function isVietnameseToken(token) {
+  const lower = token.toLocaleLowerCase();
+  if (VIETNAMESE_FUNCTION_WORDS.has(lower) || lower.includes('đ')) return true;
+  const decomposed = lower.normalize('NFD');
+  for (let index = 1; index < decomposed.length; index += 1) {
+    const mark = decomposed[index];
+    if (!/[\u0300-\u036f]/.test(mark)) continue;
+    const base = decomposed[index - 1];
+    if (/[\u0300-\u036f]/.test(base) || !(FRENCH_COMBINING_MARKS[mark] ?? '').includes(base)) return true;
+  }
+  return false;
+}
+
+function isHeadwordLanguageGloss(gloss, langCode) {
+  if (langCode !== 'vi') return false;
+  // Vietnamese cross-references: "Xem …" (see), "Như …" (same as), "Nói tắt của …" (short for), "Cũng nói/viết …".
+  if (VIETNAMESE_CROSS_REFERENCE.test(gloss.trim())) return true;
+  const words = (text) => text.split(/[^\p{L}_]+/u).filter(Boolean);
+  // Parenthesised Vietnamese labels inside a French gloss do not count, unless the gloss is only a parenthesis.
+  const outside = words(gloss.replace(/\([^)]*\)/g, ' '));
+  const tokens = outside.length ? outside : words(gloss);
+  if (!tokens.length) return false;
+  return tokens.filter(isVietnameseToken).length / tokens.length >= 0.5;
 }
 
 function normalizeAudio(rawEntry) {

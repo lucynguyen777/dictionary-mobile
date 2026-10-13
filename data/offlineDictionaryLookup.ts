@@ -1,4 +1,4 @@
-import type { ApiMeaningResult, ApiRelatedWords } from './dictionaryApi';
+import type { ApiBilingualMeaningResult, ApiMeaningResult, ApiRelatedWords } from './dictionaryApi';
 import type { LanguageCode } from './languages';
 import { getMorphologyCandidates } from './morphology';
 
@@ -11,6 +11,8 @@ export type OfflineDictionaryDefinition = {
 export type OfflineDictionaryExample = {
   source: string;
   translation?: string;
+  translationLanguage?: string;
+  helperSource?: string;
 };
 
 export type OfflineDictionaryEntry = {
@@ -19,6 +21,8 @@ export type OfflineDictionaryEntry = {
   definitions: OfflineDictionaryDefinition[];
   etymology: string;
   examples: OfflineDictionaryExample[];
+  // Pair packs only (e.g. 'fr' for Vietnamese headwords defined in French); absent in monolingual packs.
+  glossLangCode?: LanguageCode;
   id: string;
   ipa: string;
   langCode: LanguageCode;
@@ -100,6 +104,19 @@ export function mapOfflineEntryToApiMeaning(result: OfflineDictionaryLookupResul
     ipa: entry.ipa,
     source,
     word: entry.word,
+  };
+}
+
+// Pair packs (e.g. VI→FR) answer bilingual lookups: definitions are already in the target language.
+export function mapOfflineEntryToApiBilingualMeaning(result: OfflineDictionaryLookupResult): ApiBilingualMeaningResult {
+  const meaning = mapOfflineEntryToApiMeaning(result);
+  return {
+    audio: meaning.audio,
+    definitions: meaning.definitions,
+    ipa: meaning.ipa,
+    source: meaning.source,
+    translations: [],
+    word: meaning.word,
   };
 }
 

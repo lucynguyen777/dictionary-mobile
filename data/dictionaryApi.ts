@@ -316,7 +316,7 @@ export async function fetchBilingualMeaning(
   targetLang: string
 ): Promise<ApiBilingualMeaningResult> {
   if (isBlockedBilingualDictionaryPair(sourceLang, targetLang)) {
-    throw new Error('Vietnamese → French dictionary source has not been selected yet.');
+    throw new Error(`Dictionary source for "${sourceLang}->${targetLang}" has not been selected yet.`);
   }
 
   if (!canUseBilingualDictionaryApi(sourceLang, targetLang)) {

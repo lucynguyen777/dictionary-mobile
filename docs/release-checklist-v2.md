@@ -26,8 +26,10 @@ Plan task 7.5. One place to see what must be true before a store release. Owner 
 | `USER_PROVIDER_SECRET_ENCRYPTION_KEY` | encrypting stored provider tokens |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_STATE_SECRET` | Google Sheets export |
 | `BACKEND_PROXY_ALLOWED_ORIGINS` | extra web origins (D4) |
+| `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `PROXY_DAILY_PRONUNCIATION_LIMIT_PER_USER` (default 20) | pronunciation scoring (D6); needs migration 013 |
+| `CRON_SECRET` | daily purge of scheduled account deletions (D3, `vercel.json` cron); `ACCOUNT_DELETION_MODE` defaults to `scheduled`, `ACCOUNT_DELETION_GRACE_DAYS` to 30 |
 
-- [ ] App build env (public only): `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_BACKEND_PROXY_URL` (set in `eas.json`), optional `EXPO_PUBLIC_CHANDRA_OCR_URL`, `EXPO_PUBLIC_READER_ENABLE_PDF`, `EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL` (hosted packs, D9). `EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION` stays off in preview/production until the dev-client smoke passes.
+- [ ] App build env (public only): `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_BACKEND_PROXY_URL` (set in `eas.json`), optional `EXPO_PUBLIC_CHANDRA_OCR_URL`, `EXPO_PUBLIC_READER_ENABLE_PDF`, `EXPO_PUBLIC_OFFLINE_PACK_CATALOG_URL` (hosted packs, D9), `EXPO_PUBLIC_SENTRY_DSN` (crash reports, opt-in, D8), `EXPO_PUBLIC_PRIVACY_POLICY_URL`, `EXPO_PUBLIC_TERMS_URL`, `EXPO_PUBLIC_HELP_CENTER_URL` (D5). `EXPO_PUBLIC_ENABLE_NATIVE_RECOGNITION` stays off in preview/production until the dev-client smoke passes.
 - [ ] Provider spend limits set at OpenAI and DeepL dashboards, independent of app quotas.
 
 ## 3. Provider smoke (signed-in user, web and native)

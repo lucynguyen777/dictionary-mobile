@@ -17,5 +17,16 @@
       "source": "/auth/callback",
       "destination": "/auth/callback.html"
     }
-  ]
+  ],
+  "crons": [
+    {
+      "path": "/api/backend-proxy?path=admin/purge-account-deletions",
+      "schedule": "17 3 * * *"
+    }
+  ],
+  "functions": {
+    "api/backend-proxy.ts": {
+      "includeFiles": "node_modules/ffmpeg-static/ffmpeg"
+    }
+  }
 }

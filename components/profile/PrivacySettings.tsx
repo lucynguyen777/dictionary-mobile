@@ -5,11 +5,12 @@ import { Alert, Switch, Text, TextInput, View } from 'react-native';
 
 import Touchable from '@/components/app/Touchable';
 import { NotificationPreferenceRow } from '@/components/profile/SettingsDrawerParts';
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
 import { type NotificationPreferences, type UserProfile, saveUserProfile } from '@/data/profileStore';
 import { triggerManualSync } from '@/data/supabaseSyncLifecycle';
 import { loadCrashReportPreference, saveCrashReportPreference } from '@/data/crashReportPreference';
 import { hasErrorReporter, isErrorReportingEnabled } from '@/data/errorReporting';
+import { useToken } from '@/hooks/use-token';
 
 type Props = {
   isSignedIn: boolean;
@@ -20,6 +21,8 @@ type Props = {
 
 // App lock, cloud sync and local notification settings in the Profile privacy & data drawer.
 export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange, profile }: Props) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   // Crash reports (plan 7.1): the switch appears once a reporting provider is plugged in (D8).
   const [crashReportsOn, setCrashReportsOn] = useState(isErrorReportingEnabled());
   useEffect(() => {
@@ -125,7 +128,7 @@ export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange
   return (
     <>
       <View style={styles.privacyNote}>
-        <Ionicons name="lock-closed-outline" size={18} color="#0075DE" />
+        <Ionicons name="lock-closed-outline" size={18} color={colors.accentPrimary} />
         <Text style={styles.privacyText}>
           Dữ liệu học tập, hồ sơ và file Reader luôn lưu local trước. Cloud chỉ chạy khi bạn đăng nhập và bật đồng bộ (beta); khi đã bật, ứng dụng tự đồng bộ khi mở lại và sau khi bạn chỉnh sửa.
         </Text>
@@ -137,8 +140,8 @@ export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange
         </View>
         <Switch
           onValueChange={handleToggleAppLock}
-          thumbColor="#FFFFFF"
-          trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
+          thumbColor={colors.textOnAccent}
+          trackColor={{ false: colors.borderDefault, true: colors.accentPrimary }}
           value={profile.appLockEnabled}
         />
       </View>
@@ -151,8 +154,8 @@ export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange
             </View>
             <Switch
               onValueChange={handleToggleCloudSync}
-              thumbColor="#FFFFFF"
-              trackColor={{ false: '#C8C4BE', true: '#5645D4' }}
+              thumbColor={colors.textOnAccent}
+              trackColor={{ false: colors.borderDefault, true: colors.accentPrimary }}
               value={profile.cloudSyncEnabled}
             />
           </View>
@@ -161,7 +164,7 @@ export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange
               activeOpacity={0.82}
               onPress={handleManualCloudSync}
               style={styles.manualSyncButton}>
-              <Ionicons name="sync-outline" size={15} color="#0075DE" />
+              <Ionicons name="sync-outline" size={15} color={colors.accentPrimary} />
               <Text style={styles.manualSyncButtonText} numberOfLines={1}>Đồng bộ ngay</Text>
             </Touchable>
           ) : null}
@@ -206,7 +209,7 @@ export default function PrivacySettings({ isSignedIn, onMessage, onProfileChange
             onBlur={handleCommitNotificationTime}
             onChangeText={handleChangeNotificationTime}
             placeholder="20:00"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textTertiary}
             style={styles.notificationTimeInput}
             value={profile.notificationPreferences.reminderTime}
           />

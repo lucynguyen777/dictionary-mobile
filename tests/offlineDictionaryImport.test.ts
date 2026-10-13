@@ -106,6 +106,20 @@ describe('offlineDictionaryImport', () => {
     ]);
   });
 
+  it('rejects a pair-pack manifest for a monolingual pack and the other way round', () => {
+    const viEntry = { ...entry, id: 'vi:nhà', langCode: 'vi' as const, normalizedWord: 'nhà', word: 'nhà' };
+    const pairPack = offlineDictionaryPacks.find((item) => item.glossLanguageCode === 'fr')!;
+    const pairManifest: OfflinePackManifest = { ...manifest, glossLangCode: 'fr', langCode: 'vi', packId: pairPack.id };
+
+    expect(validateOfflinePackManifest(pairPack, pairManifest, [viEntry])).toEqual([]);
+    expect(validateOfflinePackManifest(pairPack, { ...pairManifest, glossLangCode: undefined }, [viEntry])).toEqual([
+      'Definition language mismatch: expected fr, received vi.',
+    ]);
+    expect(validateOfflinePackManifest({ ...pairPack, glossLanguageCode: undefined }, pairManifest, [viEntry])).toEqual([
+      'Definition language mismatch: expected vi, received fr.',
+    ]);
+  });
+
   it('imports a downloaded pack into storage and marks it ready', async () => {
     const storage = createMemoryOfflineDictionaryStorage();
     const state = await importOfflineDictionaryPack({

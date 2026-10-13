@@ -1,10 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Account deletion (plan 2.6). Owner decision D3 chooses the mode through ACCOUNT_DELETION_MODE:
-// - unset: deletion is not offered yet (the app says so),
+// Account deletion (plan 2.6). Owner decision D3 (2026-10-13): scheduled deletion with a 30-day grace period.
+// ACCOUNT_DELETION_MODE can still override it:
+// - unset or "scheduled": a request is recorded and purged after ACCOUNT_DELETION_GRACE_DAYS (default 30);
+//   the user can cancel until then. Purging runs daily from the Vercel cron (/admin/purge-account-deletions),
 // - "immediate": the auth user is deleted at once; every user table cascades,
-// - "scheduled": a request is recorded and purged after ACCOUNT_DELETION_GRACE_DAYS (default 30);
-//   the user can cancel until then. Purging runs from /proxy/admin/purge-account-deletions.
+// - "off": deletion is not offered (the app says so).
+// Without a Supabase service-role client there is no store, and the app reports deletion as unavailable.
 export type AccountDeletionMode = 'immediate' | 'scheduled';
 
 export type AccountDeletionConfig =
@@ -24,7 +26,7 @@ export function readAccountDeletionConfig(env: Record<string, string | undefined
   const graceDays = Number(env.ACCOUNT_DELETION_GRACE_DAYS ?? 30);
   return {
     graceDays: Number.isInteger(graceDays) && graceDays >= 1 && graceDays <= 90 ? graceDays : 30,
-    mode: rawMode === 'immediate' || rawMode === 'scheduled' ? rawMode : null,
+    mode: rawMode === 'off' ? null : rawMode === 'immediate' ? 'immediate' : 'scheduled',
   };
 }
 

@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Stack } from 'expo-router';
+import * as Sentry from '@sentry/react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, AppState, Platform, StyleSheet, Text, View } from 'react-native';
@@ -16,6 +17,7 @@ import PdfTextExtractorHost from '@/components/reader/PdfTextExtractorHost';
 import { installGlobalErrorHandlers } from '@/data/errorReporting';
 import { installWebAlert } from '@/data/webAlert';
 import { loadCrashReportPreference } from '@/data/crashReportPreference';
+import { installSentryReporter } from '@/data/sentryReporter';
 import { NATIVE_PDF_IMPORT_ENABLED } from '@/constants/featureFlags';
 import { addUserDataSavedListener } from '@/data/userDatabaseRuntime';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -25,6 +27,9 @@ import { useToken } from '@/hooks/use-token';
 if (Platform.OS === 'web' && typeof window !== 'undefined') installWebAlert(Alert, window);
 
 installDevelopmentWarningFilter();
+
+// Crash reports go to Sentry only when a DSN is configured and the learner opted in (D8).
+installSentryReporter(process.env.EXPO_PUBLIC_SENTRY_DSN, Sentry, __DEV__ ? 'development' : 'production');
 
 export const unstable_settings = {
   anchor: '(tabs)',

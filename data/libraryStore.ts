@@ -1,6 +1,8 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
+import { FOLDER_COLOR_OPTIONS } from '../constants/pastels';
+
 import type { VocabularyImportRow } from './csvImport';
 import { DictionaryEntry, savedFolders } from './dictionary';
 import { getStoredItem, removeStoredItem, setStoredItem } from './storageAdapter';
@@ -1172,9 +1174,7 @@ function escapeHtmlCell(value: string) {
 }
 
 function pickFolderColor(index: number) {
-  const colors = ['#E8F0FF', '#EAF8F0', '#FFF1E8', '#F1ECFF', '#FFEFF3', '#EAF7FA'];
-
-  return colors[index % colors.length];
+  return FOLDER_COLOR_OPTIONS[index % FOLDER_COLOR_OPTIONS.length];
 }
 
 function normalizeFolderTags(tags?: string[]) {

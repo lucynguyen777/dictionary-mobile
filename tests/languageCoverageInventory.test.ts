@@ -33,8 +33,8 @@ describe('language coverage inventory', () => {
       'vi->en',
     ]);
     expect(pairs.find((row) => row.pair === 'vi->fr')).toMatchObject({
-      sourceKind: 'source-gated',
-      status: 'source-gated',
+      sourceKind: 'offline-pair-pack',
+      status: 'approved-source',
     });
   });
 
@@ -75,7 +75,8 @@ describe('language coverage inventory', () => {
     expect(summary.registeredLanguages).toBe(languageOptions.length);
     expect(summary.productionParity).toBe(5);
     expect(summary.monolingualPreview).toBeGreaterThan(20);
-    expect(summary.sourceGated).toBeGreaterThanOrEqual(8);
+    expect(summary.sourceGated).toBeGreaterThanOrEqual(7);
+    expect(summary.approvedSource).toBe(1);
     expect(summary.localEntryTotal).toBeGreaterThan(0);
     expect(summary.focusedTestLanguages).toBeGreaterThan(20);
   });

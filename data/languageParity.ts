@@ -1,6 +1,7 @@
 import { languageOptions, type LanguageCode } from './languages';
 
-export type LanguageParityStatus = 'production-parity' | 'monolingual-preview' | 'source-gated';
+// approved-source: the lexical source is approved and the pack builder is ready, but no pack is hosted yet.
+export type LanguageParityStatus = 'production-parity' | 'monolingual-preview' | 'approved-source' | 'source-gated';
 
 export type LanguageParityRow = {
   code: LanguageCode | string;
@@ -50,8 +51,8 @@ export function getLanguageParityRows(): LanguageParityRow[] {
     {
       code: 'vi->fr',
       label: 'Vietnamese to French',
-      status: 'source-gated',
-      blocker: 'No approved lexical dictionary source; machine translation is not dictionary data.',
+      status: 'approved-source',
+      blocker: 'French Wiktionary source approved (D13); the VI->FR pair pack is builder-ready but not hosted (D9) and needs UI smoke.',
     },
   ];
 }

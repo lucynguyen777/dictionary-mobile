@@ -3,7 +3,8 @@ import { Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { FutureFeatureNotice } from '@/components/app/FutureFeature';
 import { type AuthSessionSnapshot } from '@/data/authSession';
 
-import { styles } from '@/components/profile/styles';
+import { useProfileStyles } from '@/components/profile/styles';
+import { useToken } from '@/hooks/use-token';
 
 function getAuthStatusCopy(authSession: AuthSessionSnapshot) {
   switch (authSession.status) {
@@ -55,6 +56,8 @@ export function AuthStatusPanel({
   onRefreshPress: () => void;
   onSignOutPress: () => void;
 }) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   const copy = getAuthStatusCopy(authSession);
   const canSignOut = authSession.status === 'authenticated' || authSession.status === 'needs_verification';
   const isUnconfigured = authSession.status === 'unconfigured';
@@ -67,7 +70,7 @@ export function AuthStatusPanel({
       )}
       <View style={styles.authStatusHeader}>
         <View style={styles.authStatusIcon}>
-          <Ionicons name={canSignOut ? 'cloud-done-outline' : 'cloud-offline-outline'} size={17} color="#0075DE" />
+          <Ionicons name={canSignOut ? 'cloud-done-outline' : 'cloud-offline-outline'} size={17} color={colors.accentPrimary} />
         </View>
         <View style={styles.authStatusCopy}>
           <Text style={styles.authStatusTitle} numberOfLines={1}>{copy.title}</Text>
@@ -97,7 +100,7 @@ export function AuthStatusPanel({
           accessibilityRole="button"
           onPress={onRefreshPress}
           style={({ pressed }) => [styles.authStatusRefreshButton, pressed && styles.authStatusButtonPressed]}>
-          <Ionicons name="refresh" size={16} color="#0075DE" />
+          <Ionicons name="refresh" size={16} color={colors.accentPrimary} />
         </Pressable>
       </View>
     </View>
@@ -133,6 +136,8 @@ export function AuthModal({
   onSignUp: () => void;
   visible: boolean;
 }) {
+  const { colors } = useToken();
+  const styles = useProfileStyles();
   const isBusy = Boolean(authBusyAction);
   const isUnconfigured = authSession.status === 'unconfigured';
   const submit = mode === 'sign-in' ? onSignIn : onSignUp;
@@ -151,7 +156,7 @@ export function AuthModal({
               </Text>
             </View>
             <Pressable accessibilityLabel="Đóng" accessibilityRole="button" onPress={onClose} style={styles.authModalClose}>
-              <Ionicons name="close" size={20} color="#475569" />
+              <Ionicons name="close" size={20} color={colors.textSecondary} />
             </Pressable>
           </View>
 
@@ -179,7 +184,7 @@ export function AuthModal({
             keyboardType="email-address"
             onChangeText={onChangeEmail}
             placeholder="Email"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textTertiary}
             style={[styles.profileInput, (isBusy || isUnconfigured) && styles.profileInputDisabled]}
             value={authEmail}
           />
@@ -188,7 +193,7 @@ export function AuthModal({
             onChangeText={onChangePassword}
             onSubmitEditing={submit}
             placeholder="Mật khẩu"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textTertiary}
             secureTextEntry
             style={[styles.profileInput, styles.authPasswordInput, (isBusy || isUnconfigured) && styles.profileInputDisabled]}
             value={authPassword}
@@ -198,7 +203,7 @@ export function AuthModal({
             disabled={isBusy || isUnconfigured}
             onPress={submit}
             style={({ pressed }) => [styles.authModalSubmit, pressed && styles.authStatusButtonPressed, (isBusy || isUnconfigured) && styles.authStatusButtonDisabled]}>
-            <Ionicons name={mode === 'sign-in' ? 'log-in-outline' : 'person-add-outline'} size={17} color="#FFFFFF" />
+            <Ionicons name={mode === 'sign-in' ? 'log-in-outline' : 'person-add-outline'} size={17} color={colors.textOnAccent} />
             <Text style={styles.authFormButtonText}>
               {authBusyAction === mode ? (mode === 'sign-in' ? 'Đang đăng nhập...' : 'Đang tạo tài khoản...') : (mode === 'sign-in' ? 'Đăng nhập' : 'Tạo tài khoản')}
             </Text>
